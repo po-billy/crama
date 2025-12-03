@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>이미지 스튜디오 | 크라마(crama)</title>
+  <link rel="stylesheet" href="./css/common.css">
+  <link rel="stylesheet" href="./css/studio.css">
+</head>
+
+<body class="page-studio" data-page="studio">
+  <div class="app">
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <button class="back-btn" id="mobileNavBtn" aria-label="메뉴 열기">☰</button>
+        <span class="top-title">이미지</span>
+      </div>
+    </header>
+
+    <div class="content">
+      <div id="sidebar-container"></div>
+      <div id="drawer-container"></div>
+
+      <main class="main-area">
+        <div class="studio-wrap">
+          <div class="studio-layout">
+
+            <!-- 중앙: 입력/스타일/갤러리 -->
+            <div style="display:flex;flex-direction:column;gap:16px;">
+              <section class="panel" aria-label="이미지 생성 입력">
+                <div class="studio-tabs">
+                  <button class="studio-tab active" data-mode="direct">신규 생성</button>
+                  <button class="studio-tab" data-mode="transform">이미지 변형</button>
+                  <span class="studio-tab-underline"></span>
+                </div>
+
+                <div class="prompt-panel">
+                  <div id="directPromptPanel" class="prompt-mode-panel">
+                    <div class="mode-header">
+                      <div class="mode-eyebrow">신규 생성</div>
+                      <p class="mode-description">원하는 이미지를 차례대로 설명해 주세요. 인물, 분위기, 배경 등을 구체적으로 적을수록 좋아요.</p>
+                    </div>
+                    <label class="prompt-label" for="promptInput">만들고 싶은 이미지를 차례대로 설명해 보세요<br>(성별, 포즈, 얼굴, 표정,
+                      자세, 구도, 의상, 배경, 그 외)</label>
+                    <textarea id="promptInput" class="prompt-input" maxlength="1000" placeholder="예) 차분한 시선으로 정면을 응시하는 흑발 소녀, 교복, 봄 햇살"></textarea>
+                  </div>
+
+                  <div class="prompt-mode-panel transform-panel hidden" id="transformPanel">
+                    <div class="mode-header">
+                      <div class="mode-eyebrow">이미지 변형</div>
+                      <p class="mode-description">기준 이미지를 업로드하고 변경하고 싶은 내용을 지시하세요. 마스크 이미지를 올리면 해당 영역만 교체됩니다.</p>
+                    </div>
+                    <div class="transform-upload">
+                      <label class="transform-label">기준 이미지 *</label>
+                      <label class="upload-box" id="baseUploadBox">
+                        <input type="file" id="baseImageInput" accept="image/*">
+                        <div class="upload-hint">이미지를 끌어두거나 클릭해서 업로드하세요.</div>
+                        <img id="baseImagePreview" alt="미리보기">
+                      </label>
+                    </div>
+                    <div class="transform-upload">
+                      <label class="transform-label" for="maskImageInput">마스크 이미지 (선택)</label>
+                      <input type="file" id="maskImageInput" accept="image/*">
+                      <p class="field__hint">하얀 영역만 교체됩니다. 마스크가 없으면 전체 이미지를 참고해 새로 그립니다.</p>
+                    </div>
+                    <label class="transform-label" for="transformPrompt">변경 지시 *</label>
+                    <textarea id="transformPrompt" class="prompt-input transform-textarea" maxlength="800"
+                      placeholder="예) 흰 원피스를 검은 정장으로 바꾸고, 배경을 야간 도시로 변경"></textarea>
+                    <p class="mode-note">변형 모드에서는 기준 이미지의 해상도와 비율이 유지됩니다.</p>
+                  </div>
+
+                  <div class="prompt-footer">
+                    <button type="button" class="btn btn-ghost" id="promptHelperBtn">✎ 프롬프트 헬퍼</button>
+                    <button class="btn btn-accent" id="generateBtn">이미지 생성 🪙 190</button>
+                    <span id="promptCount">0/1000</span>
+                  </div>
+                </div>
+              </section>
+
+              <section class="panel styles-wrap" aria-label="이미지 스타일 선택">
+                <div>
+                  <div style="color:#ff3c28;font-weight:800;margin-bottom:4px;">✦ 이미지 스타일</div>
+                  <div style="color:#8c91a3;font-size:13px;">원하는 느낌의 스타일을 선택하세요</div>
+                </div>
+                <div class="styles-grid" id="styleList">
+                  <div class="style-card selected" data-name="청초">
+                    <img src="./assets/청초.webp" alt="청초">
+                    <div class="style-label">청초</div>
+                  </div>
+                  <div class="style-card" data-name="순정">
+                    <img src="./assets/순정.webp" alt="순정">
+                    <div class="style-label">순정</div>
+                  </div>
+                  <div class="style-card" data-name="키치">
+                    <img src="./assets/키치.webp" alt="키치">
+                    <div class="style-label">키치</div>
+                  </div>
+                  <div class="style-card" data-name="로판">
+                    <img src="./assets/로판.webp" alt="로판">
+                    <div class="style-label">로판</div>
+                  </div>
+                  <div class="style-card" data-name="모에">
+                    <img src="./assets/모에.webp" alt="모에">
+                    <div class="style-label">모에</div>
+                  </div>
+                  <div class="style-card" data-name="액션">
+                    <img src="./assets/액션.webp" alt="액션">
+                    <div class="style-label">액션</div>
+                  </div>
+                  <div class="style-card" data-name="모던">
+                    <img src="./assets/모던.webp" alt="모던">
+                    <div class="style-label">모던</div>
+                  </div>
+                  <div class="style-card" data-name="와일드">
+                    <img src="./assets/와일드.webp" alt="와일드">
+                    <div class="style-label">와일드</div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="panel">
+                <div style="font-weight:700;margin-bottom:8px;">결과 갤러리</div>
+                <div class="gallery" id="gallery"></div>
+              </section>
+            </div>
+
+            <!-- 우측 옵션 (PC) -->
+            <aside class="panel sticky" aria-label="이미지 옵션" id="optionPanel">
+              <button type="button" class="panel-close" id="mobilePanelClose" aria-label="옵션 닫기">✕</button>
+              <div style="display:flex;flex-direction:column;gap:14px;">
+                <div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-weight:700;">이미지 비율*</span>
+                  </div>
+                  <div class="options-grid" id="ratioOptions">
+                    <button class="btn-option active" data-ratio="1:1">1:1</button>
+                    <button class="btn-option" data-ratio="4:3">4:3</button>
+                    <button class="btn-option" data-ratio="3:4">3:4</button>
+                    <button class="btn-option" data-ratio="16:9">16:9</button>
+                    <button class="btn-option" data-ratio="9:16">9:16</button>
+                  </div>
+                </div>
+
+                <div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-weight:700;">이미지 개수*</span>
+                    <small style="color:var(--muted);">개수만큼 scene 사용</small>
+                  </div>
+                  <div class="options-rows" id="countOptions">
+                    <button class="btn-option" data-count="1">1개</button>
+                    <button class="btn-option active" data-count="2">2개</button>
+                    <button class="btn-option" data-count="3">3개</button>
+                    <button class="btn-option" data-count="4">4개</button>
+                  </div>
+                </div>
+              </div>
+            </aside>
+          </div>
+          <button type="button" class="panel-toggle" id="mobileOptionToggle" aria-label="옵션 열기" aria-expanded="false">⚙</button>
+          <div class="mobile-panel-overlay" id="mobilePanelOverlay"></div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/common.js"></script>
+  <script src="js/authWidget.js"></script>
+  <script src="js/studio.js"></script>
+
+  <!-- 주의사항 바텀시트 -->
+  <div id="cautionModal" class="caution-modal hidden">
+    <div class="caution-card">
+      <div class="caution-header">
+        <h3 class="caution-title">이미지 생성 유의사항</h3>
+        <button id="cautionClose" class="btn btn-ghost" aria-label="닫기">✕</button>
+      </div>
+      <ul class="caution-list">
+        <li>이미지 생성에는 scene이 사용됩니다. 생성에 사용된 scene은 돌려받을 수 없습니다.</li>
+        <li>부적절한 이미지 생성 및 배포는 금지됩니다. 아동/청소년 대상 성적 콘텐츠, 마약/무기 등 불법 콘텐츠, 혐오·폭력적 콘텐츠를 생성할 수 없습니다.</li>
+        <li>생성된 이미지의 저작권 및 사용 책임은 사용자에게 있습니다.</li>
+      </ul>
+      <div class="caution-actions">
+        <button id="cautionAgree" class="btn btn-accent">내용을 확인했습니다</button>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

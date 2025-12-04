@@ -20,6 +20,62 @@ document.querySelectorAll('.character-side .side-tab').forEach(tab => {
   });
 });
 
+const SCENE_MODE_STORAGE_KEY = 'crama_scene_mode';
+const CHAT_FETCH_LIMIT = 30;
+
+let sceneModeEnabled = (() => {
+  try {
+    return localStorage.getItem(SCENE_MODE_STORAGE_KEY) === '1';
+  } catch (e) {
+    return false;
+  }
+})();
+let currentSceneTemplates = [];
+let sceneTemplatesCollapsed = true;
+let oldestMessageTimestamp = null;
+let hasMoreChats = false;
+let currentChatSessionId = null;
+let loadMoreInFlight = false;
+
+function escapeHtml(value) {
+  return (value || '').toString()
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function setSceneTemplateCollapsed(collapsed) {
+  sceneTemplatesCollapsed = collapsed;
+  const strip = document.getElementById('sceneTemplateStrip');
+  const toggle = document.getElementById('sceneTemplateToggle');
+  if (strip) {
+    strip.classList.toggle('scene-template-strip--expanded', !collapsed);
+    strip.classList.toggle('scene-template-strip--collapsed', collapsed);
+  }
+  if (toggle) {
+    toggle.textContent = collapsed ? '펼치기' : '접기';
+    toggle.setAttribute('aria-expanded', (!collapsed).toString());
+    if (strip?.dataset.empty === 'true') {
+      toggle.disabled = true;
+      toggle.textContent = '없음';
+    } else {
+      toggle.disabled = false;
+    }
+  }
+}
+
+function initSceneTemplateToggle() {
+  const toggle = document.getElementById('sceneTemplateToggle');
+  if (!toggle) return;
+  toggle.addEventListener('click', () => {
+    const strip = document.getElementById('sceneTemplateStrip');
+    if (strip?.dataset.empty === 'true') return;
+    setSceneTemplateCollapsed(!sceneTemplatesCollapsed);
+  });
+  setSceneTemplateCollapsed(sceneTemplatesCollapsed);
+}
+
 // ================================
 // URL 파라미터로 캐릭터 ID 추출
 // ================================
@@ -54,6 +110,214 @@ async function openCreditUpsellSafe() {
   if (typeof window.openCreditUpsell === 'function') {
     window.openCreditUpsell();
   }
+}
+
+function initSceneModeToggle() {
+  const toggle = document.getElementById('sceneModeToggle');
+  const infoBtn = document.getElementById('sceneModeInfoBtn');
+  const infoPanel = document.getElementById('sceneModeInfo');
+  if (!toggle) return;
+  toggle.checked = !!sceneModeEnabled;
+  toggle.addEventListener('change', () => {
+    sceneModeEnabled = toggle.checked;
+    try {
+      localStorage.setItem(SCENE_MODE_STORAGE_KEY, sceneModeEnabled ? '1' : '0');
+    } catch (e) {
+      console.warn('scene mode pref save failed', e);
+    }
+  });
+  if (infoBtn && infoPanel) {
+    infoBtn.addEventListener('click', () => {
+      const expanded = infoBtn.getAttribute('aria-expanded') === 'true';
+      const next = !expanded;
+      infoBtn.setAttribute('aria-expanded', next.toString());
+      infoPanel.classList.toggle('hidden', !next);
+    });
+  }
+}
+
+function renderSceneTemplates(list = []) {
+  const strip = document.getElementById('sceneTemplateStrip');
+  const toggle = document.getElementById('sceneTemplateToggle');
+  if (!strip) return;
+  strip.innerHTML = '';
+  currentSceneTemplates = Array.isArray(list) ? list : [];
+  const hasTemplates = currentSceneTemplates.length > 0;
+  strip.dataset.empty = hasTemplates ? 'false' : 'true';
+  if (!hasTemplates) {
+    strip.classList.add('scene-template-strip--empty');
+    strip.innerHTML = '<p class="scene-template-empty">등록된 상황 이미지가 없습니다.</p>';
+    setSceneTemplateCollapsed(true);
+    if (toggle) {
+      toggle.disabled = true;
+      toggle.textContent = '없음';
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+    return;
+  }
+  strip.classList.remove('scene-template-strip--empty');
+  if (toggle) {
+    toggle.disabled = false;
+    toggle.textContent = sceneTemplatesCollapsed ? '펼치기' : '접기';
+    toggle.setAttribute('aria-expanded', (!sceneTemplatesCollapsed).toString());
+  }
+  setSceneTemplateCollapsed(sceneTemplatesCollapsed);
+  currentSceneTemplates.forEach((template) => {
+    const card = document.createElement('div');
+    card.className = 'scene-template-card';
+    const keywords = Array.isArray(template.keywords)
+      ? template.keywords.join(', ')
+      : (template.keywords || '');
+    const label = escapeHtml(template.label || '상황 이미지');
+    const desc = escapeHtml(template.description || keywords || '');
+    card.innerHTML = `
+      <div class="scene-template-thumb">
+        <img src="${template.image_url || template.url || '/assets/sample-character-02.png'}" alt="${label}" />
+      </div>
+      <div class="scene-template-info">
+        <strong>${label}</strong>
+        <span>${desc}</span>
+      </div>
+    `;
+    strip.appendChild(card);
+  });
+}
+
+function getOrCreateChatSessionId(characterId) {
+  if (currentChatSessionId) return currentChatSessionId;
+  const sessionKey = `cc_session_${characterId}`;
+  let sessionId = localStorage.getItem(sessionKey);
+  if (!sessionId) {
+    sessionId = crypto.randomUUID();
+    localStorage.setItem(sessionKey, sessionId);
+  }
+  currentChatSessionId = sessionId;
+  return sessionId;
+}
+
+function updateLoadMoreButton() {
+  const btn = document.getElementById('chatLoadMoreBtn');
+  if (!btn) return;
+  if (hasMoreChats) {
+    btn.classList.remove('hidden');
+    btn.disabled = loadMoreInFlight;
+  } else {
+    btn.classList.add('hidden');
+  }
+}
+
+function scrollChatToBottom() {
+  const chatWindow = document.getElementById('chatWindow');
+  if (!chatWindow) return;
+  requestAnimationFrame(() => {
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+  });
+}
+
+function immediateScrollToBottom() {
+  const chatWindow = document.getElementById('chatWindow');
+  if (!chatWindow) return;
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+function appendChatMessages(messages = []) {
+  if (!messages.length) return;
+  const chatWindow = document.getElementById('chatWindow');
+  if (!chatWindow) return;
+  const frag = document.createDocumentFragment();
+  messages.forEach((msg) => {
+    frag.appendChild(renderMessage(msg));
+  });
+  chatWindow.appendChild(frag);
+  immediateScrollToBottom();
+}
+
+function prependChatMessages(messages = []) {
+  if (!messages.length) return;
+  const chatWindow = document.getElementById('chatWindow');
+  if (!chatWindow) return;
+  const prevHeight = chatWindow.scrollHeight;
+  const frag = document.createDocumentFragment();
+  messages.forEach((msg) => {
+    frag.appendChild(renderMessage(msg));
+  });
+  const firstNonIntro = Array.from(chatWindow.children).find((child) => child.dataset.intro !== 'true');
+  if (firstNonIntro) {
+    chatWindow.insertBefore(frag, firstNonIntro);
+  } else {
+    chatWindow.appendChild(frag);
+  }
+  const newHeight = chatWindow.scrollHeight;
+  chatWindow.scrollTop = newHeight - prevHeight;
+}
+
+async function fetchChatBatch(characterId, sessionId, options = {}) {
+  const params = new URLSearchParams({ limit: CHAT_FETCH_LIMIT, sessionId });
+  if (options.before) params.set('before', options.before);
+  const res = await fetch(`/api/characters/${characterId}/chats?${params.toString()}`);
+  if (!res.ok) throw new Error('채팅 기록을 불러오지 못했습니다.');
+  return await res.json();
+}
+
+async function initializeChatHistory(characterId, introText = '') {
+  const chatWindow = document.getElementById('chatWindow');
+  if (!chatWindow) return;
+  const sessionId = getOrCreateChatSessionId(characterId);
+  chatWindow.innerHTML = '';
+  oldestMessageTimestamp = null;
+  hasMoreChats = false;
+  if (introText) {
+    const introMessage = renderMessage({ role: 'character', content: introText });
+    introMessage.dataset.intro = 'true';
+    chatWindow.appendChild(introMessage);
+  }
+  try {
+    const messages = await fetchChatBatch(characterId, sessionId);
+    appendChatMessages(messages);
+    if (messages.length) {
+      oldestMessageTimestamp = messages[0].created_at;
+      hasMoreChats = messages.length === CHAT_FETCH_LIMIT;
+    } else {
+      oldestMessageTimestamp = null;
+      hasMoreChats = false;
+    }
+  } catch (e) {
+    console.error('chat history load failed', e);
+    hasMoreChats = false;
+  }
+  updateLoadMoreButton();
+  window.checkChatEmpty?.();
+  immediateScrollToBottom();
+}
+
+async function loadMoreChats(characterId) {
+  if (!hasMoreChats || !oldestMessageTimestamp || loadMoreInFlight) return;
+  const sessionId = getOrCreateChatSessionId(characterId);
+  loadMoreInFlight = true;
+  updateLoadMoreButton();
+  try {
+    const batch = await fetchChatBatch(characterId, sessionId, { before: oldestMessageTimestamp });
+    if (batch.length) {
+      prependChatMessages(batch);
+      oldestMessageTimestamp = batch[0].created_at;
+      hasMoreChats = batch.length === CHAT_FETCH_LIMIT;
+    } else {
+      hasMoreChats = false;
+    }
+  } catch (e) {
+    console.error('load more chats failed', e);
+  } finally {
+    loadMoreInFlight = false;
+    updateLoadMoreButton();
+  }
+}
+
+function bindLoadMoreButton(characterId) {
+  const btn = document.getElementById('chatLoadMoreBtn');
+  if (!btn) return;
+  if (btn.dataset.bound === '1') return;
+  btn.addEventListener('click', () => loadMoreChats(characterId));
+  btn.dataset.bound = '1';
 }
 
 // ================================
@@ -146,49 +410,23 @@ function renderCharacterDetail(c) {
   // 플레이 가이드
   const guideEl = document.querySelector("#guidePanel .panel-section-text");
   if (guideEl) guideEl.textContent = c.play_guide || "";
-}
 
-// ================================
-// 채팅 기록 로드
-// ================================
-async function loadChatHistory(characterId, introText = '') {
-  const sessionKey = `cc_session_${characterId}`;
-  let sessionId = localStorage.getItem(sessionKey);
-
-  if (!sessionId) {
-    sessionId = crypto.randomUUID();
-    localStorage.setItem(sessionKey, sessionId);
+  // 인트로 히어로 영역
+  const introHero = document.getElementById('characterIntroHero');
+  const introHeroImage = document.getElementById('characterIntroHeroImage');
+  const introHeroText = document.getElementById('characterIntroHeroText');
+  if (introHero && introHeroImage && introHeroText) {
+    if (c.intro_image_url) {
+      introHero.style.display = 'flex';
+      introHeroImage.src = c.intro_image_url;
+      introHeroImage.alt = `${c.name || ''} 인트로 이미지`;
+      introHeroText.textContent = c.intro || '인트로 정보가 제공되지 않았습니다.';
+    } else {
+      introHero.style.display = 'none';
+    }
   }
 
-  const { data, error } = await sb
-    .from("character_chats")
-    .select("*")
-    .eq("character_id", characterId)
-    .eq("session_id", sessionId)
-    .order("created_at", { ascending: true });
-
-  if (error) {
-    console.error("채팅 기록 오류:", error);
-    return;
-  }
-
-  const chatWindow = document.getElementById("chatWindow");
-  if (!chatWindow) return;
-
-  chatWindow.innerHTML = "";
-
-  if (introText) {
-    const introMessage = renderMessage({ role: "character", content: introText });
-    introMessage.dataset.intro = 'true';
-    chatWindow.appendChild(introMessage);
-  }
-
-  data.forEach(msg => {
-    chatWindow.appendChild(renderMessage(msg));
-  });
-
-  chatWindow.scrollTop = chatWindow.scrollHeight;
-  window.checkChatEmpty?.();
+  renderSceneTemplates(c.scene_image_templates || []);
 }
 
 // ================================
@@ -200,6 +438,21 @@ function renderMessage(msg) {
 
   const avatarSrc = document.querySelector('.character-avatar-wrapper img')?.src || '/assets/img/sample-character-01.png';
   const characterName = document.querySelector('.character-name')?.textContent || '캐릭터';
+  const sceneImage =
+    msg.sceneImage ||
+    msg.scene_image ||
+    (msg.metadata && msg.metadata.scene_image) ||
+    null;
+  const sceneImageUrl = sceneImage?.image_url || sceneImage?.url || null;
+  const sceneLabel = escapeHtml(sceneImage?.label || '상황 이미지');
+  const sceneMarkup = sceneImageUrl
+    ? `
+      <figure class="chat-scene">
+        <img src="${sceneImageUrl}" alt="${sceneLabel}" />
+        <figcaption>${sceneLabel}</figcaption>
+      </figure>
+    `
+    : '';
 
   if (msg.role === "character") {
     el.innerHTML = `
@@ -209,6 +462,7 @@ function renderMessage(msg) {
       <div class="chat-message__bubble">
         <div class="chat-message__name">${characterName}</div>
         <div class="chat-message__text">${msg.content}</div>
+        ${sceneMarkup}
       </div>
     `;
   } else {
@@ -223,6 +477,21 @@ function renderMessage(msg) {
   return el;
 }
 
+function handleSceneModeFeedback(result) {
+  if (!result) return;
+  const toggle = document.getElementById('sceneModeToggle');
+  if (result.sceneModeDeniedReason) {
+    sceneModeEnabled = false;
+    if (toggle) toggle.checked = false;
+    try {
+      localStorage.setItem(SCENE_MODE_STORAGE_KEY, '0');
+    } catch (e) {
+      console.warn('scene mode pref save failed', e);
+    }
+    return;
+  }
+}
+
 // ================================
 // 채팅 전송 기능
 // ================================
@@ -231,13 +500,7 @@ async function setupChat(characterId) {
   const textarea = form.querySelector("textarea");
   const chatWindow = document.getElementById("chatWindow");
 
-  const sessionKey = `cc_session_${characterId}`;
-  let sessionId = localStorage.getItem(sessionKey);
-
-  if (!sessionId) {
-    sessionId = crypto.randomUUID();
-    localStorage.setItem(sessionKey, sessionId);
-  }
+  const sessionId = getOrCreateChatSessionId(characterId);
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -247,7 +510,7 @@ async function setupChat(characterId) {
 
     // 사용자 메시지 화면 반영
     chatWindow.appendChild(renderMessage({ role: "user", content: text }));
-    chatWindow.scrollTop = chatWindow.scrollHeight;
+    immediateScrollToBottom();
 
     // 서버 메시지 전송 및 답변 받기
     try {
@@ -257,7 +520,8 @@ async function setupChat(characterId) {
         headers,
         body: JSON.stringify({
           sessionId,
-          message: text
+          message: text,
+          sceneMode: sceneModeEnabled
         })
       });
       const result = await response.json();
@@ -267,7 +531,7 @@ async function setupChat(characterId) {
           role: "character",
           content: "로그인이 필요합니다. 로그인 후 다시 시도해주세요."
         }));
-        chatWindow.scrollTop = chatWindow.scrollHeight;
+        scrollChatToBottom();
         return;
       }
 
@@ -276,7 +540,7 @@ async function setupChat(characterId) {
           role: "character",
           content: "scene이 부족합니다. 충전 또는 구독 후 시도해주세요."
         }));
-        chatWindow.scrollTop = chatWindow.scrollHeight;
+        immediateScrollToBottom();
         openCreditUpsellSafe();
         return;
       }
@@ -298,7 +562,8 @@ async function setupChat(characterId) {
         if (result.characterMessage) {
           chatWindow.appendChild(renderMessage({
             role: "character",
-            content: result.characterMessage.content
+            content: result.characterMessage.content,
+            sceneImage: result.characterMessage.sceneImage || null
           }));
         } else if (!result.introMessage) {
           chatWindow.appendChild(renderMessage({
@@ -306,23 +571,26 @@ async function setupChat(characterId) {
             content: "오류가 발생했습니다: " + (result.error || "알 수 없는 오류")
           }));
         }
-        chatWindow.scrollTop = chatWindow.scrollHeight;
+        scrollChatToBottom();
         window.checkChatEmpty();
+        handleSceneModeFeedback(result);
       } else {
         chatWindow.appendChild(renderMessage({
           role: "character",
           content: "오류가 발생했습니다: " + (result.error || "알 수 없는 오류")
         }));
-        chatWindow.scrollTop = chatWindow.scrollHeight;
+        scrollChatToBottom();
         window.checkChatEmpty();
+        handleSceneModeFeedback(result);
       }
     } catch (err) {
       chatWindow.appendChild(renderMessage({
         role: "character",
         content: "서버 연결 오류: " + err.message
       }));
-      chatWindow.scrollTop = chatWindow.scrollHeight;
+      scrollChatToBottom();
       window.checkChatEmpty();
+      handleSceneModeFeedback({ sceneModeDeniedReason: '서버 응답을 받을 수 없습니다.' });
     }
   });
 }
@@ -335,6 +603,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const sideToggleBtn = document.getElementById('sideToggleBtn');
   const closeSideBtn = document.getElementById('closeSideBtn');
   let sideCollapsed = true;
+  initSceneModeToggle();
+  initSceneTemplateToggle();
   if (sidePanel) sidePanel.classList.add('character-side--collapsed');
   if (sideToggleBtn) {
     sideToggleBtn.innerText = 'i';
@@ -388,6 +658,7 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener("DOMContentLoaded", async () => {
   const characterId = getParam("id");
   if (!characterId) return;
+  currentChatSessionId = null;
 
   // DB에서 데이터가져오기
   const data = await fetchCharacter(characterId);
@@ -401,7 +672,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   renderCharacterDetail(data);
-  await loadChatHistory(characterId, data.intro || '');
+  bindLoadMoreButton(characterId);
+  await initializeChatHistory(characterId, data.intro || '');
   setupChat(characterId);
 
   const likeBtn = document.querySelector('.btn-favorite');

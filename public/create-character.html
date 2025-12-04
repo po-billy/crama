@@ -57,10 +57,10 @@
                 캐릭터 설정
               </button>
               <button class="steps-nav__item" data-step="step-intro">
-                인트로
+                인트로 & 예시
               </button>
-              <button class="steps-nav__item" data-step="step-prompt">
-                프롬프트
+              <button class="steps-nav__item" data-step="step-scenes">
+                상황 이미지
               </button>
               <button class="steps-nav__item" data-step="step-detail">
                 캐릭터 상세
@@ -74,38 +74,16 @@
               <!-- 이미지 -->
               <div class="field-group">
                 <label class="field__label">캐릭터 이미지 *</label>
-                <div class="field-inline">
-                  <button class="btn btn--secondary">이미지 생성</button>
-                  <input type="file" id="characterImage" class="field__control" />
+                <p class="field__hint">
+                  최대 5장까지 업로드할 수 있어요. 한 번에 여러 장을 선택하거나, 필요한만큼 추가로 등록해도 됩니다.
+                </p>
+                <div class="image-upload-grid" id="characterImageGrid"></div>
+                <div class="image-grid-actions">
+                  <input type="file" id="characterImageInput" class="sr-only" accept="image/*" multiple>
+                  <button class="btn btn--secondary" type="button" id="imageUploadTrigger">이미지 업로드</button>
+                  <button class="btn btn--ghost btn--small" type="button" id="imageGenerateBtn">이미지 생성</button>
+                  <span class="field__hint">썸네일 선택 시 목록/카드에 사용되고, 인트로 이미지는 소개 영역에 표시됩니다.</span>
                 </div>
-                <p class="field__hint">
-                  PNG, JPG, WebP 이미지만 업로드할 수 있어요. 1:1 비율을 권장해요.
-                </p>
-              </div>
-
-              <!-- 음성 -->
-              <div class="field-group">
-                <label class="field__label">캐릭터 음성</label>
-                <div class="field-inline">
-                  <input type="file" id="voiceUpload" class="field__control" accept="audio/*" />
-                  <button class="btn btn--secondary">TTS로 생성</button>
-                </div>
-                <p class="field__hint">
-                  음성 녹음 파일이나 방송 클립을 업로드하면 캐릭터의 말투와 목소리를 학습할 수 있어요.
-                </p>
-              </div>
-
-              <!-- 방송 자료 업로드 -->
-              <div class="field-group">
-                <label class="field__label">방송 자료 업로드 (선택)</label>
-                <input type="file" id="streamData" class="field__control" multiple />
-                <p class="field__hint">
-                  유튜브/트위치 클립, 팟캐스트 등 음성·영상 자료를 올리면
-                  캐릭터의 말투와 성격을 자동으로 분석해 드려요.
-                </p>
-                <button class="btn btn--ghost btn--small">
-                  업로드한 자료로 말투·성격 자동 생성
-                </button>
               </div>
 
               <div class="field-group">
@@ -129,7 +107,7 @@
 
               <div class="field-group">
                 <label class="field__label">인트로 *</label>
-                <textarea class="field__control field__control--textarea" maxlength="1500"
+                <textarea id="introTextarea" class="field__control field__control--textarea" maxlength="1500"
                   placeholder="사용자에게는 보이지 않지만 캐릭터는 알고 있어야 하는 상황·배경 등을 작성해 주세요."></textarea>
                 <button class="btn btn--ghost btn--small">
                   예시 대화로부터 인트로 자동 생성
@@ -141,35 +119,58 @@
                 <p class="field__hint">
                   캐릭터의 말투와 성격을 드러낼 수 있는 예시를 추가해 주세요.
                 </p>
-                <!-- 실제로는 리스트/추가 UI 구성 -->
-                <textarea class="field__control field__control--textarea" maxlength="2000"
-                  placeholder="캐릭터와 사용자 간의 예시 대화를 작성해 주세요."></textarea>
+                <div class="example-dialog" id="exampleDialog">
+                  <div class="example-dialog__list" id="exampleDialogList"></div>
+                  <button type="button" class="btn btn--ghost btn--small" id="addExamplePairBtn">+ 예시 대화 추가</button>
+                </div>
+                <p class="field__hint">
+                  + 버튼을 눌러 사용자와 캐릭터의 말풍선을 한 쌍씩 등록하고, 필요하면 삭제/편집할 수 있어요.
+                </p>
               </div>
 
               <div class="field-group">
                 <label class="field__label">플레이 가이드 (선택)</label>
-                <textarea class="field__control field__control--textarea" maxlength="500"
+                <textarea id="playGuideTextarea" class="field__control field__control--textarea" maxlength="500"
                   placeholder="사용자를 위한 가이드를 작성해 주세요."></textarea>
               </div>
 
               <div class="step__footer">
                 <button class="btn step-prev" data-prev="step-basic">이전</button>
-                <button class="btn btn--primary step-next" data-next="step-prompt">다음</button>
+                <button class="btn btn--primary step-next" data-next="step-scenes">다음</button>
               </div>
             </div>
 
-            <!-- STEP 3: 프롬프트 -->
-            <div class="step" id="step-prompt">
-              <h2 class="step__title">프롬프트</h2>
+            <!-- STEP 3: 상황 이미지 -->
+            <div class="step" id="step-scenes">
+              <h2 class="step__title">상황 이미지</h2>
+              <p class="field__hint">
+                감정이나 상황에 맞는 이미지를 등록하면 SCENE 모드에서 캐릭터가 자동으로 불러올 수 있어요.
+                (예: 부끄러울 때, 슬플 때, 적과 맞서 싸울 때)
+              </p>
+
+              <div class="scene-preset-list">
+                <span class="scene-preset-label">추천 키워드:</span>
+                <div class="scene-preset-chips">
+                  <span class="chip">부끄러움</span>
+                  <span class="chip">슬픔</span>
+                  <span class="chip">기쁨</span>
+                  <span class="chip">적과 맞서 싸울 때</span>
+                  <span class="chip">분노</span>
+                  <span class="chip">설렘</span>
+                  <span class="chip">당황</span>
+                </div>
+              </div>
 
               <div class="field-group">
-                <label class="field__label">캐릭터 프롬프트 *</label>
-                <textarea class="field__control field__control--textarea" maxlength="2000"
-                  placeholder="캐릭터의 성격, 말투, 외모 등 대화에 반영되어야 하는 지시 사항을 작성해 주세요."></textarea>
-                <div class="field-inline field-inline--right">
-                  <button class="btn btn--ghost btn--small">
-                    인트로/예시 대화 기반 자동 완성
-                  </button>
+                <label class="field__label">상황 이미지 업로드</label>
+                <p class="field__hint">
+                  최대 10장, PNG/JPG/WebP, 5MB 이하. 각 이미지마다 감정/상황 키워드를 지정해 주세요.
+                </p>
+                <div class="scene-upload-grid" id="sceneImageGrid"></div>
+                <div class="scene-grid-actions">
+                  <input type="file" id="sceneImageInput" class="sr-only" accept="image/*" multiple>
+                  <button class="btn btn--secondary" type="button" id="sceneImageUploadTrigger">상황 이미지 업로드</button>
+                  <span class="field__hint">등록한 이미지는 캐릭터 대화 중 자동으로 사용될 수 있어요.</span>
                 </div>
               </div>
 
@@ -222,8 +223,14 @@
               </div>
 
               <div class="field-group">
-                <label class="field__label">이 캐릭터가 등장하는 스토리</label>
-                <button class="btn btn--secondary btn--small">작품 리스트 +</button>
+                <label class="field__label">캐릭터 프롬프트 *</label>
+                <textarea id="promptTextarea" class="field__control field__control--textarea" maxlength="2000"
+                  placeholder="캐릭터의 성격, 말투, 외모 등 대화에 반영되어야 하는 지시 사항을 작성해 주세요."></textarea>
+                <div class="field-inline field-inline--right">
+                  <button class="btn btn--ghost btn--small" type="button" id="promptAutoBtn">
+                    인트로/예시 기반 자동 완성 (준비 중)
+                  </button>
+                </div>
               </div>
 
               <div class="field-group">
@@ -278,7 +285,7 @@
               <div class="field-group">
                 <label class="field__label">수익 쉐어 설정</label>
                 <label class="toggle">
-                  <input type="checkbox" />
+                  <input type="checkbox" id="monetizedToggle" />
                   <span class="toggle__label">이 캐릭터를 수익 쉐어 캐릭터로 설정</span>
                 </label>
                 <p class="field__hint">
@@ -295,7 +302,7 @@
               </div>
 
               <div class="step__footer">
-                <button class="btn step-prev" data-prev="step-prompt">이전</button>
+                <button class="btn step-prev" data-prev="step-scenes">이전</button>
                 <button class="btn btn--primary">등록</button>
               </div>
             </div>
@@ -307,28 +314,45 @@
               <h2 class="preview-header__title">미리보기</h2>
             </header>
 
-            <div class="preview-card">
-              <!-- 캐릭터 썸네일 -->
-              <div class="preview-card__thumb">
-                <img src="/assets/sample-character-01.png" alt="캐릭터 썸네일" id="previewImage" />
-                <button class="preview-card__like">👍 0</button>
-              </div>
-
-              <div class="preview-card__body">
-                <div class="preview-card__name" id="previewName">캐릭터 이름</div>
-                <p class="preview-card__one-line" id="previewOneLine">한 줄 소개가 여기에 표시됩니다.</p>
-                <div class="preview-card__meta">
-                  <span>조회 0</span>
-                  <span>좋아요 0</span>
-                  <span>댓글 0</span>
+            <div class="preview-card preview-card--list">
+              <div class="character-card card character-card--preview">
+                <div class="character-card__thumb">
+                  <img src="/assets/sample-character-01.png" alt="캐릭터 썸네일" id="previewImage" />
+                  <div class="character-card__badge character-card__badge--share" id="previewShareBadge" style="display:none;">공유 가능</div>
                 </div>
+                <div class="character-card__body">
+                  <div class="character-card__title-row">
+                    <h2 class="character-card__name" id="previewName">캐릭터 이름</h2>
+                  </div>
+                  <p class="character-card__summary" id="previewOneLine">한 줄 소개가 여기에 표시됩니다.</p>
+                  <div class="character-card__meta">
+                    <span class="meta-item">좋아요 0</span>
+                    <span class="meta-item">채팅 0</span>
+                    <span class="meta-item">조회수 0</span>
+                  </div>
+                  <div class="character-card__creator">
+                    <div class="creator-avatar" id="previewCreatorAvatar">CR</div>
+                    <div class="creator-info">
+                      <div class="creator-name" id="previewCreatorName">크리에이터</div>
+                      <div class="creator-handle" id="previewCreatorHandle">@creator</div>
+                    </div>
+                  </div>
+                  <div class="character-card__tags" id="previewTags">
+                    <span class="tag">#태그</span>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-                <div class="preview-card__intro">
-                  <div class="preview-card__intro-label">인트로</div>
+            <div class="preview-intro-block">
+              <div class="character-intro-hero character-intro-hero--preview" id="previewIntroHero">
+                <div class="intro-hero__image" id="previewIntroImageWrapper">
+                  <img id="previewIntroImage" src="/assets/sample-character-02.png" alt="인트로 미리보기" />
+                </div>
+                <div class="intro-hero__text">
+                  <div class="intro-hero__label">인트로 장면</div>
                   <p id="previewIntro">인트로 입력 시 첫 대화에 사용됩니다.</p>
                 </div>
-
-                <div class="preview-card__tags" id="previewTags"></div>
               </div>
             </div>
           </aside>

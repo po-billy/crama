@@ -39,6 +39,7 @@ const OPENAI_ANALYZE_MODEL = process.env.OPENAI_ANALYZE_MODEL || "gpt-4o-mini";
 const STABILITY_API_KEY = process.env.STABILITY_API_KEY || null;
 const FASHION_CREDIT_COST = parseInt(process.env.FASHION_CREDIT_COST, 10) || 20;
 const STUDIO_CREDIT_COST = parseInt(process.env.STUDIO_CREDIT_COST, 10) || 100;
+const SCENE_IMAGE_CREDIT_COST = parseInt(process.env.SCENE_IMAGE_CREDIT_COST, 10) || 5;
 const AVATAR_BUCKET = process.env.AVATAR_BUCKET || "character_profile";
 const STUDIO_BUCKET = process.env.STUDIO_GENERATE_BUCKET || "generate_image_character";
 // Studio service code must not be null (user_contents has NOT NULL FK)
@@ -304,6 +305,97 @@ async function prepareImageForStability(dataUrl, options = {}) {
   };
 }
 
+function slugifyKey(value, fallback = '') {
+  const raw = (value || '').toString().trim().toLowerCase();
+  const slug = raw.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  return slug || fallback;
+}
+
+function parseExampleDialogPairs(examplePairs, fallbackText) {
+  if (Array.isArray(examplePairs) && examplePairs.length) {
+    return examplePairs
+      .map((pair) => ({
+        user: (pair?.user || '').trim(),
+        character: (pair?.character || '').trim(),
+      }))
+      .filter((pair) => pair.user || pair.character);
+  }
+  if (typeof fallbackText === 'string' && fallbackText.trim()) {
+    const blocks = fallbackText.split(/\n{2,}/g);
+    const parsed = [];
+    blocks.forEach((block) => {
+      const userMatch = block.match(/사용자:\s*(.+)/);
+      const characterMatch = block.match(/캐릭터:\s*(.+)/);
+      if (userMatch || characterMatch) {
+        parsed.push({
+          user: (userMatch?.[1] || '').trim(),
+          character: (characterMatch?.[1] || '').trim(),
+        });
+      }
+    });
+    return parsed.filter((pair) => pair.user || pair.character);
+  }
+  return [];
+}
+
+function buildExampleMessages(pairs = []) {
+  const messages = [];
+  pairs.forEach((pair) => {
+    if (pair.user) {
+      messages.push({ role: 'user', content: pair.user });
+    }
+    if (pair.character) {
+      messages.push({ role: 'assistant', content: pair.character });
+    }
+  });
+  return messages;
+}
+
+function sanitizeSceneTemplates(raw) {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((item) => {
+      const keywords = Array.isArray(item?.keywords)
+        ? item.keywords
+        : typeof item?.keywords === 'string'
+          ? item.keywords.split(',').map((word) => word.trim()).filter(Boolean)
+          : [];
+      return {
+        image_url: item?.image_url || item?.url || null,
+        label: item?.label || '',
+        description: item?.description || '',
+        keywords,
+        emotion_key: item?.emotion_key || item?.emotionKey || '',
+      };
+    })
+    .filter((item) => item.image_url);
+}
+
+function extractSceneRequest(text) {
+  if (!text) return { cleaned: text, sceneKey: null };
+  let sceneKey = null;
+  const cleaned = text.replace(/\[\[SCENE:([^\]]+)\]\]/i, (_, key) => {
+    sceneKey = key.trim();
+    return '';
+  }).trim();
+  return { cleaned, sceneKey };
+}
+
+function matchSceneTemplate(templates, rawKey) {
+  if (!rawKey) return null;
+  const normalized = slugifyKey(rawKey);
+  let matched =
+    templates.find((tpl) => slugifyKey(tpl.emotion_key, null) === normalized) ||
+    templates.find((tpl) => slugifyKey(tpl.label) === normalized);
+  if (matched) return matched;
+  const lowerKey = rawKey.toLowerCase();
+  matched = templates.find((tpl) => {
+    if (tpl.label?.toLowerCase().includes(lowerKey)) return true;
+    return tpl.keywords?.some((kw) => kw.toLowerCase().includes(lowerKey));
+  });
+  return matched || null;
+}
+
 /**
  * 怨듭슜: ?붿껌?먯꽌 ?꾩옱 ?좎? ?뺣낫 媛?몄삤湲?
  *
@@ -545,7 +637,7 @@ app.post("/api/search-images", async (req, res) => {
 // POST /api/upload/avatar
 // ===============================
 app.post("/api/upload/avatar", async (req, res) => {
-  const { dataUrl, fileName, bucket } = req.body || {};
+  const { dataUrl, fileName, bucket, folder } = req.body || {};
   const bucketName = bucket || AVATAR_BUCKET;
   const client = supabaseAdmin || supabase;
 
@@ -562,7 +654,9 @@ app.post("/api/upload/avatar", async (req, res) => {
   const mime = bufferInfo.contentType || "image/png";
   const ext = (mime.split("/")[1] || "png").split(";")[0];
   const safeName = (fileName || "avatar").replace(/[^a-zA-Z0-9_.-]/g, "");
-  const objectPath = `avatars/${Date.now()}_${safeName || "avatar"}.${ext}`;
+  const folderName = (folder || "avatars").toString().replace(/[^a-zA-Z0-9/_-]/g, "");
+  const normalizedFolder = folderName.replace(/^\/+|\/+$/g, "") || "avatars";
+  const objectPath = `${normalizedFolder}/${Date.now()}_${safeName || "avatar"}.${ext}`;
 
   const { error: uploadError } = await client.storage
     .from(bucketName)
@@ -1429,7 +1523,7 @@ app.get('/api/characters/:id', async (req, res) => {
  */
 app.get('/api/characters/:id/chats', async (req, res) => {
   const { id } = req.params;
-  const { sessionId, since, limit } = req.query;
+  const { sessionId, since, before, limit } = req.query;
 
   const safeLimit = Math.max(1, Math.min(Number(limit) || 50, 200));
 
@@ -1437,16 +1531,20 @@ app.get('/api/characters/:id/chats', async (req, res) => {
     .from('character_chats')
     .select('*')
     .eq('character_id', id)
-    .order('created_at', { ascending: true })
+    .order('created_at', { ascending: false })
     .limit(safeLimit);
 
   if (sessionId) query.eq('session_id', sessionId);
   if (since) query.gte('created_at', since);
+  if (before) query.lt('created_at', before);
 
   const { data, error } = await query;
 
   if (error) return res.status(500).json({ error: error.message });
-  res.json(data);
+  const sorted = (data || []).sort(
+    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+  );
+  res.json(sorted);
 });
 
 /**
@@ -1455,7 +1553,7 @@ app.get('/api/characters/:id/chats', async (req, res) => {
  */
 app.post('/api/characters/:id/chat', async (req, res) => {
   const { id } = req.params;
-  const { sessionId, message } = req.body;
+  const { sessionId, message, sceneMode } = req.body || {};
 
   const user = await getUserFromRequest(req);
   if (!user) {
@@ -1479,7 +1577,7 @@ app.post('/api/characters/:id/chat', async (req, res) => {
       .maybeSingle(),
     supabase
       .from('characters')
-      .select('id, name, prompt, intro')
+      .select('id, name, prompt, intro, example_dialog, example_dialog_pairs, scene_image_templates')
       .eq('id', id)
       .single(),
     supabase
@@ -1547,6 +1645,23 @@ app.post('/api/characters/:id/chat', async (req, res) => {
     return res.status(500).json({ error: chatErr.message });
   }
 
+  const sceneTemplates = sanitizeSceneTemplates(character.scene_image_templates || []);
+  const examplePairs = parseExampleDialogPairs(character.example_dialog_pairs, character.example_dialog);
+  const exampleMessages = buildExampleMessages(examplePairs);
+  const sceneModeRequested =
+    typeof sceneMode === 'string'
+      ? sceneMode.toLowerCase() === 'true'
+      : Boolean(sceneMode);
+  const hasSceneTemplates = sceneTemplates.length > 0;
+  const canAffordSceneMode = currentBalance >= (CREDIT_COST_PER_MESSAGE + SCENE_IMAGE_CREDIT_COST);
+  const sceneModeAllowed = sceneModeRequested && hasSceneTemplates && canAffordSceneMode;
+  let sceneModeDeniedReason = null;
+  if (sceneModeRequested && !hasSceneTemplates) {
+    sceneModeDeniedReason = '등록된 상황 이미지가 없습니다.';
+  } else if (sceneModeRequested && !canAffordSceneMode) {
+    sceneModeDeniedReason = `scene이 부족하여 SCENE 모드를 사용할 수 없습니다. (추가 ${SCENE_IMAGE_CREDIT_COST} scene 필요)`;
+  }
+
   // 3) LLM 프롬프트 구성
   const systemPrompt = `
 너는 "${character.name}" 캐릭터로서만 대화한다.
@@ -1559,7 +1674,7 @@ ${character.prompt ?? ''}
 ${character.intro ?? ''}
 `;
 
-  const developerPrompt = `
+  let developerPrompt = `
 Developer Message (공통 규칙)
 
 당신은 사용자가 만든 캐릭터로 대화하는 AI입니다. 아래 규칙을 항상 우선 적용합니다.
@@ -1588,6 +1703,24 @@ Developer Message (공통 규칙)
 - 설정을 벗어난 정보 제공 요청은 캐릭터가 모르는 것으로 처리하되, 자연스러운 방식으로 대응한다.
 `;
 
+  if (sceneModeAllowed && sceneTemplates.length) {
+    const catalogLines = sceneTemplates
+      .map((tpl) => {
+        const key = tpl.emotion_key || slugifyKey(tpl.label);
+        const desc = tpl.description || (tpl.keywords?.join(', ') || '');
+        return `- ${key}: ${tpl.label}${desc ? ` (${desc})` : ''}`;
+      })
+      .join('\n');
+    developerPrompt += `
+[SCENE 모드 지침]
+- 아래 키워드 중 대화 상황과 감정이 맞는 경우에만 이미지를 호출한다.
+${catalogLines}
+- 이미지가 필요하다고 판단될 때는 응답 마지막 줄에 [[SCENE:키워드]] 형태로 명시한다.
+- 이미지를 호출하면 추가 scene이 차감되므로 반드시 필요한 경우에만 태그를 추가한다.
+- 한 응답에서는 최대 1개의 키워드만 사용하며, 필요하지 않으면 태그를 사용하지 않는다.
+- 태그를 제외한 내용은 기존 대화 형식을 유지한다.`;
+  }
+
   // 4-1) summary 저장소 조회
   let summaryText = '';
   const { data: summaryData } = await supabase
@@ -1607,6 +1740,9 @@ Developer Message (공통 규칙)
   ];
   if (summaryText) {
     messagesForModel.push({ role: 'system', content: `[?κ린 ?붿빟]${summaryText}` });
+  }
+  if (exampleMessages.length) {
+    messagesForModel.push(...exampleMessages);
   }
   if (recentMessages && recentMessages.length > 0) {
     for (const m of recentMessages) {
@@ -1673,20 +1809,30 @@ Developer Message (공통 규칙)
   }
 
   const replyText = completion.choices[0]?.message?.content?.trim() ?? '';
+  let finalReplyText = replyText;
+  let matchedSceneTemplate = null;
+  if (sceneModeAllowed && sceneTemplates.length) {
+    const extraction = extractSceneRequest(replyText);
+    finalReplyText = extraction.cleaned || replyText;
+    if (extraction.sceneKey) {
+      matchedSceneTemplate = matchSceneTemplate(sceneTemplates, extraction.sceneKey);
+    }
+  }
   const usage = completion.usage ?? {};
   const inputTokens = usage.prompt_tokens ?? 0;
   const outputTokens = usage.completion_tokens ?? 0;
   const totalTokens = usage.total_tokens ?? (inputTokens + outputTokens);
 
-  // 5-1) ?щ젅??李④컧 (怨좎젙 10 ?щ젅???꾩넚)
-  const newBalance = currentBalance - CREDIT_COST_PER_MESSAGE;
+  const sceneCreditCost = matchedSceneTemplate ? SCENE_IMAGE_CREDIT_COST : 0;
+  const totalCreditCost = CREDIT_COST_PER_MESSAGE + sceneCreditCost;
+  const newBalance = currentBalance - totalCreditCost;
 
   const txPayload = {
     user_id: user.id,
     subscription_id: null,
     tx_type: CREDIT_TX_TYPE_SPEND,
     service_code: 'CHARACTER',
-    amount: -CREDIT_COST_PER_MESSAGE,
+    amount: -totalCreditCost,
     balance_after: newBalance,
     description: `character chat ${id}`,
     metadata: { characterId: id, sessionId }
@@ -1707,7 +1853,7 @@ Developer Message (공통 규칙)
     .upsert({
       user_id: user.id,
       balance: newBalance,
-      lifetime_used: (wallet?.lifetime_used ?? 0) + CREDIT_COST_PER_MESSAGE,
+      lifetime_used: (wallet?.lifetime_used ?? 0) + totalCreditCost,
       updated_at: new Date().toISOString()
     });
 
@@ -1720,6 +1866,14 @@ Developer Message (공통 규칙)
   const insertedAt = new Date();
   const userCreatedAt = insertedAt.toISOString();
   const characterCreatedAt = new Date(insertedAt.getTime() + 1).toISOString();
+
+  const sceneImagePayload = matchedSceneTemplate
+    ? {
+        label: matchedSceneTemplate.label,
+        image_url: matchedSceneTemplate.image_url,
+        emotion_key: matchedSceneTemplate.emotion_key || slugifyKey(matchedSceneTemplate.label),
+      }
+    : null;
 
   const chatRows = [
     {
@@ -1735,12 +1889,15 @@ Developer Message (공통 규칙)
       user_id: user.id ?? null,
       session_id: sessionId,
       role: 'character',
-      content: replyText,
+      content: finalReplyText,
       model: 'gpt-4o-mini',
       input_tokens: inputTokens,
       output_tokens: outputTokens,
-      credit_spent: CREDIT_COST_PER_MESSAGE,
-      metadata: usage,
+      credit_spent: totalCreditCost,
+      metadata: {
+        ...usage,
+        scene_image: sceneImagePayload,
+      },
       created_at: characterCreatedAt
     }
   ];
@@ -1770,11 +1927,18 @@ Developer Message (공통 규칙)
     });
 
   // 7) ?묐떟
+  const responseCharacterMessage = insertedCharMsg
+    ? { ...insertedCharMsg, sceneImage: sceneImagePayload }
+    : null;
+
   res.json({
     userMessage: insertedUserMsg,
-    characterMessage: insertedCharMsg,
+    characterMessage: responseCharacterMessage,
+    sceneImageUsed: Boolean(sceneImagePayload),
+    sceneModeApplied: sceneModeAllowed,
+    sceneModeDeniedReason,
     credit: {
-      spent: CREDIT_COST_PER_MESSAGE,
+      spent: totalCreditCost,
       balance: newBalance
     }
   });

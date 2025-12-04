@@ -1,36 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://crama.com/</loc>
+    <loc>https://crama.app/</loc>
   </url>
   <url>
-    <loc>https://crama.com/characters</loc>
+    <loc>https://crama.app/characters</loc>
   </url>
   <url>
-    <loc>https://crama.com/character</loc>
+    <loc>https://crama.app/character</loc>
   </url>
   <url>
-    <loc>https://crama.com/create-character</loc>
+    <loc>https://crama.app/create-character</loc>
   </url>
   <url>
-    <loc>https://crama.com/creator</loc>
+    <loc>https://crama.app/creator</loc>
   </url>
   <url>
-    <loc>https://crama.com/login</loc>
+    <loc>https://crama.app/login</loc>
   </url>
   <url>
-    <loc>https://crama.com/menu</loc>
+    <loc>https://crama.app/menu</loc>
   </url>
   <url>
-    <loc>https://crama.com/mypage</loc>
+    <loc>https://crama.app/mypage</loc>
   </url>
   <url>
-    <loc>https://crama.com/studio</loc>
+    <loc>https://crama.app/studio</loc>
   </url>
   <url>
-    <loc>https://crama.com/studio2non</loc>
+    <loc>https://crama.app/studio2non</loc>
   </url>
   <url>
-    <loc>https://crama.com/works</loc>
+    <loc>https://crama.app/works</loc>
   </url>
 </urlset>

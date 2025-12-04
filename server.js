@@ -187,8 +187,9 @@ function requireAdmin(res) {
   return supabaseAdmin;
 }
 
-// ?뺤쟻 ?뚯씪 ?쒕튃 (index.html, studio.html ??
-app.use(express.static("."));
+// Serve static assets from Netlify-style public directory
+const STATIC_DIR = path.join(__dirname, "public");
+app.use(express.static(STATIC_DIR));
 
 /**
  * 怨듭슜: ?먮윭 ?묐떟 ?ы띁
@@ -2157,7 +2158,7 @@ app.post('/api/buy-plan', async (req, res) => {
     // TODO: implement other payment providers if needed
 
     // No paddle info / config ??fallback
-    return res.json({ success: true, checkoutUrl: '/coming-soon.html' });
+    return res.json({ success: true, checkoutUrl: '/coming-soon' });
   } catch (e) {
     console.error('buy-plan exception', e);
     return res.status(500).json({ success: false, error: 'internal_error' });

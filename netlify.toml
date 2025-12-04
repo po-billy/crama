@@ -1,0 +1,8 @@
+[build]
+  publish = "public"
+
+# Ensure legacy sitemap path keeps working
+[[redirects]]
+  from = "/site.xml"
+  to = "/sitemap.xml"
+  status = 200

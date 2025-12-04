@@ -1,89 +1,266 @@
-/* 전체 배경 */
-body {
-    margin: 0;
-    padding: 0;
-    font-family: "Inter", "Noto Sans KR", sans-serif;
-    background: #F6F7FB;
-    color: #222;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+:root {
+    font-family: "Pretendard", "Inter", "Noto Sans KR", sans-serif;
+    color: #f5f6ff;
+    background-color: #05050d;
 }
 
-/* 로그인 카드 */
-.login-container {
+* {
+    box-sizing: border-box;
+}
+
+body.login-page {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at top, rgba(79, 70, 229, 0.25), rgba(5, 5, 13, 0.95) 60%),
+        #05050d;
+    color: #f5f6ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.login-shape {
+    position: absolute;
     width: 420px;
-    padding: 40px 36px;
+    height: 420px;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.55;
+    z-index: 0;
+}
+
+.login-shape--one {
+    top: -80px;
+    left: -120px;
+    background: #38f28b;
+}
+
+.login-shape--two {
+    bottom: -120px;
+    right: -140px;
+    background: #7651ff;
+}
+
+.login-layout {
+    position: relative;
+    z-index: 1;
+    width: min(1100px, 92vw);
+    display: flex;
+    gap: 3rem;
+    align-items: stretch;
+    padding: 3rem;
+}
+
+.login-hero {
+    flex: 1 1 55%;
+    padding: 3rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 28px;
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 25px 90px rgba(5, 5, 13, 0.25);
+}
+
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    background: rgba(255, 255, 255, 0.05);
+    color: #b5b7ff;
+}
+
+.hero-title {
+    margin: 1.5rem 0 1rem;
+    font-size: clamp(2rem, 3rem, 3.4rem);
+    line-height: 1.2;
+}
+
+.hero-desc {
+    color: #cfd4ff;
+    font-size: 1rem;
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+}
+
+.hero-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.hero-list li {
+    font-size: 0.95rem;
+    color: #e3e6ff;
+    padding: 0.85rem 1rem;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.login-panel {
+    flex: 1 1 45%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-card {
+    width: min(420px, 100%);
+    padding: 3rem 2.5rem;
+    border-radius: 26px;
     background: #ffffff;
-    border-radius: 22px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+    color: #10121c;
+    box-shadow: 0 20px 60px rgba(15, 15, 25, 0.2);
     text-align: center;
 }
 
-/* 제목 */
-.login-title {
-    font-size: 28px;
+.login-logo {
     font-weight: 700;
-    margin-bottom: 14px;
+    font-size: 1rem;
+    letter-spacing: 0.3em;
+    color: #6a4bff;
+    margin-bottom: 1rem;
 }
 
-/* 설명 문구 */
+.login-title {
+    font-size: 1.9rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    color: #05050d;
+}
+
 .login-desc {
-    font-size: 15px;
-    color: #555;
-    margin-bottom: 28px;
-    line-height: 1.4;
+    font-size: 0.98rem;
+    color: #555d78;
+    margin-bottom: 2rem;
+    line-height: 1.6;
 }
 
-/* 구글 로그인 버튼 */
 .google-btn {
     width: 100%;
-    padding: 14px 0;
-    font-size: 15px;
+    padding: 0.95rem;
+    font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-
     background: #ffffff;
-    border: 1px solid #ddd;
-    border-radius: 12px;
-
+    border: 1px solid #dfe1ea;
+    border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-
-    transition: 0.2s ease;
-}
-
-.google-btn:hover {
-    background: #fafafa;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    gap: 0.75rem;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    color: #151929;
 }
 
 .google-btn img {
-    width: 20px;
+    width: 22px;
 }
 
-/* 세션 체크 영역 */
+.google-btn:hover {
+    box-shadow: 0 8px 30px rgba(73, 90, 255, 0.18);
+    transform: translateY(-1px);
+}
+
+.login-divider {
+    margin: 2rem 0 0.75rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    color: #8b91a6;
+    position: relative;
+    text-transform: uppercase;
+}
+
+.login-divider::before,
+.login-divider::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 35%;
+    height: 1px;
+    background: #e4e6f2;
+}
+
+.login-divider::before {
+    left: 0;
+}
+
+.login-divider::after {
+    right: 0;
+}
+
+.login-divider span {
+    background: #ffffff;
+    padding: 0 0.65rem;
+    position: relative;
+}
+
+.login-footnote {
+    font-size: 0.85rem;
+    color: #7a8097;
+    margin-bottom: 1.5rem;
+}
+
+.login-footnote a {
+    color: #512bff;
+    text-decoration: none;
+}
+
 #status {
-    margin-top: 20px;
-    padding: 10px;
+    margin: 0;
+    padding: 0.85rem;
     text-align: left;
-    background: #fff;
-    border-radius: 10px;
-    border: 1px solid #eee;
-    height: 150px;
+    background: #f6f7fb;
+    border-radius: 12px;
+    border: 1px dashed #dfe1ea;
+    height: 130px;
     overflow: auto;
-    font-size: 13px;
+    font-size: 0.78rem;
     white-space: pre-wrap;
 }
 
-/* 페이지 전체 부드러운 애니메이션 */
-.login-container, .google-btn {
-    animation: fadeIn 0.3s ease;
+@media (max-width: 1024px) {
+    .login-layout {
+        flex-direction: column;
+        padding: 2rem;
+    }
+
+    .login-hero,
+    .login-panel {
+        flex: none;
+        width: 100%;
+    }
+
+    .login-hero {
+        padding: 2.5rem;
+    }
 }
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(4px); }
-    to { opacity: 1; transform: translateY(0); }
+
+@media (max-width: 640px) {
+    .login-layout {
+        padding: 1.5rem;
+    }
+
+    .login-card {
+        padding: 2.25rem 1.75rem;
+    }
+
+    .hero-title {
+        font-size: 2.2rem;
+    }
+
+    .login-shape {
+        width: 280px;
+        height: 280px;
+    }
 }

@@ -18,51 +18,96 @@
   <link rel="canonical" href="https://crama.app/login">
   <link rel="stylesheet" href="css/login.css" />
 </head>
-<body>
+<body class="login-page">
+  <div class="login-shape login-shape--one"></div>
+  <div class="login-shape login-shape--two"></div>
 
-  <div class="login-container">
-    <div class="login-title">크라마(crama) 로그인</div>
-    <div class="login-desc">
-      더욱 빠르고 똑똑해진 기능을 사용하려면 로그인하세요.
-    </div>
+  <div class="login-layout">
+    <section class="login-hero">
+      <div class="hero-badge">CRAMA STUDIO</div>
+      <h1 class="hero-title">캐릭터와 스튜디오 작업을<br>한 계정으로 이어보세요.</h1>
+      <p class="hero-desc">
+        로그인하면 생성한 캐릭터와 이미지, 크레딧 내역이 모든 디바이스에서 동기화되고
+        더 많은 실험 기능을 가장 먼저 경험할 수 있습니다.
+      </p>
+      <ul class="hero-list">
+        <li>🎨 스튜디오 이미지와 캐릭터 히스토리 자동 저장</li>
+        <li>💬 채팅 기록과 즐겨찾는 캐릭터 동기화</li>
+        <li>⚡ 플랜과 scene 크레딧을 안전하게 관리</li>
+      </ul>
+    </section>
 
-    <button id="google-login-btn" class="google-btn">
-      <img src="https://www.svgrepo.com/show/475656/google-color.svg">
-      구글로 로그인
-    </button>
+    <section class="login-panel">
+      <div class="login-card">
+        <div class="login-logo">crama</div>
+        <div class="login-title">크라마(crama) 로그인</div>
+        <div class="login-desc">
+          Google 계정으로 빠르게 로그인하고 크라마의 모든 기능을 이용하세요.
+        </div>
 
-    <pre id="status"></pre>
+        <button id="google-login-btn" class="google-btn">
+          <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google">
+          구글로 로그인
+        </button>
+
+        <div class="login-divider"><span>로그인 문제가 있나요?</span></div>
+        <p class="login-footnote">
+          support@crama.app 로 문의해 주시면 빠르게 도와드릴게요.
+        </p>
+
+        <pre id="status"></pre>
+      </div>
+    </section>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-  // 1) 여기에 본인 프로젝트 값 넣기
 const SUPABASE_URL = 'https://lrsxbcbfeytuahhukaqs.supabase.co';
 const SUPABASE_ANON_KEY ='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxyc3hiY2JmZXl0dWFoaHVrYXFzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMDA1NDMsImV4cCI6MjA3OTc3NjU0M30.oScSxuk2gpzKTihun8LXm_OPijnSYbE_bD5wAS4Uj8E';
 
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const statusEl = document.getElementById('status');
+const redirectParam = new URLSearchParams(window.location.search).get('redirect');
 
-    const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    const statusEl = document.getElementById('status');
+function log(msg, data) {
+  statusEl.textContent = msg + (data ? '\n' + JSON.stringify(data, null, 2) : '');
+}
 
-    function log(msg, data) {
-      statusEl.textContent = msg + (data ? '' + JSON.stringify(data, null, 2) : '');
-    }
+function resolveRedirectUrl(raw) {
+  if (!raw) return null;
+  try {
+    const url = new URL(raw, window.location.origin);
+    if (url.origin !== window.location.origin) return window.location.origin;
+    return url.toString();
+  } catch {
+    return window.location.origin;
+  }
+}
 
-    document.getElementById('google-login-btn')
-      .addEventListener('click', async () => {
-        const { error } = await client.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: window.location.origin
-          }
-        });
-        if (error) log('로그인 에러', error);
+function tryRedirectAfterLogin() {
+  const target = resolveRedirectUrl(redirectParam);
+  if (!target) return;
+  window.location.replace(target);
+}
+
+document.getElementById('google-login-btn')
+  .addEventListener('click', async () => {
+    const { error } = await client.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}${window.location.pathname}${window.location.search}`
+      }
     });
+    if (error) log('로그인 에러', error);
+});
 
-    (async () => {
-      const { data } = await client.auth.getSession();
-      if (data.session) log('이미 로그인됨:', data.session);
-    })();
+(async () => {
+  const { data } = await client.auth.getSession();
+  if (data.session) {
+    log('이미 로그인됨:', data.session);
+    tryRedirectAfterLogin();
+  }
+})();
   </script>
 </body>
 </html>

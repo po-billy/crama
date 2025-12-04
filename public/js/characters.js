@@ -4,6 +4,17 @@
 let charactersCache = [];
 let previewSelected = null;
 
+async function isUserLoggedIn() {
+  if (!window.sb?.auth) return false;
+  try {
+    const { data } = await window.sb.auth.getSession();
+    return !!data?.session;
+  } catch (e) {
+    console.warn('session check failed', e);
+    return false;
+  }
+}
+
 async function fetchCharacterStats(id) {
   try {
     const res = await fetch(`/api/characters/${id}/stats`);
@@ -337,9 +348,15 @@ function initPreviewModal() {
     if (e.key === 'Escape' && !modal.classList.contains('hidden')) close();
   });
   if (enterBtn) {
-    enterBtn.addEventListener('click', () => {
+    enterBtn.addEventListener('click', async () => {
       if (!previewSelected) return;
-      window.location.href = `/character?id=${previewSelected.id}`;
+      const targetUrl = `/character?id=${previewSelected.id}`;
+      const loggedIn = await isUserLoggedIn();
+      if (!loggedIn) {
+        window.location.href = `/login?redirect=${encodeURIComponent(targetUrl)}`;
+        return;
+      }
+      window.location.href = targetUrl;
     });
   }
 }

@@ -191,6 +191,28 @@ function requireAdmin(res) {
 const STATIC_DIR = path.join(__dirname, "public");
 app.use(express.static(STATIC_DIR));
 
+// Support extensionless HTML routes locally (matching Netlify rewrites)
+const HTML_ROUTE_MAP = {
+  "/": "index.html",
+  "/studio": "studio.html",
+  "/studio2non": "studio2non.html",
+  "/characters": "characters.html",
+  "/character": "character.html",
+  "/create-character": "create-character.html",
+  "/creator": "creator.html",
+  "/menu": "menu.html",
+  "/mypage": "mypage.html",
+  "/works": "works.html",
+  "/login": "login.html",
+  "/coming-soon": "coming-soon.html",
+};
+
+for (const [route, file] of Object.entries(HTML_ROUTE_MAP)) {
+  app.get(route, (req, res) => {
+    res.sendFile(path.join(STATIC_DIR, file));
+  });
+}
+
 /**
  * 怨듭슜: ?먮윭 ?묐떟 ?ы띁
  */

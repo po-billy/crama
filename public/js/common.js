@@ -1,7 +1,34 @@
 ﻿/* Global Supabase client */
-const SUPABASE_URL = 'https://lrsxbcbfeytuahhukaqs.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxyc3hiY2JmZXl0dWFoaHVrYXFzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMDA1NDMsImV4cCI6MjA3OTc3NjU0M30.oScSxuk2gpzKTihun8LXm_OPijnSYbE_bD5wAS4Uj8E';
-window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const runtimeEnv = window.__ENV__ || {};
+const SUPABASE_URL = runtimeEnv.SUPABASE_URL || runtimeEnv.PUBLIC_SUPABASE_URL || '';
+const SUPABASE_ANON_KEY =
+  runtimeEnv.SUPABASE_ANON_KEY || runtimeEnv.PUBLIC_SUPABASE_ANON_KEY || '';
+const API_BASE_URL = (runtimeEnv.API_BASE_URL || '').replace(/\/+$/, '');
+
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  console.error('Supabase 환경 변수가 누락되었습니다. /env.js 설정을 확인하세요.');
+}
+
+function resolveApiUrl(path) {
+  if (!path || /^https?:\/\//i.test(path)) return path;
+  if (!API_BASE_URL) return path;
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return `${API_BASE_URL}${normalizedPath}`;
+}
+
+function apiFetch(path, options) {
+  const target = resolveApiUrl(path);
+  return fetch(target || path, options);
+}
+
+window.apiFetch = apiFetch;
+window.resolveApiUrl = resolveApiUrl;
+
+if (typeof supabase !== 'undefined' && SUPABASE_URL && SUPABASE_ANON_KEY) {
+  window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+} else if (!window.sb) {
+  window.sb = null;
+}
 const sb = window.sb;
 
 async function loadHead() {
@@ -394,7 +421,7 @@ async function fetchUserContext() {
   // Auto-assign handle if missing
   if (!profile?.handle) {
     try {
-      const res = await fetch('/api/profile/ensure-handle', {
+      const res = await apiFetch('/api/profile/ensure-handle', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -560,4 +587,3 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* Credit Upsell Partial */
-

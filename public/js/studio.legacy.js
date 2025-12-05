@@ -1,4 +1,5 @@
 // js/studio.js
+const apiFetch = window.apiFetch || ((...args) => fetch(...args));
 
 
 // 🔹 한 번 이미지 생성 호출당 차감할 scene 양 (원하는 값으로 조정)
@@ -189,7 +190,7 @@ function initStudioPage() {
     const prompt = promptInput.value.trim();
     const keywords = keywordInput.value.trim();
 
-    const res = await fetch('/api/search-images', {
+    const res = await apiFetch('/api/search-images', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prompt, keywords }),
@@ -344,7 +345,7 @@ function initStudioPage() {
     genGrid.hidden = true;
 
     try {
-      const res = await fetch('/api/generate-images', {
+      const res = await apiFetch('/api/generate-images', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt, keywords, referenceUrls, mode }),

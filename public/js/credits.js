@@ -6,6 +6,7 @@ let paddleSdkPromiseV2 = null;
 let paddleSetupVendor = null;
 let paddleSetupEnv = null;
 let paddleSetupToken = null;
+const apiFetch = window.apiFetch || ((...args) => fetch(...args));
 
 async function buildAuthHeaders() {
   if (!window.sb) return { 'Content-Type': 'application/json' };
@@ -18,7 +19,7 @@ async function buildAuthHeaders() {
 
 async function loadCreditConfig() {
   try {
-    const res = await fetch('/api/credit-config');
+    const res = await apiFetch('/api/credit-config');
     if (!res.ok) {
       console.warn('loadCreditConfig skipped, status', res.status);
       return;
@@ -303,7 +304,7 @@ async function openPaddleCheckoutWithPrice(priceId, clientToken, environment, se
 async function handleBuyPlan(planCode) {
   try {
     const headers = await buildAuthHeaders();
-    const res = await fetch('/api/buy-plan', {
+    const res = await apiFetch('/api/buy-plan', {
       method: 'POST',
       headers,
       body: JSON.stringify({ planCode })
@@ -350,7 +351,7 @@ async function handleWatchAd() {
     let sessionId = null;
     try {
       const headers = await buildAuthHeaders();
-      const sessionRes = await fetch('/api/ad-session', { method: 'POST', headers });
+      const sessionRes = await apiFetch('/api/ad-session', { method: 'POST', headers });
       const sessionJson = await sessionRes.json();
       if (sessionJson?.success && sessionJson.sessionId) sessionId = sessionJson.sessionId;
     } catch (e) {
@@ -381,7 +382,7 @@ async function handleWatchAd() {
 
     // When reporting the ad completion to the server include sessionId and ad verification details
     const headers2 = await buildAuthHeaders();
-    const res = await fetch('/api/earn-credits', {
+    const res = await apiFetch('/api/earn-credits', {
       method: 'POST',
       headers: headers2,
       body: JSON.stringify({ sessionId: sessionId, verification: result?.details || null })

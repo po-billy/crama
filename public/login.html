@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+    <script src="/env.js"></script>
   <meta charset="UTF-8" />
   <title>로그인 | 크라마(crama)</title>
   <meta name="description" content="크라마(crama) 계정으로 로그인하고 크레딧, 캐릭터, 스튜디오 작업을 동기화하세요.">
@@ -62,10 +63,17 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-const SUPABASE_URL = 'https://lrsxbcbfeytuahhukaqs.supabase.co';
-const SUPABASE_ANON_KEY ='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxyc3hiY2JmZXl0dWFoaHVrYXFzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMDA1NDMsImV4cCI6MjA3OTc3NjU0M30.oScSxuk2gpzKTihun8LXm_OPijnSYbE_bD5wAS4Uj8E';
+const runtimeEnv = window.__ENV__ || {};
+const SUPABASE_URL = runtimeEnv.SUPABASE_URL || runtimeEnv.PUBLIC_SUPABASE_URL;
+const SUPABASE_ANON_KEY = runtimeEnv.SUPABASE_ANON_KEY || runtimeEnv.PUBLIC_SUPABASE_ANON_KEY;
 
-const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  console.error('Supabase 환경 변수가 설정되지 않았습니다.');
+}
+
+const client = SUPABASE_URL && SUPABASE_ANON_KEY
+  ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
 const statusEl = document.getElementById('status');
 const redirectParam = new URLSearchParams(window.location.search).get('redirect');
 
@@ -92,6 +100,10 @@ function tryRedirectAfterLogin() {
 
 document.getElementById('google-login-btn')
   .addEventListener('click', async () => {
+    if (!client) {
+      alert('Supabase 클라이언트가 초기화되지 않았습니다. 환경 변수를 확인해주세요.');
+      return;
+    }
     const { error } = await client.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -102,6 +114,7 @@ document.getElementById('google-login-btn')
 });
 
 (async () => {
+  if (!client) return;
   const { data } = await client.auth.getSession();
   if (data.session) {
     log('이미 로그인됨:', data.session);

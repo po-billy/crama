@@ -1,4 +1,6 @@
-﻿// ================================
+﻿const apiFetch = window.apiFetch || ((...args) => fetch(...args));
+
+// ================================
 // 탭 전환
 // ================================
 document.querySelectorAll('.character-side .side-tab').forEach(tab => {
@@ -254,7 +256,7 @@ function prependChatMessages(messages = []) {
 async function fetchChatBatch(characterId, sessionId, options = {}) {
   const params = new URLSearchParams({ limit: CHAT_FETCH_LIMIT, sessionId });
   if (options.before) params.set('before', options.before);
-  const res = await fetch(`/api/characters/${characterId}/chats?${params.toString()}`);
+  const res = await apiFetch(`/api/characters/${characterId}/chats?${params.toString()}`);
   if (!res.ok) throw new Error('채팅 기록을 불러오지 못했습니다.');
   return await res.json();
 }
@@ -339,7 +341,7 @@ async function fetchCharacter(id) {
 
 async function fetchCharacterStats(id) {
   try {
-    const res = await fetch(`/api/characters/${id}/stats`);
+    const res = await apiFetch(`/api/characters/${id}/stats`);
     if (!res.ok) return null;
     return await res.json();
   } catch (e) {
@@ -350,7 +352,7 @@ async function fetchCharacterStats(id) {
 
 async function likeCharacter(id) {
   const headers = await buildAuthHeaders();
-  const res = await fetch(`/api/characters/${id}/like`, {
+  const res = await apiFetch(`/api/characters/${id}/like`, {
     method: 'POST',
     headers,
   });
@@ -515,7 +517,7 @@ async function setupChat(characterId) {
     // 서버 메시지 전송 및 답변 받기
     try {
       const headers = await buildAuthHeaders();
-      const response = await fetch(`/api/characters/${characterId}/chat`, {
+      const response = await apiFetch(`/api/characters/${characterId}/chat`, {
         method: "POST",
         headers,
         body: JSON.stringify({

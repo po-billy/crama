@@ -1,4 +1,5 @@
 // js/mypage.js
+const apiFetch = window.apiFetch || ((...args) => fetch(...args));
 
 document.addEventListener("DOMContentLoaded", () => {
   initMyPage();
@@ -155,7 +156,7 @@ function setupHandleEditor(currentHandle) {
     try {
       const { data } = await window.sb.auth.getSession();
       const token = data?.session?.access_token;
-      const res = await fetch("/api/profile/change-handle", {
+      const res = await apiFetch("/api/profile/change-handle", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -317,7 +318,7 @@ function updateDailyWelcomeUI(state, options = {}) {
 
 async function requestDailyWelcome(method = "GET") {
   const headers = await getAuthHeaders();
-  const res = await fetch("/api/daily-welcome", {
+  const res = await apiFetch("/api/daily-welcome", {
     method,
     headers,
   });

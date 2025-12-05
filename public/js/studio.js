@@ -1,4 +1,6 @@
 // New studio: character image generation UI
+const apiFetch = window.apiFetch || ((...args) => fetch(...args));
+
 document.addEventListener('DOMContentLoaded', () => {
   const tabs = document.querySelectorAll('.studio-tab');
   const tabUnderline = document.querySelector('.studio-tab-underline');
@@ -249,7 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
         payload.maskImage = maskImageData;
       }
 
-      const res = await fetch('/api/generate-images', {
+      const res = await apiFetch('/api/generate-images', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

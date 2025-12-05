@@ -5,10 +5,11 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "granite dev",
-    "build": "granite build",
-    "deploy": "ait deploy"
+    "start": "cross-env APP_ENV=local node server.js",
+    "start:live": "cross-env APP_ENV=production node server.js",
+    "dev": "cross-env APP_ENV=local granite dev",
+    "build": "cross-env APP_ENV=production granite build",
+    "deploy": "cross-env APP_ENV=production ait deploy"
   },
   "dependencies": {
     "@apps-in-toss/web-framework": "^1.5.1",
@@ -18,9 +19,11 @@
     "express": "^5.1.0",
     "jimp": "^1.6.0",
     "node-fetch": "^3.3.2",
-    "openai": "^6.9.1"
+    "openai": "^6.9.1",
+    "postgres": "^3.4.7"
   },
   "devDependencies": {
+    "cross-env": "^7.0.3",
     "nodemon": "^3.0.2"
   }
 }

@@ -1,5 +1,6 @@
 // characters.js
 // 캐릭터 리스트 페이지 스크립트 (UTF-8)
+const apiFetch = window.apiFetch || ((...args) => fetch(...args));
 
 let charactersCache = [];
 let previewSelected = null;
@@ -17,7 +18,7 @@ async function isUserLoggedIn() {
 
 async function fetchCharacterStats(id) {
   try {
-    const res = await fetch(`/api/characters/${id}/stats`);
+    const res = await apiFetch(`/api/characters/${id}/stats`);
     if (!res.ok) return null;
     return await res.json();
   } catch (e) {

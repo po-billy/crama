@@ -1,3 +1,5 @@
+const apiFetch = window.apiFetch || ((...args) => fetch(...args));
+
 // ================================
 // 탭 전환
 // ================================
@@ -184,7 +186,7 @@ async function setupChat(characterId) {
 
       // 서버에 메시지 전송 및 응답 받기
       try {
-        const response = await fetch(`/api/characters/${characterId}/chat`, {
+        const response = await apiFetch(`/api/characters/${characterId}/chat`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json"

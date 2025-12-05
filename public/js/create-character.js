@@ -23,6 +23,7 @@ let currentTagList = [];
 let tagInputFieldRef = null;
 const exampleDialogPairs = [];
 let sceneImages = [];
+const apiFetch = window.apiFetch || ((...args) => fetch(...args));
 
 function slugify(value) {
   return (value || '')
@@ -818,7 +819,7 @@ function updatePreviewTags() {
 
 async function uploadImageAsset(file, folder = 'avatars') {
   const dataUrl = await fileToDataUrl(file);
-  const res = await fetch('/api/upload/avatar', {
+  const res = await apiFetch('/api/upload/avatar', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

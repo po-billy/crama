@@ -14,13 +14,29 @@ import { Jimp } from "jimp";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// .env 媛뺤젣 濡쒕뵫
-dotenv.config({ path: path.join(__dirname, ".env") });
-
-console.log("DEBUG FIXED PATH:", path.join(__dirname, ".env"));
-
-console.log("DEBUG AFTER dotenv SUPABASE_URL =", process.env.SUPABASE_URL);
-console.log("DEBUG AFTER dotenv SUPABASE_ANON_KEY =", process.env.SUPABASE_ANON_KEY?.slice(0, 20));
+const APP_ENV = process.env.APP_ENV || process.env.NODE_ENV || "local";
+const envFileOrder = [
+  ".env",
+  APP_ENV ? `.env.${APP_ENV}` : null,
+  APP_ENV === "local" ? ".env.local" : null,
+  APP_ENV && APP_ENV !== "local" ? `.env.${APP_ENV}.local` : null,
+].filter((value, index, self) => value && self.indexOf(value) === index);
+const loadedEnvFiles = [];
+for (const fileName of envFileOrder) {
+  if (!fileName) continue;
+  const envPath = path.join(__dirname, fileName);
+  if (!fs.existsSync(envPath)) continue;
+  dotenv.config({ path: envPath, override: true });
+  loadedEnvFiles.push(fileName);
+}
+if (!loadedEnvFiles.length) {
+  const fallback = path.join(__dirname, ".env");
+  if (fs.existsSync(fallback)) {
+    dotenv.config({ path: fallback, override: true });
+    loadedEnvFiles.push(".env");
+  }
+}
+console.log(`[env] mode=${APP_ENV} loaded files: ${loadedEnvFiles.join(", ") || "none"}`);
 
 import OpenAI from "openai";
 import { createClient } from "@supabase/supabase-js";
@@ -34,6 +50,9 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const PUBLIC_API_BASE_URL = process.env.PUBLIC_API_BASE_URL || '';
+const PUBLIC_SUPABASE_URL = process.env.PUBLIC_SUPABASE_URL || SUPABASE_URL;
+const PUBLIC_SUPABASE_ANON_KEY = process.env.PUBLIC_SUPABASE_ANON_KEY || SUPABASE_ANON_KEY;
 const OPENAI_IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL || "gpt-image-1";
 const OPENAI_ANALYZE_MODEL = process.env.OPENAI_ANALYZE_MODEL || "gpt-4o-mini";
 const STABILITY_API_KEY = process.env.STABILITY_API_KEY || null;
@@ -176,6 +195,20 @@ const supabaseAdmin = SUPABASE_SERVICE_ROLE_KEY
     })
   : null;
 
+function buildPublicRuntimeConfig() {
+  const payload = {
+    APP_ENV,
+    API_BASE_URL: PUBLIC_API_BASE_URL,
+    SUPABASE_URL: PUBLIC_SUPABASE_URL,
+    SUPABASE_ANON_KEY: PUBLIC_SUPABASE_ANON_KEY,
+  };
+  return Object.fromEntries(
+    Object.entries(payload).filter(([, value]) =>
+      typeof value === "number" ? true : Boolean(value)
+    )
+  );
+}
+
 // Increase body size limit to handle data URLs for analysis
 app.use(express.json({ limit: "25mb" }));
 app.use(express.urlencoded({ extended: true, limit: "25mb" }));
@@ -191,6 +224,15 @@ function requireAdmin(res) {
 // Serve static assets from Netlify-style public directory
 const STATIC_DIR = path.join(__dirname, "public");
 app.use(express.static(STATIC_DIR));
+
+app.get("/env.js", (req, res) => {
+  const config = buildPublicRuntimeConfig();
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+  res.type("application/javascript");
+  res.send(
+    `window.__ENV__ = Object.assign({}, window.__ENV__ || {}, ${JSON.stringify(config)});`
+  );
+});
 
 // Support extensionless HTML routes locally (matching Netlify rewrites)
 const HTML_ROUTE_MAP = {

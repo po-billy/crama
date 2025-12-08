@@ -6,10 +6,10 @@ import fs from 'fs';
 import https from 'https';
 import crypto from 'crypto';
 import fetch, { FormData } from "node-fetch";
-import dotenv from "dotenv";
-import path from "path";
-import { fileURLToPath } from "url";
-import { Jimp } from "jimp";
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { Jimp } from 'jimp';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -44,15 +44,26 @@ import { createClient } from "@supabase/supabase-js";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+function expandEnvValue(value, maxDepth = 5) {
+  if (typeof value !== "string" || !value.includes("${")) return value;
+  let resolved = value;
+  const pattern = /\$\{([^}]+)\}/g;
+  for (let depth = 0; depth < maxDepth && typeof resolved === "string" && resolved.includes("${"); depth++) {
+    resolved = resolved.replace(pattern, (match, varName) => process.env[varName] ?? "");
+  }
+  return resolved;
+}
+
 // ==== ENV ====
 const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const PUBLIC_API_BASE_URL = process.env.PUBLIC_API_BASE_URL || '';
-const PUBLIC_SUPABASE_URL = process.env.PUBLIC_SUPABASE_URL || SUPABASE_URL;
-const PUBLIC_SUPABASE_ANON_KEY = process.env.PUBLIC_SUPABASE_ANON_KEY || SUPABASE_ANON_KEY;
+const SUPABASE_URL = expandEnvValue(process.env.SUPABASE_URL);
+const SUPABASE_ANON_KEY = expandEnvValue(process.env.SUPABASE_ANON_KEY);
+const SUPABASE_SERVICE_ROLE_KEY = expandEnvValue(process.env.SUPABASE_SERVICE_ROLE_KEY);
+const PUBLIC_API_BASE_URL = expandEnvValue(process.env.PUBLIC_API_BASE_URL) || "";
+const PUBLIC_SUPABASE_URL = expandEnvValue(process.env.PUBLIC_SUPABASE_URL) || SUPABASE_URL;
+const PUBLIC_SUPABASE_ANON_KEY =
+  expandEnvValue(process.env.PUBLIC_SUPABASE_ANON_KEY) || SUPABASE_ANON_KEY;
 const OPENAI_IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL || "gpt-image-1";
 const OPENAI_ANALYZE_MODEL = process.env.OPENAI_ANALYZE_MODEL || "gpt-4o-mini";
 const STABILITY_API_KEY = process.env.STABILITY_API_KEY || null;
@@ -195,12 +206,29 @@ const supabaseAdmin = SUPABASE_SERVICE_ROLE_KEY
     })
   : null;
 
+function resolvePublicRuntimeConfig() {
+  const supabaseUrl =
+    expandEnvValue(process.env.PUBLIC_SUPABASE_URL) ||
+    PUBLIC_SUPABASE_URL ||
+    SUPABASE_URL;
+  const supabaseAnonKey =
+    expandEnvValue(process.env.PUBLIC_SUPABASE_ANON_KEY) ||
+    PUBLIC_SUPABASE_ANON_KEY ||
+    SUPABASE_ANON_KEY;
+  const apiBaseUrl =
+    expandEnvValue(process.env.PUBLIC_API_BASE_URL) ||
+    PUBLIC_API_BASE_URL ||
+    "";
+  return { supabaseUrl, supabaseAnonKey, apiBaseUrl };
+}
+
 function buildPublicRuntimeConfig() {
+  const { supabaseUrl, supabaseAnonKey, apiBaseUrl } = resolvePublicRuntimeConfig();
   const payload = {
     APP_ENV,
-    API_BASE_URL: PUBLIC_API_BASE_URL,
-    SUPABASE_URL: PUBLIC_SUPABASE_URL,
-    SUPABASE_ANON_KEY: PUBLIC_SUPABASE_ANON_KEY,
+    API_BASE_URL: apiBaseUrl,
+    SUPABASE_URL: supabaseUrl,
+    SUPABASE_ANON_KEY: supabaseAnonKey,
   };
   return Object.fromEntries(
     Object.entries(payload).filter(([, value]) =>

@@ -25,7 +25,12 @@ window.apiFetch = apiFetch;
 window.resolveApiUrl = resolveApiUrl;
 
 if (typeof supabase !== 'undefined' && SUPABASE_URL && SUPABASE_ANON_KEY) {
-  window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  try {
+    window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  } catch (err) {
+    console.error('Supabase 클라이언트 생성에 실패했습니다.', err);
+    window.sb = null;
+  }
 } else if (!window.sb) {
   window.sb = null;
 }

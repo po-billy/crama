@@ -38,6 +38,7 @@
 3. 프런트엔드가 로드되기 전에 `<script src="/env.js"></script>` 가 포함되어 있는지 확인한다 (이미 모든 HTML에 삽입됨).
 4. Supabase 공개 키는 `PUBLIC_SUPABASE_*` 로 관리하고, 서비스 롤 키는 절대 클라이언트에 노출하지 않는다.
 5. Netlify 등 정적 호스팅 시 `npm run generate:env` (build 후 자동 실행) 이 `public/env.js` 를 생성해야 한다. 환경 변수 변경 후에는 다시 배포하여 최신 `env.js` 가 포함되도록 한다.
+6. `/api/contact` 는 `netlify/functions/contact.js` 로 구현되므로 Netlify Functions 빌드/배포가 활성화되어 있어야 한다 (`netlify.toml` 참고).
 
 ## 운영(Netlify) 구성 예시
 1. Netlify 대시보드 → Site configuration → Environment variables에 **프로덕션 Supabase 프로젝트** 값을 입력

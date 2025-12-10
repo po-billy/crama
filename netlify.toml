@@ -1,8 +1,18 @@
 [build]
   publish = "public"
 
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
 # Ensure legacy sitemap path keeps working
 [[redirects]]
   from = "/site.xml"
   to = "/sitemap.xml"
   status = 200
+
+[[redirects]]
+  from = "/api/contact"
+  to = "/.netlify/functions/contact"
+  status = 200
+  force = true

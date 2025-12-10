@@ -250,14 +250,19 @@ function syncSideSlides(prevData, nextData) {
   }
 
   async function loadCharacters() {
+  const sbClient = window.sb;
   const listEl = document.querySelector('.characters-grid');
   if (!listEl) return;
+  if (!sbClient) {
+    listEl.innerHTML = '<div>Supabase 클라이언트를 초기화하지 못했습니다.</div>';
+    return;
+  }
 
   listEl.textContent = '불러오는 중...';
 
   try {
     // public characters 조회
-    const { data, error } = await sb
+    const { data, error } = await sbClient
       .from('characters')
       .select('id, owner_id, name, one_line, avatar_url, tags, like_count, view_count, is_monetized, genre, target')
       .eq('visibility', 'public')
@@ -292,7 +297,7 @@ function syncSideSlides(prevData, nextData) {
     const userIds = [...new Set((data || []).map((ch) => ch.owner_id || ch.user_id).filter(Boolean))];
     const profileMap = new Map();
     if (userIds.length) {
-      const { data: profiles, error: pErr } = await sb
+      const { data: profiles, error: pErr } = await sbClient
         .from('profiles')
         .select('id, display_name, handle')
         .in('id', userIds);

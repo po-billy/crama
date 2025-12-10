@@ -12,8 +12,9 @@
     "start": "cross-env APP_ENV=local node server.js",
     "start:live": "cross-env APP_ENV=production node server.js",
     "dev": "cross-env APP_ENV=local granite dev",
-    "build": "cross-env APP_ENV=production granite build",
-    "deploy": "cross-env APP_ENV=production ait deploy",
+    "build": "cross-env APP_ENV=production granite build && npm run generate:env",
+    "deploy": "cross-env APP_ENV=production npm run generate:env && ait deploy",
+    "generate:env": "node scripts/generate-env-js.js",
     "sync:contact": "node scripts/contact-mail-sync.js"
   },
   "dependencies": {

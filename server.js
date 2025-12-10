@@ -312,7 +312,6 @@ function requireAdmin(res) {
 
 // Serve static assets from Netlify-style public directory
 const STATIC_DIR = path.join(__dirname, "public");
-app.use(express.static(STATIC_DIR));
 
 app.get("/env.js", (req, res) => {
   const config = buildPublicRuntimeConfig();
@@ -322,6 +321,8 @@ app.get("/env.js", (req, res) => {
     `window.__ENV__ = Object.assign({}, window.__ENV__ || {}, ${JSON.stringify(config)});`
   );
 });
+
+app.use(express.static(STATIC_DIR));
 
 // Support extensionless HTML routes locally (matching Netlify rewrites)
 const HTML_ROUTE_MAP = {
@@ -715,14 +716,14 @@ app.post("/api/profile/ensure-handle", async (req, res) => {
       .maybeSingle();
 
     if (updateErr && String(updateErr.message || "").includes("handle_updated_at")) {
-      const { data, error: fallbackErr } = await adminClient
+      const { data: fallbackProfile, error: fallbackErr } = await adminClient
         .from("profiles")
         .update({ handle: uniqueHandle })
         .eq("id", user.id)
         .select("handle")
         .maybeSingle();
       if (fallbackErr) return sendError(res, 500, "profile_update_error", { error: fallbackErr.message });
-      updatedHandle = fallback?.handle || uniqueHandle;
+      updatedHandle = fallbackProfile?.handle || uniqueHandle;
     } else if (updateErr) {
       return sendError(res, 500, "profile_update_error", { error: updateErr.message });
     } else {

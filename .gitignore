@@ -4,3 +4,4 @@
 !.env.example
 .granite
 node_modules/
+public/env.js

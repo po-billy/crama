@@ -28,8 +28,8 @@
     }
   }
 
-// 카드 렌더: 크리에이터 정보 포함
-function renderCharacterCard(character) {
+  // 카드 렌더: 크리에이터 정보 포함
+  function renderCharacterCard(character) {
   const card = document.createElement('div');
   card.className = 'character-card card';
   card.dataset.id = character.id;
@@ -87,8 +87,8 @@ function renderCharacterCard(character) {
   return card;
 }
 
-// ===== Hero carousel (샘플 데이터) =====
-const heroSlidesData = [
+  // ===== Hero carousel (샘플 데이터) =====
+  const heroSlidesData = [
   {
     title: '샘플 캐릭터 1',
     subtitle: '추천 캐릭터를 만나보세요',
@@ -113,9 +113,9 @@ const heroSlidesData = [
     progress: '3/3',
     image: './assets/액션.webp'
   }
-];
+  ];
 
-function buildHeroSlides() {
+  function buildHeroSlides() {
   const container = document.getElementById('heroCarousel');
   if (!container) return;
   container.innerHTML = `
@@ -166,11 +166,9 @@ function syncSideSlides(prevData, nextData) {
     nextSlide.src = nextData.image;
     nextSlide.alt = nextData.title;
   }
-}
+  }
 
-})();
-
-function initHeroCarousel() {
+  function initHeroCarousel() {
   const container = document.getElementById('heroCarousel');
   if (!container) return;
   if (!heroSlidesData || heroSlidesData.length === 0) return;
@@ -223,9 +221,9 @@ function initHeroCarousel() {
     };
     container.addEventListener('touchmove', touchHandler);
   });
-}
+  }
 
-function initChipScrollControls() {
+  function initChipScrollControls() {
   const chipsBar = document.querySelector('.chips-bar');
   if (!chipsBar) return;
   const scrollEl = chipsBar.querySelector('.chips-scroll');
@@ -249,9 +247,9 @@ function initChipScrollControls() {
   scrollEl.addEventListener('scroll', updateButtons);
   window.addEventListener('resize', updateButtons);
   updateButtons();
-}
+  }
 
-async function loadCharacters() {
+  async function loadCharacters() {
   const listEl = document.querySelector('.characters-grid');
   if (!listEl) return;
 
@@ -330,10 +328,10 @@ async function loadCharacters() {
     listEl.innerHTML = '';
     fallback.forEach((ch) => listEl.appendChild(renderCharacterCard(ch)));
   }
-}
+  }
 
-// ===== Preview modal =====
-function initPreviewModal() {
+  // ===== Preview modal =====
+  function initPreviewModal() {
   const modal = document.getElementById('characterPreviewModal');
   const closeBtn = document.getElementById('previewCloseBtn');
   const enterBtn = document.getElementById('previewEnterBtn');
@@ -363,9 +361,9 @@ function initPreviewModal() {
       window.location.href = targetUrl;
     });
   }
-}
+  }
 
-function openCharacterPreview(character) {
+  function openCharacterPreview(character) {
   const modal = document.getElementById('characterPreviewModal');
   const track = document.getElementById('previewTrack');
   const meta = document.getElementById('previewMeta');
@@ -423,10 +421,10 @@ function openCharacterPreview(character) {
   `;
 
   enterBtn.focus();
-}
+  }
 
-// DOM 로드 후 초기화
-document.addEventListener('DOMContentLoaded', () => {
+  // DOM 로드 후 초기화
+  document.addEventListener('DOMContentLoaded', () => {
   initHeroCarousel();
   initChipScrollControls();
   loadCharacters();
@@ -439,6 +437,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   initPreviewModal();
-});
+  });
 
 })();

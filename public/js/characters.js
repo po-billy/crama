@@ -440,3 +440,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
   initPreviewModal();
 });
+
+})();

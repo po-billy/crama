@@ -250,89 +250,89 @@ function syncSideSlides(prevData, nextData) {
   }
 
   async function loadCharacters() {
-  const sbClient = window.sb;
-  const listEl = document.querySelector('.characters-grid');
-  if (!listEl) return;
-  if (!sbClient) {
-    listEl.innerHTML = '<div>Supabase 클라이언트를 초기화하지 못했습니다.</div>';
-    return;
-  }
-
-  listEl.textContent = '불러오는 중...';
-
-  try {
-    // public characters 조회
-    const { data, error } = await sbClient
-      .from('characters')
-      .select('id, owner_id, name, one_line, avatar_url, tags, like_count, view_count, is_monetized, genre, target')
-      .eq('visibility', 'public')
-      .order('created_at', { ascending: false })
-      .limit(50);
-
-    if (error) {
-      console.error(error);
-      listEl.innerHTML = '<div>캐릭터를 불러오지 못했습니다.</div>';
+    const sbClient = window.sb;
+    const listEl = document.querySelector('.characters-grid');
+    if (!listEl) return;
+    if (!sbClient) {
+      listEl.innerHTML = '<div>Supabase 클라이언트를 초기화하지 못했습니다.</div>';
       return;
     }
 
-    if (!data || data.length === 0) {
-      listEl.innerHTML = '<div>표시할 캐릭터가 없습니다.</div>';
-      return;
+    listEl.textContent = '불러오는 중...';
+
+    try {
+      // public characters 조회
+      const { data, error } = await sbClient
+        .from('characters')
+        .select('id, owner_id, name, one_line, avatar_url, tags, like_count, view_count, is_monetized, genre, target')
+        .eq('visibility', 'public')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) {
+        console.error(error);
+        listEl.innerHTML = '<div>캐릭터를 불러오지 못했습니다.</div>';
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        listEl.innerHTML = '<div>표시할 캐릭터가 없습니다.</div>';
+        return;
+      }
+
+      charactersCache = data;
+      // stats 병합
+      const statsList = await Promise.all(
+        data.map((ch) => fetchCharacterStats(ch.id).catch(() => null))
+      );
+      statsList.forEach((stats, idx) => {
+        if (stats) {
+          data[idx].like_count = stats.like_count;
+          data[idx].view_count = stats.view_count;
+          data[idx].chat_count = stats.chat_count;
+        }
+      });
+
+      // 프로필 매핑
+      const userIds = [...new Set((data || []).map((ch) => ch.owner_id || ch.user_id).filter(Boolean))];
+      const profileMap = new Map();
+      if (userIds.length) {
+        const { data: profiles, error: pErr } = await sbClient
+          .from('profiles')
+          .select('id, display_name, handle')
+          .in('id', userIds);
+        if (!pErr && profiles) {
+          profiles.forEach((p) => profileMap.set(p.id, p));
+        }
+      }
+      data.forEach((ch) => {
+        const ownerId = ch.owner_id || ch.user_id;
+        if (ownerId && profileMap.has(ownerId)) {
+          ch.creator_profile = profileMap.get(ownerId);
+        }
+        ch.owner_id = ownerId || null;
+      });
+
+      listEl.innerHTML = '';
+      data.forEach((ch) => listEl.appendChild(renderCharacterCard(ch)));
+    } catch (e) {
+      console.error('loadCharacters exception', e);
+      // 실패 시 간단한 샘플 카드
+      const fallback = [
+        {
+          id: 'sample-1',
+          name: '샘플 캐릭터',
+          one_line: '여기에 캐릭터 요약이 표시됩니다.',
+          like_count: 0,
+          chat_count: 0,
+          view_count: 0,
+          tags: ['샘플', '예시'],
+        },
+      ];
+      charactersCache = fallback;
+      listEl.innerHTML = '';
+      fallback.forEach((ch) => listEl.appendChild(renderCharacterCard(ch)));
     }
-
-    charactersCache = data;
-    // stats 병합
-    const statsList = await Promise.all(
-      data.map((ch) => fetchCharacterStats(ch.id).catch(() => null))
-    );
-    statsList.forEach((stats, idx) => {
-      if (stats) {
-        data[idx].like_count = stats.like_count;
-        data[idx].view_count = stats.view_count;
-        data[idx].chat_count = stats.chat_count;
-      }
-    });
-
-    // 프로필 매핑
-    const userIds = [...new Set((data || []).map((ch) => ch.owner_id || ch.user_id).filter(Boolean))];
-    const profileMap = new Map();
-    if (userIds.length) {
-      const { data: profiles, error: pErr } = await sbClient
-        .from('profiles')
-        .select('id, display_name, handle')
-        .in('id', userIds);
-      if (!pErr && profiles) {
-        profiles.forEach((p) => profileMap.set(p.id, p));
-      }
-    }
-    data.forEach((ch) => {
-      const ownerId = ch.owner_id || ch.user_id;
-      if (ownerId && profileMap.has(ownerId)) {
-        ch.creator_profile = profileMap.get(ownerId);
-      }
-      ch.owner_id = ownerId || null;
-    });
-
-    listEl.innerHTML = '';
-    data.forEach((ch) => listEl.appendChild(renderCharacterCard(ch)));
-  } catch (e) {
-    console.error('loadCharacters exception', e);
-    // 실패 시 간단한 샘플 카드
-    const fallback = [
-      {
-        id: 'sample-1',
-        name: '샘플 캐릭터',
-        one_line: '여기에 캐릭터 요약이 표시됩니다.',
-        like_count: 0,
-        chat_count: 0,
-        view_count: 0,
-        tags: ['샘플', '예시'],
-      },
-    ];
-    charactersCache = fallback;
-    listEl.innerHTML = '';
-    fallback.forEach((ch) => listEl.appendChild(renderCharacterCard(ch)));
-  }
   }
 
   // ===== Preview modal =====

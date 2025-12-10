@@ -54,6 +54,21 @@ document.addEventListener("DOMContentLoaded", () => {
                     thumb: "./assets/crama-logo1.png"
                 }
             ]
+        },
+        {
+            id: "support",
+            title: "지원 / 문의",
+            sub: "서비스 이용 중 문제가 생기면 바로 연락주세요.",
+            services: [
+                {
+                    name: "문의하기",
+                    desc: "help@crama.app 로 전달되는 공식 지원 채널입니다.",
+                    path: "/contact",
+                    badge: "Support",
+                    chip: "문의",
+                    thumb: "./assets/crama-logo1.png"
+                }
+            ]
         }
     ];
 

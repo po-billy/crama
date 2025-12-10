@@ -4,12 +4,17 @@
   "description": "Unsplash reference fetch server for ETC project",
   "type": "module",
   "main": "server.js",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
   "scripts": {
     "start": "cross-env APP_ENV=local node server.js",
     "start:live": "cross-env APP_ENV=production node server.js",
     "dev": "cross-env APP_ENV=local granite dev",
     "build": "cross-env APP_ENV=production granite build",
-    "deploy": "cross-env APP_ENV=production ait deploy"
+    "deploy": "cross-env APP_ENV=production ait deploy",
+    "sync:contact": "node scripts/contact-mail-sync.js"
   },
   "dependencies": {
     "@apps-in-toss/web-framework": "^1.5.1",
@@ -18,7 +23,11 @@
     "dotenv": "^16.6.1",
     "express": "^5.1.0",
     "jimp": "^1.6.0",
+    "mailparser": "^3.9.0",
+    "mysql2": "^3.15.3",
     "node-fetch": "^3.3.2",
+    "node-imap": "^0.9.6",
+    "nodemailer": "^6.9.14",
     "openai": "^6.9.1",
     "postgres": "^3.4.7"
   },

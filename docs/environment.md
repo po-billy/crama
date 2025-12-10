@@ -15,6 +15,8 @@
 | `OPENAI_API_KEY`, `OPENAI_IMAGE_MODEL`, `OPENAI_ANALYZE_MODEL` | OpenAI 호출용 |
 | `STABILITY_API_KEY`, `UNSPLASH_ACCESS_KEY` | 기타 외부 API 키 |
 | `PADDLE_*` 변수 | Paddle 결제 연동 시 사용 |
+| `CONTACT_MAIL_*`, `CONTACT_GMAIL_*`, `CONTACT_SMTP_*` | 문의하기 폼에서 help@crama.app 로 메일을 발송할 때 필요한 Gmail/SMTP 정보 |
+| `IMAP_*`, `DB_*` | 선택: ImprovMX/Gmail 에서 메일을 가져와 DB에 적재할 때 사용 |
 | 나머지 `CREDIT_*`, `DAILY_WELCOME_*`, `SERVICE_CODE_STUDIO` 등 | 비즈니스 로직/크레딧 정책 조정 |
 
 > `.env.example` 에 모든 키가 나열되어 있으니 필요 값만 골라 `.env.local`, `.env.production` 등을 작성하세요.
@@ -24,6 +26,7 @@
 - 라이브 환경 확인: `npm run start:live`
 - Granite dev server: `npm run dev` (로컬 환경)
 - 빌드/배포: `npm run build`, `npm run deploy` (자동으로 `APP_ENV=production`)
+- 문의 메일 로컬/주기적 수집: `npm run sync:contact` (IMAP/DB 환경 변수 필요)
 
 ## 프런트엔드에서의 사용
 - `public/js/common.js` 가 `/env.js` 결과를 읽어 `window.__ENV__`, `window.sb`, `window.apiFetch` 를 초기화합니다.

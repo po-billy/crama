@@ -4,12 +4,14 @@
 import express from "express";
 import fs from 'fs';
 import https from 'https';
+import net from 'net';
 import crypto from 'crypto';
 import fetch, { FormData } from "node-fetch";
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { Jimp } from 'jimp';
+import nodemailer from "nodemailer";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -42,7 +44,24 @@ import OpenAI from "openai";
 import { createClient } from "@supabase/supabase-js";
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+
+function parsePort(value, fallback = 3000) {
+  const num = Number(value);
+  if (!Number.isInteger(num) || num <= 0 || num > 65535) return fallback;
+  return num;
+}
+function parseAddressList(value) {
+  if (!value) return [];
+  return String(value)
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+const DEFAULT_PORT = parsePort(process.env.PORT, 3000);
+const PORT_FALLBACK_ATTEMPTS = Math.max(
+  0,
+  Number.parseInt(process.env.PORT_FALLBACK_ATTEMPTS ?? "", 10) || 10
+);
 
 function expandEnvValue(value, maxDepth = 5) {
   if (typeof value !== "string" || !value.includes("${")) return value;
@@ -64,6 +83,21 @@ const PUBLIC_API_BASE_URL = expandEnvValue(process.env.PUBLIC_API_BASE_URL) || "
 const PUBLIC_SUPABASE_URL = expandEnvValue(process.env.PUBLIC_SUPABASE_URL) || SUPABASE_URL;
 const PUBLIC_SUPABASE_ANON_KEY =
   expandEnvValue(process.env.PUBLIC_SUPABASE_ANON_KEY) || SUPABASE_ANON_KEY;
+const CONTACT_MAIL_FROM = expandEnvValue(process.env.CONTACT_MAIL_FROM) || "help@crama.app";
+const CONTACT_MAIL_TO = expandEnvValue(process.env.CONTACT_MAIL_TO) || CONTACT_MAIL_FROM;
+const CONTACT_MAIL_BCC = parseAddressList(expandEnvValue(process.env.CONTACT_MAIL_BCC || ""));
+const CONTACT_MAIL_SUBJECT_PREFIX =
+  process.env.CONTACT_MAIL_SUBJECT_PREFIX || "[Crama 문의]";
+const CONTACT_SMTP_HOST = process.env.CONTACT_SMTP_HOST || "";
+const CONTACT_SMTP_PORT = safeInt(process.env.CONTACT_SMTP_PORT, 587, { min: 1 });
+const CONTACT_SMTP_SECURE =
+  String(process.env.CONTACT_SMTP_SECURE ?? (CONTACT_SMTP_PORT === 465 ? "true" : "false"))
+    .toLowerCase()
+    .trim() === "true";
+const CONTACT_SMTP_USER = process.env.CONTACT_SMTP_USER || "";
+const CONTACT_SMTP_PASS = process.env.CONTACT_SMTP_PASS || "";
+const CONTACT_GMAIL_USER = process.env.CONTACT_GMAIL_USER || "";
+const CONTACT_GMAIL_PASS = process.env.CONTACT_GMAIL_PASS || "";
 const OPENAI_IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL || "gpt-image-1";
 const OPENAI_ANALYZE_MODEL = process.env.OPENAI_ANALYZE_MODEL || "gpt-4o-mini";
 const STABILITY_API_KEY = process.env.STABILITY_API_KEY || null;
@@ -206,6 +240,33 @@ const supabaseAdmin = SUPABASE_SERVICE_ROLE_KEY
     })
   : null;
 
+let contactMailer = null;
+if (CONTACT_GMAIL_USER && CONTACT_GMAIL_PASS) {
+  contactMailer = nodemailer.createTransport({
+    service: "Gmail",
+    auth: {
+      user: CONTACT_GMAIL_USER,
+      pass: CONTACT_GMAIL_PASS,
+    },
+  });
+  console.log("[contact] Gmail transport active");
+} else if (CONTACT_SMTP_HOST && CONTACT_SMTP_USER && CONTACT_SMTP_PASS) {
+  contactMailer = nodemailer.createTransport({
+    host: CONTACT_SMTP_HOST,
+    port: CONTACT_SMTP_PORT,
+    secure: CONTACT_SMTP_SECURE,
+    auth: {
+      user: CONTACT_SMTP_USER,
+      pass: CONTACT_SMTP_PASS,
+    },
+  });
+  console.log("[contact] Custom SMTP transport active");
+} else {
+  console.warn(
+    "[contact] 문의 이메일 전송이 비활성화되어 있습니다. CONTACT_GMAIL_* 또는 CONTACT_SMTP_* env를 설정해주세요."
+  );
+}
+
 function resolvePublicRuntimeConfig() {
   const supabaseUrl =
     expandEnvValue(process.env.PUBLIC_SUPABASE_URL) ||
@@ -274,6 +335,7 @@ const HTML_ROUTE_MAP = {
   "/menu": "menu.html",
   "/mypage": "mypage.html",
   "/works": "works.html",
+  "/contact": "contact.html",
   "/login": "login.html",
   "/coming-soon": "coming-soon.html",
 };
@@ -283,6 +345,110 @@ for (const [route, file] of Object.entries(HTML_ROUTE_MAP)) {
     res.sendFile(path.join(STATIC_DIR, file));
   });
 }
+
+const CONTACT_CATEGORY_LABELS = {
+  general: "일반 문의",
+  billing: "결제/scene",
+  bug: "버그 신고",
+  partnership: "제휴/협업",
+  other: "기타",
+};
+const CONTACT_MAX_MESSAGE_LENGTH = 2000;
+
+function sanitizeLine(value, max = 120) {
+  if (!value) return "";
+  return String(value).replace(/\s+/g, " ").trim().slice(0, max);
+}
+function sanitizeMultiline(value, max = CONTACT_MAX_MESSAGE_LENGTH) {
+  if (!value) return "";
+  return String(value).trim().slice(0, max);
+}
+function isValidEmail(value) {
+  if (!value) return false;
+  return /^[\w.!#$%&'*+/=?^`{|}~-]+@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$/.test(
+    value
+  );
+}
+function resolveContactCategory(raw) {
+  const key = String(raw || "general").toLowerCase();
+  if (CONTACT_CATEGORY_LABELS[key]) return key;
+  return "general";
+}
+
+app.post("/api/contact", async (req, res) => {
+  if (!contactMailer) {
+    return sendError(res, 503, "contact_disabled", {
+      message: "문의하기 이메일 전송이 아직 설정되지 않았습니다.",
+    });
+  }
+  const body = req.body || {};
+  const name = sanitizeLine(body.name, 80);
+  const email = sanitizeLine(body.email, 120);
+  const categoryKey = resolveContactCategory(body.category);
+  const categoryLabel = CONTACT_CATEGORY_LABELS[categoryKey];
+  const message = sanitizeMultiline(body.message, CONTACT_MAX_MESSAGE_LENGTH);
+  const page = sanitizeLine(body.page || body.pageUrl || req.headers.referer, 200);
+
+  if (!name || !email || !message) {
+    return sendError(res, 400, "missing_fields");
+  }
+  if (!isValidEmail(email)) {
+    return sendError(res, 400, "invalid_email");
+  }
+
+  const replyTo = email;
+  const clientIp = (req.headers["x-forwarded-for"] || req.ip || "").toString();
+  const userAgent = sanitizeLine(req.headers["user-agent"], 200);
+  const submittedAt = new Date().toISOString();
+
+  const textBody = [
+    `문의 유형: ${categoryLabel}`,
+    `이름: ${name}`,
+    `이메일: ${email}`,
+    page ? `페이지: ${page}` : null,
+    `제출 시간: ${submittedAt}`,
+    clientIp ? `IP: ${clientIp}` : null,
+    userAgent ? `User-Agent: ${userAgent}` : null,
+    "",
+    "------ 내용 ------",
+    message,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const htmlBody = `
+    <p><strong>문의 유형:</strong> ${categoryLabel}</p>
+    <p><strong>이름:</strong> ${name}<br/>
+    <strong>이메일:</strong> ${email}<br/>
+    ${page ? `<strong>페이지:</strong> ${page}<br/>` : ""} 
+    <strong>제출 시간:</strong> ${submittedAt}<br/>
+    ${clientIp ? `<strong>IP:</strong> ${clientIp}<br/>` : ""} 
+    ${userAgent ? `<strong>User-Agent:</strong> ${userAgent}` : ""}</p>
+    <hr/>
+    <p style="white-space:pre-wrap">${message}</p>
+  `;
+
+  const toList = parseAddressList(CONTACT_MAIL_TO);
+  if (!toList.length) {
+    return sendError(res, 500, "contact_recipient_missing");
+  }
+
+  try {
+    await contactMailer.sendMail({
+      from: CONTACT_MAIL_FROM,
+      to: toList,
+      bcc: CONTACT_MAIL_BCC.length ? CONTACT_MAIL_BCC : undefined,
+      replyTo,
+      subject: `${CONTACT_MAIL_SUBJECT_PREFIX} ${categoryLabel} - ${name}`,
+      text: textBody,
+      html: htmlBody,
+    });
+    return res.json({ ok: true });
+  } catch (error) {
+    console.error("contact email failed", error);
+    return sendError(res, 502, "contact_send_failed");
+  }
+});
 
 /**
  * 怨듭슜: ?먮윭 ?묐떟 ?ы띁
@@ -2425,28 +2591,73 @@ app.post('/api/buy-plan', async (req, res) => {
 
 
 
+async function isPortAvailable(port) {
+  return new Promise((resolve, reject) => {
+    const tester = net.createServer().unref();
+    tester.once('error', (err) => {
+      if (err.code === 'EADDRINUSE' || err.code === 'EACCES') {
+        return resolve(false);
+      }
+      return reject(err);
+    });
+    tester.once('listening', () => {
+      tester.close(() => resolve(true));
+    });
+    tester.listen(port, '0.0.0.0');
+  });
+}
+
+async function findAvailablePort(preferredPort, maxOffset = PORT_FALLBACK_ATTEMPTS) {
+  for (let offset = 0; offset <= maxOffset; offset++) {
+    const candidate = preferredPort + offset;
+    const available = await isPortAvailable(candidate);
+    if (available) {
+      return { port: candidate, fallbackOffset: offset };
+    }
+  }
+  throw new Error(
+    `No available port found from ${preferredPort} to ${preferredPort + maxOffset}`
+  );
+}
+
 // ===============================
-// ?쒕쾭 ?쒖옉
+// Server bootstrap
 // ===============================
-// If certificate files (or env vars) are available, start HTTPS server for local dev
 const CERT_KEY_PATH = process.env.CERT_KEY_PATH || './certs/localhost-key.pem';
 const CERT_PEM_PATH = process.env.CERT_PEM_PATH || './certs/localhost.pem';
 
-if (fs.existsSync(CERT_KEY_PATH) && fs.existsSync(CERT_PEM_PATH)) {
+async function startServer() {
   try {
-    const key = fs.readFileSync(CERT_KEY_PATH);
-    const cert = fs.readFileSync(CERT_PEM_PATH);
-    https.createServer({ key, cert }, app).listen(PORT, () => {
-      console.log(`HTTPS server running on https://localhost:${PORT}`);
+    const { port, fallbackOffset } = await findAvailablePort(
+      DEFAULT_PORT,
+      PORT_FALLBACK_ATTEMPTS
+    );
+    if (fallbackOffset > 0) {
+      console.warn(
+        `Port ${DEFAULT_PORT} is unavailable. Using ${port} instead (offset +${fallbackOffset}).`
+      );
+    }
+
+    if (fs.existsSync(CERT_KEY_PATH) && fs.existsSync(CERT_PEM_PATH)) {
+      try {
+        const key = fs.readFileSync(CERT_KEY_PATH);
+        const cert = fs.readFileSync(CERT_PEM_PATH);
+        https.createServer({ key, cert }, app).listen(port, () => {
+          console.log(`HTTPS server running on https://localhost:${port}`);
+        });
+        return;
+      } catch (e) {
+        console.error('Failed to start HTTPS server, falling back to HTTP', e);
+      }
+    }
+
+    app.listen(port, () => {
+      console.log(`HTTP server running on http://localhost:${port}`);
     });
-  } catch (e) {
-    console.error('Failed to start HTTPS server, falling back to HTTP', e);
-    app.listen(PORT, () => {
-      console.log(`HTTP server running on http://localhost:${PORT}`);
-    });
+  } catch (err) {
+    console.error('Failed to bind server port', err);
+    process.exit(1);
   }
-} else {
-  app.listen(PORT, () => {
-    console.log(`HTTP server running on http://localhost:${PORT}`);
-  });
 }
+
+startServer();

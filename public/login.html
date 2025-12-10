@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <script src="/env.js"></script>
+  <script src="/env.js"></script>
   <meta charset="UTF-8" />
   <title>로그인 | 크라마(crama)</title>
   <meta name="description" content="크라마(crama) 계정으로 로그인하고 크레딧, 캐릭터, 스튜디오 작업을 동기화하세요.">
@@ -17,110 +17,64 @@
   <meta name="twitter:description" content="AI 챗과 스튜디오 기능을 이용하려면 구글 계정으로 빠르게 로그인하세요.">
   <meta name="twitter:image" content="https://crama.app/assets/og-default.png">
   <link rel="canonical" href="https://crama.app/login">
-  <link rel="stylesheet" href="css/login.css" />
-</head>
-<body class="login-page">
-  <div class="login-shape login-shape--one"></div>
-  <div class="login-shape login-shape--two"></div>
-
-  <div class="login-layout">
-    <section class="login-hero">
-      <div class="hero-badge">CRAMA STUDIO</div>
-      <h1 class="hero-title">캐릭터와 스튜디오 작업을<br>한 계정으로 이어보세요.</h1>
-      <p class="hero-desc">
-        로그인하면 생성한 캐릭터와 이미지, 크레딧 내역이 모든 디바이스에서 동기화되고
-        더 많은 실험 기능을 가장 먼저 경험할 수 있습니다.
-      </p>
-      <ul class="hero-list">
-        <li>🎨 스튜디오 이미지와 캐릭터 히스토리 자동 저장</li>
-        <li>💬 채팅 기록과 즐겨찾는 캐릭터 동기화</li>
-        <li>⚡ 플랜과 scene 크레딧을 안전하게 관리</li>
-      </ul>
-    </section>
-
-    <section class="login-panel">
-      <div class="login-card">
-        <div class="login-logo">crama</div>
-        <div class="login-title">크라마(crama) 로그인</div>
-        <div class="login-desc">
-          Google 계정으로 빠르게 로그인하고 크라마의 모든 기능을 이용하세요.
-        </div>
-
-        <button id="google-login-btn" class="google-btn">
-          <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google">
-          구글로 로그인
-        </button>
-
-        <div class="login-divider"><span>로그인 문제가 있나요?</span></div>
-        <p class="login-footnote">
-          support@crama.app 로 문의해 주시면 빠르게 도와드릴게요.
-        </p>
-
-        <pre id="status"></pre>
-      </div>
-    </section>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-const runtimeEnv = window.__ENV__ || {};
-const SUPABASE_URL = runtimeEnv.SUPABASE_URL || runtimeEnv.PUBLIC_SUPABASE_URL;
-const SUPABASE_ANON_KEY = runtimeEnv.SUPABASE_ANON_KEY || runtimeEnv.PUBLIC_SUPABASE_ANON_KEY;
-
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  console.error('Supabase 환경 변수가 설정되지 않았습니다.');
-}
-
-const client = SUPABASE_URL && SUPABASE_ANON_KEY
-  ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-  : null;
-const statusEl = document.getElementById('status');
-const redirectParam = new URLSearchParams(window.location.search).get('redirect');
-
-function log(msg, data) {
-  statusEl.textContent = msg + (data ? '\n' + JSON.stringify(data, null, 2) : '');
-}
-
-function resolveRedirectUrl(raw) {
-  if (!raw) return null;
-  try {
-    const url = new URL(raw, window.location.origin);
-    if (url.origin !== window.location.origin) return window.location.origin;
-    return url.toString();
-  } catch {
-    return window.location.origin;
-  }
-}
-
-function tryRedirectAfterLogin() {
-  const target = resolveRedirectUrl(redirectParam);
-  if (!target) return;
-  window.location.replace(target);
-}
-
-document.getElementById('google-login-btn')
-  .addEventListener('click', async () => {
-    if (!client) {
-      alert('Supabase 클라이언트가 초기화되지 않았습니다. 환경 변수를 확인해주세요.');
-      return;
+  <link rel="stylesheet" href="./css/common.css">
+  <link rel="stylesheet" href="./css/login-modal.css">
+  <style>
+    body.login-forward {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top, #161628, #0b0c16 60%);
+      color: rgba(255,255,255,0.8);
+      font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
     }
-    const { error } = await client.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}${window.location.pathname}${window.location.search}`
-      }
-    });
-    if (error) log('로그인 에러', error);
-});
+    .login-forward__message {
+      text-align: center;
+      line-height: 1.6;
+      max-width: 360px;
+    }
+  </style>
+</head>
+<body class="login-forward" data-page="login">
+  <div class="login-forward__message">
+    로그인 창을 여는 중입니다.<br>잠시만 기다려 주세요.
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/common.js"></script>
+  <script src="js/authWidget.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const params = new URLSearchParams(window.location.search);
+      const redirect = params.get('redirect') || window.location.origin;
 
-(async () => {
-  if (!client) return;
-  const { data } = await client.auth.getSession();
-  if (data.session) {
-    log('이미 로그인됨:', data.session);
-    tryRedirectAfterLogin();
-  }
-})();
+      if (window.sb?.auth) {
+        try {
+          await window.sb.auth.getSession();
+        } catch (err) {
+          console.warn('login page session check failed', err);
+        }
+      }
+
+      if (window.requireLogin) {
+        const alreadyLoggedIn = await window.requireLogin({
+          redirect,
+          fromStandalone: true
+        });
+        if (alreadyLoggedIn) {
+          window.location.assign(redirect);
+        }
+        return;
+      }
+
+      if (window.openLoginModal) {
+        await window.openLoginModal({ redirect, fromStandalone: true });
+        return;
+      }
+
+      // fallback: no modal helpers available
+      window.location.href = '/';
+    });
   </script>
 </body>
 </html>

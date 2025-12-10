@@ -10,7 +10,11 @@ async function initMyPage() {
   // 1) 세션 체크: 비로그인 → 로그인 페이지
   const { data, error } = await window.sb.auth.getSession();
   if (error || !data.session) {
-    window.location.href = "/login";
+    if (window.openLoginModal) {
+      await window.openLoginModal({ redirect: window.location.href });
+    } else {
+      window.location.href = "/login";
+    }
     return;
   }
 
@@ -24,7 +28,11 @@ async function initMyPage() {
 
   if (!ctx) {
     alert("계정 정보를 불러오지 못했습니다. 다시 로그인해주세요.");
-    window.location.href = "/login";
+    if (window.openLoginModal) {
+      await window.openLoginModal({ redirect: window.location.href });
+    } else {
+      window.location.href = "/login";
+    }
     return;
   }
 
@@ -211,7 +219,11 @@ function setupMyPageActions() {
   if (logoutBtn) {
     logoutBtn.addEventListener("click", async () => {
       await window.sb.auth.signOut();
-      window.location.href = "/login";
+      if (window.openLoginModal) {
+        await window.openLoginModal({ redirect: window.location.origin });
+      } else {
+        window.location.href = "/login";
+      }
     });
   }
 

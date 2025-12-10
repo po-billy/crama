@@ -360,7 +360,11 @@ function syncSideSlides(prevData, nextData) {
       const targetUrl = `/character?id=${previewSelected.id}`;
       const loggedIn = await isUserLoggedIn();
       if (!loggedIn) {
-        window.location.href = `/login?redirect=${encodeURIComponent(targetUrl)}`;
+        if (window.openLoginModal) {
+          window.openLoginModal({ redirect: targetUrl });
+        } else {
+          window.location.href = `/login?redirect=${encodeURIComponent(targetUrl)}`;
+        }
         return;
       }
       window.location.href = targetUrl;

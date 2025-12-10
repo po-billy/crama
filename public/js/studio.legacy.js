@@ -13,7 +13,11 @@ const CREDITS_PER_GENERATION_CALL = 100;
 async function ensureLoggedIn() {
   const { data, error } = await sb.auth.getSession();
   if (error || !data.session) {
-    window.location.href = '/login';
+    if (window.openLoginModal) {
+      await window.openLoginModal({ redirect: window.location.href });
+    } else {
+      window.location.href = '/login';
+    }
     return false;
   }
   return true;

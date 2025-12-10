@@ -162,7 +162,11 @@ document.addEventListener('DOMContentLoaded', () => {
   async function ensureLoggedIn() {
     const { data, error } = await window.sb.auth.getSession();
     if (error || !data.session) {
-      window.location.href = '/login';
+      if (window.openLoginModal) {
+        await window.openLoginModal({ redirect: window.location.href });
+      } else {
+        window.location.href = '/login';
+      }
       return null;
     }
     return data.session;
@@ -262,7 +266,11 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       if (res.status === 401) {
-        window.location.href = '/login';
+        if (window.openLoginModal) {
+          await window.openLoginModal({ redirect: window.location.href });
+        } else {
+          window.location.href = '/login';
+        }
         return;
       }
       if (res.status === 402) {

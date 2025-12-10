@@ -27,6 +27,10 @@ function renderLoggedOut() {
   `;
 
   document.getElementById("loginBtn").addEventListener("click", async () => {
+    if (window.openLoginModal) {
+      await window.openLoginModal({ redirect: window.location.href });
+      return;
+    }
     const { error } = await window.sb.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: window.location.origin }

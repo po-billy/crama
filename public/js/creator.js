@@ -6,7 +6,11 @@ async function initCreatorPage() {
   try {
     const ctx = await window.fetchUserContext();
     if (!ctx) {
-      window.location.href = "/login";
+      if (window.openLoginModal) {
+        await window.openLoginModal({ redirect: window.location.href });
+      } else {
+        window.location.href = "/login";
+      }
       return;
     }
 
@@ -183,4 +187,3 @@ async function fetchProfileById(userId) {
     return null;
   }
 }
-

@@ -8,7 +8,11 @@ async function initWorksPage() {
   // 로그인 체크
   const { data, error } = await window.sb.auth.getSession();
   if (error || !data.session) {
-    window.location.href = "/login";
+    if (window.openLoginModal) {
+      await window.openLoginModal({ redirect: window.location.href });
+    } else {
+      window.location.href = "/login";
+    }
     return;
   }
 

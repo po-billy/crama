@@ -36,6 +36,174 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && SUPABASE_ANON_KEY) {
 }
 const sb = window.sb;
 
+function clearOAuthHash() {
+  const hash = window.location.hash || '';
+  if (!hash || hash === '#') return;
+  const hasOAuthParams = /(access_token|refresh_token|error_description|type)=/i.test(hash);
+  if (!hasOAuthParams) return;
+  try {
+    const cleanUrl = `${window.location.pathname}${window.location.search}`;
+    window.history.replaceState(null, document.title, cleanUrl);
+  } catch (err) {
+    console.warn('failed to clear oauth hash', err);
+  }
+}
+
+if (sb?.auth) {
+  sb.auth.getSession().finally(() => {
+    clearOAuthHash();
+  });
+}
+
+const loginModalState = {
+  redirect: null,
+  fromStandalone: false,
+  modal: null,
+  statusEl: null,
+  isOpen: false,
+};
+let loginModalLoadPromise = null;
+
+function fallbackLoginRedirect(redirect) {
+  const search = redirect ? `?redirect=${encodeURIComponent(redirect)}` : '';
+  window.location.href = `/login${search}`;
+}
+
+function bindLoginAuthListener() {
+  if (!window.sb?.auth || window.sb.auth.__loginModalBound) return;
+  window.sb.auth.__loginModalBound = true;
+  window.sb.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+      handleLoginSuccess();
+    }
+  });
+}
+
+function setLoginStatus(message, variant = '') {
+  if (!loginModalState.statusEl) return;
+  loginModalState.statusEl.textContent = message || '';
+  loginModalState.statusEl.classList.remove('error', 'success', 'muted');
+  if (variant) loginModalState.statusEl.classList.add(variant);
+}
+
+function closeLoginModal(options = {}) {
+  const modal = loginModalState.modal;
+  if (!modal) return;
+  modal.classList.add('login-modal--hidden');
+  modal.setAttribute('aria-hidden', 'true');
+  setLoginStatus('');
+  loginModalState.isOpen = false;
+  if (!options.preserveContext) {
+    loginModalState.redirect = null;
+    loginModalState.fromStandalone = false;
+  }
+}
+
+function handleLoginSuccess() {
+  if (!loginModalState.isOpen && !loginModalState.fromStandalone) {
+    return;
+  }
+  setLoginStatus('로그인이 완료되었습니다.', 'success');
+  setTimeout(() => {
+    const target = loginModalState.redirect;
+    const shouldReload = !target || target === window.location.href;
+    closeLoginModal({ preserveContext: true });
+    loginModalState.redirect = null;
+    loginModalState.fromStandalone = false;
+    if (shouldReload) {
+      window.location.reload();
+      return;
+    }
+    window.location.assign(target);
+  }, 700);
+}
+
+async function handleGoogleLogin() {
+  if (!window.sb?.auth) {
+    setLoginStatus('Supabase 클라이언트를 초기화할 수 없습니다.', 'error');
+    fallbackLoginRedirect(loginModalState.redirect);
+    return;
+  }
+  setLoginStatus('Google 로그인 창을 여는 중...', 'muted');
+  try {
+    await window.sb.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: loginModalState.redirect || window.location.origin,
+      },
+    });
+  } catch (error) {
+    console.error('login modal oauth error', error);
+    setLoginStatus(error?.message || '로그인 중 오류가 발생했습니다.', 'error');
+  }
+}
+
+function initLoginModal() {
+  const modal = document.getElementById('loginModal');
+  if (!modal || modal.dataset.loginReady) return;
+  loginModalState.modal = modal;
+  loginModalState.statusEl = modal.querySelector('#loginModalStatus');
+  modal.querySelectorAll('[data-login-close]').forEach((btn) => {
+    btn.addEventListener('click', () => closeLoginModal());
+  });
+  const googleBtn = modal.querySelector('#loginModalGoogleBtn');
+  if (googleBtn) {
+    googleBtn.addEventListener('click', () => handleGoogleLogin());
+  }
+  modal.dataset.loginReady = '1';
+  bindLoginAuthListener();
+}
+
+function ensureLoginModalLoaded() {
+  if (loginModalLoadPromise) return loginModalLoadPromise;
+  loginModalLoadPromise = (async () => {
+    if (document.getElementById('loginModal')) {
+      initLoginModal();
+      return;
+    }
+    try {
+      const res = await fetch('./partials/login-modal.html');
+      const html = await res.text();
+      document.body.insertAdjacentHTML('beforeend', html);
+      initLoginModal();
+    } catch (e) {
+      console.error('login modal load failed', e);
+      loginModalLoadPromise = null;
+    }
+  })();
+  return loginModalLoadPromise;
+}
+
+async function openLoginModal(options = {}) {
+  loginModalState.redirect = options.redirect || window.location.href;
+  loginModalState.fromStandalone = options.fromStandalone || false;
+  await ensureLoginModalLoaded();
+  const modal = loginModalState.modal;
+  if (!modal) {
+    fallbackLoginRedirect(loginModalState.redirect);
+    return;
+  }
+  setLoginStatus('');
+  modal.classList.remove('login-modal--hidden');
+  modal.setAttribute('aria-hidden', 'false');
+  loginModalState.isOpen = true;
+}
+
+async function requireLogin(options = {}) {
+  if (!window.sb?.auth) {
+    await openLoginModal(options);
+    return false;
+  }
+  try {
+    const { data } = await window.sb.auth.getSession();
+    if (data?.session) return true;
+  } catch (err) {
+    console.warn('requireLogin session check failed', err);
+  }
+  await openLoginModal(options);
+  return false;
+}
+
 async function loadHead() {
   try {
     const res = await fetch('./partials/head.html');
@@ -470,7 +638,7 @@ async function updateSidebarUserInfo() {
 
     if (avatarBtn && !avatarBtn.dataset.loginBound) {
       avatarBtn.addEventListener('click', () => {
-        window.location.href = '/login';
+        openLoginModal();
       });
       avatarBtn.dataset.loginBound = '1';
     }
@@ -583,12 +751,15 @@ window.updateSidebarUserInfo = updateSidebarUserInfo;
 window.setupAccountPopover = setupAccountPopover;
 window.loadCreditUpsellPartial = loadCreditUpsellPartial;
 window.openDrawerImageModal = openDrawerImageModal;
+window.openLoginModal = openLoginModal;
+window.requireLogin = requireLogin;
 
 document.addEventListener('DOMContentLoaded', () => {
   loadHead();
   initSidebar();
   initDrawer();
   updateSectionNickname();
+  ensureLoginModalLoaded();
 });
 
 /* Credit Upsell Partial */

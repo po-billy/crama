@@ -1,31 +1,32 @@
 // characters.js
 // 캐릭터 리스트 페이지 스크립트 (UTF-8)
-const apiFetch = window.apiFetch || ((...args) => fetch(...args));
+(function () {
+  const apiFetchLocal = window.apiFetch || ((...args) => fetch(...args));
 
-let charactersCache = [];
-let previewSelected = null;
+  let charactersCache = [];
+  let previewSelected = null;
 
-async function isUserLoggedIn() {
-  if (!window.sb?.auth) return false;
-  try {
-    const { data } = await window.sb.auth.getSession();
-    return !!data?.session;
-  } catch (e) {
-    console.warn('session check failed', e);
-    return false;
+  async function isUserLoggedIn() {
+    if (!window.sb?.auth) return false;
+    try {
+      const { data } = await window.sb.auth.getSession();
+      return !!data?.session;
+    } catch (e) {
+      console.warn('session check failed', e);
+      return false;
+    }
   }
-}
 
-async function fetchCharacterStats(id) {
-  try {
-    const res = await apiFetch(`/api/characters/${id}/stats`);
-    if (!res.ok) return null;
-    return await res.json();
-  } catch (e) {
-    console.warn('fetchCharacterStats error', e);
-    return null;
+  async function fetchCharacterStats(id) {
+    try {
+      const res = await apiFetchLocal(`/api/characters/${id}/stats`);
+      if (!res.ok) return null;
+      return await res.json();
+    } catch (e) {
+      console.warn('fetchCharacterStats error', e);
+      return null;
+    }
   }
-}
 
 // 카드 렌더: 크리에이터 정보 포함
 function renderCharacterCard(character) {
@@ -166,6 +167,8 @@ function syncSideSlides(prevData, nextData) {
     nextSlide.alt = nextData.title;
   }
 }
+
+})();
 
 function initHeroCarousel() {
   const container = document.getElementById('heroCarousel');

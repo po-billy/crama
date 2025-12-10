@@ -1,3 +1,4 @@
+(function () {
 // js/credits.js
 
 let creditConfig = null;
@@ -445,3 +446,5 @@ if (!window.loadWebRewardedAd) {
     return { completed: doReward };
   };
 }
+
+})();

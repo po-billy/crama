@@ -1,4 +1,5 @@
 // New studio: character image generation UI
+(function () {
 const apiFetch = window.apiFetch || ((...args) => fetch(...args));
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -321,3 +322,5 @@ document.addEventListener('DOMContentLoaded', () => {
     openCaution();
   }
 });
+
+})();

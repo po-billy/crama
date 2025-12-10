@@ -1,4 +1,5 @@
 // js/studio.js
+(function () {
 const apiFetch = window.apiFetch || ((...args) => fetch(...args));
 
 
@@ -496,3 +497,5 @@ function initStudioPage() {
     await generateImages('direct');
   });
 }
+
+})();

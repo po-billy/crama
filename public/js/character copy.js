@@ -1,3 +1,4 @@
+(function () {
 const apiFetch = window.apiFetch || ((...args) => fetch(...args));
 
 // ================================
@@ -293,3 +294,5 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadChatHistory(characterId);
   setupChat(characterId);
 });
+
+})();

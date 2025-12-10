@@ -1,3 +1,4 @@
+(function () {
 // create-character.js
 // - 스텝 이동
 // - 미리보기(이름/이미지)
@@ -1067,3 +1068,5 @@ document.addEventListener('DOMContentLoaded', () => {
     );
     if (finalSubmitBtn) finalSubmitBtn.addEventListener('click', handleSubmitCharacter);
 });
+
+})();

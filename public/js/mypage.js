@@ -1,4 +1,5 @@
 // js/mypage.js
+(function () {
 const apiFetch = window.apiFetch || ((...args) => fetch(...args));
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -198,6 +199,8 @@ function setupHandleEditor(currentHandle) {
     }
   });
 }
+
+})();
 
 function setupMyPageActions() {
   const logoutBtn = document.getElementById("profileLogoutBtn");

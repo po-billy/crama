@@ -1,4 +1,5 @@
-﻿const apiFetch = window.apiFetch || ((...args) => fetch(...args));
+﻿(function () {
+const apiFetch = window.apiFetch || ((...args) => fetch(...args));
 
 // ================================
 // 탭 전환
@@ -695,3 +696,5 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 });
+
+})();

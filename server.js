@@ -118,7 +118,7 @@ const CREDIT_CATEGORY_CHAT = optionalCategory(process.env.CREDIT_CATEGORY_CHAT);
 const CREDIT_CATEGORY_FASHION = optionalCategory(process.env.CREDIT_CATEGORY_FASHION);
 const CREDIT_CATEGORY_STUDIO = optionalCategory(process.env.CREDIT_CATEGORY_STUDIO);
 const CREDIT_CATEGORY_DAILY_WELCOME =
-  optionalCategory(process.env.CREDIT_CATEGORY_DAILY_WELCOME) || "daily_welcome";
+  optionalCategory(process.env.CREDIT_CATEGORY_DAILY_WELCOME);
 // Valid tx_type enum: charge, usage, reset, adjustment
 function safeTxType(value, fallback = "usage") {
   const allowed = ["charge", "usage", "reset", "adjustment"];
@@ -1549,6 +1549,13 @@ const CREDIT_SYSTEM = {
     maxPerDay: 3, // ?섎（ 理쒕? 愿묎퀬 蹂댁긽 ?잛닔
   },
 };
+function applyDailyWelcomeFilter(query) {
+  let scoped = query.eq('service_code', 'DAILY_WELCOME');
+  if (CREDIT_CATEGORY_DAILY_WELCOME) {
+    scoped = scoped.eq('category', CREDIT_CATEGORY_DAILY_WELCOME);
+  }
+  return scoped;
+}
 // Throttle noisy credit-config logs when Supabase is flaky
 const CREDIT_CONFIG_LOG_COOLDOWN_MS = 60_000;
 let lastCreditConfigLog = 0;
@@ -1585,25 +1592,26 @@ app.get('/api/daily-welcome', async (req, res) => {
     const { start, next } = getDailyResetTimes();
     const startIso = start.toISOString();
 
-    const { data: todayRows, error: todayErr } = await creditDb
+    let todayQuery = creditDb
       .from('credit_transactions')
       .select('id')
       .eq('user_id', user.id)
-      .eq('category', CREDIT_CATEGORY_DAILY_WELCOME)
       .gte('occurred_at', startIso);
+    todayQuery = applyDailyWelcomeFilter(todayQuery);
+    const { data: todayRows, error: todayErr } = await todayQuery;
     if (todayErr) {
       console.error('daily-welcome today lookup error', todayErr);
       return sendError(res, 500, 'daily_welcome_lookup_error', { error: todayErr.message });
     }
 
-    const { data: lastRow, error: lastErr } = await creditDb
+    let lastQuery = creditDb
       .from('credit_transactions')
       .select('occurred_at, created_at')
       .eq('user_id', user.id)
-      .eq('category', CREDIT_CATEGORY_DAILY_WELCOME)
       .order('occurred_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .limit(1);
+    lastQuery = applyDailyWelcomeFilter(lastQuery);
+    const { data: lastRow, error: lastErr } = await lastQuery.maybeSingle();
     if (lastErr && lastErr.code !== 'PGRST116') {
       console.error('daily-welcome last lookup error', lastErr);
       return sendError(res, 500, 'daily_welcome_last_error', { error: lastErr.message });
@@ -1655,12 +1663,13 @@ app.post('/api/daily-welcome', async (req, res) => {
     const { start, next } = getDailyResetTimes();
     const startIso = start.toISOString();
 
-    const { data: todayRows, error: todayErr } = await creditDb
+    let todayQuery = creditDb
       .from('credit_transactions')
       .select('id')
       .eq('user_id', user.id)
-      .eq('category', CREDIT_CATEGORY_DAILY_WELCOME)
       .gte('occurred_at', startIso);
+    todayQuery = applyDailyWelcomeFilter(todayQuery);
+    const { data: todayRows, error: todayErr } = await todayQuery;
     if (todayErr) {
       console.error('daily-welcome claim lookup error', todayErr);
       return sendError(res, 500, 'daily_welcome_lookup_error', { error: todayErr.message });
@@ -1695,7 +1704,6 @@ app.post('/api/daily-welcome', async (req, res) => {
       user_id: user.id,
       subscription_id: null,
       tx_type: 'earn',
-      category: CREDIT_CATEGORY_DAILY_WELCOME,
       service_code: 'DAILY_WELCOME',
       amount: config.credits || 0,
       balance_after: newBalance,
@@ -1703,6 +1711,9 @@ app.post('/api/daily-welcome', async (req, res) => {
       occurred_at: occurredAt,
       metadata: { source: 'daily_welcome' },
     };
+    if (CREDIT_CATEGORY_DAILY_WELCOME) {
+      txPayload.category = CREDIT_CATEGORY_DAILY_WELCOME;
+    }
 
     const { error: txError } = await creditDb.from('credit_transactions').insert(txPayload);
     if (txError) {
@@ -2629,6 +2640,7 @@ const CERT_PEM_PATH = process.env.CERT_PEM_PATH || './certs/localhost.pem';
 
 async function startServer() {
   try {
+    const host = process.env.HOST || '0.0.0.0';
     const { port, fallbackOffset } = await findAvailablePort(
       DEFAULT_PORT,
       PORT_FALLBACK_ATTEMPTS
@@ -2643,8 +2655,8 @@ async function startServer() {
       try {
         const key = fs.readFileSync(CERT_KEY_PATH);
         const cert = fs.readFileSync(CERT_PEM_PATH);
-        https.createServer({ key, cert }, app).listen(port, () => {
-          console.log(`HTTPS server running on https://localhost:${port}`);
+        https.createServer({ key, cert }, app).listen(port, host, () => {
+          console.log(`HTTPS server running on https://${host}:${port}`);
         });
         return;
       } catch (e) {
@@ -2652,8 +2664,8 @@ async function startServer() {
       }
     }
 
-    app.listen(port, () => {
-      console.log(`HTTP server running on http://localhost:${port}`);
+    app.listen(port, host, () => {
+      console.log(`HTTP server running on http://${host}:${port}`);
     });
   } catch (err) {
     console.error('Failed to bind server port', err);

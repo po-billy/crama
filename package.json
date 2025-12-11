@@ -13,6 +13,7 @@
     "start:live": "cross-env APP_ENV=production node server.js",
     "dev": "cross-env APP_ENV=local granite dev",
     "build": "cross-env APP_ENV=production granite build && npm run generate:env",
+    "build:fly": "npm install --omit=dev && node -e \"console.log('Fly deploy: skipping frontend build stage')\"",
     "deploy": "cross-env APP_ENV=production npm run generate:env && ait deploy",
     "generate:env": "node scripts/generate-env-js.js",
     "sync:contact": "node scripts/contact-mail-sync.js"
@@ -33,6 +34,7 @@
     "postgres": "^3.4.7"
   },
   "devDependencies": {
+    "@flydotio/dockerfile": "^0.7.10",
     "cross-env": "^7.0.3",
     "nodemon": "^3.0.2"
   }

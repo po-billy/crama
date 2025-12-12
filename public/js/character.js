@@ -453,14 +453,14 @@ function sanitizeChatText(value) {
 function splitSceneSegments(content = '') {
   const segments = [];
   if (!content) return segments;
-  const regex = /\*([^*]+)\*/g;
+  const regex = /(\*{1,2})([^*]+?)\1/g;
   let lastIndex = 0;
   let match;
   while ((match = regex.exec(content)) !== null) {
     if (match.index > lastIndex) {
       segments.push({ type: 'line', text: content.slice(lastIndex, match.index) });
     }
-    const sceneText = match[1]?.trim();
+    const sceneText = match[2]?.trim();
     if (sceneText) {
       segments.push({ type: 'scene', text: sceneText });
     }

@@ -633,6 +633,47 @@ function matchSceneTemplate(templates, rawKey) {
   return matched || null;
 }
 
+function formatSceneModeReply(rawText) {
+  const trimmed = (rawText || '').trim();
+  if (!trimmed) return '';
+
+  const lines = trimmed
+    .split(/\r?\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (!lines.length) return trimmed;
+
+  const sceneRegex = /^\*.+\*$/;
+  let description = '';
+  let descIndex = lines.findIndex((line) => sceneRegex.test(line));
+
+  if (descIndex >= 0) {
+    description = lines.splice(descIndex, 1)[0];
+  } else {
+    const firstLine = lines.shift() || '';
+    const normalized = firstLine.replace(/^\*+|\*+$/g, '');
+    if (normalized) description = `*${normalized}*`;
+  }
+
+  const dialogueLines = lines.length ? lines : [trimmed];
+  const quotedDialogues = dialogueLines
+    .map((line) => {
+      const body = line.replace(/^\*+|\*+$/g, '').trim();
+      if (!body) return '';
+      const stripped = body.replace(/^"+|"+$/g, '');
+      return stripped ? `"${stripped}"` : '';
+    })
+    .filter(Boolean);
+
+  if (!quotedDialogues.length) {
+    const fallback = trimmed.replace(/^\*+|\*+$/g, '').replace(/^"+|"+$/g, '');
+    if (fallback) quotedDialogues.push(`"${fallback}"`);
+  }
+
+  return [description, quotedDialogues.join('\n')].filter(Boolean).join('\n');
+}
+
 /**
  * 怨듭슜: ?붿껌?먯꽌 ?꾩옱 ?좎? ?뺣낫 媛?몄삤湲?
  *
@@ -2019,14 +2060,16 @@ ${catalogLines}
   }
   messagesForModel.push({ role: 'user', content: message });
 
-  // 4-3) ??붽? 20媛??댁긽?대㈃ ?붿빟 ?앹꽦 諛????湲곗〈 ?붿빟? ?낅뜲?댄듃)
+  // 4-3) 최근 대화가 20개 이상 쌓이면 요약 레코드를 갱신해 장기 문맥을 보존한다
   if (recentMessages && recentMessages.length >= 20) {
     try {
-      const summaryPrompt = `?ㅼ쓬? 罹먮┃?곗? ?ъ슜?먯쓽 ???湲곕줉?낅땲?? 罹먮┃?곗쓽 ?깃꺽, 愿怨? 二쇱슂 ?ш굔, 媛먯젙 蹂?? 以묒슂???뺣낫 ?깆쓣 ?붿빟??二쇱꽭??${recentMessages.map(m => `${m.role}: ${m.content}`).join('')}`;
+      const summaryPrompt = `다음은 캐릭터와 사용자의 최근 대화 기록입니다. 캐릭터의 성격, 감정 변화, 관계, 다음 대화에서 계속 참고해야 할 사실을 3~4문장으로 요약해 주세요.\n${recentMessages
+        .map((m) => `${m.role}: ${m.content}`)
+        .join('\n')}`;
       const summaryRes = await openai.chat.completions.create({
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: '?뱀떊? ????붿빟 ?꾨Ц媛?낅땲??' },
+          { role: 'system', content: '당신은 캐릭터 대화 내용을 정확하게 요약하는 어시스턴트입니다.' },
           { role: 'user', content: summaryPrompt }
         ],
         max_tokens: 256,
@@ -2054,7 +2097,7 @@ ${catalogLines}
         }
       }
     } catch (e) {
-      console.error('?붿빟 ?앹꽦 ?ㅻ쪟:', e);
+      console.error('summary 생성 오류:', e);
     }
   }
 

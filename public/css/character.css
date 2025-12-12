@@ -42,8 +42,7 @@
 }
 
 .scene-mode-bar {
-  margin: 16px 24px;
-  padding: 12px 16px;
+  padding: 4px 12px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
   display: flex;
@@ -170,8 +169,7 @@
 }
 
 .scene-template-panel {
-  margin: 0 24px 8px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 4px 12px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.02);
 }
@@ -331,6 +329,7 @@
 }
 
 .character-info {
+  display:flex;
   flex: 1;
   min-width: 0;
 }
@@ -374,6 +373,7 @@
   display: flex;
   align-items: center;
   gap: 16px;
+  color: white;
 }
 
 .stat-item {
@@ -381,7 +381,7 @@
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  color: #8b8d94;
+  color: #ffffff;
 }
 
 .stat-item svg {
@@ -1132,10 +1132,6 @@
     width: 100%;
   }
 
-  .character-profile-header {
-    padding: 16px 20px;
-  }
-
   .character-avatar {
     width: 48px;
     height: 48px;
@@ -1154,7 +1150,7 @@
   }
 
   .character-profile-header {
-    padding: 12px 16px;
+    padding: 4px 4px;
     flex-wrap: wrap;
   }
 
@@ -1183,6 +1179,7 @@
 
   .character-stats {
     gap: 12px;
+    color: white;
   }
 
   .stat-item {

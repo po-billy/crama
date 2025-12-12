@@ -637,6 +637,7 @@ function formatSceneModeReply(rawText) {
   const trimmed = (rawText || '').trim();
   if (!trimmed) return '';
 
+  const dialogRegex = /["“”]([^"“”]+)["“”]/g;
   const lines = trimmed
     .split(/\r?\n+/)
     .map((line) => line.trim())
@@ -644,49 +645,45 @@ function formatSceneModeReply(rawText) {
 
   if (!lines.length) return trimmed;
 
-  const sceneRegex = /^\*.+\*$/;
-  const looksLikeDialogue = (line) => /^["“”]/.test(line);
-  let description = '';
+  const narrations = [];
   const dialogues = [];
 
   for (const line of lines) {
-    if (!description && sceneRegex.test(line)) {
-      description = line;
-      continue;
+    if (!line) continue;
+    let remainder = line;
+    let match;
+    while ((match = dialogRegex.exec(line)) !== null) {
+      const spoken = match[1].trim();
+      if (spoken) dialogues.push(spoken);
     }
-    if (!description && !looksLikeDialogue(line)) {
-      const normalized = line.replace(/^\*+|\*+$/g, '').trim();
-      if (normalized) {
-        description = `*${normalized}*`;
-        continue;
-      }
-    }
-    dialogues.push(line);
+    remainder = remainder.replace(dialogRegex, '').replace(/^\*+|\*+$/g, '').trim();
+    if (remainder) narrations.push(remainder);
   }
 
-  if (!description) {
-    const first = dialogues.shift() || '';
-    const normalized = first.replace(/^\*+|\*+$/g, '').replace(/^"+|"+$/g, '').trim();
-    if (normalized) {
-      description = `*${normalized}*`;
+  const results = [];
+  if (narrations.length) {
+    results.push(`*${narrations.shift()}*`);
+  }
+
+  while (dialogues.length || narrations.length) {
+    if (dialogues.length) {
+      const dialogue = dialogues.shift();
+      if (dialogue) results.push(`"${dialogue}"`);
+    }
+    if (narrations.length) {
+      const narration = narrations.shift();
+      if (narration) results.push(`*${narration}*`);
     }
   }
 
-  const quotedDialogues = dialogues
-    .map((line) => {
-      const body = line.replace(/^\*+|\*+$/g, '').trim();
-      if (!body) return '';
-      const stripped = body.replace(/^["“”]+/, '').replace(/["“”]+$/, '');
-      return stripped ? `"${stripped}"` : '';
-    })
-    .filter(Boolean);
-
-  if (!quotedDialogues.length) {
-    const fallback = trimmed.replace(/^\*+|\*+$/g, '').replace(/^"+|"+$/g, '');
-    if (fallback) quotedDialogues.push(`"${fallback}"`);
+  if (!results.length && trimmed) {
+    results.push(`*${trimmed}*`);
+  } else if (results.length === 1 && dialogues.length) {
+    const dialogue = dialogues.shift();
+    if (dialogue) results.push(`"${dialogue}"`);
   }
 
-  return [description, quotedDialogues.join('\n')].filter(Boolean).join('\n');
+  return results.filter(Boolean).join('\n');
 }
 
 /**
@@ -2033,7 +2030,7 @@ Developer Message (공통 규칙)
 - 캐릭터가 직접 말하는 문장은 항상 큰따옴표(" ") 안에 작성해 독자가 구분할 수 있게 한다.
 - 설명이나 장면 묘사를 작성할 때에는 인물의 표정, 몸짓, 주변 환경, 조명, 온도, 소리 등 감각 정보를 2~4문장 이상으로 충분히 묘사한다.
 - 사용자가 *장면* 형태로 입력한 경우, 그 묘사를 응답 서두에서 받아 적고 캐릭터 대사와 자연스럽게 연결한다.
-- 기본 응답 포맷은 항상 두 단락으로 구성한다: 첫 번째 단락은 장면 묘사(필요 시 *…*로 감싸도 무방), 두 번째 단락은 큰따옴표로 시작하고 끝나는 캐릭터 대사이다. 이 순서를 절대 어기지 않는다.
+- 응답은 항상 "장면/상황 묘사 단락 → 큰따옴표 대사 단락" 순서를 지킨다. 장면 묘사는 반드시 별도의 단락으로 작성하고(필요 시 *…* 사용), 대사는 큰따옴표로만 작성한다. 추가 설명이 필요하면 이 두 단락을 순서대로 반복하되, 묘사와 대사를 하나의 단락에 섞어 쓰지 않는다.
 `;
 
   if (sceneModeAllowed && sceneTemplates.length) {
@@ -2054,9 +2051,9 @@ ${catalogLines}
 - 태그를 제외한 내용은 기존 대화 형식을 유지한다.
 - 사용자가 *장면* 형태로 입력한 문장은 상황/시나리오 묘사로 이해하고 답변에 반영한다.
 - SCENE 모드 응답은 다음 구조를 따른다:
-  1) 첫 단락: 장면 묘사를 감각적으로 2문장 이상 작성(빛, 냄새, 표정, 자세 등 포함). 반드시 *…*로 감싸되, 반드시 대사가 아닌 장면/상황 묘사이어야 하며 반드시, 별도 단락으로 구분한다.
-  2) 다음 줄: 캐릭터 대사를 큰따옴표 안에 작성하여 묘사와 구분한다. 대사에는 *를 포함하지 않는다.
-- 필요 시 장면 묘사 후 추가 설명을 덧붙여도 되지만, 최소 한 줄의 묘사와 한 줄의 대사를 항상 제공한다.`;
+  1) 첫 단락: 장면 묘사를 감각적으로 2문장 이상 작성(빛, 냄새, 표정, 자세 등 포함). 반드시 *…*로 감싸고 대사를 포함하지 않는다.
+  2) 두 번째 단락부터는 반드시 큰따옴표로 시작하고 끝나는 캐릭터 대사만 작성한다. 추가 설명이 필요하면 "묘사 단락 → 대사 단락" 순서를 반복한다.
+- 필요 시 장면 묘사 후 추가 설명을 덧붙여도 되지만, 묘사와 대사는 절대 하나의 단락에 혼용하지 않는다.`;
   }
 
   // 4-1) summary 저장소 조회

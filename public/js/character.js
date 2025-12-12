@@ -57,7 +57,7 @@ function setSceneTemplateCollapsed(collapsed) {
     strip.classList.toggle('scene-template-strip--collapsed', collapsed);
   }
   if (toggle) {
-    toggle.textContent = collapsed ? '펼치기' : '접기';
+    toggle.textContent = collapsed ? '미리보기' : '접기';
     toggle.setAttribute('aria-expanded', (!collapsed).toString());
     if (strip?.dataset.empty === 'true') {
       toggle.disabled = true;

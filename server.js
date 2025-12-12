@@ -1773,12 +1773,16 @@ app.get('/api/characters/:id/chats', async (req, res) => {
   const { id } = req.params;
   const { sessionId, since, before, limit } = req.query;
 
+  const user = await getUserFromRequest(req);
+  if (!user) return sendError(res, 401, 'unauthorized');
+
   const safeLimit = Math.max(1, Math.min(Number(limit) || 50, 200));
 
   const query = supabase
     .from('character_chats')
     .select('*')
     .eq('character_id', id)
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(safeLimit);
 

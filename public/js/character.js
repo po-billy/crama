@@ -223,6 +223,12 @@ function immediateScrollToBottom() {
   chatWindow.scrollTop = chatWindow.scrollHeight;
 }
 
+function ensureLatestMessageVisible() {
+  immediateScrollToBottom();
+  scrollChatToBottom();
+  setTimeout(scrollChatToBottom, 80);
+}
+
 function appendChatMessages(messages = []) {
   if (!messages.length) return;
   const chatWindow = document.getElementById('chatWindow');
@@ -232,7 +238,7 @@ function appendChatMessages(messages = []) {
     frag.appendChild(renderMessage(msg));
   });
   chatWindow.appendChild(frag);
-  immediateScrollToBottom();
+  ensureLatestMessageVisible();
 }
 
 function prependChatMessages(messages = []) {
@@ -257,7 +263,14 @@ function prependChatMessages(messages = []) {
 async function fetchChatBatch(characterId, sessionId, options = {}) {
   const params = new URLSearchParams({ limit: CHAT_FETCH_LIMIT, sessionId });
   if (options.before) params.set('before', options.before);
-  const res = await apiFetch(`/api/characters/${characterId}/chats?${params.toString()}`);
+  const headers = await buildAuthHeaders();
+  const fetchHeaders = {};
+  if (headers?.Authorization) {
+    fetchHeaders.Authorization = headers.Authorization;
+  }
+  const res = await apiFetch(`/api/characters/${characterId}/chats?${params.toString()}`, {
+    headers: Object.keys(fetchHeaders).length ? fetchHeaders : undefined,
+  });
   if (!res.ok) throw new Error('채팅 기록을 불러오지 못했습니다.');
   return await res.json();
 }
@@ -290,7 +303,7 @@ async function initializeChatHistory(characterId, introText = '') {
   }
   updateLoadMoreButton();
   window.checkChatEmpty?.();
-  immediateScrollToBottom();
+  ensureLatestMessageVisible();
 }
 
 async function loadMoreChats(characterId) {
@@ -513,7 +526,7 @@ async function setupChat(characterId) {
 
     // 사용자 메시지 화면 반영
     chatWindow.appendChild(renderMessage({ role: "user", content: text }));
-    immediateScrollToBottom();
+    ensureLatestMessageVisible();
 
     // 서버 메시지 전송 및 답변 받기
     try {
@@ -534,7 +547,7 @@ async function setupChat(characterId) {
           role: "character",
           content: "로그인이 필요합니다. 로그인 후 다시 시도해주세요."
         }));
-        scrollChatToBottom();
+        ensureLatestMessageVisible();
         return;
       }
 
@@ -543,7 +556,7 @@ async function setupChat(characterId) {
           role: "character",
           content: "scene이 부족합니다. 충전 또는 구독 후 시도해주세요."
         }));
-        immediateScrollToBottom();
+        ensureLatestMessageVisible();
         openCreditUpsellSafe();
         return;
       }
@@ -574,7 +587,7 @@ async function setupChat(characterId) {
             content: "오류가 발생했습니다: " + (result.error || "알 수 없는 오류")
           }));
         }
-        scrollChatToBottom();
+        ensureLatestMessageVisible();
         window.checkChatEmpty();
         handleSceneModeFeedback(result);
       } else {
@@ -582,7 +595,7 @@ async function setupChat(characterId) {
           role: "character",
           content: "오류가 발생했습니다: " + (result.error || "알 수 없는 오류")
         }));
-        scrollChatToBottom();
+        ensureLatestMessageVisible();
         window.checkChatEmpty();
         handleSceneModeFeedback(result);
       }
@@ -591,7 +604,7 @@ async function setupChat(characterId) {
         role: "character",
         content: "서버 연결 오류: " + err.message
       }));
-      scrollChatToBottom();
+      ensureLatestMessageVisible();
       window.checkChatEmpty();
       handleSceneModeFeedback({ sceneModeDeniedReason: '서버 응답을 받을 수 없습니다.' });
     }

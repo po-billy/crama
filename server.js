@@ -2637,6 +2637,10 @@ async function findAvailablePort(preferredPort, maxOffset = PORT_FALLBACK_ATTEMP
 // ===============================
 const CERT_KEY_PATH = process.env.CERT_KEY_PATH || './certs/localhost-key.pem';
 const CERT_PEM_PATH = process.env.CERT_PEM_PATH || './certs/localhost.pem';
+const ENABLE_HTTPS =
+  String(process.env.ENABLE_HTTPS || process.env.ENABLE_LOCAL_HTTPS || '')
+    .toLowerCase()
+    .trim() === 'true';
 
 async function startServer() {
   try {
@@ -2651,7 +2655,7 @@ async function startServer() {
       );
     }
 
-    if (fs.existsSync(CERT_KEY_PATH) && fs.existsSync(CERT_PEM_PATH)) {
+    if (ENABLE_HTTPS && fs.existsSync(CERT_KEY_PATH) && fs.existsSync(CERT_PEM_PATH)) {
       try {
         const key = fs.readFileSync(CERT_KEY_PATH);
         const cert = fs.readFileSync(CERT_PEM_PATH);

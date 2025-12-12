@@ -329,14 +329,12 @@
 }
 
 .character-info {
-  display:flex;
   flex: 1;
   min-width: 0;
 }
 
 .character-name-row {
   display: flex;
-  align-items: center;
   gap: 8px;
   margin-bottom: 4px;
 }
@@ -1160,7 +1158,6 @@
   }
 
   .character-actions {
-    width: 100%;
     justify-content: flex-end;
   }
 

@@ -198,6 +198,17 @@ function getOrCreateChatSessionId(characterId) {
   return sessionId;
 }
 
+function persistChatSessionId(characterId, sessionId) {
+  if (!sessionId) return;
+  const sessionKey = `cc_session_${characterId}`;
+  try {
+    localStorage.setItem(sessionKey, sessionId);
+  } catch (e) {
+    console.warn('failed to persist chat session', e);
+  }
+  currentChatSessionId = sessionId;
+}
+
 function updateLoadMoreButton() {
   const btn = document.getElementById('chatLoadMoreBtn');
   if (!btn) return;
@@ -272,13 +283,16 @@ async function fetchChatBatch(characterId, sessionId, options = {}) {
     headers: Object.keys(fetchHeaders).length ? fetchHeaders : undefined,
   });
   if (!res.ok) throw new Error('채팅 기록을 불러오지 못했습니다.');
-  return await res.json();
+  const nextSessionId = res.headers?.get('x-chat-session-id') || null;
+  const payload = await res.json();
+  const messages = Array.isArray(payload) ? payload : payload?.messages || [];
+  return { messages, sessionId: nextSessionId };
 }
 
 async function initializeChatHistory(characterId, introText = '') {
   const chatWindow = document.getElementById('chatWindow');
   if (!chatWindow) return;
-  const sessionId = getOrCreateChatSessionId(characterId);
+  let sessionId = getOrCreateChatSessionId(characterId);
   chatWindow.innerHTML = '';
   oldestMessageTimestamp = null;
   hasMoreChats = false;
@@ -288,7 +302,11 @@ async function initializeChatHistory(characterId, introText = '') {
     chatWindow.appendChild(introMessage);
   }
   try {
-    const messages = await fetchChatBatch(characterId, sessionId);
+    const { messages, sessionId: serverSessionId } = await fetchChatBatch(characterId, sessionId);
+    if (serverSessionId && serverSessionId !== sessionId) {
+      persistChatSessionId(characterId, serverSessionId);
+      sessionId = serverSessionId;
+    }
     appendChatMessages(messages);
     if (messages.length) {
       oldestMessageTimestamp = messages[0].created_at;
@@ -308,11 +326,19 @@ async function initializeChatHistory(characterId, introText = '') {
 
 async function loadMoreChats(characterId) {
   if (!hasMoreChats || !oldestMessageTimestamp || loadMoreInFlight) return;
-  const sessionId = getOrCreateChatSessionId(characterId);
+  let sessionId = getOrCreateChatSessionId(characterId);
   loadMoreInFlight = true;
   updateLoadMoreButton();
   try {
-    const batch = await fetchChatBatch(characterId, sessionId, { before: oldestMessageTimestamp });
+    const { messages: batch, sessionId: serverSessionId } = await fetchChatBatch(
+      characterId,
+      sessionId,
+      { before: oldestMessageTimestamp }
+    );
+    if (serverSessionId && serverSessionId !== sessionId) {
+      persistChatSessionId(characterId, serverSessionId);
+      sessionId = serverSessionId;
+    }
     if (batch.length) {
       prependChatMessages(batch);
       oldestMessageTimestamp = batch[0].created_at;

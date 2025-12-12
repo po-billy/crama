@@ -1821,24 +1821,41 @@ app.get('/api/characters/:id/chats', async (req, res) => {
 
   const safeLimit = Math.max(1, Math.min(Number(limit) || 50, 200));
 
-  const query = supabase
-    .from('character_chats')
-    .select('*')
-    .eq('character_id', id)
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
-    .limit(safeLimit);
+  const baseQuery = (targetSessionId) => {
+    const q = supabase
+      .from('character_chats')
+      .select('*')
+      .eq('character_id', id)
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(safeLimit);
+    if (targetSessionId) q.eq('session_id', targetSessionId);
+    if (since) q.gte('created_at', since);
+    if (before) q.lt('created_at', before);
+    return q;
+  };
 
-  if (sessionId) query.eq('session_id', sessionId);
-  if (since) query.gte('created_at', since);
-  if (before) query.lt('created_at', before);
-
-  const { data, error } = await query;
-
+  let responseSessionId = sessionId || null;
+  let { data, error } = await baseQuery(sessionId);
   if (error) return res.status(500).json({ error: error.message });
+
+  if ((!data || !data.length) && sessionId) {
+    const fallback = await baseQuery(null);
+    if (!fallback.error && fallback.data?.length) {
+      data = fallback.data;
+      responseSessionId = fallback.data[0]?.session_id || responseSessionId;
+    }
+  }
+
   const sorted = (data || []).sort(
     (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
   );
+  if (!responseSessionId && sorted.length) {
+    responseSessionId = sorted[sorted.length - 1]?.session_id || sorted[0]?.session_id || null;
+  }
+  if (responseSessionId) {
+    res.set('x-chat-session-id', responseSessionId);
+  }
   res.json(sorted);
 });
 

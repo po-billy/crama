@@ -1,3 +1,7 @@
+:root {
+  --chat-input-keyboard-offset: 0px;
+}
+
 .page-character {
   background: #0a0b0d;
   color: #e4e6eb;
@@ -686,11 +690,12 @@
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   flex-shrink: 0;
   position: sticky;
-  bottom: 0;
+  bottom: calc(var(--chat-input-keyboard-offset, 0px));
   left: 0;
   right: 0;
   z-index: 15;
   padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  transition: bottom 0.2s ease;
 }
 
 .chat-input-container {

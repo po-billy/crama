@@ -554,6 +554,29 @@ function handleSceneModeFeedback(result) {
   }
 }
 
+function initKeyboardAwareInput() {
+  const root = document.documentElement;
+  const viewport = window.visualViewport;
+  if (!viewport || !root) return;
+
+  let rafId = null;
+  const applyOffset = () => {
+    const availableHeight = window.innerHeight || document.documentElement.clientHeight;
+    const heightDiff = Math.max(0, availableHeight - viewport.height - viewport.offsetTop);
+    root.style.setProperty('--chat-input-keyboard-offset', `${heightDiff}px`);
+  };
+
+  const scheduleUpdate = () => {
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(applyOffset);
+  };
+
+  viewport.addEventListener('resize', scheduleUpdate);
+  viewport.addEventListener('scroll', scheduleUpdate);
+  window.addEventListener('orientationchange', scheduleUpdate);
+  scheduleUpdate();
+}
+
 // ================================
 // 채팅 전송 기능
 // ================================
@@ -760,6 +783,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   bindLoadMoreButton(characterId);
   await initializeChatHistory(characterId, data.intro || '');
   setupChat(characterId);
+  initKeyboardAwareInput();
 
   const likeBtn = document.querySelector('.btn-favorite');
   if (likeBtn) {

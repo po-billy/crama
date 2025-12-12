@@ -445,6 +445,51 @@ function renderCharacterDetail(c) {
   renderSceneTemplates(c.scene_image_templates || []);
 }
 
+function sanitizeChatText(value) {
+  if (!value) return '';
+  return escapeHtml(value).replace(/\n/g, '<br>');
+}
+
+function splitSceneSegments(content = '') {
+  const segments = [];
+  if (!content) return segments;
+  const regex = /\*([^*]+)\*/g;
+  let lastIndex = 0;
+  let match;
+  while ((match = regex.exec(content)) !== null) {
+    if (match.index > lastIndex) {
+      segments.push({ type: 'line', text: content.slice(lastIndex, match.index) });
+    }
+    const sceneText = match[1]?.trim();
+    if (sceneText) {
+      segments.push({ type: 'scene', text: sceneText });
+    }
+    lastIndex = match.index + match[0].length;
+  }
+  if (lastIndex < content.length) {
+    segments.push({ type: 'line', text: content.slice(lastIndex) });
+  }
+  return segments;
+}
+
+function renderChatTextContent(content = '') {
+  const text = typeof content === 'string' ? content : String(content ?? '');
+  const segments = splitSceneSegments(text);
+  if (!segments.length) {
+    return `<div class="chat-text-line">${sanitizeChatText(text)}</div>`;
+  }
+  return segments
+    .map((segment) => {
+      const safe = sanitizeChatText(segment.text || '');
+      if (!safe) return '';
+      if (segment.type === 'scene') {
+        return `<div class="chat-text-scene">${safe}</div>`;
+      }
+      return `<div class="chat-text-line">${safe}</div>`;
+    })
+    .join('');
+}
+
 // ================================
 // 말풍선 렌더
 // ================================
@@ -469,6 +514,7 @@ function renderMessage(msg) {
       </figure>
     `
     : '';
+  const formattedContent = renderChatTextContent(msg.content || '');
 
   if (msg.role === "character") {
     el.innerHTML = `
@@ -477,7 +523,7 @@ function renderMessage(msg) {
       </div>
       <div class="chat-message__bubble">
         <div class="chat-message__name">${characterName}</div>
-        <div class="chat-message__text">${msg.content}</div>
+        <div class="chat-message__text">${formattedContent}</div>
         ${sceneMarkup}
       </div>
     `;
@@ -485,7 +531,7 @@ function renderMessage(msg) {
     el.innerHTML = `
       <div class="chat-message__bubble">
         <div class="chat-message__name">나</div>
-        <div class="chat-message__text">${msg.content}</div>
+        <div class="chat-message__text">${formattedContent}</div>
       </div>
     `;
   }
@@ -515,6 +561,29 @@ async function setupChat(characterId) {
   const form = document.getElementById("chatForm");
   const textarea = form.querySelector("textarea");
   const chatWindow = document.getElementById("chatWindow");
+  const insertSceneBtn = document.getElementById('chatInsertSceneBtn');
+
+  if (insertSceneBtn && textarea) {
+    insertSceneBtn.addEventListener('click', () => {
+      const value = textarea.value || '';
+      const selectionStart = textarea.selectionStart ?? value.length;
+      const selectionEnd = textarea.selectionEnd ?? value.length;
+      const insertText = '**';
+      if (typeof textarea.setRangeText === 'function') {
+        textarea.setRangeText(insertText, selectionStart, selectionEnd, 'end');
+      } else {
+        textarea.value =
+          value.slice(0, selectionStart) + insertText + value.slice(selectionEnd);
+      }
+      const caretPos = selectionStart + 1;
+      requestAnimationFrame(() => {
+        textarea.focus();
+        if (typeof textarea.setSelectionRange === 'function') {
+          textarea.setSelectionRange(caretPos, caretPos);
+        }
+      });
+    });
+  }
 
   const sessionId = getOrCreateChatSessionId(characterId);
 

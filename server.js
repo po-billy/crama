@@ -1611,10 +1611,12 @@ app.get('/api/daily-welcome', async (req, res) => {
       .order('occurred_at', { ascending: false })
       .limit(1);
     lastQuery = applyDailyWelcomeFilter(lastQuery);
-    const { data: lastRow, error: lastErr } = await lastQuery.maybeSingle();
+    let lastRow = null;
+    const { data: lastData, error: lastErr } = await lastQuery.maybeSingle();
     if (lastErr && lastErr.code !== 'PGRST116') {
-      console.error('daily-welcome last lookup error', lastErr);
-      return sendError(res, 500, 'daily_welcome_last_error', { error: lastErr.message });
+      console.warn('daily-welcome last lookup error (ignored)', lastErr);
+    } else {
+      lastRow = lastData || null;
     }
 
     const { data: wallet, error: walletErr } = await creditDb
@@ -1953,6 +1955,11 @@ Developer Message (공통 규칙)
 - 캐릭터 생성자가 금지한 표현·행동은 절대 하지 않는다.
 - 정치적 주장/혐오/현실의 개인정보 언급 등 위험 요소는 캐릭터 세계관 내에서 안전하게 우회한다.
 - 설정을 벗어난 정보 제공 요청은 캐릭터가 모르는 것으로 처리하되, 자연스러운 방식으로 대응한다.
+
+5. 대사 및 묘사 형식
+- 캐릭터가 직접 말하는 문장은 항상 큰따옴표(" ") 안에 작성해 독자가 구분할 수 있게 한다.
+- 설명이나 장면 묘사를 작성할 때에는 인물의 표정, 몸짓, 주변 환경, 조명, 온도, 소리 등 감각 정보를 2~4문장 이상으로 충분히 묘사한다.
+- 사용자가 *장면* 형태로 입력한 경우, 그 묘사를 응답 서두에서 받아 적고 캐릭터 대사와 자연스럽게 연결한다.
 `;
 
   if (sceneModeAllowed && sceneTemplates.length) {
@@ -1970,7 +1977,12 @@ ${catalogLines}
 - 이미지가 필요하다고 판단될 때는 응답 마지막 줄에 [[SCENE:키워드]] 형태로 명시한다.
 - 이미지를 호출하면 추가 scene이 차감되므로 반드시 필요한 경우에만 태그를 추가한다.
 - 한 응답에서는 최대 1개의 키워드만 사용하며, 필요하지 않으면 태그를 사용하지 않는다.
-- 태그를 제외한 내용은 기존 대화 형식을 유지한다.`;
+- 태그를 제외한 내용은 기존 대화 형식을 유지한다.
+- 사용자가 *장면* 형태로 입력한 문장은 상황/시나리오 묘사로 이해하고 답변에 반영한다.
+- SCENE 모드 응답은 다음 구조를 따른다:
+  1) 첫 줄: 별도로 *장면 묘사*를 감각적으로 2문장 이상 작성(빛, 냄새, 표정, 자세 등 포함).
+  2) 다음 줄: 캐릭터 대사를 큰따옴표 안에 작성하여 묘사와 구분한다.
+- 필요 시 장면 묘사 후 추가 설명을 덧붙여도 되지만, 최소 한 줄의 묘사와 한 줄의 대사를 항상 제공한다.`;
   }
 
   // 4-1) summary 저장소 조회
@@ -2641,10 +2653,14 @@ async function findAvailablePort(preferredPort, maxOffset = PORT_FALLBACK_ATTEMP
 // ===============================
 const CERT_KEY_PATH = process.env.CERT_KEY_PATH || './certs/localhost-key.pem';
 const CERT_PEM_PATH = process.env.CERT_PEM_PATH || './certs/localhost.pem';
-const ENABLE_HTTPS =
-  String(process.env.ENABLE_HTTPS || process.env.ENABLE_LOCAL_HTTPS || '')
-    .toLowerCase()
-    .trim() === 'true';
+function parseBool(value) {
+  if (value == null) return null;
+  return String(value).toLowerCase().trim() === 'true';
+}
+const defaultEnableHttps = APP_ENV === 'local' || APP_ENV === 'development';
+const parsedHttpsFlag =
+  parseBool(process.env.ENABLE_HTTPS) ?? parseBool(process.env.ENABLE_LOCAL_HTTPS);
+const ENABLE_HTTPS = typeof parsedHttpsFlag === 'boolean' ? parsedHttpsFlag : defaultEnableHttps;
 
 async function startServer() {
   try {

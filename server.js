@@ -645,23 +645,38 @@ function formatSceneModeReply(rawText) {
   if (!lines.length) return trimmed;
 
   const sceneRegex = /^\*.+\*$/;
+  const looksLikeDialogue = (line) => /^["“”]/.test(line);
   let description = '';
-  let descIndex = lines.findIndex((line) => sceneRegex.test(line));
+  const dialogues = [];
 
-  if (descIndex >= 0) {
-    description = lines.splice(descIndex, 1)[0];
-  } else {
-    const firstLine = lines.shift() || '';
-    const normalized = firstLine.replace(/^\*+|\*+$/g, '');
-    if (normalized) description = `*${normalized}*`;
+  for (const line of lines) {
+    if (!description && sceneRegex.test(line)) {
+      description = line;
+      continue;
+    }
+    if (!description && !looksLikeDialogue(line)) {
+      const normalized = line.replace(/^\*+|\*+$/g, '').trim();
+      if (normalized) {
+        description = `*${normalized}*`;
+        continue;
+      }
+    }
+    dialogues.push(line);
   }
 
-  const dialogueLines = lines.length ? lines : [trimmed];
-  const quotedDialogues = dialogueLines
+  if (!description) {
+    const first = dialogues.shift() || '';
+    const normalized = first.replace(/^\*+|\*+$/g, '').replace(/^"+|"+$/g, '').trim();
+    if (normalized) {
+      description = `*${normalized}*`;
+    }
+  }
+
+  const quotedDialogues = dialogues
     .map((line) => {
       const body = line.replace(/^\*+|\*+$/g, '').trim();
       if (!body) return '';
-      const stripped = body.replace(/^"+|"+$/g, '');
+      const stripped = body.replace(/^["“”]+/, '').replace(/["“”]+$/, '');
       return stripped ? `"${stripped}"` : '';
     })
     .filter(Boolean);
@@ -2018,6 +2033,7 @@ Developer Message (공통 규칙)
 - 캐릭터가 직접 말하는 문장은 항상 큰따옴표(" ") 안에 작성해 독자가 구분할 수 있게 한다.
 - 설명이나 장면 묘사를 작성할 때에는 인물의 표정, 몸짓, 주변 환경, 조명, 온도, 소리 등 감각 정보를 2~4문장 이상으로 충분히 묘사한다.
 - 사용자가 *장면* 형태로 입력한 경우, 그 묘사를 응답 서두에서 받아 적고 캐릭터 대사와 자연스럽게 연결한다.
+- 기본 응답 포맷은 항상 두 단락으로 구성한다: 첫 번째 단락은 장면 묘사(필요 시 *…*로 감싸도 무방), 두 번째 단락은 큰따옴표로 시작하고 끝나는 캐릭터 대사이다. 이 순서를 절대 어기지 않는다.
 `;
 
   if (sceneModeAllowed && sceneTemplates.length) {
@@ -2038,8 +2054,8 @@ ${catalogLines}
 - 태그를 제외한 내용은 기존 대화 형식을 유지한다.
 - 사용자가 *장면* 형태로 입력한 문장은 상황/시나리오 묘사로 이해하고 답변에 반영한다.
 - SCENE 모드 응답은 다음 구조를 따른다:
-  1) 첫 줄: 별도로 *장면 묘사*를 감각적으로 2문장 이상 작성(빛, 냄새, 표정, 자세 등 포함).
-  2) 다음 줄: 캐릭터 대사를 큰따옴표 안에 작성하여 묘사와 구분한다.
+  1) 첫 단락: 장면 묘사를 감각적으로 2문장 이상 작성(빛, 냄새, 표정, 자세 등 포함). 반드시 *…*로 감싸되, 반드시 대사가 아닌 장면/상황 묘사이어야 하며 반드시, 별도 단락으로 구분한다.
+  2) 다음 줄: 캐릭터 대사를 큰따옴표 안에 작성하여 묘사와 구분한다. 대사에는 *를 포함하지 않는다.
 - 필요 시 장면 묘사 후 추가 설명을 덧붙여도 되지만, 최소 한 줄의 묘사와 한 줄의 대사를 항상 제공한다.`;
   }
 
@@ -2141,6 +2157,7 @@ ${catalogLines}
     if (extraction.sceneKey) {
       matchedSceneTemplate = matchSceneTemplate(sceneTemplates, extraction.sceneKey);
     }
+    finalReplyText = formatSceneModeReply(finalReplyText);
   }
   const usage = completion.usage ?? {};
   const inputTokens = usage.prompt_tokens ?? 0;

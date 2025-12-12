@@ -557,12 +557,15 @@ function handleSceneModeFeedback(result) {
 function initKeyboardAwareInput() {
   const root = document.documentElement;
   const viewport = window.visualViewport;
-  if (!viewport || !root) return;
+  if (!root) return;
 
   let rafId = null;
   const applyOffset = () => {
-    const availableHeight = window.innerHeight || document.documentElement.clientHeight;
-    const heightDiff = Math.max(0, availableHeight - viewport.height - viewport.offsetTop);
+    const baseHeight = window.innerHeight || document.documentElement.clientHeight || viewport?.height || 0;
+    const viewportHeight = viewport?.height || baseHeight;
+    root.style.setProperty('--app-viewport-height', `${viewportHeight}px`);
+    const offsetTop = viewport?.offsetTop || 0;
+    const heightDiff = Math.max(0, baseHeight - viewportHeight - offsetTop);
     root.style.setProperty('--chat-input-keyboard-offset', `${heightDiff}px`);
   };
 
@@ -571,8 +574,12 @@ function initKeyboardAwareInput() {
     rafId = requestAnimationFrame(applyOffset);
   };
 
-  viewport.addEventListener('resize', scheduleUpdate);
-  viewport.addEventListener('scroll', scheduleUpdate);
+  if (viewport) {
+    viewport.addEventListener('resize', scheduleUpdate);
+    viewport.addEventListener('scroll', scheduleUpdate);
+  } else {
+    window.addEventListener('resize', scheduleUpdate);
+  }
   window.addEventListener('orientationchange', scheduleUpdate);
   scheduleUpdate();
 }

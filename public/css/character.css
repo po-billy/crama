@@ -1,5 +1,6 @@
 :root {
   --chat-input-keyboard-offset: 0px;
+  --app-viewport-height: 100vh;
 }
 
 .page-character {
@@ -11,8 +12,9 @@
 .character-layout {
   display: flex;
   flex-direction: row;
-  height: calc(100vh - 60px);
-  width: 50%;
+  height: calc(var(--app-viewport-height, 100vh) - 60px);
+  min-height: calc(var(--app-viewport-height, 100vh) - 60px);
+  width: min(1200px, 100%);
   margin: 0 auto;
   position: relative;
   overflow: hidden;
@@ -698,6 +700,19 @@
   transition: bottom 0.2s ease;
 }
 
+@media (max-width: 1024px) {
+  .character-layout {
+    flex-direction: column;
+    width: 100%;
+    height: auto;
+    min-height: calc(var(--app-viewport-height, 100vh) - 60px);
+  }
+
+  .character-chat {
+    min-height: calc(var(--app-viewport-height, 100vh) - 60px);
+  }
+}
+
 .chat-input-container {
   display: flex;
   align-items: flex-end;
@@ -747,7 +762,7 @@
   border: none;
   outline: none;
   color: #e4e6eb;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.5;
   resize: none;
   max-height: 120px;

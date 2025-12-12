@@ -16,3 +16,9 @@
   to = "/.netlify/functions/contact"
   status = 200
   force = true
+
+[[redirects]]
+  from = "/api/*"
+  to = "https://crama.fly.dev/api/:splat"
+  status = 200
+  force = true

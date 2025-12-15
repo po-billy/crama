@@ -87,25 +87,33 @@
             <div class="scene-mode-bar">
               <div class="scene-mode-copy">
                 <div class="scene-mode-title-row">
-                  <div class="scene-mode-title">SCENE 모드</div>
+                  <div class="scene-mode-title">챗 모드</div>
                   <div class="scene-mode-info-wrapper">
                     <button type="button" class="scene-mode-info-btn" id="sceneModeInfoBtn" aria-expanded="false" aria-controls="sceneModeInfo">i</button>
                     <div class="scene-mode-info hidden" id="sceneModeInfo">
-                      상황 이미지를 자동으로 불러와 장면을 연출해요. 이미지가 사용되면 추가 scene이 차감됩니다.
+                      <p class="scene-mode-info__title" id="sceneModeInfoTitle">모드 정보</p>
+                      <p class="scene-mode-info__body" id="sceneModeInfoBody">선호하는 챗 모드를 선택해 주세요.</p>
                     </div>
                   </div>
                   <div class="scene-template-header">
-                <button type="button" class="scene-template-toggle" id="sceneTemplateToggle" aria-expanded="false">
-                  SCENE 미리보기
-                </button>
-              </div>
+                    <button type="button" class="scene-template-toggle" id="sceneTemplateToggle" aria-expanded="false">
+                      SCENE 미리보기
+                    </button>
+                  </div>
+                </div>
+                <div class="scene-mode-current">
+                  <div class="scene-mode-current__name" id="sceneModeCurrentName">모드 로딩 중</div>
+                  <div class="scene-mode-current__meta" id="sceneModeCurrentMeta">-</div>
+                </div>
+                <div class="scene-mode-status" id="sceneModeStatus">
+                  <span class="scene-mode-status__pill" id="sceneModeStatusValue">OFF</span>
                 </div>
               </div>
-              <label class="scene-switch" aria-label="SCENE 모드 토글">
-                <input type="checkbox" id="sceneModeToggle" />
-                <span class="scene-switch__slider"></span>
-              </label>
+              <button type="button" class="scene-mode-manage-btn" id="openChatSettingsBtn">
+                챗 모드 설정
+              </button>
             </div>
+            <p class="scene-mode-note" id="sceneModeNote"></p>
 
             <div class="scene-template-panel">
               <div class="scene-template-strip scene-template-strip--collapsed" id="sceneTemplateStrip">
@@ -190,6 +198,7 @@
                 <button class="side-tab side-tab--active" data-panel="profilePanel">상세 정보</button>
                 <button class="side-tab" data-panel="guidePanel">플레이 가이드</button>
                 <button class="side-tab" data-panel="creatorPanel">크리에이터</button>
+                <button class="side-tab" data-panel="chatSettingsPanel">채팅 설정</button>
               </div>
 
               <!-- 상세 정보 패널 -->
@@ -276,6 +285,44 @@
                   </a>
                 </div>
               </div>
+
+              <div class="side-panel" id="chatSettingsPanel">
+                <div class="panel-section">
+                  <h3 class="panel-section-title">챗 모드</h3>
+                  <p class="panel-section-text">
+                    모드마다 토큰 길이와 scene 소모량이 달라요. 캐릭터의 분위기와 예산에 맞춰 골라주세요.
+                  </p>
+                  <section class="chat-mode-panel" id="chatModePanel">
+                    <div class="chat-mode-panel__header">
+                      <div class="chat-mode-panel__active">
+                        <p class="chat-mode-panel__label">현재 모드</p>
+                        <div class="chat-mode-panel__current">
+                          <span class="chat-mode-panel__name" id="chatModeActiveName">기본 모드</span>
+                          <span class="chat-mode-panel__meta" id="chatModeActiveMeta">토큰 정보 로딩 중</span>
+                        </div>
+                      </div>
+                      <div class="chat-mode-panel__actions">
+                        <button type="button" class="chat-mode-panel__adjust" id="chatModeAdjustBtn">
+                          최대 토큰 조절
+                        </button>
+                      </div>
+                    </div>
+                    <div class="chat-mode-list" id="chatModeList">
+                      <p class="chat-mode-panel__empty">모드 구성을 불러오는 중입니다.</p>
+                    </div>
+                    <p class="chat-mode-panel__tip" id="chatModeCreditTip">
+                      Scene 모드가 필요한 경우 ‘씬 브릿지 2.0’을 선택하세요.
+                    </p>
+                  </section>
+                </div>
+
+                <div class="panel-section">
+                  <h4 class="panel-section-title">예상 소비</h4>
+                  <div class="chat-credit-indicator" id="chatCostIndicator">
+                    선택한 모드의 토큰/scene 정보가 여기에 표시됩니다.
+                  </div>
+                </div>
+              </div>
             </div>
           </aside>
         </div>
@@ -291,6 +338,24 @@
   <script src="js/authWidget.js"></script>
   <script src="js/credits.js"></script>
   <script src="js/character.js"></script>
+
+  <div class="chat-mode-modal" id="chatModeModal" aria-hidden="true">
+    <div class="chat-mode-modal__backdrop" data-chat-mode-close></div>
+    <div class="chat-mode-modal__panel" role="dialog" aria-modal="true" aria-labelledby="chatModeModalTitle">
+      <header class="chat-mode-modal__header">
+        <div>
+          <p class="chat-mode-modal__eyebrow">출력량 & 크레딧</p>
+          <h3 id="chatModeModalTitle">최대 토큰 상세 조정</h3>
+        </div>
+        <button type="button" class="chat-mode-modal__close" data-chat-mode-close aria-label="닫기">&times;</button>
+      </header>
+      <div class="chat-mode-modal__body" id="chatModeModalBody"></div>
+      <footer class="chat-mode-modal__footer">
+        <button type="button" class="chat-mode-modal__secondary" data-chat-mode-close>취소</button>
+        <button type="button" class="chat-mode-modal__primary" id="chatModeModalSave">저장</button>
+      </footer>
+    </div>
+  </div>
 </body>
 
 </html>

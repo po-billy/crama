@@ -23,22 +23,38 @@ document.querySelectorAll('.character-side .side-tab').forEach(tab => {
   });
 });
 
-const SCENE_MODE_STORAGE_KEY = 'crama_scene_mode';
 const CHAT_FETCH_LIMIT = 30;
+const CHAT_MODE_CONFIG_URL = '/data/chat-modes.json';
+const CHAT_MODE_PREF_KEY = 'crama_chat_mode_pref';
+const DEFAULT_MULTIPLIER_PRESET = [1, 1.25, 1.5, 2, 2.5, 3, 4, 5];
+const DEFAULT_CHAT_MODE_FALLBACK = {
+  key: 'default',
+  name: '기본 모드',
+  tagline: '표준 응답',
+  baseTokens: 512,
+  baseCredits: 10,
+  extraCreditPerIncrement: 5,
+  tokenIncrement: 100,
+  multipliers: [1, 1.5, 2],
+  defaultMultiplier: 1
+};
 
-let sceneModeEnabled = (() => {
-  try {
-    return localStorage.getItem(SCENE_MODE_STORAGE_KEY) === '1';
-  } catch (e) {
-    return false;
-  }
-})();
+let sceneModeEnabled = false;
 let currentSceneTemplates = [];
 let sceneTemplatesCollapsed = true;
 let oldestMessageTimestamp = null;
 let hasMoreChats = false;
 let currentChatSessionId = null;
 let loadMoreInFlight = false;
+let chatModeConfigPayload = { tokenIncrement: 100, modes: [] };
+let chatModePrefs = { multipliers: {}, selectedKey: null };
+let activeChatModeKey = null;
+let chatModeModalDraft = null;
+let chatModeListBound = false;
+let chatModeModalBound = false;
+let chatModesInitialized = false;
+let lastNonSceneModeKey = null;
+let sceneModeNoteTimer = null;
 
 function escapeHtml(value) {
   return (value || '').toString()
@@ -46,6 +62,546 @@ function escapeHtml(value) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+function formatTokens(value) {
+  return `${Number(value || 0).toLocaleString('ko-KR')} 토큰`;
+}
+
+function formatScene(value) {
+  return `${Number(value || 0).toLocaleString('ko-KR')} scene`;
+}
+
+function formatMultiplierLabel(multiplier) {
+  if (multiplier === undefined || multiplier === null) return '기본';
+  return Math.abs(Number(multiplier) - 1) < 0.0001 ? '기본' : `${Number(multiplier).toLocaleString('ko-KR')}x`;
+}
+
+let placeholderUserName = '손님';
+let placeholderContextInitialized = false;
+
+async function initPlaceholderContext(force = false) {
+  if (placeholderContextInitialized && !force) {
+    return placeholderUserName;
+  }
+  try {
+    if (typeof window.fetchUserContext === 'function') {
+      const ctx = await window.fetchUserContext();
+      const resolvedName =
+        ctx?.profile?.display_name ||
+        ctx?.profile?.handle ||
+        ctx?.user?.user_metadata?.name ||
+        ctx?.user?.user_metadata?.full_name ||
+        ctx?.user?.email?.split('@')[0];
+      if (resolvedName) {
+        placeholderUserName = resolvedName;
+      }
+    }
+  } catch (e) {
+    console.warn('placeholder context init failed', e);
+  } finally {
+    placeholderContextInitialized = true;
+  }
+  return placeholderUserName;
+}
+
+function renderWithPlaceholders(input, charName, userName) {
+  const base = input ?? '';
+  const text = typeof base === 'string' ? base : String(base);
+  if (!text) return '';
+  const characterLabel = (charName && String(charName).trim()) || '캐릭터';
+  const userLabel = (userName && String(userName).trim()) || placeholderUserName || '손님';
+  return text
+    .replace(/{{\s*char\s*}}/gi, characterLabel)
+    .replace(/{{\s*user\s*}}/gi, userLabel);
+}
+
+window.initCharacterPlaceholderContext = initPlaceholderContext;
+window.renderCharacterPlaceholders = renderWithPlaceholders;
+
+function getExtraCreditPerIncrement(mode) {
+  return (
+    Number(
+      mode?.extraCreditPerIncrement ??
+        mode?.perIncrementCredits ??
+        mode?.per100Tokens ??
+        DEFAULT_CHAT_MODE_FALLBACK.extraCreditPerIncrement
+    ) || 0
+  );
+}
+
+function normalizeMultiplierList(list) {
+  return Array.from(
+    new Set(
+      (list || [])
+        .map((value) => Number(value))
+        .filter((value) => Number.isFinite(value) && value >= 1)
+    )
+  ).sort((a, b) => a - b);
+}
+
+function getModeMultipliers(mode) {
+  const base = normalizeMultiplierList(mode?.multipliers);
+  if (!base.length) {
+    return normalizeMultiplierList(DEFAULT_MULTIPLIER_PRESET);
+  }
+  const extended = normalizeMultiplierList([...base, ...DEFAULT_MULTIPLIER_PRESET]);
+  return extended.length ? extended : normalizeMultiplierList(DEFAULT_MULTIPLIER_PRESET);
+}
+
+async function loadChatModeConfig() {
+  try {
+    const res = await fetch(CHAT_MODE_CONFIG_URL, { cache: 'no-store' });
+    if (!res.ok) throw new Error('failed to load chat mode config');
+    const payload = await res.json();
+    if (!payload || !Array.isArray(payload.modes)) {
+      throw new Error('invalid chat mode config');
+    }
+    chatModeConfigPayload = payload;
+  } catch (e) {
+    console.warn('chat mode config fetch failed', e);
+    chatModeConfigPayload = { tokenIncrement: DEFAULT_CHAT_MODE_FALLBACK.tokenIncrement, modes: [] };
+  }
+}
+
+function getChatModeList() {
+  const modes = Array.isArray(chatModeConfigPayload?.modes) ? chatModeConfigPayload.modes : [];
+  return modes.length ? modes : [DEFAULT_CHAT_MODE_FALLBACK];
+}
+
+function resolveDefaultMultiplier(mode) {
+  const multipliers = getModeMultipliers(mode);
+  const preferred = Number(mode?.defaultMultiplier);
+  if (!Number.isNaN(preferred) && multipliers.includes(preferred)) {
+    return preferred;
+  }
+  return multipliers[0];
+}
+
+function resolveModeMultiplierClient(mode, multiplier) {
+  const multipliers = getModeMultipliers(mode);
+  const numeric = Number(multiplier);
+  if (!Number.isNaN(numeric)) {
+    const matched = multipliers.find((value) => Math.abs(value - numeric) < 0.0001);
+    if (typeof matched === 'number') return matched;
+  }
+  return resolveDefaultMultiplier(mode);
+}
+
+function computeChatModeUsageClient(modeInput, multiplier) {
+  const mode = modeInput || getChatModeList()[0] || DEFAULT_CHAT_MODE_FALLBACK;
+  const baseTokens = Number(mode?.baseTokens) || DEFAULT_CHAT_MODE_FALLBACK.baseTokens;
+  const baseCredits = Number(mode?.baseCredits) || DEFAULT_CHAT_MODE_FALLBACK.baseCredits;
+  const incrementSize =
+    Number(mode?.tokenIncrement || chatModeConfigPayload?.tokenIncrement || DEFAULT_CHAT_MODE_FALLBACK.tokenIncrement) ||
+    DEFAULT_CHAT_MODE_FALLBACK.tokenIncrement;
+  const extraCreditPerIncrement =
+    getExtraCreditPerIncrement(mode);
+  const selectedMultiplier = resolveModeMultiplierClient(mode, multiplier);
+  const rawTokens = Math.round(baseTokens * selectedMultiplier);
+  const maxTokens = Math.max(baseTokens, rawTokens);
+  const additionalTokens = Math.max(0, maxTokens - baseTokens);
+  const increments = incrementSize > 0 ? Math.ceil(additionalTokens / incrementSize) : 0;
+  const creditCost = baseCredits + increments * extraCreditPerIncrement;
+  return {
+    mode,
+    multiplier: selectedMultiplier,
+    maxTokens,
+    creditCost,
+    extraCreditPerIncrement,
+    incrementSize
+  };
+}
+
+function loadChatModePrefsFromStorage() {
+  try {
+    const raw = localStorage.getItem(CHAT_MODE_PREF_KEY);
+    if (!raw) return { multipliers: {}, selectedKey: null };
+    const parsed = JSON.parse(raw);
+    const multipliers =
+      parsed && typeof parsed.multipliers === 'object' && parsed.multipliers !== null ? parsed.multipliers : {};
+    const selectedKey = typeof parsed?.selectedKey === 'string' ? parsed.selectedKey : null;
+    return { multipliers, selectedKey };
+  } catch (e) {
+    console.warn('chat mode pref parse failed', e);
+    return { multipliers: {}, selectedKey: null };
+  }
+}
+
+function persistChatModePrefs() {
+  if (!chatModesInitialized) return;
+  try {
+    localStorage.setItem(
+      CHAT_MODE_PREF_KEY,
+      JSON.stringify({
+        selectedKey: chatModePrefs.selectedKey,
+        multipliers: chatModePrefs.multipliers
+      })
+    );
+  } catch (e) {
+    console.warn('chat mode pref save failed', e);
+  }
+}
+
+function ensureModePref(mode) {
+  if (!mode?.key) return;
+  if (typeof chatModePrefs.multipliers?.[mode.key] !== 'number') {
+    chatModePrefs.multipliers = chatModePrefs.multipliers || {};
+    chatModePrefs.multipliers[mode.key] = resolveDefaultMultiplier(mode);
+  }
+}
+
+function getActiveChatModeSelection() {
+  const modes = getChatModeList();
+  let mode = modes.find((item) => item.key === activeChatModeKey);
+  if (!mode) {
+    mode = modes.find((item) => item.key === chatModePrefs.selectedKey) || modes[0];
+    if (mode) {
+      activeChatModeKey = mode.key;
+      chatModePrefs.selectedKey = mode.key;
+    }
+  }
+  if (!mode) {
+    mode = DEFAULT_CHAT_MODE_FALLBACK;
+    activeChatModeKey = mode.key;
+    chatModePrefs.selectedKey = mode.key;
+  }
+  const hasSceneTemplates = currentSceneTemplates.length > 0;
+  if (mode?.sceneMode && !hasSceneTemplates) {
+    const fallback = modes.find((item) => !item.sceneMode) || mode;
+    if (fallback && fallback.key !== mode.key) {
+      mode = fallback;
+      activeChatModeKey = fallback.key;
+      chatModePrefs.selectedKey = fallback.key;
+      persistChatModePrefs();
+    }
+  }
+  ensureModePref(mode);
+  if (!mode.sceneMode) {
+    lastNonSceneModeKey = mode.key;
+  }
+  sceneModeEnabled = Boolean(mode.sceneMode && hasSceneTemplates);
+  const multiplier = chatModePrefs.multipliers?.[mode.key];
+  return {
+    mode,
+    multiplier,
+    usage: computeChatModeUsageClient(mode, multiplier)
+  };
+}
+
+function renderChatModeCards() {
+  const container = document.getElementById('chatModeList');
+  if (!container) return;
+  const modes = getChatModeList();
+  if (!modes.length) {
+    container.innerHTML = '<p class="chat-mode-panel__empty">사용 가능한 모드가 없습니다.</p>';
+    return;
+  }
+  const fragment = document.createDocumentFragment();
+  const hasSceneTemplates = currentSceneTemplates.length > 0;
+  modes.forEach((mode) => {
+    ensureModePref(mode);
+    const selection = computeChatModeUsageClient(mode, chatModePrefs.multipliers?.[mode.key]);
+    const button = document.createElement('button');
+    button.type = 'button';
+    const requiresScene = Boolean(mode.sceneMode);
+    const locked = requiresScene && !hasSceneTemplates;
+    const isActive = mode.key === activeChatModeKey;
+    const classNames = ['chat-mode-card'];
+    if (isActive) classNames.push('chat-mode-card--active');
+    if (locked) classNames.push('chat-mode-card--locked');
+    button.className = classNames.join(' ');
+    button.dataset.modeKey = mode.key;
+    if (locked) {
+      button.setAttribute('aria-disabled', 'true');
+      button.dataset.locked = '1';
+    } else {
+      button.removeAttribute('aria-disabled');
+      delete button.dataset.locked;
+    }
+    const badge = document.createElement('span');
+    badge.className = 'chat-mode-card__badge';
+    badge.textContent = mode.badge || '모드';
+    const name = document.createElement('span');
+    name.className = 'chat-mode-card__name';
+    name.textContent = mode.name || '모드';
+    const tagline = document.createElement('span');
+    tagline.className = 'chat-mode-card__tagline';
+    if (locked) {
+      tagline.textContent = '상황 이미지가 없어 사용할 수 없습니다.';
+    } else {
+      tagline.textContent = mode.tagline || mode.description || '';
+    }
+    const meta = document.createElement('div');
+    meta.className = 'chat-mode-card__meta';
+    const metaTokens = document.createElement('span');
+    metaTokens.textContent = formatTokens(selection.maxTokens);
+    const metaCredits = document.createElement('span');
+    metaCredits.textContent = formatScene(selection.creditCost);
+    meta.append(metaTokens, metaCredits);
+    button.append(badge, name, tagline, meta);
+    fragment.appendChild(button);
+  });
+  container.innerHTML = '';
+  container.appendChild(fragment);
+}
+
+function updateChatModeSummary() {
+  const summary = getActiveChatModeSelection();
+  if (!summary) return;
+  const { mode, usage } = summary;
+  const metaText = `${formatTokens(usage.maxTokens)} · ${formatScene(usage.creditCost)}`;
+  const nameEl = document.getElementById('chatModeActiveName');
+  const metaEl = document.getElementById('chatModeActiveMeta');
+  const tipEl = document.getElementById('chatModeCreditTip');
+  const indicator = document.getElementById('chatCostIndicator');
+  if (nameEl) nameEl.textContent = mode.name || '기본 모드';
+  if (metaEl) metaEl.textContent = metaText;
+  if (tipEl) {
+    if (mode.sceneMode) {
+      tipEl.textContent = sceneModeEnabled
+        ? '상황 이미지를 함께 사용하며 장면 몰입도를 높입니다.'
+        : '이 모드는 Scene 이미지를 사용하지만 현재 캐릭터에는 상황 이미지가 없습니다.';
+    } else {
+      const tagline = mode.description || mode.tagline || '응답 길이와 톤이 다른 모드입니다.';
+      tipEl.textContent = `${tagline} · 토큰 길이는 모드별로 다릅니다.`;
+    }
+  }
+  if (indicator) {
+    let sceneSuffix = '';
+    if (mode.sceneMode) {
+      sceneSuffix = sceneModeEnabled
+        ? ' · 상황 이미지 사용 시 scene이 추가로 차감됩니다.'
+        : ' · 상황 이미지를 등록하면 SCENE 모드를 활성화할 수 있습니다.';
+    } else {
+      sceneSuffix = ' · Scene 소모 없이 대화에 집중합니다.';
+    }
+    indicator.textContent = `예상 ${formatScene(usage.creditCost)} · 최대 ${formatTokens(usage.maxTokens)}${sceneSuffix}`;
+  }
+  updateSceneModeIndicator(mode, usage);
+}
+
+function setActiveChatMode(modeKey) {
+  if (!modeKey) return;
+  const mode = getChatModeList().find((item) => item.key === modeKey);
+  if (!mode) return;
+  const hasSceneTemplates = currentSceneTemplates.length > 0;
+  if (mode.sceneMode && !hasSceneTemplates) {
+    showSceneModeNote('이 캐릭터에는 상황 이미지가 없어 Scene 모드를 사용할 수 없습니다.');
+    return;
+  }
+  ensureModePref(mode);
+  activeChatModeKey = mode.key;
+  chatModePrefs.selectedKey = mode.key;
+  if (!mode.sceneMode) {
+    lastNonSceneModeKey = mode.key;
+  }
+  sceneModeEnabled = Boolean(mode.sceneMode && hasSceneTemplates);
+  clearSceneModeNote();
+  persistChatModePrefs();
+  renderChatModeCards();
+  updateChatModeSummary();
+}
+
+function bindChatModeListEvents() {
+  if (chatModeListBound) return;
+  const container = document.getElementById('chatModeList');
+  if (!container) return;
+  container.addEventListener('click', (event) => {
+    const card = event.target.closest('.chat-mode-card');
+    if (!card) return;
+    if (card.classList.contains('chat-mode-card--locked') || card.getAttribute('aria-disabled') === 'true') {
+      showSceneModeNote('상황 이미지를 등록하면 이 모드를 사용할 수 있습니다.');
+      return;
+    }
+    setActiveChatMode(card.dataset.modeKey);
+  });
+  chatModeListBound = true;
+}
+
+function updateSliderVisual(slider, currentIndex, maxIndex) {
+  if (!slider) return;
+  const progress = maxIndex <= 0 ? 100 : Math.max(0, Math.min(1, currentIndex / maxIndex)) * 100;
+  slider.style.setProperty('--slider-progress', `${progress}%`);
+}
+
+function renderChatModeModalBody() {
+  const bodyEl = document.getElementById('chatModeModalBody');
+  if (!bodyEl) return;
+  const modes = getChatModeList();
+  if (!chatModeModalDraft) chatModeModalDraft = { ...(chatModePrefs.multipliers || {}) };
+  bodyEl.innerHTML = '';
+  const fragment = document.createDocumentFragment();
+  modes.forEach((mode) => {
+    ensureModePref(mode);
+    const multipliers = getModeMultipliers(mode);
+    const storedMultiplier = chatModeModalDraft?.[mode.key] ?? chatModePrefs.multipliers?.[mode.key];
+    const usage = computeChatModeUsageClient(mode, storedMultiplier);
+    const item = document.createElement('article');
+    item.className = 'chat-mode-modal-item';
+    const header = document.createElement('div');
+    header.className = 'chat-mode-modal-item__header';
+    const titleWrap = document.createElement('div');
+    titleWrap.className = 'chat-mode-modal-item__title-wrap';
+    const title = document.createElement('h4');
+    title.className = 'chat-mode-modal-item__title';
+    title.textContent = mode.name || '모드';
+    const multiplierBadge = document.createElement('span');
+    multiplierBadge.className = 'chat-mode-modal-item__multiplier';
+    multiplierBadge.textContent = `${formatMultiplierLabel(usage.multiplier)} (${formatTokens(usage.maxTokens)})`;
+    const sub = document.createElement('p');
+    sub.className = 'chat-mode-modal-item__sub';
+    sub.textContent = `추가 100토큰당 ${getExtraCreditPerIncrement(mode).toLocaleString('ko-KR')} scene`;
+    titleWrap.append(title, multiplierBadge, sub);
+    const limit = document.createElement('span');
+    limit.className = 'chat-mode-modal-item__limit';
+    limit.textContent = `최대 ${formatScene(usage.creditCost)}`;
+    header.append(titleWrap, limit);
+    const tagline = document.createElement('p');
+    tagline.className = 'chat-mode-modal-item__tagline';
+    tagline.textContent = mode.description || mode.tagline || '응답 길이를 조절하세요.';
+    const sliderWrap = document.createElement('div');
+    sliderWrap.className = 'chat-mode-modal-slider';
+    const slider = document.createElement('input');
+    slider.type = 'range';
+    slider.className = 'chat-mode-slider-input';
+    slider.min = 0;
+    slider.max = multipliers.length - 1;
+    slider.step = 1;
+    const initialIndex = multipliers.findIndex((value) => Math.abs(value - storedMultiplier) < 0.0001);
+    slider.value = String(initialIndex >= 0 ? initialIndex : 0);
+    slider.dataset.modeKey = mode.key;
+    updateSliderVisual(slider, Number(slider.value), multipliers.length - 1);
+    const labels = document.createElement('div');
+    labels.className = 'chat-mode-slider-labels';
+    multipliers.forEach((value, idx) => {
+      const option = document.createElement('span');
+      option.textContent = idx === 0 ? '기본' : `${value}x`;
+      option.dataset.index = String(idx);
+      if (idx === Number(slider.value)) option.classList.add('active');
+      labels.appendChild(option);
+    });
+    sliderWrap.append(slider, labels);
+    const summary = document.createElement('div');
+    summary.className = 'chat-mode-modal-summary';
+    const tokenSpan = document.createElement('span');
+    tokenSpan.textContent = formatTokens(usage.maxTokens);
+    tokenSpan.dataset.modeKey = `${mode.key}-token`;
+    const creditSpan = document.createElement('span');
+    creditSpan.textContent = formatScene(usage.creditCost);
+    creditSpan.dataset.modeKey = `${mode.key}-credit`;
+    summary.append(tokenSpan, creditSpan);
+    slider.addEventListener('input', () => {
+      const idx = Number(slider.value);
+      const nextMultiplier = multipliers[idx] ?? multipliers[0];
+      chatModeModalDraft[mode.key] = nextMultiplier;
+      const nextUsage = computeChatModeUsageClient(mode, nextMultiplier);
+      Array.from(labels.children).forEach((child) => {
+        child.classList.toggle('active', child.dataset.index === String(idx));
+      });
+      multiplierBadge.textContent = `${formatMultiplierLabel(nextUsage.multiplier)} (${formatTokens(nextUsage.maxTokens)})`;
+      tokenSpan.textContent = formatTokens(nextUsage.maxTokens);
+      creditSpan.textContent = formatScene(nextUsage.creditCost);
+      updateSliderVisual(slider, idx, multipliers.length - 1);
+    });
+    item.append(header, tagline, sliderWrap, summary);
+    fragment.appendChild(item);
+  });
+  bodyEl.appendChild(fragment);
+}
+
+function openChatModeModal() {
+  const modal = document.getElementById('chatModeModal');
+  if (!modal) return;
+  chatModeModalDraft = { ...(chatModePrefs.multipliers || {}) };
+  renderChatModeModalBody();
+  modal.classList.add('chat-mode-modal--open');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('modal-open');
+}
+
+function closeChatModeModal() {
+  const modal = document.getElementById('chatModeModal');
+  if (!modal) return;
+  modal.classList.remove('chat-mode-modal--open');
+  modal.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('modal-open');
+  chatModeModalDraft = null;
+}
+
+function bindChatModeModalEvents() {
+  if (chatModeModalBound) return;
+  const adjustBtn = document.getElementById('chatModeAdjustBtn');
+  const modal = document.getElementById('chatModeModal');
+  const saveBtn = document.getElementById('chatModeModalSave');
+  if (adjustBtn) {
+    adjustBtn.addEventListener('click', openChatModeModal);
+  }
+  if (modal) {
+    modal.addEventListener('click', (event) => {
+      if (event.target.closest('[data-chat-mode-close]')) {
+        closeChatModeModal();
+      }
+    });
+  }
+  if (saveBtn) {
+    saveBtn.addEventListener('click', () => {
+      if (chatModeModalDraft) {
+        chatModePrefs.multipliers = {
+          ...chatModePrefs.multipliers,
+          ...chatModeModalDraft
+        };
+        persistChatModePrefs();
+        renderChatModeCards();
+        updateChatModeSummary();
+      }
+      closeChatModeModal();
+    });
+  }
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      const modalEl = document.getElementById('chatModeModal');
+      if (modalEl?.classList.contains('chat-mode-modal--open')) {
+        closeChatModeModal();
+      }
+    }
+  });
+  chatModeModalBound = true;
+}
+
+async function initChatModes() {
+  try {
+    await loadChatModeConfig();
+  } catch (e) {
+    console.warn('chat mode init failed', e);
+  }
+  chatModePrefs = loadChatModePrefsFromStorage();
+  const modes = getChatModeList();
+  modes.forEach((mode) => ensureModePref(mode));
+  const firstNonSceneMode = modes.find((mode) => !mode.sceneMode);
+  if (firstNonSceneMode) {
+    lastNonSceneModeKey = firstNonSceneMode.key;
+  }
+  const storedKey = chatModePrefs.selectedKey;
+  const storedExists = storedKey && modes.some((m) => m.key === storedKey);
+  if (storedExists) {
+    activeChatModeKey = storedKey;
+  } else {
+    const fallback =
+      modes.find((mode) => mode.key === chatModeConfigPayload?.defaultMode) || modes[0] || DEFAULT_CHAT_MODE_FALLBACK;
+    activeChatModeKey = fallback?.key || DEFAULT_CHAT_MODE_FALLBACK.key;
+    chatModePrefs.selectedKey = activeChatModeKey;
+  }
+  if (getChatModeList().find((mode) => mode.key === activeChatModeKey)?.sceneMode && !currentSceneTemplates.length) {
+    if (firstNonSceneMode) {
+      activeChatModeKey = firstNonSceneMode.key;
+      chatModePrefs.selectedKey = firstNonSceneMode.key;
+    }
+  }
+  chatModesInitialized = true;
+  setActiveChatMode(activeChatModeKey);
+  bindChatModeListEvents();
+  bindChatModeModalEvents();
 }
 
 function setSceneTemplateCollapsed(collapsed) {
@@ -116,19 +672,8 @@ async function openCreditUpsellSafe() {
 }
 
 function initSceneModeToggle() {
-  const toggle = document.getElementById('sceneModeToggle');
   const infoBtn = document.getElementById('sceneModeInfoBtn');
   const infoPanel = document.getElementById('sceneModeInfo');
-  if (!toggle) return;
-  toggle.checked = !!sceneModeEnabled;
-  toggle.addEventListener('change', () => {
-    sceneModeEnabled = toggle.checked;
-    try {
-      localStorage.setItem(SCENE_MODE_STORAGE_KEY, sceneModeEnabled ? '1' : '0');
-    } catch (e) {
-      console.warn('scene mode pref save failed', e);
-    }
-  });
   if (infoBtn && infoPanel) {
     infoBtn.addEventListener('click', () => {
       const expanded = infoBtn.getAttribute('aria-expanded') === 'true';
@@ -137,9 +682,16 @@ function initSceneModeToggle() {
       infoPanel.classList.toggle('hidden', !next);
     });
   }
+  const openSettingsBtn = document.getElementById('openChatSettingsBtn');
+  if (openSettingsBtn) {
+    openSettingsBtn.addEventListener('click', () => {
+      openChatSettingsPanel();
+    });
+  }
+  updateSceneModeIndicator();
 }
 
-function renderSceneTemplates(list = []) {
+function renderSceneTemplates(list = [], charName = '캐릭터', userName = placeholderUserName) {
   const strip = document.getElementById('sceneTemplateStrip');
   const toggle = document.getElementById('sceneTemplateToggle');
   if (!strip) return;
@@ -168,11 +720,13 @@ function renderSceneTemplates(list = []) {
   currentSceneTemplates.forEach((template) => {
     const card = document.createElement('div');
     card.className = 'scene-template-card';
-    const keywords = Array.isArray(template.keywords)
-      ? template.keywords.join(', ')
-      : (template.keywords || '');
-    const label = escapeHtml(template.label || '상황 이미지');
-    const desc = escapeHtml(template.description || keywords || '');
+    const keywordsRaw = Array.isArray(template.keywords)
+      ? template.keywords.map((kw) => renderWithPlaceholders(kw, charName, userName)).join(', ')
+      : renderWithPlaceholders(template.keywords || '', charName, userName);
+    const label = escapeHtml(renderWithPlaceholders(template.label || '상황 이미지', charName, userName) || '상황 이미지');
+    const desc = escapeHtml(
+      renderWithPlaceholders(template.description || keywordsRaw || '', charName, userName) || keywordsRaw || ''
+    );
     card.innerHTML = `
       <div class="scene-template-thumb">
         <img src="${template.image_url || template.url || '/assets/sample-character-02.png'}" alt="${label}" />
@@ -184,6 +738,85 @@ function renderSceneTemplates(list = []) {
     `;
     strip.appendChild(card);
   });
+  if (chatModesInitialized) {
+    renderChatModeCards();
+    updateChatModeSummary();
+  }
+}
+
+function openChatSettingsPanel() {
+  const sidePanel = document.querySelector('.character-side');
+  if (sidePanel?.classList.contains('character-side--collapsed')) {
+    document.getElementById('sideToggleBtn')?.click();
+  }
+  const chatTab = document.querySelector('.side-tab[data-panel="chatSettingsPanel"]');
+  if (chatTab && !chatTab.classList.contains('side-tab--active')) {
+    chatTab.click();
+  }
+}
+
+function updateSceneModeIndicator(modeOverride, usageOverride) {
+  const selection =
+    modeOverride && usageOverride ? { mode: modeOverride, usage: usageOverride } : getActiveChatModeSelection();
+  if (!selection) return;
+  const { mode, usage } = selection;
+  const pill = document.getElementById('sceneModeStatusValue');
+  if (pill) {
+    const isActive = Boolean(sceneModeEnabled);
+    pill.textContent = isActive ? 'SCENE ON' : 'SCENE OFF';
+    pill.classList.toggle('scene-mode-status__pill--active', isActive);
+  }
+  const nameEl = document.getElementById('sceneModeCurrentName');
+  if (nameEl) {
+    nameEl.textContent = `${mode.name || '모드'} · ${formatMultiplierLabel(usage?.multiplier)}`;
+  }
+  const metaEl = document.getElementById('sceneModeCurrentMeta');
+  if (metaEl) {
+    metaEl.textContent = `${formatTokens(usage?.maxTokens)} · ${formatScene(usage?.creditCost)}`;
+  }
+  const infoTitle = document.getElementById('sceneModeInfoTitle');
+  if (infoTitle) infoTitle.textContent = mode.name || '챗 모드';
+  const infoBody = document.getElementById('sceneModeInfoBody');
+  if (infoBody) {
+    const parts = [];
+    if (mode.description || mode.tagline) {
+      parts.push(mode.description || mode.tagline);
+    }
+    if (mode.sceneMode) {
+      parts.push(
+        sceneModeEnabled
+          ? '상황 이미지를 자동으로 불러와 장면을 연출합니다.'
+          : '상황 이미지를 등록하면 SCENE 모드를 활용할 수 있습니다.'
+      );
+    } else {
+      parts.push('Scene을 차감하지 않고 텍스트 응답에 집중합니다.');
+    }
+    const extra = getExtraCreditPerIncrement(mode);
+    if (extra > 0) {
+      parts.push(`추가 100토큰당 ${extra.toLocaleString('ko-KR')} scene이 차감됩니다.`);
+    }
+    infoBody.textContent = parts.join(' ');
+  }
+}
+
+function showSceneModeNote(message) {
+  const noteEl = document.getElementById('sceneModeNote');
+  if (!noteEl) return;
+  clearTimeout(sceneModeNoteTimer);
+  if (!message) {
+    noteEl.textContent = '';
+    noteEl.classList.remove('scene-mode-note--visible');
+    return;
+  }
+  noteEl.textContent = message;
+  noteEl.classList.add('scene-mode-note--visible');
+  sceneModeNoteTimer = setTimeout(() => {
+    noteEl.classList.remove('scene-mode-note--visible');
+  }, 5000);
+}
+
+function clearSceneModeNote() {
+  showSceneModeNote('');
 }
 
 function getOrCreateChatSessionId(characterId) {
@@ -407,21 +1040,24 @@ async function likeCharacter(id) {
 // HTML 렌더링: HTML 구조에 맞춰 매핑
 // ================================
 function renderCharacterDetail(c) {
+  const charName = c.name || '캐릭터';
+  const userName = placeholderUserName;
+  const applyPlaceholders = (value) => renderWithPlaceholders(value || '', charName, userName);
 
   // 아바타 이미지
   const avatarImg = document.querySelector(".character-avatar-wrapper img");
   if (avatarImg) {
     avatarImg.src = c.avatar_url || "/assets/img/sample-character-01.png";
-    avatarImg.alt = c.name || "캐릭터";
+    avatarImg.alt = charName;
   }
 
   // 캐릭터 이름
   const nameEl = document.querySelector(".character-name");
-  if (nameEl) nameEl.textContent = c.name || "";
+  if (nameEl) nameEl.textContent = charName || "";
 
   // 한줄 소개/태그라인
   const taglineEl = document.querySelector(".character-tagline");
-  if (taglineEl) taglineEl.textContent = c.one_line || "";
+  if (taglineEl) taglineEl.textContent = applyPlaceholders(c.one_line || "");
 
   // 수익배분 뱃지
   const shareBadge = document.querySelector(".badge--share");
@@ -440,18 +1076,20 @@ function renderCharacterDetail(c) {
 
   // 상세 패널: 설명
   const descPanel = document.querySelector("#profilePanel .panel-section-text");
-  if (descPanel) descPanel.textContent = c.description || "";
+  if (descPanel) descPanel.textContent = applyPlaceholders(c.description || "");
 
   // 상세 패널: 장르/대상/해시태그
   const infoValues = document.querySelectorAll("#profilePanel .info-value");
-  if (infoValues[0]) infoValues[0].textContent = c.genre || "-";
-  if (infoValues[1]) infoValues[1].textContent = c.target || "-";
-  if (infoValues[2]) infoValues[2].textContent =
-    (c.tags || []).map(t => `#${t}`).join(" ") || "-";
+  if (infoValues[0]) infoValues[0].textContent = c.genre ? applyPlaceholders(c.genre) : "-";
+  if (infoValues[1]) infoValues[1].textContent = c.target ? applyPlaceholders(c.target) : "-";
+  if (infoValues[2]) {
+    const tagsText = (c.tags || []).map(t => `#${t}`).join(" ");
+    infoValues[2].textContent = tagsText ? applyPlaceholders(tagsText) : "-";
+  }
 
   // 플레이 가이드
   const guideEl = document.querySelector("#guidePanel .panel-section-text");
-  if (guideEl) guideEl.textContent = c.play_guide || "";
+  if (guideEl) guideEl.textContent = applyPlaceholders(c.play_guide || "");
 
   // 인트로 히어로 영역
   const introHero = document.getElementById('characterIntroHero');
@@ -461,14 +1099,14 @@ function renderCharacterDetail(c) {
     if (c.intro_image_url) {
       introHero.style.display = 'flex';
       introHeroImage.src = c.intro_image_url;
-      introHeroImage.alt = `${c.name || ''} 인트로 이미지`;
-      introHeroText.textContent = c.intro || '인트로 정보가 제공되지 않았습니다.';
+      introHeroImage.alt = `${charName || ''} 인트로 이미지`;
+      introHeroText.textContent = applyPlaceholders(c.intro || '인트로 정보가 제공되지 않았습니다.');
     } else {
       introHero.style.display = 'none';
     }
   }
 
-  renderSceneTemplates(c.scene_image_templates || []);
+  renderSceneTemplates(c.scene_image_templates || [], charName, userName);
 }
 
 function sanitizeChatText(value) {
@@ -567,14 +1205,13 @@ function renderMessage(msg) {
 
 function handleSceneModeFeedback(result) {
   if (!result) return;
-  const toggle = document.getElementById('sceneModeToggle');
   if (result.sceneModeDeniedReason) {
     sceneModeEnabled = false;
-    if (toggle) toggle.checked = false;
-    try {
-      localStorage.setItem(SCENE_MODE_STORAGE_KEY, '0');
-    } catch (e) {
-      console.warn('scene mode pref save failed', e);
+    showSceneModeNote(result.sceneModeDeniedReason);
+    if (lastNonSceneModeKey && lastNonSceneModeKey !== activeChatModeKey) {
+      setActiveChatMode(lastNonSceneModeKey);
+    } else {
+      updateSceneModeIndicator();
     }
     return;
   }
@@ -648,6 +1285,7 @@ async function setupChat(characterId) {
     const text = textarea.value.trim();
     if (!text) return;
     textarea.value = "";
+    const chatModeSelection = getActiveChatModeSelection();
 
     // 사용자 메시지 화면 반영
     chatWindow.appendChild(renderMessage({ role: "user", content: text }));
@@ -662,7 +1300,9 @@ async function setupChat(characterId) {
         body: JSON.stringify({
           sessionId,
           message: text,
-          sceneMode: sceneModeEnabled
+          sceneMode: sceneModeEnabled,
+          chatModeKey: chatModeSelection?.mode?.key,
+          tokenMultiplier: chatModeSelection?.multiplier
         })
       });
       const result = await response.json();
@@ -797,6 +1437,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // 페이지 초기화
 // ================================
 document.addEventListener("DOMContentLoaded", async () => {
+  await initPlaceholderContext();
   const characterId = getParam("id");
   if (!characterId) return;
   currentChatSessionId = null;
@@ -813,8 +1454,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   renderCharacterDetail(data);
+  await initChatModes();
   bindLoadMoreButton(characterId);
-  await initializeChatHistory(characterId, data.intro || '');
+  const introForChat = renderWithPlaceholders(data.intro || '', data.name || '캐릭터', placeholderUserName);
+  await initializeChatHistory(characterId, introForChat);
   setupChat(characterId);
   initKeyboardAwareInput();
 

@@ -100,6 +100,9 @@ const CONTACT_GMAIL_USER = process.env.CONTACT_GMAIL_USER || "";
 const CONTACT_GMAIL_PASS = process.env.CONTACT_GMAIL_PASS || "";
 const OPENAI_IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL || "gpt-image-1";
 const OPENAI_ANALYZE_MODEL = process.env.OPENAI_ANALYZE_MODEL || "gpt-4o-mini";
+const OPENAI_PROMPT_COST_PER_1K_WON = parseFloat(process.env.OPENAI_PROMPT_COST_PER_1K_WON) || 0.2215;
+const OPENAI_COMPLETION_COST_PER_1K_WON = parseFloat(process.env.OPENAI_COMPLETION_COST_PER_1K_WON) || 0.8858;
+const TOKEN_COST_MARGIN = parseFloat(process.env.TOKEN_COST_MARGIN) || 1.6;
 const STABILITY_API_KEY = process.env.STABILITY_API_KEY || null;
 const FASHION_CREDIT_COST = parseInt(process.env.FASHION_CREDIT_COST, 10) || 20;
 const STUDIO_CREDIT_COST = parseInt(process.env.STUDIO_CREDIT_COST, 10) || 100;
@@ -157,6 +160,106 @@ const STABILITY_ALLOWED_DIMENSIONS = [
   { width: 832, height: 1216 },
   { width: 896, height: 1152 },
 ];
+
+const CHAT_MODE_CONFIG_PATH = path.join(__dirname, 'public', 'data', 'chat-modes.json');
+let chatModeConfig = { tokenIncrement: 100, modes: [] };
+try {
+  if (fs.existsSync(CHAT_MODE_CONFIG_PATH)) {
+    const raw = fs.readFileSync(CHAT_MODE_CONFIG_PATH, 'utf-8');
+    chatModeConfig = JSON.parse(raw);
+  } else {
+    console.warn('[chat-mode] config file not found at', CHAT_MODE_CONFIG_PATH);
+  }
+} catch (e) {
+  console.warn('[chat-mode] failed to load config, fallback will be used', e);
+  chatModeConfig = { tokenIncrement: 100, modes: [] };
+}
+
+const FALLBACK_CHAT_MODE = {
+  key: 'default',
+  name: '기본 대화 모드',
+  baseTokens: 512,
+  baseCredits: 10,
+  extraCreditPerIncrement: 5,
+  tokenIncrement: 100,
+  multipliers: [1, 1.5, 2, 3],
+  defaultMultiplier: 1
+};
+
+function getChatModeList() {
+  return Array.isArray(chatModeConfig?.modes) ? chatModeConfig.modes : [];
+}
+
+function getChatModeConfigByKey(key) {
+  if (!key) return null;
+  return getChatModeList().find((mode) => mode.key === key) || null;
+}
+
+function getDefaultChatModeConfig() {
+  const list = getChatModeList();
+  if (!list.length) return FALLBACK_CHAT_MODE;
+  if (chatModeConfig?.defaultMode) {
+    const match = list.find((mode) => mode.key === chatModeConfig.defaultMode);
+    if (match) return match;
+  }
+  return list[0];
+}
+
+function resolveModeMultiplier(mode, multiplier) {
+  const multipliers =
+    (Array.isArray(mode?.multipliers) && mode.multipliers.length ? mode.multipliers : [1]).map((value) =>
+      Number(value)
+    );
+  const defaultMultiplier = Number(mode?.defaultMultiplier) || multipliers[0] || 1;
+  const numeric = Number(multiplier);
+  if (!Number.isNaN(numeric)) {
+    const matched = multipliers.find((value) => Math.abs(value - numeric) < 0.0001);
+    if (typeof matched === 'number') {
+      return matched;
+    }
+  }
+  return defaultMultiplier;
+}
+
+function computeChatModeUsage(modeInput, multiplier) {
+  const mode = modeInput || getDefaultChatModeConfig();
+  const baseTokens = Number(mode?.baseTokens) || FALLBACK_CHAT_MODE.baseTokens;
+  const baseCredits = Number(mode?.baseCredits) || FALLBACK_CHAT_MODE.baseCredits;
+  const incrementSize =
+    Number(mode?.tokenIncrement || chatModeConfig?.tokenIncrement || FALLBACK_CHAT_MODE.tokenIncrement) ||
+    100;
+  const extraCreditPerIncrement =
+    Number(
+      mode?.extraCreditPerIncrement ??
+        mode?.perIncrementCredits ??
+        mode?.per100Tokens ??
+        FALLBACK_CHAT_MODE.extraCreditPerIncrement
+    ) || 0;
+  const selectedMultiplier = resolveModeMultiplier(mode, multiplier);
+  const calculatedTokens = Math.round(baseTokens * selectedMultiplier);
+  const maxTokens = Math.max(baseTokens, calculatedTokens);
+  const additionalTokens = Math.max(0, maxTokens - baseTokens);
+  const increments = incrementSize > 0 ? Math.ceil(additionalTokens / incrementSize) : 0;
+  const creditCost = baseCredits + increments * extraCreditPerIncrement;
+  return {
+    mode,
+    maxTokens,
+    creditCost,
+    multiplier: selectedMultiplier
+  };
+}
+
+function computeTokenCreditCost(inputTokens, outputTokens, fallbackCost = 1) {
+  if (!Number.isFinite(inputTokens) || inputTokens < 0) inputTokens = 0;
+  if (!Number.isFinite(outputTokens) || outputTokens < 0) outputTokens = 0;
+  const promptCostWon = (inputTokens / 1000) * OPENAI_PROMPT_COST_PER_1K_WON;
+  const completionCostWon = (outputTokens / 1000) * OPENAI_COMPLETION_COST_PER_1K_WON;
+  const rawWon = (promptCostWon + completionCostWon) * TOKEN_COST_MARGIN;
+  if (!rawWon || rawWon <= 0) {
+    return Math.max(1, Math.ceil(fallbackCost));
+  }
+  return Math.max(1, Math.ceil(rawWon));
+}
 
 function randomHandleCandidate() {
   const adjectives = [
@@ -1877,7 +1980,14 @@ app.get('/api/characters/:id/chats', async (req, res) => {
  */
 app.post('/api/characters/:id/chat', async (req, res) => {
   const { id } = req.params;
-  const { sessionId, message, sceneMode } = req.body || {};
+  const {
+    sessionId,
+    message,
+    sceneMode,
+    chatModeKey,
+    chatMode,
+    tokenMultiplier
+  } = req.body || {};
 
   const user = await getUserFromRequest(req);
   if (!user) {
@@ -1888,7 +1998,11 @@ app.post('/api/characters/:id/chat', async (req, res) => {
     return res.status(400).json({ error: 'sessionId, message ?꾩슂' });
   }
 
-  const CREDIT_COST_PER_MESSAGE = 10;
+  const requestedModeKey = chatModeKey || chatMode || null;
+  const selectedModeConfig = getChatModeConfigByKey(requestedModeKey) || getDefaultChatModeConfig();
+  const modeUsage = computeChatModeUsage(selectedModeConfig, tokenMultiplier);
+  const modeSceneFlag = Boolean(selectedModeConfig?.sceneMode);
+  const RESERVED_CREDIT_PER_MESSAGE = modeUsage.creditCost;
 
   // ?꾩옱 wallet 議고쉶 (?놁쑝硫?0?쇰줈 媛꾩＜), 罹먮┃??理쒓렐 ????숈떆 ?붿껌?쇰줈 ?뺣났 ?뚯닔 媛먯냼
   const creditDb = supabaseAdmin || supabase;
@@ -1945,10 +2059,10 @@ app.post('/api/characters/:id/chat', async (req, res) => {
       console.error('character chat wallet fallback error', e);
     }
   }
-  if (currentBalance < CREDIT_COST_PER_MESSAGE) {
+  if (currentBalance < RESERVED_CREDIT_PER_MESSAGE) {
     return res.status(402).json({
       error: 'insufficient_credits',
-      required: CREDIT_COST_PER_MESSAGE,
+      required: RESERVED_CREDIT_PER_MESSAGE,
       balance: currentBalance
     });
   }
@@ -1958,7 +2072,18 @@ app.post('/api/characters/:id/chat', async (req, res) => {
   if (charErr || !character) {
     return res.status(404).json({ error: 'character not found' });
   }
-  console.log('[character chat] character', id, 'prompt length', character.prompt?.length || 0, 'intro length', character.intro?.length || 0);
+  console.log(
+    '[character chat] character',
+    id,
+    'prompt length',
+    character.prompt?.length || 0,
+    'intro length',
+    character.intro?.length || 0,
+    'mode',
+    selectedModeConfig?.key,
+    'maxTokens',
+    modeUsage.maxTokens
+  );
   if (!character.prompt) {
     console.warn('[character chat] missing prompt for character', id);
   }
@@ -1972,12 +2097,13 @@ app.post('/api/characters/:id/chat', async (req, res) => {
   const sceneTemplates = sanitizeSceneTemplates(character.scene_image_templates || []);
   const examplePairs = parseExampleDialogPairs(character.example_dialog_pairs, character.example_dialog);
   const exampleMessages = buildExampleMessages(examplePairs);
-  const sceneModeRequested =
+  const sceneModeInput =
     typeof sceneMode === 'string'
       ? sceneMode.toLowerCase() === 'true'
       : Boolean(sceneMode);
+  const sceneModeRequested = modeSceneFlag || sceneModeInput;
   const hasSceneTemplates = sceneTemplates.length > 0;
-  const canAffordSceneMode = currentBalance >= (CREDIT_COST_PER_MESSAGE + SCENE_IMAGE_CREDIT_COST);
+  const canAffordSceneMode = currentBalance >= (RESERVED_CREDIT_PER_MESSAGE + SCENE_IMAGE_CREDIT_COST);
   const sceneModeAllowed = sceneModeRequested && hasSceneTemplates && canAffordSceneMode;
   let sceneModeDeniedReason = null;
   if (sceneModeRequested && !hasSceneTemplates) {
@@ -2137,7 +2263,7 @@ ${catalogLines}
     completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: messagesForModel,
-      max_tokens: 512,
+      max_tokens: modeUsage.maxTokens,
       temperature: 0.8,
     });
   } catch (e) {
@@ -2160,10 +2286,32 @@ ${catalogLines}
   const inputTokens = usage.prompt_tokens ?? 0;
   const outputTokens = usage.completion_tokens ?? 0;
   const totalTokens = usage.total_tokens ?? (inputTokens + outputTokens);
-
+  const promptCostWon = (inputTokens / 1000) * OPENAI_PROMPT_COST_PER_1K_WON;
+  const completionCostWon = (outputTokens / 1000) * OPENAI_COMPLETION_COST_PER_1K_WON;
+  const rawTokenCostWon = (promptCostWon + completionCostWon) * TOKEN_COST_MARGIN;
+  const tokenBasedCreditCost = Math.max(1, Math.ceil(rawTokenCostWon || RESERVED_CREDIT_PER_MESSAGE));
   const sceneCreditCost = matchedSceneTemplate ? SCENE_IMAGE_CREDIT_COST : 0;
-  const totalCreditCost = CREDIT_COST_PER_MESSAGE + sceneCreditCost;
+  let totalCreditCost = tokenBasedCreditCost + sceneCreditCost;
+  if (totalCreditCost > currentBalance) {
+    console.warn('[character chat] token billing exceeded balance', {
+      characterId: id,
+      userId: user.id,
+      totalCreditCost,
+      balance: currentBalance
+    });
+    totalCreditCost = currentBalance;
+  }
   const newBalance = currentBalance - totalCreditCost;
+  console.log('[character chat] billing summary', {
+    characterId: id,
+    userId: user.id,
+    inputTokens,
+    outputTokens,
+    tokenCost: tokenBasedCreditCost,
+    sceneCost: sceneCreditCost,
+    totalCreditCost,
+    balanceAfter: newBalance
+  });
 
   const txPayload = {
     user_id: user.id,
@@ -2235,6 +2383,23 @@ ${catalogLines}
       metadata: {
         ...usage,
         scene_image: sceneImagePayload,
+        chat_mode: {
+          key: selectedModeConfig?.key || 'default',
+          multiplier: modeUsage.multiplier,
+          max_tokens: modeUsage.maxTokens,
+          credit_cost_reserved: RESERVED_CREDIT_PER_MESSAGE,
+          scene_mode: modeSceneFlag
+        },
+        billing: {
+          prompt_tokens: inputTokens,
+          completion_tokens: outputTokens,
+          total_tokens: totalTokens,
+          prompt_cost_won: Number(promptCostWon.toFixed(6)),
+          completion_cost_won: Number(completionCostWon.toFixed(6)),
+          margin: TOKEN_COST_MARGIN,
+          token_credit_cost: tokenBasedCreditCost,
+          scene_credit_cost: sceneCreditCost
+        }
       },
       created_at: characterCreatedAt
     }
@@ -2277,7 +2442,19 @@ ${catalogLines}
     sceneModeDeniedReason,
     credit: {
       spent: totalCreditCost,
-      balance: newBalance
+      balance: newBalance,
+      tokenCost: tokenBasedCreditCost,
+      sceneCost: sceneCreditCost
+    },
+    chatMode: {
+      key: selectedModeConfig?.key || 'default',
+      name: selectedModeConfig?.name || '기본 모드',
+      multiplier: modeUsage.multiplier,
+      maxTokens: modeUsage.maxTokens,
+      reservedCreditCost: RESERVED_CREDIT_PER_MESSAGE,
+      sceneExtraCost: sceneCreditCost,
+      sceneMode: modeSceneFlag,
+      tokenCreditCost: tokenBasedCreditCost
     }
   });
 });

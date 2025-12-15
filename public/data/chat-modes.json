@@ -1,0 +1,59 @@
+{
+  "tokenIncrement": 100,
+  "defaultMode": "neon_story",
+  "modes": [
+    {
+      "key": "neon_story",
+      "name": "네온 스토리 1.0",
+      "tagline": "대화 몰입형 기본 모드",
+      "badge": "추천",
+      "baseTokens": 600,
+      "baseCredits": 12,
+      "extraCreditPerIncrement": 4,
+      "multipliers": [1, 1.5, 2, 3, 4],
+      "defaultMultiplier": 1.5,
+      "description": "장면 묘사와 감정선을 균형 있게 다뤄요.",
+      "accent": "#ff6787"
+    },
+    {
+      "key": "scene_bridge",
+      "name": "씬 브릿지 2.0",
+      "tagline": "SCENE 확장 대응",
+      "badge": "SCENE",
+      "baseTokens": 800,
+      "baseCredits": 14,
+      "extraCreditPerIncrement": 6,
+      "multipliers": [1, 1.25, 1.5, 2, 3, 4],
+      "defaultMultiplier": 1,
+      "description": "상황 이미지 호출이 잦은 캐릭터 전용입니다.",
+      "sceneMode": true,
+      "accent": "#9f7bff"
+    },
+    {
+      "key": "radio_wave",
+      "name": "라디오 웨이브",
+      "tagline": "짧은 응답 최적화",
+      "badge": "라이트",
+      "baseTokens": 420,
+      "baseCredits": 8,
+      "extraCreditPerIncrement": 3,
+      "multipliers": [1, 1.25, 1.5, 2, 2.5],
+      "defaultMultiplier": 1,
+      "description": "가벼운 잡담이나 테스트에 적합해요.",
+      "accent": "#3dd3c9"
+    },
+    {
+      "key": "atelier_plus",
+      "name": "아틀리에 플러스",
+      "tagline": "긴 분량 시나리오",
+      "badge": "롱폼",
+      "baseTokens": 1100,
+      "baseCredits": 18,
+      "extraCreditPerIncrement": 8,
+      "multipliers": [1, 1.25, 1.5, 2, 2.5, 3, 4, 5],
+      "defaultMultiplier": 1.25,
+      "description": "세계관 설명과 장문 전개를 안정적으로 처리해요.",
+      "accent": "#ffb347"
+    }
+  ]
+}

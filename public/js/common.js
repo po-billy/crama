@@ -21,6 +21,12 @@ function apiFetch(path, options) {
   return fetch(target || path, options);
 }
 
+function toggleVisibility(el, shouldShow) {
+  if (!el) return;
+  if (shouldShow) el.classList.remove('is-hidden');
+  else el.classList.add('is-hidden');
+}
+
 window.apiFetch = apiFetch;
 window.resolveApiUrl = resolveApiUrl;
 
@@ -621,6 +627,15 @@ async function updateSidebarUserInfo() {
   const accountName = document.getElementById('accountName');
   const accountCredits = document.getElementById('accountCredits');
   const accountAvatarCircle = document.getElementById('accountAvatarCircle');
+  const topLoginBtn = document.getElementById('topLoginBtn');
+  const topUserChip = document.getElementById('topUserChip');
+  const topUserName = document.getElementById('topUserName');
+  const drawerGuest = document.getElementById('drawerGuestState');
+  const drawerUser = document.getElementById('drawerUserState');
+  const drawerLoginBtn = document.getElementById('drawerLoginBtn');
+  const drawerLogoutBtn = document.getElementById('drawerLogoutBtn');
+  const drawerAccountName = document.getElementById('drawerAccountName');
+  const drawerAccountCredits = document.getElementById('drawerAccountCredits');
 
   let ctx = null;
   try {
@@ -629,12 +644,35 @@ async function updateSidebarUserInfo() {
     console.error('fetchUserContext error', e);
   }
 
+  if (topLoginBtn && !topLoginBtn.dataset.loginBound) {
+    topLoginBtn.addEventListener('click', () => openLoginModal());
+    topLoginBtn.dataset.loginBound = '1';
+  }
+  if (topUserChip && !topUserChip.dataset.linkBound) {
+    topUserChip.addEventListener('click', () => {
+      window.location.href = '/mypage';
+    });
+    topUserChip.dataset.linkBound = '1';
+  }
+  if (drawerLoginBtn && !drawerLoginBtn.dataset.loginBound) {
+    drawerLoginBtn.addEventListener('click', () => openLoginModal());
+    drawerLoginBtn.dataset.loginBound = '1';
+  }
+  if (drawerLogoutBtn && !drawerLogoutBtn.dataset.logoutBound) {
+    drawerLogoutBtn.addEventListener('click', () => performLogout());
+    drawerLogoutBtn.dataset.logoutBound = '1';
+  }
+
   if (!ctx || !ctx.user) {
     if (creditsEl) creditsEl.textContent = '-';
     if (avatarText) avatarText.textContent = '로그인';
     if (accountName) accountName.textContent = '로그인이 필요합니다';
     if (accountCredits) accountCredits.textContent = '-';
     if (accountAvatarCircle) accountAvatarCircle.textContent = '로그인';
+    toggleVisibility(topLoginBtn, true);
+    toggleVisibility(topUserChip, false);
+    toggleVisibility(drawerGuest, true);
+    toggleVisibility(drawerUser, false);
 
     if (avatarBtn && !avatarBtn.dataset.loginBound) {
       avatarBtn.addEventListener('click', () => {
@@ -658,6 +696,26 @@ async function updateSidebarUserInfo() {
   if (accountName) accountName.textContent = displayName;
   if (accountCredits) accountCredits.textContent = credits.toLocaleString('ko-KR');
   if (accountAvatarCircle) accountAvatarCircle.textContent = shortName;
+  if (topUserName) topUserName.textContent = displayName;
+  if (drawerAccountName) drawerAccountName.textContent = displayName;
+  if (drawerAccountCredits) drawerAccountCredits.textContent = `${credits.toLocaleString('ko-KR')} scene`;
+  toggleVisibility(topLoginBtn, false);
+  toggleVisibility(topUserChip, true);
+  toggleVisibility(drawerGuest, false);
+  toggleVisibility(drawerUser, true);
+
+  if (typeof window.activeCharacterId !== 'undefined' && typeof window.requestCharacterBackgroundReload === 'function') {
+    window.requestCharacterBackgroundReload();
+  }
+}
+
+async function performLogout() {
+  try {
+    await sb?.auth?.signOut();
+  } catch (e) {
+    console.error('logout error', e);
+  }
+  window.location.href = '/';
 }
 
 function setupAccountPopover() {
@@ -687,14 +745,7 @@ function setupAccountPopover() {
 
   const logoutBtn = document.getElementById('accountLogout');
   if (logoutBtn && !logoutBtn.dataset.logoutBound) {
-    logoutBtn.addEventListener('click', async () => {
-      try {
-        await sb.auth.signOut();
-      } catch (e) {
-        console.error('logout error', e);
-      }
-      window.location.href = '/';
-    });
+    logoutBtn.addEventListener('click', () => performLogout());
     logoutBtn.dataset.logoutBound = '1';
   }
 

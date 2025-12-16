@@ -1123,7 +1123,7 @@ body.modal-open {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  background-color: #0a0b0d;
+  background-color: #0a0b0d 0.7;
   background-image: var(--chat-background-image, none);
   background-size: cover;
   background-position: center;
@@ -1542,7 +1542,7 @@ body.modal-open {
 /* 탭 네비게이션 */
 .character-side-tabs {
   display: flex;
-  padding: 0 24px;
+  padding: 10px 24px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   gap: 4px;
   flex-shrink: 0;
@@ -1890,7 +1890,7 @@ body.modal-open {
   }
 
   .character-side-tabs {
-    padding: 0 16px;
+    padding: 10px 16px;
   }
 
   .side-panel {

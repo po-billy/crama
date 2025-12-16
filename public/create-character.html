@@ -35,7 +35,7 @@
         <span class="top-title">캐릭터 만들기</span>
       </div>
       <div class="top-bar-right">
-        <button class="top-add-btn btn btn--ghost">임시저장</button>
+        <button class="top-add-btn btn btn--ghost" type="button" data-save-draft>임시 저장</button>
         <button class="top-add-btn btn btn--primary" id="submitCharacter">등록하기</button>
       </div>
     </header>
@@ -219,7 +219,7 @@
 
               <div class="field-group">
                 <label class="field__label">캐릭터 설명 *</label>
-                <textarea class="field__control field__control--textarea" maxlength="1000"
+                <textarea id="descriptionTextarea" class="field__control field__control--textarea" maxlength="1000"
                   placeholder="캐릭터의 성격이나 사사, 과거 사건 등 상세한 내용을 작성해 주세요."></textarea>
               </div>
 
@@ -236,22 +236,31 @@
 
               <div class="field-group">
                 <label class="field__label">장르 *</label>
-                <select class="field__control">
+                <p class="field__hint">캐릭터에 맞는 장르를 선택해 주세요.</p>
+                <select class="field__control" id="genreSelect" required>
                   <option value="">장르를 선택해 주세요</option>
-                  <option>일상</option>
-                  <option>로맨스</option>
-                  <option>판타지</option>
-                  <option>게임/버츄얼 스트리머</option>
+                  <option value="로맨스">로맨스</option>
+                  <option value="로판">로판</option>
+                  <option value="SF/판타지">SF/판타지</option>
+                  <option value="일상/현대">일상/현대</option>
+                  <option value="무협">무협</option>
+                  <option value="시대">시대</option>
+                  <option value="BL">BL</option>
+                  <option value="GL">GL</option>
+                  <option value="2차 창작">2차 창작</option>
+                  <option value="유틸리티">유틸리티</option>
+                  <option value="기타">기타</option>
                 </select>
               </div>
 
               <div class="field-group">
-                <label class="field__label">태깃 *</label>
-                <select class="field__control">
-                  <option value="">태깃을 선택해 주세요</option>
-                  <option>연애/친구</option>
-                  <option>상담/힐링</option>
-                  <option>버츄얼 스트리머</option>
+                <label class="field__label">타깃 *</label>
+                <p class="field__hint">캐릭터의 주 이용층을 선택해 주세요. 선택에 따라 추천 경험이 달라져요.</p>
+                <select class="field__control" id="targetSelect" required>
+                  <option value="">타깃을 선택해 주세요</option>
+                  <option value="남성향">남성향</option>
+                  <option value="여성향">여성향</option>
+                  <option value="전체">전체</option>
                 </select>
               </div>
 
@@ -297,13 +306,14 @@
               <div class="field-group">
                 <label class="field__label">댓글 기능</label>
                 <label class="toggle">
-                  <input type="checkbox" checked />
+                  <input type="checkbox" id="commentToggle" checked />
                   <span class="toggle__label">댓글 허용</span>
                 </label>
               </div>
 
               <div class="step__footer">
                 <button class="btn step-prev" data-prev="step-scenes">이전</button>
+                <button class="btn btn--ghost" type="button" data-save-draft>임시 저장</button>
                 <button class="btn btn--primary">등록</button>
               </div>
             </div>

@@ -1974,6 +1974,31 @@ app.get('/api/characters/:id/chats', async (req, res) => {
   res.json(sorted);
 });
 
+app.get('/api/user-contents/images', async (req, res) => {
+  try {
+    const user = await getUserFromRequest(req);
+    if (!user) return sendError(res, 401, 'unauthorized');
+    const adminClient = requireAdmin(res);
+    if (!adminClient) return;
+    const limit = safeInt(req.query.limit, 60, { min: 1 });
+    const { data, error } = await adminClient
+      .from('user_contents')
+      .select('id, title, prompt, thumb_url, full_url, created_at')
+      .eq('user_id', user.id)
+      .eq('kind', 'image')
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    if (error) {
+      return sendError(res, 500, 'user_contents_fetch_failed', { error: error.message });
+    }
+    return res.json({ ok: true, items: data || [] });
+  } catch (err) {
+    console.error('user contents fetch error', err);
+    return sendError(res, 500, 'user_contents_fetch_failed');
+  }
+});
+
 /**
  * 罹먮┃?곗? 梨꾪똿 (1??
  * body: { sessionId, message }

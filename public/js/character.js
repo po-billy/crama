@@ -1897,6 +1897,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
+window.requestCharacterBackgroundReload = function () {
+  if (typeof loadCharacterBackgroundState === 'function' && activeCharacterId) {
+    loadCharacterBackgroundState(activeCharacterId, { forceUserContext: true });
+  }
+};
+
 })();
 function focusLatestUserMessage() {
   const chatWindow = document.getElementById('chatWindow');

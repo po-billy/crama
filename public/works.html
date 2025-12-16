@@ -37,25 +37,59 @@
       <div id="sidebar-container"></div>
       <div id="drawer-container"></div>
 
-      <main class="main-area works-main">
-        <section class="works-header">
-          <div class="works-title">전체 작업물</div>
-          <div class="works-sub">
-            크라마(crama) 스튜디오를 포함해 앞으로의 서비스에서 생성된 콘텐츠들을 한 곳에서 관리합니다.
+      <main class="main-area page-myworks">
+        <section class="myworks-hero">
+          <div>
+            <p class="myworks-hero__eyebrow">내 작품</p>
+            <h1 class="myworks-hero__title">등록한 캐릭터 관리</h1>
+            <p class="myworks-hero__sub">
+              내가 만든 캐릭터와 스토리를 한 곳에서 확인하고, 공개 여부를 손쉽게 바꿔보세요.
+            </p>
           </div>
-          <div class="works-filters">
-            <button class="works-filter-btn active" data-kind="all">전체</button>
-            <button class="works-filter-btn" data-kind="image">이미지</button>
-            <button class="works-filter-btn" data-kind="chat">채팅</button>
-          </div>
-
-          <section class="works-grid" id="worksGrid">
-            <!-- JS에서 카드 렌더링 -->
-          </section>
+          <button type="button" class="btn btn--primary myworks-create-btn" id="myWorksCreateBtn">
+            + 작품 만들기
+          </button>
         </section>
 
-        <div class="works-empty" id="worksEmpty" hidden>
-          아직 생성한 작업물이 없습니다.
+        <div class="myworks-filters">
+          <div class="filter-group">
+            <button class="chip chip--active" data-filter-type="all">전체</button>
+            <button class="chip" data-filter-type="character">캐릭터</button>
+            <button class="chip" data-filter-type="draft">미등록</button>
+          </div>
+          <div class="filter-group">
+            <span class="filter-label">공개 여부</span>
+            <button class="chip chip--active" data-visibility="all">전체</button>
+            <button class="chip" data-visibility="public">공개</button>
+            <button class="chip" data-visibility="private">비공개</button>
+          </div>
+        </div>
+
+        <div class="myworks-toolbar">
+          <div class="myworks-count">
+            전체 <strong id="myWorksCount">0</strong>개
+          </div>
+          <div class="myworks-sort">
+            <label for="myWorksSort">정렬</label>
+            <select id="myWorksSort">
+              <option value="latest">최신순</option>
+              <option value="oldest">오래된 순</option>
+              <option value="popular">인기순</option>
+            </select>
+          </div>
+        </div>
+
+        <section class="myworks-list" id="myWorksList">
+          <!-- works.js 렌더 -->
+        </section>
+
+        <div class="myworks-empty" id="myWorksEmpty">
+          <div class="empty-emoji">✨</div>
+          <p class="empty-title">나만의 작품을 만들어 보세요</p>
+          <p class="empty-desc">내가 만든 작품을 자유롭게 플레이할 수 있어요.</p>
+          <button type="button" class="btn btn--primary myworks-empty-btn" id="myWorksEmptyBtn">
+            + 작품 만들기
+          </button>
         </div>
       </main>
     </div>

@@ -11,6 +11,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { Jimp } from 'jimp';
+import sharp from 'sharp';
 import nodemailer from "nodemailer";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -602,6 +603,11 @@ function dataUrlToBuffer(dataUrl) {
   };
 }
 
+async function bufferToWebp(buffer, quality = 85) {
+  const safeQuality = Math.max(1, Math.min(quality, 100));
+  return sharp(buffer).webp({ quality: safeQuality, effort: 4 }).toBuffer();
+}
+
 function pickStabilityDimension(width, height) {
   if (!width || !height) return STABILITY_ALLOWED_DIMENSIONS[0];
   const ratio = width / height;
@@ -637,7 +643,7 @@ async function prepareImageForStability(dataUrl, options = {}) {
   } else if (mime === "image/webp") {
     jimpMime = Jimp.MIME_WEBP;
   }
-  const processedBuffer = await image.getBufferAsync(jimpMime);
+  const processedBuffer = await image.getBuffer(jimpMime);
   return {
     buffer: processedBuffer,
     contentType: jimpMime,
@@ -1044,8 +1050,18 @@ app.post("/api/upload/avatar", async (req, res) => {
     return sendError(res, 400, "invalid dataUrl", { detail: e.message });
   }
 
-  const mime = bufferInfo.contentType || "image/png";
-  const ext = (mime.split("/")[1] || "png").split(";")[0];
+  let uploadBuffer = bufferInfo.buffer;
+  let uploadMime = "image/webp";
+
+  try {
+    uploadBuffer = await bufferToWebp(bufferInfo.buffer);
+  } catch (conversionError) {
+    console.warn("webp conversion failed, fallback to original buffer", conversionError);
+    uploadBuffer = bufferInfo.buffer;
+    uploadMime = bufferInfo.contentType || "image/png";
+  }
+
+  const ext = (uploadMime.split("/")[1] || "png").split(";")[0];
   const safeName = (fileName || "avatar").replace(/[^a-zA-Z0-9_.-]/g, "");
   const folderName = (folder || "avatars").toString().replace(/[^a-zA-Z0-9/_-]/g, "");
   const normalizedFolder = folderName.replace(/^\/+|\/+$/g, "") || "avatars";
@@ -1053,10 +1069,10 @@ app.post("/api/upload/avatar", async (req, res) => {
 
   const { error: uploadError } = await client.storage
     .from(bucketName)
-    .upload(objectPath, bufferInfo.buffer, {
+    .upload(objectPath, uploadBuffer, {
       cacheControl: "3600",
       upsert: true,
-      contentType: mime,
+      contentType: uploadMime,
     });
 
   if (uploadError) {

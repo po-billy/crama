@@ -408,8 +408,11 @@ function getImageState() {
   };
 }
 
-function triggerImagePicker() {
-  const input = document.getElementById('characterImageInput');
+function triggerImagePicker(target = imagePickerState.context || 'character') {
+  const normalized = target === 'scene' ? 'scene' : 'character';
+  imagePickerState.context = normalized;
+  const inputId = normalized === 'scene' ? 'sceneImageInput' : 'characterImageInput';
+  const input = document.getElementById(inputId);
   if (input) input.click();
 }
 
@@ -466,9 +469,9 @@ function renderSceneImageGrid() {
   grid.innerHTML = '';
 
   if (!sceneImages.length) {
-    const placeholder = document.createElement('label');
+    const placeholder = document.createElement('button');
+    placeholder.type = 'button';
     placeholder.className = 'scene-slot scene-slot--add';
-    placeholder.setAttribute('for', 'sceneImageInput');
     placeholder.innerHTML = `
       <div class="add-card-icon">+</div>
       <div class="add-card-text">상황 이미지 업로드</div>
@@ -476,7 +479,7 @@ function renderSceneImageGrid() {
     `;
     placeholder.addEventListener('click', (e) => {
       e.preventDefault();
-      triggerSceneImagePicker();
+      openImageSourceModal('scene');
     });
     grid.appendChild(placeholder);
     return;
@@ -541,9 +544,9 @@ function renderSceneImageGrid() {
   });
 
   if (sceneImages.length < MAX_SCENE_IMAGES) {
-    const addBtn = document.createElement('label');
+    const addBtn = document.createElement('button');
+    addBtn.type = 'button';
     addBtn.className = 'scene-slot scene-slot--add';
-    addBtn.setAttribute('for', 'sceneImageInput');
     addBtn.innerHTML = `
       <div class="add-card-icon">+</div>
       <div class="add-card-text">상황 이미지 추가</div>
@@ -551,7 +554,7 @@ function renderSceneImageGrid() {
     `;
     addBtn.addEventListener('click', (e) => {
       e.preventDefault();
-      triggerSceneImagePicker();
+      openImageSourceModal('scene');
     });
     grid.appendChild(addBtn);
   }
@@ -594,11 +597,6 @@ function getSceneImageState() {
     description: slot.description?.trim() || '',
     emotionKey: slot.emotionKey || slugify(slot.label || 'scene'),
   }));
-}
-
-function triggerSceneImagePicker() {
-  const input = document.getElementById('sceneImageInput');
-  if (input) input.click();
 }
 
 
@@ -1267,6 +1265,15 @@ function handleDeviceImageSelection(fileList) {
   openCropModalFromFile(file);
 }
 
+async function addCroppedFileToContext(file) {
+  const context = imagePickerState.context === 'scene' ? 'scene' : 'character';
+  if (context === 'scene') {
+    await addSceneImagesFromFiles([file]);
+    return;
+  }
+  await addImagesFromFiles([file]);
+}
+
 function initImagePickerModals() {
   ensureImageSourceModal();
   ensureImageLibraryModal();
@@ -1325,8 +1332,9 @@ function closeImageSourceModal() {
 
 function handleImageSourceChoice(choice) {
   closeImageSourceModal();
+  const context = imagePickerState.context || 'character';
   if (choice === 'device') {
-    triggerImagePicker();
+    triggerImagePicker(context);
     return;
   }
   if (choice === 'library') {
@@ -1703,9 +1711,12 @@ function handleCropApply() {
       return;
     }
     try {
-      await addImagesFromFiles([
-        new File([blob], cropState.sourceName || `character-${Date.now()}.png`, { type: 'image/png' }),
-      ]);
+      const croppedFile = new File(
+        [blob],
+        cropState.sourceName || `character-${Date.now()}.png`,
+        { type: 'image/png' }
+      );
+      await addCroppedFileToContext(croppedFile);
       closeCropModal();
     } catch (err) {
       console.error('addImagesFromFiles error', err);
@@ -1780,6 +1791,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const imageInputEl = document.getElementById('characterImageInput');
     if (imageInputEl) {
         imageInputEl.addEventListener('change', (e) => {
+            imagePickerState.context = 'character';
             handleDeviceImageSelection(e.target.files);
             imageInputEl.value = '';
         });
@@ -1801,7 +1813,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const sceneImageInput = document.getElementById('sceneImageInput');
     if (sceneImageInput) {
         sceneImageInput.addEventListener('change', (e) => {
-            addSceneImagesFromFiles(e.target.files);
+            imagePickerState.context = 'scene';
+            handleDeviceImageSelection(e.target.files);
             sceneImageInput.value = '';
         });
     }
@@ -1809,7 +1822,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sceneImageUploadTrigger) {
         sceneImageUploadTrigger.addEventListener('click', (e) => {
             e.preventDefault();
-            triggerSceneImagePicker();
+            openImageSourceModal('scene');
         });
     }
 

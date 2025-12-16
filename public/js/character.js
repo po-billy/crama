@@ -55,6 +55,9 @@ let chatModeModalBound = false;
 let chatModesInitialized = false;
 let lastNonSceneModeKey = null;
 let sceneModeNoteTimer = null;
+let activeCharacterId = null;
+let currentUserContext = null;
+let currentUserId = null;
 
 function escapeHtml(value) {
   return (value || '').toString()
@@ -79,23 +82,29 @@ function formatMultiplierLabel(multiplier) {
 
 let placeholderUserName = '손님';
 let placeholderContextInitialized = false;
+const DEFAULT_BACKGROUND_PREVIEW = '/assets/sample-character-02.png';
+const backgroundState = {
+  enabled: false,
+  loading: false,
+  error: null,
+  entries: {},
+  selectedKey: null
+};
 
 async function initPlaceholderContext(force = false) {
   if (placeholderContextInitialized && !force) {
     return placeholderUserName;
   }
   try {
-    if (typeof window.fetchUserContext === 'function') {
-      const ctx = await window.fetchUserContext();
+    const ctx = await ensureUserContext(force);
+    if (ctx) {
       const resolvedName =
-        ctx?.profile?.display_name ||
-        ctx?.profile?.handle ||
-        ctx?.user?.user_metadata?.name ||
-        ctx?.user?.user_metadata?.full_name ||
-        ctx?.user?.email?.split('@')[0];
-      if (resolvedName) {
-        placeholderUserName = resolvedName;
-      }
+        ctx.profile?.display_name ||
+        ctx.profile?.handle ||
+        ctx.user?.user_metadata?.name ||
+        ctx.user?.user_metadata?.full_name ||
+        ctx.user?.email?.split('@')[0];
+      if (resolvedName) placeholderUserName = resolvedName;
     }
   } catch (e) {
     console.warn('placeholder context init failed', e);
@@ -118,6 +127,364 @@ function renderWithPlaceholders(input, charName, userName) {
 
 window.initCharacterPlaceholderContext = initPlaceholderContext;
 window.renderCharacterPlaceholders = renderWithPlaceholders;
+
+async function ensureUserContext(force = false) {
+  if (!force && currentUserContext) return currentUserContext;
+  if (typeof window.fetchUserContext !== 'function') return null;
+  try {
+    currentUserContext = await window.fetchUserContext();
+    currentUserId = currentUserContext?.user?.id || null;
+  } catch (error) {
+    console.warn('fetchUserContext failed', error);
+    currentUserContext = null;
+    currentUserId = null;
+  }
+  return currentUserContext;
+}
+
+function applyChatBackgroundFromSelection() {
+  const container = document.querySelector('.chat-messages-container');
+  if (!container) return;
+  const selectedKey = backgroundState.selectedKey || null;
+  const entry = selectedKey ? backgroundState.entries[selectedKey] : null;
+  if (entry?.imageUrl) {
+    container.style.setProperty('--chat-background-image', `url("${entry.imageUrl}")`);
+    container.classList.add('chat-messages-container--custom');
+  } else {
+    container.style.removeProperty('--chat-background-image');
+    container.classList.remove('chat-messages-container--custom');
+  }
+}
+
+async function loadCharacterBackgroundState(characterId, options = {}) {
+  backgroundState.loading = true;
+  backgroundState.error = null;
+  backgroundState.entries = backgroundState.entries || {};
+  backgroundState.enabled = false;
+  renderBackgroundCollection();
+  if (!characterId || !window.sb) {
+    backgroundState.loading = false;
+    renderBackgroundCollection();
+    applyChatBackgroundFromSelection();
+    return;
+  }
+  await ensureUserContext(options.forceUserContext);
+  if (!currentUserId) {
+    backgroundState.loading = false;
+    renderBackgroundCollection();
+    applyChatBackgroundFromSelection();
+    return;
+  }
+  try {
+    const { data, error } = await window.sb
+      .from('character_backgrounds')
+      .select('background_key,label,description,image_url,is_active')
+      .eq('character_id', characterId)
+      .order('unlocked_at', { ascending: true });
+    if (error) throw error;
+    const map = {};
+    let selectedKey = null;
+    (data || []).forEach((row) => {
+      map[row.background_key] = {
+        key: row.background_key,
+        label: row.label || '',
+        description: row.description || '',
+        imageUrl: row.image_url || '',
+        isActive: Boolean(row.is_active)
+      };
+      if (row.is_active) selectedKey = row.background_key;
+    });
+    backgroundState.entries = map;
+    backgroundState.selectedKey = selectedKey;
+    backgroundState.enabled = true;
+  } catch (error) {
+    console.warn('background load failed', error);
+    backgroundState.entries = {};
+    backgroundState.selectedKey = null;
+    backgroundState.error = error;
+    backgroundState.enabled = false;
+  } finally {
+    backgroundState.loading = false;
+    renderBackgroundCollection();
+    applyChatBackgroundFromSelection();
+  }
+}
+
+function generateSceneBackgroundKey(scene) {
+  if (!scene) return null;
+  if (scene.id) return `id:${scene.id}`;
+  const url = scene.image_url || scene.url || scene.imageUrl;
+  if (url) return url;
+  if (scene.label) return `label:${scene.label.trim().toLowerCase()}`;
+  if (scene.description) return `desc:${scene.description.trim().slice(0, 40)}`;
+  return null;
+}
+
+function renderBackgroundCollection() {
+  const container = document.getElementById('chatBackgroundCollection');
+  if (!container) return;
+  if (!activeCharacterId) {
+    container.innerHTML =
+      '<p class="background-collection__empty">캐릭터 정보를 불러오는 중입니다.</p>';
+    return;
+  }
+  if (!backgroundState.enabled) {
+    if (backgroundState.loading) {
+      container.innerHTML =
+        '<p class="background-collection__empty">Scene 배경을 불러오는 중입니다...</p>';
+    } else if (!currentUserId) {
+      container.innerHTML =
+        '<p class="background-collection__empty">로그인하면 Scene 배경을 수집하고 사용할 수 있습니다.</p>';
+    } else if (backgroundState.error) {
+      container.innerHTML =
+        '<p class="background-collection__empty">Scene 배경을 불러오지 못했습니다. 새로고침해 주세요.</p>';
+    } else {
+      container.innerHTML =
+        '<p class="background-collection__empty">Scene 배경 기능을 사용할 수 없습니다.</p>';
+    }
+    return;
+  }
+  const unlockedMap = backgroundState.entries || {};
+  const selectedKey = backgroundState.selectedKey || null;
+
+  const unlockedEntries = [];
+  const lockedEntries = [];
+
+  const baseEntry = {
+    key: 'default',
+    label: '기본 배경',
+    description: '크라마 기본 어두운 테마',
+    unlocked: true,
+    imageUrl: null,
+    preview: DEFAULT_BACKGROUND_PREVIEW,
+    isDefault: true
+  };
+  unlockedEntries.push(baseEntry);
+
+  const templateKeys = new Set();
+  const matchedUnlockedKeys = new Set();
+
+  const matchUnlockedEntry = (templateKey, template) => {
+    if (unlockedMap[templateKey]) {
+      matchedUnlockedKeys.add(templateKey);
+      return { key: templateKey, data: unlockedMap[templateKey] };
+    }
+    const tmplImage = template.image_url || template.url || template.imageUrl || '';
+    const tmplLabel = (template.label || '').trim().toLowerCase();
+    const tmplDesc = (template.description || '').trim().toLowerCase();
+    for (const [storedKey, info] of Object.entries(unlockedMap)) {
+      if (matchedUnlockedKeys.has(storedKey)) continue;
+      const infoImage = info.imageUrl || info.url || '';
+      const infoLabel = (info.label || '').trim().toLowerCase();
+      const infoDesc = (info.description || '').trim().toLowerCase();
+      const matched =
+        (tmplImage && infoImage && tmplImage === infoImage) ||
+        (tmplLabel && infoLabel && tmplLabel === infoLabel) ||
+        (tmplDesc && infoDesc && tmplDesc === infoDesc);
+      if (matched) {
+        matchedUnlockedKeys.add(storedKey);
+        return { key: storedKey, data: info };
+      }
+    }
+    return null;
+  };
+
+  currentSceneTemplates.forEach((template, idx) => {
+    const templateKey = generateSceneBackgroundKey(template) || `template:${idx}`;
+    const matchInfo = matchUnlockedEntry(templateKey, template);
+    const key = matchInfo?.key || templateKey;
+    templateKeys.add(templateKey);
+    templateKeys.add(key);
+    const unlockedData = matchInfo?.data || unlockedMap[templateKey];
+    const entry = {
+      key,
+      label: template.label || `Scene ${idx + 1}`,
+      description: template.description || (Array.isArray(template.keywords) ? template.keywords.join(', ') : ''),
+      unlocked: Boolean(unlockedData),
+      imageUrl: (unlockedData && (unlockedData.imageUrl || unlockedData.url)) || template.image_url || template.url || null,
+      preview: template.image_url || template.url || DEFAULT_BACKGROUND_PREVIEW
+    };
+    if (entry.unlocked) {
+      unlockedEntries.push(entry);
+    } else {
+      lockedEntries.push(entry);
+    }
+  });
+
+  Object.keys(unlockedMap || {}).forEach((key) => {
+    if (templateKeys.has(key)) return;
+    if (matchedUnlockedKeys.has(key)) return;
+    const info = unlockedMap[key];
+    unlockedEntries.push({
+      key,
+      label: info.label || '수집된 Scene',
+      description: info.description || '',
+      unlocked: true,
+      imageUrl: info.imageUrl || info.url || null,
+      preview: info.imageUrl || info.url || DEFAULT_BACKGROUND_PREVIEW,
+      customOrigin: true
+    });
+  });
+
+  const entries = [...unlockedEntries, ...lockedEntries];
+
+  const cards = entries
+    .map((entry) => {
+      const isDefault = entry.key === 'default';
+      const unlocked = entry.unlocked || isDefault;
+      const isActive = (selectedKey === entry.key) || (!selectedKey && isDefault);
+      const previewSrc = entry.imageUrl || entry.preview || DEFAULT_BACKGROUND_PREVIEW;
+      const preview = encodeURI(previewSrc);
+      const safeLabel = escapeHtml(entry.label || 'Scene');
+      const descriptionSource = (entry.description && entry.description.trim()) || '';
+      const descriptionText = descriptionSource || (unlocked ? '' : 'Scene 모드에서 수집하세요.');
+      const safeDescription = escapeHtml(descriptionText);
+      const actionLabel = isActive ? '사용 중' : unlocked ? '적용' : '잠금';
+      const safeKey = escapeHtml(entry.key);
+      const collectedBadge = !isDefault && unlocked ? '<span class="background-card__collected">수집 완료</span>' : '';
+      const lockedBadge = !isDefault && !unlocked ? '<span class="background-card__lock">LOCKED</span>' : '';
+      return `
+        <div class="background-card${unlocked ? '' : ' background-card--locked'}${isActive ? ' background-card--active' : ''}">
+          <div class="background-card__thumb" style="background-image: url('${preview}');">
+            ${isDefault ? '<span class="background-card__badge">기본</span>' : ''}
+            ${collectedBadge}
+            ${lockedBadge}
+            ${isActive ? '<span class="background-card__active">ACTIVE</span>' : ''}
+          </div>
+          <div class="background-card__body">
+            <strong>${safeLabel}</strong>
+            <p>${safeDescription}</p>
+          </div>
+          <button
+            type="button"
+            class="background-card__action"
+            data-bg-key="${safeKey}"
+            ${!unlocked ? 'disabled' : ''}
+          >
+            ${actionLabel}
+          </button>
+        </div>
+      `;
+    })
+    .join('');
+
+  if (cards) {
+    container.dataset.empty = 'false';
+    container.innerHTML = cards;
+  } else {
+    container.dataset.empty = 'true';
+    container.innerHTML = `
+      <p class="background-collection__empty">
+        Scene 이미지를 모으면 배경으로 사용할 수 있어요.
+      </p>
+    `;
+  }
+}
+
+async function selectChatBackground(key) {
+  if (!activeCharacterId) return;
+  const normalizedKey = key && key !== 'default' ? key : null;
+  if (normalizedKey && !backgroundState.entries[normalizedKey]) return;
+  if (!window.sb || !currentUserId) {
+    backgroundState.selectedKey = normalizedKey;
+    applyChatBackgroundFromSelection();
+    renderBackgroundCollection();
+    return;
+  }
+  try {
+    await window.sb
+      .from('character_backgrounds')
+      .update({ is_active: false })
+      .eq('character_id', activeCharacterId)
+      .eq('user_id', currentUserId);
+    if (normalizedKey) {
+      await window.sb
+        .from('character_backgrounds')
+        .update({ is_active: true })
+        .eq('character_id', activeCharacterId)
+        .eq('user_id', currentUserId)
+        .eq('background_key', normalizedKey);
+    }
+    Object.values(backgroundState.entries).forEach((entry) => {
+      entry.isActive = entry.key === normalizedKey;
+    });
+    backgroundState.selectedKey = normalizedKey;
+  } catch (error) {
+    console.warn('selectChatBackground failed', error);
+  }
+  applyChatBackgroundFromSelection();
+  renderBackgroundCollection();
+}
+
+async function maybeCollectSceneBackground(scene) {
+  if (!scene || !activeCharacterId) return;
+  const key = generateSceneBackgroundKey(scene);
+  const imageUrl = scene.image_url || scene.url || scene.imageUrl;
+  if (!key || !imageUrl) return;
+  if (!window.sb || !currentUserId) return;
+  if (backgroundState.entries[key]) return;
+  try {
+    const payload = {
+      user_id: currentUserId,
+      character_id: activeCharacterId,
+      background_key: key,
+      label: scene.label || 'Scene 이미지',
+      description: scene.description || '',
+      image_url: imageUrl
+    };
+    await window.sb.from('character_backgrounds').upsert(payload, {
+      onConflict: 'user_id,character_id,background_key'
+    });
+    backgroundState.entries[key] = {
+      key,
+      label: payload.label,
+      description: payload.description,
+      imageUrl,
+      isActive: false
+    };
+    renderBackgroundCollection();
+    if (typeof showSceneModeNote === 'function') {
+      showSceneModeNote(`새 Scene 배경을 수집했습니다: ${scene.label || '장면 이미지'}`);
+    }
+  } catch (error) {
+    console.warn('background collect failed', error);
+  }
+}
+
+function bindBackgroundSettings() {
+  const collection = document.getElementById('chatBackgroundCollection');
+  if (collection && !collection.dataset.bound) {
+    collection.addEventListener('click', (event) => {
+      const actionBtn = event.target.closest('.background-card__action');
+      if (!actionBtn) return;
+      const key = actionBtn.dataset.bgKey;
+      if (!key) return;
+      selectChatBackground(key);
+    });
+    collection.dataset.bound = '1';
+  }
+  const resetBtn = document.getElementById('resetChatBackgroundBtn');
+  if (resetBtn && !resetBtn.dataset.bound) {
+    resetBtn.addEventListener('click', () => selectChatBackground(null));
+    resetBtn.dataset.bound = '1';
+  }
+}
+
+function initChatSettingsNav() {
+  const nav = document.getElementById('chatSettingsNav');
+  if (!nav) return;
+  nav.addEventListener('click', (event) => {
+    const btn = event.target.closest('.chat-settings-nav__btn');
+    if (!btn) return;
+    const targetId = btn.getAttribute('data-settings-view');
+    if (!targetId) return;
+    nav.querySelectorAll('.chat-settings-nav__btn').forEach((el) => el.classList.remove('chat-settings-nav__btn--active'));
+    btn.classList.add('chat-settings-nav__btn--active');
+    document.querySelectorAll('.chat-settings-view').forEach((view) => {
+      view.classList.toggle('chat-settings-view--active', view.id === targetId);
+    });
+  });
+}
 
 function getExtraCreditPerIncrement(mode) {
   return (
@@ -608,19 +975,19 @@ function setSceneTemplateCollapsed(collapsed) {
   sceneTemplatesCollapsed = collapsed;
   const strip = document.getElementById('sceneTemplateStrip');
   const toggle = document.getElementById('sceneTemplateToggle');
+  const collapsedLabel = 'SCENE 미리보기 열기';
+  const expandedLabel = 'SCENE 미리보기 닫기';
   if (strip) {
     strip.classList.toggle('scene-template-strip--expanded', !collapsed);
     strip.classList.toggle('scene-template-strip--collapsed', collapsed);
   }
   if (toggle) {
-    toggle.textContent = collapsed ? '미리보기' : '접기';
+    const isEmpty = strip?.dataset.empty === 'true';
+    const label = isEmpty ? 'SCENE 미리보기 없음' : (collapsed ? collapsedLabel : expandedLabel);
     toggle.setAttribute('aria-expanded', (!collapsed).toString());
-    if (strip?.dataset.empty === 'true') {
-      toggle.disabled = true;
-      toggle.textContent = '없음';
-    } else {
-      toggle.disabled = false;
-    }
+    toggle.disabled = isEmpty;
+    toggle.setAttribute('aria-label', label);
+    toggle.title = label;
   }
 }
 
@@ -694,9 +1061,12 @@ function initSceneModeToggle() {
 function renderSceneTemplates(list = [], charName = '캐릭터', userName = placeholderUserName) {
   const strip = document.getElementById('sceneTemplateStrip');
   const toggle = document.getElementById('sceneTemplateToggle');
-  if (!strip) return;
-  strip.innerHTML = '';
   currentSceneTemplates = Array.isArray(list) ? list : [];
+  if (!strip) {
+    renderBackgroundCollection();
+    return;
+  }
+  strip.innerHTML = '';
   const hasTemplates = currentSceneTemplates.length > 0;
   strip.dataset.empty = hasTemplates ? 'false' : 'true';
   if (!hasTemplates) {
@@ -705,16 +1075,16 @@ function renderSceneTemplates(list = [], charName = '캐릭터', userName = plac
     setSceneTemplateCollapsed(true);
     if (toggle) {
       toggle.disabled = true;
-      toggle.textContent = '없음';
       toggle.setAttribute('aria-expanded', 'false');
+      toggle.setAttribute('aria-label', 'SCENE 미리보기 없음');
+      toggle.title = 'SCENE 미리보기 없음';
     }
+    renderBackgroundCollection();
     return;
   }
   strip.classList.remove('scene-template-strip--empty');
   if (toggle) {
     toggle.disabled = false;
-    toggle.textContent = sceneTemplatesCollapsed ? '펼치기' : '접기';
-    toggle.setAttribute('aria-expanded', (!sceneTemplatesCollapsed).toString());
   }
   setSceneTemplateCollapsed(sceneTemplatesCollapsed);
   currentSceneTemplates.forEach((template) => {
@@ -738,6 +1108,7 @@ function renderSceneTemplates(list = [], charName = '캐릭터', userName = plac
     `;
     strip.appendChild(card);
   });
+  renderBackgroundCollection();
   if (chatModesInitialized) {
     renderChatModeCards();
     updateChatModeSummary();
@@ -867,10 +1238,23 @@ function immediateScrollToBottom() {
   chatWindow.scrollTop = chatWindow.scrollHeight;
 }
 
-function ensureLatestMessageVisible() {
+function ensureLatestMessageVisible(options = {}) {
+  const focusTarget = options.focus || (options.focus === null ? null : 'character');
   immediateScrollToBottom();
   scrollChatToBottom();
-  setTimeout(scrollChatToBottom, 80);
+  if (focusTarget === 'character') {
+    focusLatestCharacterMessage();
+  } else if (focusTarget === 'user') {
+    focusLatestUserMessage();
+  }
+  setTimeout(() => {
+    scrollChatToBottom();
+    if (focusTarget === 'character') {
+      focusLatestCharacterMessage();
+    } else if (focusTarget === 'user') {
+      focusLatestUserMessage();
+    }
+  }, 80);
 }
 
 function appendChatMessages(messages = []) {
@@ -1154,6 +1538,26 @@ function renderChatTextContent(content = '') {
     .join('');
 }
 
+function focusLatestCharacterMessage() {
+  const chatWindow = document.getElementById('chatWindow');
+  if (!chatWindow) return;
+  const messages = chatWindow.querySelectorAll('.chat-message--character');
+  if (!messages.length) return;
+  const target = messages[messages.length - 1];
+  if (!target) return;
+  if (!target.hasAttribute('tabindex')) {
+    target.setAttribute('tabindex', '-1');
+  }
+  requestAnimationFrame(() => {
+    try {
+      target.focus({ preventScroll: true });
+    } catch (e) {
+      target.focus();
+    }
+    target.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  });
+}
+
 // ================================
 // 말풍선 렌더
 // ================================
@@ -1170,6 +1574,9 @@ function renderMessage(msg) {
     null;
   const sceneImageUrl = sceneImage?.image_url || sceneImage?.url || null;
   const sceneLabel = escapeHtml(sceneImage?.label || '상황 이미지');
+  if (msg.role === 'character' && sceneImage) {
+    maybeCollectSceneBackground(sceneImage);
+  }
   const sceneMarkup = sceneImageUrl
     ? `
       <figure class="chat-scene">
@@ -1288,8 +1695,9 @@ async function setupChat(characterId) {
     const chatModeSelection = getActiveChatModeSelection();
 
     // 사용자 메시지 화면 반영
-    chatWindow.appendChild(renderMessage({ role: "user", content: text }));
-    ensureLatestMessageVisible();
+    const userMessageEl = renderMessage({ role: "user", content: text });
+    chatWindow.appendChild(userMessageEl);
+    ensureLatestMessageVisible({ focus: 'user' });
 
     // 서버 메시지 전송 및 답변 받기
     try {
@@ -1308,20 +1716,22 @@ async function setupChat(characterId) {
       const result = await response.json();
 
       if (response.status === 401) {
-        chatWindow.appendChild(renderMessage({
+        const loginMessage = renderMessage({
           role: "character",
           content: "로그인이 필요합니다. 로그인 후 다시 시도해주세요."
-        }));
-        ensureLatestMessageVisible();
+        });
+        chatWindow.appendChild(loginMessage);
+        ensureLatestMessageVisible({ focus: 'character' });
         return;
       }
 
       if (response.status === 402 || result?.error === 'insufficient_credits') {
-        chatWindow.appendChild(renderMessage({
+        const creditMessage = renderMessage({
           role: "character",
           content: "scene이 부족합니다. 충전 또는 구독 후 시도해주세요."
-        }));
-        ensureLatestMessageVisible();
+        });
+        chatWindow.appendChild(creditMessage);
+        ensureLatestMessageVisible({ focus: 'character' });
         openCreditUpsellSafe();
         return;
       }
@@ -1341,35 +1751,39 @@ async function setupChat(characterId) {
           }
         }
         if (result.characterMessage) {
-          chatWindow.appendChild(renderMessage({
+          const characterMessageEl = renderMessage({
             role: "character",
             content: result.characterMessage.content,
             sceneImage: result.characterMessage.sceneImage || null
-          }));
+          });
+          chatWindow.appendChild(characterMessageEl);
         } else if (!result.introMessage) {
-          chatWindow.appendChild(renderMessage({
+          const errorMessageEl = renderMessage({
             role: "character",
             content: "오류가 발생했습니다: " + (result.error || "알 수 없는 오류")
-          }));
+          });
+          chatWindow.appendChild(errorMessageEl);
         }
-        ensureLatestMessageVisible();
+        ensureLatestMessageVisible({ focus: 'character' });
         window.checkChatEmpty();
         handleSceneModeFeedback(result);
       } else {
-        chatWindow.appendChild(renderMessage({
+        const errorReply = renderMessage({
           role: "character",
           content: "오류가 발생했습니다: " + (result.error || "알 수 없는 오류")
-        }));
-        ensureLatestMessageVisible();
+        });
+        chatWindow.appendChild(errorReply);
+        ensureLatestMessageVisible({ focus: 'character' });
         window.checkChatEmpty();
         handleSceneModeFeedback(result);
       }
     } catch (err) {
-      chatWindow.appendChild(renderMessage({
+      const connectionError = renderMessage({
         role: "character",
         content: "서버 연결 오류: " + err.message
-      }));
-      ensureLatestMessageVisible();
+      });
+      chatWindow.appendChild(connectionError);
+      ensureLatestMessageVisible({ focus: 'character' });
       window.checkChatEmpty();
       handleSceneModeFeedback({ sceneModeDeniedReason: '서버 응답을 받을 수 없습니다.' });
     }
@@ -1384,6 +1798,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const sideToggleBtn = document.getElementById('sideToggleBtn');
   const closeSideBtn = document.getElementById('closeSideBtn');
   let sideCollapsed = true;
+  initChatSettingsNav();
+  bindBackgroundSettings();
   initSceneModeToggle();
   initSceneTemplateToggle();
   if (sidePanel) sidePanel.classList.add('character-side--collapsed');
@@ -1441,6 +1857,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const characterId = getParam("id");
   if (!characterId) return;
   currentChatSessionId = null;
+  activeCharacterId = characterId;
 
   // DB에서 데이터가져오기
   const data = await fetchCharacter(characterId);
@@ -1454,6 +1871,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   renderCharacterDetail(data);
+  await loadCharacterBackgroundState(characterId);
   await initChatModes();
   bindLoadMoreButton(characterId);
   const introForChat = renderWithPlaceholders(data.intro || '', data.name || '캐릭터', placeholderUserName);
@@ -1480,3 +1898,22 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 })();
+function focusLatestUserMessage() {
+  const chatWindow = document.getElementById('chatWindow');
+  if (!chatWindow) return;
+  const messages = chatWindow.querySelectorAll('.chat-message--user');
+  if (!messages.length) return;
+  const target = messages[messages.length - 1];
+  if (!target) return;
+  if (!target.hasAttribute('tabindex')) {
+    target.setAttribute('tabindex', '-1');
+  }
+  requestAnimationFrame(() => {
+    try {
+      target.focus({ preventScroll: true });
+    } catch (e) {
+      target.focus();
+    }
+    target.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  });
+}

@@ -71,14 +71,14 @@
 }
 
 .chip:hover {
-  border-color: #ff5c4d;
+  border-color: #38f28b;
   color: #fff;
 }
 
 .chip--active {
-  background: #ff453a;
+  background: #38f28b;
   color: #fff;
-  border-color: #ff453a;
+  border-color: #38f28b;
   font-weight: 700;
 }
 
@@ -211,7 +211,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #ff453a;
+  background: #38f28b;
   color: #fff;
   padding: 6px 10px;
   border-radius: 999px;
@@ -373,8 +373,9 @@
 
 .btn--ghost {
   background: transparent;
-  border: 1px solid #ff453a;
-  color: #ff453a;
+  border: 1px solid #38f28b;
+;
+  color: #38f28b;
 }
 
 .characters-grid {

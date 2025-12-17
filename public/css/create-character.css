@@ -61,7 +61,11 @@
 .steps-container {
     flex: 1;
     min-height: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
     position: relative;
+    overflow: hidden;
 }
 
 .steps-nav__item {
@@ -99,9 +103,9 @@
     min-height: 0;
     overflow-y: auto;
     padding-top: 4px;
-    padding-right: 6px;
-    margin-right: -6px;
-    padding-bottom: 16px;
+    padding-right: 8px;
+    margin-right: -8px;
+    padding-bottom: 24px;
 }
 
 .step__header {
@@ -111,6 +115,11 @@
     gap: 12px;
     margin-bottom: 14px;
     flex-shrink: 0;
+    position: sticky;
+    top: 60px;
+    z-index: 4;
+    background: #15171c;
+    padding: 12px 0;
 }
 
 .step__title {

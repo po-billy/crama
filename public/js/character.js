@@ -59,6 +59,29 @@ let activeCharacterId = null;
 let currentUserContext = null;
 let currentUserId = null;
 
+function updateCharacterMetaTags(meta = {}) {
+  const rawName = typeof meta.name === 'string' ? meta.name.trim() : '';
+  const charName = rawName || '캐릭터';
+  const summary = (meta.summary && meta.summary.trim()) || `${charName}와 대화를 이어가세요.`;
+  const detail =
+    (meta.description && meta.description.trim()) ||
+    summary ||
+    '크라마 캐릭터와 실시간으로 대화해 보세요.';
+  const baseTitle = `${charName} | 크라마(crama)`;
+  document.title = baseTitle;
+  const setMeta = (selector, value) => {
+    const el = document.querySelector(selector);
+    if (el && value) {
+      el.setAttribute('content', value);
+    }
+  };
+  setMeta('meta[property="og:title"]', `${charName} 캐릭터 대화 | 크라마(crama)`);
+  setMeta('meta[name="twitter:title"]', `${charName} 캐릭터 대화 | 크라마(crama)`);
+  setMeta('meta[name="description"]', summary);
+  setMeta('meta[property="og:description"]', detail);
+  setMeta('meta[name="twitter:description"]', detail);
+}
+
 function escapeHtml(value) {
   return (value || '').toString()
     .replace(/&/g, '&amp;')
@@ -1428,6 +1451,11 @@ function renderCharacterDetail(c) {
   const charName = c.name || '캐릭터';
   const userName = placeholderUserName;
   const applyPlaceholders = (value) => renderWithPlaceholders(value || '', charName, userName);
+  updateCharacterMetaTags({
+    name: charName,
+    summary: applyPlaceholders(c.one_line || ''),
+    description: applyPlaceholders(c.description || '')
+  });
 
   // 아바타 이미지
   const avatarImg = document.querySelector(".character-avatar-wrapper img");

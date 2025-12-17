@@ -44,24 +44,8 @@ function ensureTopUserControls() {
     loginBtn.textContent = '로그인';
     right.appendChild(loginBtn);
   }
-  if (!document.getElementById('topUserChip')) {
-    const chip = document.createElement('button');
-    chip.type = 'button';
-    chip.id = 'topUserChip';
-    chip.className = 'top-user-chip is-hidden';
-    chip.innerHTML = `
-      <span class="top-user-avatar" id="topUserAvatar">U</span>
-      <span class="top-user-name" id="topUserName">사용자</span>
-    `;
-    right.appendChild(chip);
-  } else if (!document.getElementById('topUserAvatar')) {
-    const chip = document.getElementById('topUserChip');
-    const nameEl = chip?.querySelector('.top-user-name');
-    const avatar = document.createElement('span');
-    avatar.className = 'top-user-avatar';
-    avatar.id = 'topUserAvatar';
-    chip.insertBefore(avatar, nameEl || chip.firstChild);
-  }
+  const chip = document.getElementById('topUserChip');
+  if (chip) chip.remove();
 }
 
 function applyAvatarVisual(target, url, fallbackText = '', options = {}) {
@@ -320,6 +304,7 @@ async function initDrawer() {
   try {
     const res = await fetch('./partials/drawer.html');
     container.innerHTML = await res.text();
+    updateSidebarUserInfo();
   } catch (e) {
     console.error('drawer load failed', e);
     return;
@@ -703,9 +688,14 @@ async function updateSidebarUserInfo() {
   const accountCredits = document.getElementById('accountCredits');
   const accountAvatarCircle = document.getElementById('accountAvatarCircle');
   const topLoginBtn = document.getElementById('topLoginBtn');
-  const topUserChip = document.getElementById('topUserChip');
-  const topUserName = document.getElementById('topUserName');
-  const topUserAvatar = document.getElementById('topUserAvatar');
+  const sidebarAccountSection = document.getElementById('sidebarAccountSection');
+  const sidebarLoginHint = document.getElementById('sidebarLoginHint');
+  const drawerAccountCard = document.getElementById('drawerAccountCard');
+  const drawerAccountName = document.getElementById('drawerAccountName');
+  const drawerAccountCredits = document.getElementById('drawerAccountCredits');
+  const drawerAccountAvatar = document.getElementById('drawerAccountAvatar');
+  const drawerAccountAction = document.getElementById('drawerAccountAction');
+  const drawerAccountHint = document.getElementById('drawerAccountHint');
 
   let ctx = null;
   try {
@@ -718,22 +708,27 @@ async function updateSidebarUserInfo() {
     topLoginBtn.addEventListener('click', () => openLoginModal());
     topLoginBtn.dataset.loginBound = '1';
   }
-  if (topUserChip && !topUserChip.dataset.linkBound) {
-    topUserChip.addEventListener('click', () => {
-      window.location.href = '/mypage';
-    });
-    topUserChip.dataset.linkBound = '1';
-  }
 
   if (!ctx || !ctx.user) {
     if (creditsEl) creditsEl.textContent = '-';
     if (accountName) accountName.textContent = '로그인이 필요합니다';
     if (accountCredits) accountCredits.textContent = '-';
-    applyAvatarVisual(avatarBtn, '', '로그인');
+    applyAvatarVisual(avatarBtn, '', '게스트');
     applyAvatarVisual(accountAvatarCircle, '', '게스트');
-    applyAvatarVisual(topUserAvatar, '', 'U', { setAria: false });
     toggleVisibility(topLoginBtn, true);
-    toggleVisibility(topUserChip, false);
+    sidebarAccountSection?.classList.add('needs-login');
+    if (sidebarLoginHint) sidebarLoginHint.textContent = '로그인하고 무료 Scene을 받으세요!';
+    if (drawerAccountCard) drawerAccountCard.classList.add('needs-login');
+    applyAvatarVisual(drawerAccountAvatar, '', '게스트');
+    if (drawerAccountName) drawerAccountName.textContent = '로그인이 필요합니다';
+    if (drawerAccountCredits) drawerAccountCredits.textContent = '-';
+    if (drawerAccountHint) drawerAccountHint.textContent = '로그인하고 무료 Scene을 받으세요!';
+    if (drawerAccountAction) {
+      drawerAccountAction.textContent = '로그인하기';
+      drawerAccountAction.onclick = () => {
+        window.location.href = '/login';
+      };
+    }
     if (avatarBtn && !avatarBtn.dataset.loginBound) {
       avatarBtn.addEventListener('click', () => openLoginModal());
       avatarBtn.dataset.loginBound = '1';
@@ -751,10 +746,19 @@ async function updateSidebarUserInfo() {
   if (accountCredits) accountCredits.textContent = credits.toLocaleString('ko-KR');
   applyAvatarVisual(avatarBtn, avatarUrl, shortName);
   applyAvatarVisual(accountAvatarCircle, avatarUrl, shortName);
-  applyAvatarVisual(topUserAvatar, avatarUrl, shortName, { setAria: false });
-  if (topUserName) topUserName.textContent = displayName;
+  applyAvatarVisual(drawerAccountAvatar, avatarUrl, shortName);
+  if (drawerAccountName) drawerAccountName.textContent = displayName;
+  if (drawerAccountCredits) drawerAccountCredits.textContent = credits.toLocaleString('ko-KR');
+  if (drawerAccountHint) drawerAccountHint.textContent = '';
+  if (drawerAccountCard) drawerAccountCard.classList.remove('needs-login');
+  sidebarAccountSection?.classList.remove('needs-login');
   toggleVisibility(topLoginBtn, false);
-  toggleVisibility(topUserChip, true);
+    if (drawerAccountAction) {
+      drawerAccountAction.textContent = '마이페이지';
+      drawerAccountAction.onclick = () => {
+        window.location.href = '/mypage';
+      };
+  }
 
   if (typeof window.activeCharacterId !== 'undefined' && typeof window.requestCharacterBackgroundReload === 'function') {
     window.requestCharacterBackgroundReload();

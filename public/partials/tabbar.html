@@ -1,0 +1,28 @@
+<nav class="mobile-tabbar" id="mobileTabbar">
+  <button class="tabbar-btn" data-tab="home" data-target="/">
+    <span class="tabbar-icon">🏠</span>
+    <span class="tabbar-label">홈</span>
+  </button>
+  <button class="tabbar-btn" data-tab="chat" data-target="/characters">
+    <span class="tabbar-icon">💬</span>
+    <span class="tabbar-label">채팅</span>
+  </button>
+  <button class="tabbar-btn tabbar-btn--create" data-tab="create">
+    <span class="tabbar-icon">✦</span>
+    <span class="tabbar-label">제작</span>
+  </button>
+  <button class="tabbar-btn" data-tab="mypage" data-target="/mypage">
+    <span class="tabbar-icon">🙂</span>
+    <span class="tabbar-label">마이페이지</span>
+  </button>
+</nav>
+
+<div class="tabbar-overlay hidden" id="tabbarOverlay"></div>
+<div class="tabbar-create-sheet hidden" id="tabbarCreateSheet" role="dialog" aria-modal="true">
+  <div class="tabbar-create-card">
+    <p class="tabbar-create-title">무엇을 제작할까요?</p>
+    <button class="tabbar-create-option" data-target="/studio">이미지 생성</button>
+    <button class="tabbar-create-option" data-target="/create-character">캐릭터 생성</button>
+    <button class="tabbar-create-cancel" type="button" id="tabbarCreateCancel">취소</button>
+  </div>
+</div>

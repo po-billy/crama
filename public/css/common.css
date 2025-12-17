@@ -678,6 +678,22 @@ a {
     border-radius: 16px;
     background: #050608;
     border: 1px solid #ffffff;
+    cursor: default;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.drawer-mobile-account.is-link {
+    cursor: pointer;
+}
+
+.drawer-mobile-account.is-link:hover {
+    border-color: #38f28b;
+    background: #050608ee;
+}
+
+.drawer-mobile-account.is-link:focus-visible {
+    outline: 2px solid #38f28b;
+    outline-offset: 4px;
 }
 
 .drawer-mobile-account__body {
@@ -732,6 +748,7 @@ a {
     font-size: 13px;
     padding: 10px 14px;
     cursor: pointer;
+    display: none;
 }
 
 .drawer-mobile-account.needs-login {
@@ -740,6 +757,145 @@ a {
 
 .drawer-mobile-account.needs-login .drawer-mobile-account__hint {
     color: #38f28b;
+}
+
+.drawer-mobile-account.needs-login .drawer-mobile-account__action {
+    display: block;
+}
+
+@media (min-width: 769px) {
+    .drawer-mobile-account {
+        display: none !important;
+    }
+}
+
+.mobile-tabbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 62px;
+    background: rgba(5, 6, 8, 0.95);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    display: none;
+    z-index: 1200;
+    padding: 6px 10px;
+    gap: 6px;
+    box-sizing: border-box;
+}
+
+.tabbar-btn {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: #b4b7c9;
+    font-size: 11px;
+    font-weight: 600;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.tabbar-btn--active,
+.tabbar-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.tabbar-btn--create {
+    background: #38f28b;
+    color: #050608;
+}
+
+.tabbar-btn--create .tabbar-icon {
+    font-size: 14px;
+}
+
+.tabbar-icon {
+    font-size: 16px;
+    line-height: 1;
+}
+
+.tabbar-label {
+    font-size: 10px;
+    line-height: 1;
+}
+
+.tabbar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    z-index: 1190;
+}
+
+.tabbar-create-sheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1201;
+    display: flex;
+    justify-content: center;
+    padding: 0 16px 16px;
+    box-sizing: border-box;
+}
+
+.tabbar-create-card {
+    width: 100%;
+    max-width: 420px;
+    background: #050608;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.tabbar-create-title {
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 4px;
+}
+
+.tabbar-create-option,
+.tabbar-create-cancel {
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.tabbar-create-option {
+    background: rgba(56, 242, 139, 0.12);
+    color: #38f28b;
+}
+
+.tabbar-create-option + .tabbar-create-option {
+    margin-top: 6px;
+}
+
+.tabbar-create-option:active {
+    background: rgba(56, 242, 139, 0.25);
+}
+
+.tabbar-create-cancel {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    margin-top: 4px;
+}
+
+.tabbar-overlay.hidden,
+.tabbar-create-sheet.hidden {
+    display: none;
 }
 
 .drawer-group+.drawer-group {
@@ -839,7 +995,7 @@ a {
         border-right: 1px solid #e2e4f1;
         border-radius: 0 16px 16px 0;
         box-shadow: 4px 0 24px rgba(15, 18, 46, 0.25);
-        z-index: 1000;
+        z-index: 1201;
 
         /* 기본?� 보여지???�태 */
         transform: translateX(0);
@@ -1028,6 +1184,16 @@ a {
 .drawer-image-modal .modal-actions {
     display: flex;
     justify-content: flex-end;
+}
+
+@media (max-width: 768px) {
+    .mobile-tabbar {
+        display: flex;
+    }
+
+    body {
+        padding-bottom: 70px;
+    }
 }
 
 

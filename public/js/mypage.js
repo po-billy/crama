@@ -58,7 +58,10 @@ async function initMyPage() {
   // 6) 핸들 수정 폼
   setupHandleEditor(vm.handle);
 
-  // 7) 웰컴 scene 위젯
+  // 7) 추가 프로필 정보 폼
+  setupProfileExtrasForm();
+
+  // 8) 웰컴 scene 위젯
   initDailyWelcomeWidget();
 }
 
@@ -112,6 +115,33 @@ function safeText(value, fallback = "정보 없음") {
   return value;
 }
 
+function setFieldControlValue(el, value) {
+  if (!el) return;
+  const normalized = value || "";
+  if (el.tagName === "SELECT") {
+    Array.from(el.querySelectorAll("option[data-dynamic-option='1']")).forEach((opt) =>
+      opt.remove()
+    );
+    if (normalized) {
+      const hasOption = Array.from(el.options).some((opt) => opt.value === normalized);
+      if (!hasOption) {
+        const opt = document.createElement("option");
+        opt.value = normalized;
+        opt.textContent = normalized;
+        opt.dataset.dynamicOption = "1";
+        el.appendChild(opt);
+      }
+    }
+    el.value = normalized || "";
+    return;
+  }
+  if ("value" in el) {
+    el.value = normalized;
+  } else {
+    el.textContent = safeText(normalized);
+  }
+}
+
 function bindProfileToDom(vm) {
   const avatarCircle = document.getElementById("profileAvatarCircle");
   const displayNameEl = document.getElementById("profileDisplayName");
@@ -121,11 +151,11 @@ function bindProfileToDom(vm) {
   const planEl = document.getElementById("profilePlan");
   const creditsEl = document.getElementById("profileCredits");
 
-  const bioEl = document.getElementById("profileBio");
-  const websiteEl = document.getElementById("profileWebsite");
-  const jobEl = document.getElementById("profileJob");
-  const genderEl = document.getElementById("profileGender");
-  const ageRangeEl = document.getElementById("profileAgeRange");
+  const bioInput = document.getElementById("profileBioInput");
+  const websiteInput = document.getElementById("profileWebsiteInput");
+  const jobInput = document.getElementById("profileJobInput");
+  const genderInput = document.getElementById("profileGenderInput");
+  const ageRangeInput = document.getElementById("profileAgeRangeInput");
 
   const shortName =
     vm.displayName.length <= 2
@@ -144,11 +174,11 @@ function bindProfileToDom(vm) {
   if (planEl) planEl.textContent = vm.planName;
   if (creditsEl) creditsEl.textContent = vm.credits.toLocaleString("ko-KR");
 
-  if (bioEl) bioEl.textContent = safeText(vm.bio);
-  if (websiteEl) websiteEl.textContent = safeText(vm.website);
-  if (jobEl) jobEl.textContent = safeText(vm.job);
-  if (genderEl) genderEl.textContent = safeText(vm.gender);
-  if (ageRangeEl) ageRangeEl.textContent = safeText(vm.ageRange);
+  setFieldControlValue(bioInput, vm.bio);
+  setFieldControlValue(websiteInput, vm.website);
+  setFieldControlValue(jobInput, vm.job);
+  setFieldControlValue(genderInput, vm.gender);
+  setFieldControlValue(ageRangeInput, vm.ageRange);
 }
 
 function setupHandleEditor(currentHandle) {
@@ -219,6 +249,70 @@ function setupHandleEditor(currentHandle) {
       button.disabled = false;
     }
   });
+}
+
+function setupProfileExtrasForm() {
+  const form = document.getElementById("profileExtrasForm");
+  const saveBtn = form?.querySelector(".profile-extras-save");
+  const statusEl = document.getElementById("profileExtrasStatus");
+  if (!form || !saveBtn || form.dataset.bound) return;
+
+  const bioInput = document.getElementById("profileBioInput");
+  const websiteInput = document.getElementById("profileWebsiteInput");
+  const jobInput = document.getElementById("profileJobInput");
+  const genderInput = document.getElementById("profileGenderInput");
+  const ageRangeInput = document.getElementById("profileAgeRangeInput");
+
+  const toNullable = (value) => {
+    const text = (value || "").trim();
+    return text.length ? text : null;
+  };
+
+  const setStatus = (message, variant) => {
+    if (!statusEl) return;
+    statusEl.textContent = message || "";
+    statusEl.className = "profile-extras-status";
+    if (variant) statusEl.classList.add(variant);
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!currentProfileUserId) {
+      setStatus("세션이 만료되었습니다. 다시 로그인해주세요.", "error");
+      return;
+    }
+    const payload = {
+      bio: toNullable(bioInput?.value),
+      website: toNullable(websiteInput?.value),
+      job: toNullable(jobInput?.value),
+      gender: toNullable(genderInput?.value),
+      age_range: toNullable(ageRangeInput?.value),
+    };
+
+    saveBtn.disabled = true;
+    setStatus("저장 중...", "");
+
+    try {
+      const { error } = await window.sb
+        .from("profiles")
+        .update(payload)
+        .eq("id", currentProfileUserId);
+      if (error) throw error;
+      setStatus("저장되었습니다.", "success");
+      setFieldControlValue(bioInput, payload.bio);
+      setFieldControlValue(websiteInput, payload.website);
+      setFieldControlValue(jobInput, payload.job);
+      setFieldControlValue(genderInput, payload.gender);
+      setFieldControlValue(ageRangeInput, payload.age_range);
+    } catch (err) {
+      console.error("profile extras save error", err);
+      setStatus("저장에 실패했습니다. 잠시 후 다시 시도해주세요.", "error");
+    } finally {
+      saveBtn.disabled = false;
+    }
+  });
+
+  form.dataset.bound = "1";
 }
 
 function fileToDataUrl(file) {

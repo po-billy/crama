@@ -132,29 +132,68 @@
           </div>
 
           <!-- 추가 프로필 정보 섹션 -->
-          <div class="profile-section">
+          <div class="profile-section profile-section--extras">
             <div class="profile-section-title">추가 프로필 정보</div>
+            <form class="profile-extras-form" id="profileExtrasForm">
+              <label class="profile-field">
+                <span class="profile-field-label">자기소개</span>
+                <textarea
+                  id="profileBioInput"
+                  class="profile-field-control"
+                  rows="3"
+                  placeholder="간단한 자기소개를 적어주세요."
+                ></textarea>
+              </label>
 
-            <div class="profile-row">
-              <div class="profile-row-label">자기소개</div>
-              <div class="profile-row-value" id="profileBio">정보 없음</div>
-            </div>
-            <div class="profile-row">
-              <div class="profile-row-label">웹사이트</div>
-              <div class="profile-row-value" id="profileWebsite">정보 없음</div>
-            </div>
-            <div class="profile-row">
-              <div class="profile-row-label">직업</div>
-              <div class="profile-row-value" id="profileJob">정보 없음</div>
-            </div>
-            <div class="profile-row">
-              <div class="profile-row-label">성별</div>
-              <div class="profile-row-value" id="profileGender">정보 없음</div>
-            </div>
-            <div class="profile-row">
-              <div class="profile-row-label">연령대</div>
-              <div class="profile-row-value" id="profileAgeRange">정보 없음</div>
-            </div>
+              <label class="profile-field">
+                <span class="profile-field-label">웹사이트</span>
+                <input
+                  type="url"
+                  id="profileWebsiteInput"
+                  class="profile-field-control"
+                  placeholder="https://example.com"
+                />
+              </label>
+
+              <label class="profile-field">
+                <span class="profile-field-label">직업</span>
+                <input
+                  type="text"
+                  id="profileJobInput"
+                  class="profile-field-control"
+                  placeholder="어떤 일을 하고 계신가요?"
+                />
+              </label>
+
+              <div class="profile-field profile-field--inline">
+                <label class="profile-field-segment">
+                  <span class="profile-field-label">성별</span>
+                  <select id="profileGenderInput" class="profile-field-control">
+                    <option value="">선택 안 함</option>
+                    <option value="여성">여성</option>
+                    <option value="남성">남성</option>
+                    <option value="비공개">비공개</option>
+                    <option value="자유 기재">자유 기재</option>
+                  </select>
+                </label>
+                <label class="profile-field-segment">
+                  <span class="profile-field-label">연령대</span>
+                  <select id="profileAgeRangeInput" class="profile-field-control">
+                    <option value="">선택 안 함</option>
+                    <option value="10대">10대</option>
+                    <option value="20대">20대</option>
+                    <option value="30대">30대</option>
+                    <option value="40대">40대</option>
+                    <option value="50대 이상">50대 이상</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="profile-extras-actions">
+                <button type="submit" class="profile-extras-save">추가 정보 저장</button>
+                <span class="profile-extras-status" id="profileExtrasStatus"></span>
+              </div>
+            </form>
           </div>
 
           <!-- 버튼 영역 -->

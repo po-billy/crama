@@ -419,7 +419,7 @@ async function initDrawer() {
     }
   }
 
-  async function renderDrawerList(activeTab = 'all') {
+  async function renderDrawerList(activeTab = 'chat') {
     const { images, chats } = getLocalHistory();
     const localItems = [];
 
@@ -530,10 +530,7 @@ async function initDrawer() {
       drawerList.appendChild(section);
     }
 
-    if (activeTab === 'all') {
-      renderSection('최근 이미지', imagesOnly, 'image');
-      renderSection('최근 채팅', chatsOnly, 'chat');
-    } else if (activeTab === 'image') {
+    if (activeTab === 'image') {
       renderSection('최근 이미지', imagesOnly, 'image');
     } else {
       renderSection('최근 채팅', chatsOnly, 'chat');
@@ -548,7 +545,7 @@ async function initDrawer() {
     });
   });
 
-  renderDrawerList('all');
+  renderDrawerList('chat');
 }
 
 async function updateSectionNickname() {
@@ -680,6 +677,36 @@ async function fetchUserContext() {
   return { user, profile, wallet, subscription };
 }
 
+function ensureDrawerAccountCardNav(card) {
+  if (!card || card.dataset.cardNavBound) return;
+  const handleActivation = (event) => {
+    if (card.classList.contains('needs-login')) return;
+    if (event.type === 'keydown') {
+      const key = event.key || event.code;
+      if (key !== 'Enter' && key !== ' ') return;
+    }
+    event.preventDefault();
+    window.location.href = '/mypage';
+  };
+  card.addEventListener('click', handleActivation);
+  card.addEventListener('keydown', handleActivation);
+  card.dataset.cardNavBound = '1';
+}
+
+function setDrawerAccountCardInteractive(card, enabled) {
+  if (!card) return;
+  ensureDrawerAccountCardNav(card);
+  if (enabled) {
+    card.classList.add('is-link');
+    card.setAttribute('role', 'button');
+    card.tabIndex = 0;
+  } else {
+    card.classList.remove('is-link');
+    card.removeAttribute('role');
+    card.tabIndex = -1;
+  }
+}
+
 async function updateSidebarUserInfo() {
   ensureTopUserControls();
   const creditsEl = document.getElementById('sidebarCredits');
@@ -729,6 +756,7 @@ async function updateSidebarUserInfo() {
         window.location.href = '/login';
       };
     }
+    setDrawerAccountCardInteractive(drawerAccountCard, false);
     if (avatarBtn && !avatarBtn.dataset.loginBound) {
       avatarBtn.addEventListener('click', () => openLoginModal());
       avatarBtn.dataset.loginBound = '1';
@@ -753,11 +781,9 @@ async function updateSidebarUserInfo() {
   if (drawerAccountCard) drawerAccountCard.classList.remove('needs-login');
   sidebarAccountSection?.classList.remove('needs-login');
   toggleVisibility(topLoginBtn, false);
-    if (drawerAccountAction) {
-      drawerAccountAction.textContent = '마이페이지';
-      drawerAccountAction.onclick = () => {
-        window.location.href = '/mypage';
-      };
+  setDrawerAccountCardInteractive(drawerAccountCard, true);
+  if (drawerAccountAction) {
+    drawerAccountAction.onclick = null;
   }
 
   if (typeof window.activeCharacterId !== 'undefined' && typeof window.requestCharacterBackgroundReload === 'function') {
@@ -964,11 +990,76 @@ function initMobileUrlBarHider() {
   scheduleAdjust();
 }
 
+async function initMobileTabbar() {
+  if (document.getElementById('mobileTabbar')) return;
+  try {
+    const res = await fetch('./partials/tabbar.html');
+    if (!res.ok) return;
+    const html = await res.text();
+    document.body.insertAdjacentHTML('beforeend', html);
+  } catch (e) {
+    console.error('tabbar load failed', e);
+    return;
+  }
+  const bar = document.getElementById('mobileTabbar');
+  if (!bar) return;
+  const currentPage = document.body.dataset.page || '';
+  const tabMap = {
+    home: ['home', 'index'],
+    chat: ['characters', 'character'],
+    create: ['studio', 'create-character'],
+    mypage: ['mypage'],
+  };
+  Object.entries(tabMap).forEach(([key, list]) => {
+    if (list.includes(currentPage)) {
+      const btn = bar.querySelector(`[data-tab="${key}"]`);
+      btn?.classList.add('tabbar-btn--active');
+    }
+  });
+  bar.querySelectorAll('.tabbar-btn').forEach((btn) => {
+    const tab = btn.dataset.tab;
+    if (tab === 'create') return;
+    const target = btn.dataset.target;
+    if (!target || btn.dataset.tabBound) return;
+    btn.addEventListener('click', () => {
+      window.location.href = target;
+    });
+    btn.dataset.tabBound = '1';
+  });
+  const overlay = document.getElementById('tabbarOverlay');
+  const sheet = document.getElementById('tabbarCreateSheet');
+  const cancel = document.getElementById('tabbarCreateCancel');
+  const createBtn = bar.querySelector('[data-tab="create"]');
+  const closeSheet = () => {
+    sheet?.classList.add('hidden');
+    overlay?.classList.add('hidden');
+  };
+  const openSheet = () => {
+    sheet?.classList.remove('hidden');
+    overlay?.classList.remove('hidden');
+  };
+  createBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    openSheet();
+  });
+  overlay?.addEventListener('click', closeSheet);
+  cancel?.addEventListener('click', closeSheet);
+  sheet?.querySelectorAll('[data-target]').forEach((btn) => {
+    if (btn.dataset.sheetBound) return;
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.target;
+      if (target) window.location.href = target;
+    });
+    btn.dataset.sheetBound = '1';
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   loadHead();
   ensureTopUserControls();
   initSidebar();
   initDrawer();
+  initMobileTabbar();
   updateSectionNickname();
   ensureLoginModalLoaded();
   updateSidebarUserInfo();

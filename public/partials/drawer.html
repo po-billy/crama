@@ -22,25 +22,22 @@
                 <img src="./assets/sidebar-c.png" class="drawer-nav-icon" alt="캐릭터챗" />
                 <span>캐릭터챗</span>
             </button>
-            <button class="drawer-nav-item" data-page="menu" onclick="location.href='/menu'">
+            <!-- <button class="drawer-nav-item" data-page="menu" onclick="location.href='/menu'">
                 <img src="./assets/sidebar-m.png" class="drawer-nav-icon" alt="메뉴" />
                 <span>Ai 메뉴</span>
-            </button>
+            </button> -->
             <button class="drawer-nav-item" data-page="menu" onclick="location.href='/works'">
-                <img src="./assets/sidebar-w.png" class="drawer-nav-icon" alt="works" />
-                <span>works</span>
+                <img src="./assets/sidebar-w.png" class="drawer-nav-icon" alt="내 캐릭터" />
+                <span>내 캐릭터</span>
             </button>
-            <button class="drawer-nav-item" data-page="contact" onclick="location.href='/contact'">
+            <!-- <button class="drawer-nav-item" data-page="contact" onclick="location.href='/contact'">
                 <img src="./assets/sidebar-m.png" class="drawer-nav-icon" alt="문의하기" />
                 <span>문의하기</span>
-            </button>
+            </button> -->
         </nav>
         <div class="drawer-header-top">
             <div class="drawer-tabs">
-                <button type="button" class="drawer-tab active" data-drawer-tab="all">
-                    전체
-                </button>
-                <button type="button" class="drawer-tab" data-drawer-tab="chat">
+                <button type="button" class="drawer-tab active" data-drawer-tab="chat">
                     채팅
                 </button>
                 <button type="button" class="drawer-tab" data-drawer-tab="image">
@@ -59,7 +56,7 @@
             스튜디오에서 새로 생성해보세요.
         </div>
     </div>
-    <div class="drawer-mobile-account needs-login" id="drawerAccountCard">
+    <div class="drawer-mobile-account needs-login" id="drawerAccountCard" tabindex="-1">
         <div class="drawer-mobile-account__body">
             <div class="drawer-mobile-account__avatar" id="drawerAccountAvatar">G</div>
             <div class="drawer-mobile-account__info">

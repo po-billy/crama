@@ -46,11 +46,18 @@
         <section class="profile-card" id="profileCard">
           <!-- 상단 프로필 헤더 -->
           <div class="profile-header">
-            <div class="profile-avatar" id="profileAvatarCircle">ddddddddddddddddddddddddddddddddddddd희승</div>
+            <div class="profile-avatar" id="profileAvatarCircle">프로필</div>
             <div class="profile-name-wrap">
               <div class="profile-display-name" id="profileDisplayName">엄희송</div>
               <div class="profile-handle" id="profileHandle">@gmhthd94</div>
             </div>
+          </div>
+          <div class="profile-avatar-actions">
+            <button type="button" class="profile-avatar-btn" id="profileAvatarUploadBtn">
+              프로필 이미지 변경
+            </button>
+            <input type="file" id="profileAvatarInput" accept="image/*" hidden>
+            <small class="profile-avatar-status" id="profileAvatarStatus"></small>
           </div>
 
           <!-- 계정 정보 섹션 -->

@@ -36,6 +36,51 @@
   justify-content: center;
   margin-right: 16px;
 }
+.profile-avatar.has-image {
+  background-size: cover;
+  background-position: center;
+  color: transparent;
+  text-indent: -9999px;
+}
+
+.profile-avatar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+  margin-top: -12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.profile-avatar-btn {
+  border: 1px solid #d6dbf7;
+  background: #fff;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.profile-avatar-btn:hover {
+  background: #f5f7ff;
+  border-color: #b7c2ff;
+}
+
+.profile-avatar-status {
+  font-size: 12px;
+  color: #666;
+}
+
+.profile-avatar-status.success {
+  color: #2b7cff;
+}
+
+.profile-avatar-status.error {
+  color: #d64545;
+}
 
 .profile-name-wrap {
   display: flex;
@@ -258,4 +303,3 @@
 .handle-status { color: #8c91a3; font-size: 12px; }
 .handle-status.error { color: #ff4d4f; }
 .handle-status.success { color: #18a058; }
-

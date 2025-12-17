@@ -1,6 +1,12 @@
 // js/mypage.js
 (function () {
 const apiFetch = window.apiFetch || ((...args) => fetch(...args));
+const AVATAR_BUCKET = 'character_profile';
+const USER_AVATAR_FOLDER = 'user-avatars';
+let currentProfileInitial = '사용자';
+let currentProfileAvatarUrl = '';
+let currentProfileUserId = null;
+let currentProfileDisplayName = '사용자';
 
 document.addEventListener("DOMContentLoaded", () => {
   initMyPage();
@@ -37,12 +43,14 @@ async function initMyPage() {
   }
 
   const { user, profile, wallet, subscription } = ctx;
+  currentProfileUserId = user.id;
 
   // 3) 뷰모델 만들기
   const vm = buildProfileViewModel({ user, profile, wallet, subscription });
 
   // 4) DOM에 바인딩
   bindProfileToDom(vm);
+  setupAvatarUploader(user.id);
 
   // 5) 버튼 이벤트
   setupMyPageActions();
@@ -56,7 +64,9 @@ async function initMyPage() {
 
 function buildProfileViewModel({ user, profile, wallet, subscription }) {
   const displayName =
+    profile?.handle ||
     profile?.display_name ||
+    user.user_metadata?.user_name ||
     user.user_metadata?.name ||
     user.email?.split("@")[0] ||
     "사용자";
@@ -79,12 +89,15 @@ function buildProfileViewModel({ user, profile, wallet, subscription }) {
 
   const credits = wallet?.balance ?? profile?.current_credits ?? 0;
 
+  const avatarUrl = profile?.avatar_url || user.user_metadata?.avatar_url || '';
+
   return {
     displayName,
     handle,
     joinedText,
     planName,
     credits,
+    avatarUrl,
     // 추가 정보
     bio: profile?.bio || "",
     website: profile?.website || "",
@@ -119,10 +132,10 @@ function bindProfileToDom(vm) {
       ? vm.displayName
       : vm.displayName.slice(-2);
 
-  if (avatarCircle) {
-    avatarCircle.textContent = shortName;
-    avatarCircle.title = vm.displayName;
-  }
+  currentProfileDisplayName = vm.displayName;
+  setProfileAvatarCircle(vm.avatarUrl, shortName, vm.displayName);
+  currentProfileInitial = shortName;
+  currentProfileAvatarUrl = vm.avatarUrl || '';
 
   if (displayNameEl) displayNameEl.textContent = vm.displayName;
   if (handleEl) handleEl.textContent = vm.handle ? `@${vm.handle}` : "";
@@ -208,8 +221,98 @@ function setupHandleEditor(currentHandle) {
   });
 }
 
-})();
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error || new Error("파일을 읽지 못했습니다."));
+    reader.readAsDataURL(file);
+  });
+}
 
+function setProfileAvatarCircle(url, initials = "사용자", title = "프로필") {
+  const avatarCircle = document.getElementById("profileAvatarCircle");
+  if (!avatarCircle) return;
+  const sanitizedInitials = initials || "사용자";
+  if (url) {
+    const sanitizedUrl = url.replace(/(["'()])/g, "\\$1");
+    avatarCircle.style.backgroundImage = `url("${sanitizedUrl}")`;
+    avatarCircle.classList.add("has-image");
+    avatarCircle.textContent = "";
+  } else {
+    avatarCircle.style.backgroundImage = "";
+    avatarCircle.classList.remove("has-image");
+    avatarCircle.textContent = sanitizedInitials;
+  }
+  avatarCircle.title = title || sanitizedInitials;
+}
+
+function setupAvatarUploader(userId) {
+  const uploadBtn = document.getElementById("profileAvatarUploadBtn");
+  const fileInput = document.getElementById("profileAvatarInput");
+  const statusEl = document.getElementById("profileAvatarStatus");
+  if (!uploadBtn || !fileInput) return;
+
+  const setStatus = (message, variant) => {
+    if (!statusEl) return;
+    statusEl.textContent = message || "";
+    statusEl.className = "profile-avatar-status";
+    if (variant) statusEl.classList.add(variant);
+  };
+
+  uploadBtn.addEventListener("click", () => fileInput.click());
+
+  fileInput.addEventListener("change", async (event) => {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    if (!/^image\//i.test(file.type)) {
+      setStatus("이미지 파일만 업로드할 수 있어요.", "error");
+      fileInput.value = "";
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setStatus("5MB 이하의 이미지만 업로드할 수 있어요.", "error");
+      fileInput.value = "";
+      return;
+    }
+    setStatus("업로드 중...", "");
+    uploadBtn.disabled = true;
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      const res = await apiFetch("/api/upload/avatar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          dataUrl,
+          fileName: file.name,
+          bucket: AVATAR_BUCKET,
+          folder: `${USER_AVATAR_FOLDER}/${userId}`,
+        }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.url) {
+        throw new Error(json?.message || "업로드에 실패했습니다.");
+      }
+      const { error } = await window.sb
+        .from("profiles")
+        .update({ avatar_url: json.url })
+        .eq("id", userId);
+      if (error) throw error;
+      currentProfileAvatarUrl = json.url;
+      setProfileAvatarCircle(json.url, currentProfileInitial, currentProfileDisplayName);
+      setStatus("프로필 이미지가 업데이트되었어요.", "success");
+      if (typeof window.updateSidebarUserInfo === "function") {
+        window.updateSidebarUserInfo();
+      }
+    } catch (err) {
+      console.error("avatar upload error", err);
+      setStatus(err?.message || "업로드 중 오류가 발생했습니다.", "error");
+    } finally {
+      uploadBtn.disabled = false;
+      fileInput.value = "";
+    }
+  });
+}
 function setupMyPageActions() {
   const logoutBtn = document.getElementById("profileLogoutBtn");
   const deleteBtn = document.getElementById("profileDeleteBtn");
@@ -431,3 +534,5 @@ async function initDailyWelcomeWidget() {
     }
   });
 }
+
+})();

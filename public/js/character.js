@@ -99,8 +99,9 @@ async function initPlaceholderContext(force = false) {
     const ctx = await ensureUserContext(force);
     if (ctx) {
       const resolvedName =
-        ctx.profile?.display_name ||
         ctx.profile?.handle ||
+        ctx.profile?.display_name ||
+        ctx.user?.user_metadata?.user_name ||
         ctx.user?.user_metadata?.name ||
         ctx.user?.user_metadata?.full_name ||
         ctx.user?.email?.split('@')[0];

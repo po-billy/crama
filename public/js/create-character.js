@@ -379,7 +379,9 @@ async function populatePreviewCreatorInfo() {
     if (!ctx?.user) return;
 
     const displayName =
+      ctx.profile?.handle ||
       ctx.profile?.display_name ||
+      ctx.user?.user_metadata?.user_name ||
       ctx.user?.user_metadata?.name ||
       ctx.user?.email?.split('@')[0] ||
       defaultName;
@@ -1705,7 +1707,7 @@ function handleCropApply() {
   ctx.scale(cropState.scale * ratioX, cropState.scale * ratioY);
   ctx.drawImage(img, 0, 0);
   ctx.restore();
-  exportCanvas.toBlob(async (blob) => {
+exportCanvas.toBlob(async (blob) => {
     if (!blob) {
       alert('이미지 변환에 실패했습니다.');
       return;
@@ -1723,6 +1725,114 @@ function handleCropApply() {
       alert('이미지를 추가하지 못했습니다. 다시 시도해 주세요.');
     }
   }, 'image/png', 0.95);
+}
+
+const previewLayoutState = {
+  panel: null,
+  mount: null,
+  modal: null,
+  content: null,
+  mediaQuery: null,
+};
+
+const PREVIEW_MODAL_MEDIA = '(max-width: 960px)';
+
+function shouldUsePreviewModal() {
+  if (!previewLayoutState.mediaQuery) return false;
+  return previewLayoutState.mediaQuery.matches;
+}
+
+function ensurePreviewPanelMounted() {
+  const { panel, mount, modal } = previewLayoutState;
+  if (!panel || !mount) return;
+  if (panel.parentElement !== mount) {
+    mount.appendChild(panel);
+  }
+  if (modal) {
+    modal.setAttribute('aria-hidden', 'true');
+  }
+}
+
+function openPreviewModal() {
+  const { panel, content, modal } = previewLayoutState;
+  if (!panel || !content || !modal) return;
+  if (panel.parentElement !== content) {
+    content.appendChild(panel);
+  }
+  modal.classList.add('preview-modal--open');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('modal-open');
+}
+
+function closePreviewModal() {
+  const { modal } = previewLayoutState;
+  if (!modal) return;
+  const wasOpen = modal.classList.contains('preview-modal--open');
+  modal.classList.remove('preview-modal--open');
+  modal.setAttribute('aria-hidden', 'true');
+  if (wasOpen) {
+    document.body.classList.remove('modal-open');
+  }
+  ensurePreviewPanelMounted();
+}
+
+function highlightPreviewPanel() {
+  const { panel } = previewLayoutState;
+  if (!panel) return;
+  ensurePreviewPanelMounted();
+  panel.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+  panel.classList.add('preview-panel--highlight');
+  setTimeout(() => {
+    panel.classList.remove('preview-panel--highlight');
+  }, 1200);
+}
+
+function setupPreviewInteractions() {
+  previewLayoutState.panel = document.getElementById('previewPanel');
+  if (!previewLayoutState.panel) return;
+  previewLayoutState.mount =
+    document.getElementById('previewPanelMount') || previewLayoutState.panel.parentElement;
+  previewLayoutState.modal = document.getElementById('previewModal');
+  previewLayoutState.content = document.getElementById('previewModalContent');
+  previewLayoutState.mediaQuery = window.matchMedia(PREVIEW_MODAL_MEDIA);
+
+  const handlePreviewMediaChange = (event) => {
+    if (!event.matches) {
+      closePreviewModal();
+    }
+  };
+
+  if (previewLayoutState.mediaQuery?.addEventListener) {
+    previewLayoutState.mediaQuery.addEventListener('change', handlePreviewMediaChange);
+  } else if (previewLayoutState.mediaQuery?.addListener) {
+    previewLayoutState.mediaQuery.addListener(handlePreviewMediaChange);
+  }
+
+  document.querySelectorAll('[data-preview-close]').forEach((el) => {
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      closePreviewModal();
+    });
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && previewLayoutState.modal?.classList.contains('preview-modal--open')) {
+      closePreviewModal();
+    }
+  });
+
+  document.querySelectorAll('[data-preview-toggle]').forEach((btn) => {
+    if (btn.dataset.previewBound) return;
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (shouldUsePreviewModal()) {
+        openPreviewModal();
+      } else {
+        highlightPreviewPanel();
+      }
+    });
+    btn.dataset.previewBound = '1';
+  });
 }
 
 // ---------- DOM 초기화 ----------
@@ -1857,6 +1967,7 @@ document.addEventListener('DOMContentLoaded', () => {
       loadCharacterForEdit(editId);
     }
     initImagePickerModals();
+    setupPreviewInteractions();
 });
 
 })();

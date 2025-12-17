@@ -27,6 +27,81 @@ function toggleVisibility(el, shouldShow) {
   else el.classList.add('is-hidden');
 }
 
+function ensureTopUserControls() {
+  const topBar = document.querySelector('.top-bar');
+  if (!topBar) return;
+  let right = topBar.querySelector('.top-bar-right');
+  if (!right) {
+    right = document.createElement('div');
+    right.className = 'top-bar-right';
+    topBar.appendChild(right);
+  }
+  if (!document.getElementById('topLoginBtn')) {
+    const loginBtn = document.createElement('button');
+    loginBtn.type = 'button';
+    loginBtn.id = 'topLoginBtn';
+    loginBtn.className = 'top-login-btn';
+    loginBtn.textContent = '로그인';
+    right.appendChild(loginBtn);
+  }
+  if (!document.getElementById('topUserChip')) {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.id = 'topUserChip';
+    chip.className = 'top-user-chip is-hidden';
+    chip.innerHTML = `
+      <span class="top-user-avatar" id="topUserAvatar">U</span>
+      <span class="top-user-name" id="topUserName">사용자</span>
+    `;
+    right.appendChild(chip);
+  } else if (!document.getElementById('topUserAvatar')) {
+    const chip = document.getElementById('topUserChip');
+    const nameEl = chip?.querySelector('.top-user-name');
+    const avatar = document.createElement('span');
+    avatar.className = 'top-user-avatar';
+    avatar.id = 'topUserAvatar';
+    chip.insertBefore(avatar, nameEl || chip.firstChild);
+  }
+}
+
+function applyAvatarVisual(target, url, fallbackText = '', options = {}) {
+  if (!target) return;
+  const safeUrl = typeof url === 'string' && url.trim() ? url.trim() : '';
+  const safeFallback = fallbackText || '';
+  const setText = options.keepText !== true;
+  const setAria = options.setAria !== false;
+
+  if (safeUrl) {
+    const sanitized = safeUrl.replace(/(["'()])/g, '\\$1');
+    target.style.backgroundImage = `url("${sanitized}")`;
+    target.classList.add('has-image');
+    if (setText) target.textContent = '';
+    if (setAria && safeFallback) {
+      target.setAttribute('aria-label', safeFallback);
+    }
+  } else {
+    target.style.backgroundImage = '';
+    target.classList.remove('has-image');
+    if (setText) target.textContent = safeFallback;
+    if (setAria) {
+      if (safeFallback) target.setAttribute('aria-label', safeFallback);
+      else target.removeAttribute('aria-label');
+    }
+  }
+}
+
+function getPreferredUserNickname(context) {
+  if (!context) return '사용자';
+  return (
+    context.profile?.handle ||
+    context.profile?.display_name ||
+    context.user?.user_metadata?.user_name ||
+    context.user?.user_metadata?.name ||
+    context.user?.email?.split('@')[0] ||
+    '사용자'
+  );
+}
+
 window.apiFetch = apiFetch;
 window.resolveApiUrl = resolveApiUrl;
 
@@ -496,7 +571,7 @@ async function updateSectionNickname() {
   if (!target) return;
   try {
     const context = await fetchUserContext();
-    const nickname = context?.profile?.display_name || context?.profile?.handle || context?.user?.email;
+    const nickname = getPreferredUserNickname(context);
     if (nickname) {
       target.textContent = nickname;
     }
@@ -621,21 +696,16 @@ async function fetchUserContext() {
 }
 
 async function updateSidebarUserInfo() {
+  ensureTopUserControls();
   const creditsEl = document.getElementById('sidebarCredits');
   const avatarBtn = document.getElementById('sidebarAvatar');
-  const avatarText = document.getElementById('sidebarAvatarText');
   const accountName = document.getElementById('accountName');
   const accountCredits = document.getElementById('accountCredits');
   const accountAvatarCircle = document.getElementById('accountAvatarCircle');
   const topLoginBtn = document.getElementById('topLoginBtn');
   const topUserChip = document.getElementById('topUserChip');
   const topUserName = document.getElementById('topUserName');
-  const drawerGuest = document.getElementById('drawerGuestState');
-  const drawerUser = document.getElementById('drawerUserState');
-  const drawerLoginBtn = document.getElementById('drawerLoginBtn');
-  const drawerLogoutBtn = document.getElementById('drawerLogoutBtn');
-  const drawerAccountName = document.getElementById('drawerAccountName');
-  const drawerAccountCredits = document.getElementById('drawerAccountCredits');
+  const topUserAvatar = document.getElementById('topUserAvatar');
 
   let ctx = null;
   try {
@@ -654,55 +724,37 @@ async function updateSidebarUserInfo() {
     });
     topUserChip.dataset.linkBound = '1';
   }
-  if (drawerLoginBtn && !drawerLoginBtn.dataset.loginBound) {
-    drawerLoginBtn.addEventListener('click', () => openLoginModal());
-    drawerLoginBtn.dataset.loginBound = '1';
-  }
-  if (drawerLogoutBtn && !drawerLogoutBtn.dataset.logoutBound) {
-    drawerLogoutBtn.addEventListener('click', () => performLogout());
-    drawerLogoutBtn.dataset.logoutBound = '1';
-  }
 
   if (!ctx || !ctx.user) {
     if (creditsEl) creditsEl.textContent = '-';
-    if (avatarText) avatarText.textContent = '로그인';
     if (accountName) accountName.textContent = '로그인이 필요합니다';
     if (accountCredits) accountCredits.textContent = '-';
-    if (accountAvatarCircle) accountAvatarCircle.textContent = '로그인';
+    applyAvatarVisual(avatarBtn, '', '로그인');
+    applyAvatarVisual(accountAvatarCircle, '', '게스트');
+    applyAvatarVisual(topUserAvatar, '', 'U', { setAria: false });
     toggleVisibility(topLoginBtn, true);
     toggleVisibility(topUserChip, false);
-    toggleVisibility(drawerGuest, true);
-    toggleVisibility(drawerUser, false);
-
     if (avatarBtn && !avatarBtn.dataset.loginBound) {
-      avatarBtn.addEventListener('click', () => {
-        openLoginModal();
-      });
+      avatarBtn.addEventListener('click', () => openLoginModal());
       avatarBtn.dataset.loginBound = '1';
     }
     return;
   }
 
-  const displayName =
-    ctx.profile?.display_name ||
-    ctx.user.user_metadata?.name ||
-    ctx.user.email?.split('@')[0] ||
-    '사용자';
+  const displayName = getPreferredUserNickname(ctx);
   const shortName = displayName.length <= 2 ? displayName : displayName.slice(-2);
   const credits = ctx.wallet?.balance ?? ctx.profile?.current_credits ?? 0;
+  const avatarUrl = ctx.profile?.avatar_url || ctx.user?.user_metadata?.avatar_url || '';
 
   if (creditsEl) creditsEl.textContent = `${credits.toLocaleString('ko-KR')} scene`;
-  if (avatarText) avatarText.textContent = displayName;
   if (accountName) accountName.textContent = displayName;
   if (accountCredits) accountCredits.textContent = credits.toLocaleString('ko-KR');
-  if (accountAvatarCircle) accountAvatarCircle.textContent = shortName;
+  applyAvatarVisual(avatarBtn, avatarUrl, shortName);
+  applyAvatarVisual(accountAvatarCircle, avatarUrl, shortName);
+  applyAvatarVisual(topUserAvatar, avatarUrl, shortName, { setAria: false });
   if (topUserName) topUserName.textContent = displayName;
-  if (drawerAccountName) drawerAccountName.textContent = displayName;
-  if (drawerAccountCredits) drawerAccountCredits.textContent = `${credits.toLocaleString('ko-KR')} scene`;
   toggleVisibility(topLoginBtn, false);
   toggleVisibility(topUserChip, true);
-  toggleVisibility(drawerGuest, false);
-  toggleVisibility(drawerUser, true);
 
   if (typeof window.activeCharacterId !== 'undefined' && typeof window.requestCharacterBackgroundReload === 'function') {
     window.requestCharacterBackgroundReload();
@@ -807,10 +859,12 @@ window.requireLogin = requireLogin;
 
 document.addEventListener('DOMContentLoaded', () => {
   loadHead();
+  ensureTopUserControls();
   initSidebar();
   initDrawer();
   updateSectionNickname();
   ensureLoginModalLoaded();
+  updateSidebarUserInfo();
 });
 
 /* Credit Upsell Partial */

@@ -680,23 +680,29 @@ async function fetchUserContext() {
 function ensureDrawerAccountCardNav(card) {
   if (!card || card.dataset.cardNavBound) return;
   const handleActivation = (event) => {
-    if (card.classList.contains('needs-login')) return;
+    const mode = card.dataset.cardMode;
+    if (!mode) return;
     if (event.type === 'keydown') {
       const key = event.key || event.code;
       if (key !== 'Enter' && key !== ' ') return;
     }
     event.preventDefault();
-    window.location.href = '/mypage';
+    if (mode === 'login') {
+      window.location.href = '/login';
+    } else {
+      window.location.href = '/mypage';
+    }
   };
   card.addEventListener('click', handleActivation);
   card.addEventListener('keydown', handleActivation);
   card.dataset.cardNavBound = '1';
 }
 
-function setDrawerAccountCardInteractive(card, enabled) {
+function setDrawerAccountCardInteractive(card, mode) {
   if (!card) return;
   ensureDrawerAccountCardNav(card);
-  if (enabled) {
+  card.dataset.cardMode = mode || '';
+  if (mode) {
     card.classList.add('is-link');
     card.setAttribute('role', 'button');
     card.tabIndex = 0;
@@ -756,7 +762,7 @@ async function updateSidebarUserInfo() {
         window.location.href = '/login';
       };
     }
-    setDrawerAccountCardInteractive(drawerAccountCard, false);
+    setDrawerAccountCardInteractive(drawerAccountCard, 'login');
     if (avatarBtn && !avatarBtn.dataset.loginBound) {
       avatarBtn.addEventListener('click', () => openLoginModal());
       avatarBtn.dataset.loginBound = '1';
@@ -781,7 +787,7 @@ async function updateSidebarUserInfo() {
   if (drawerAccountCard) drawerAccountCard.classList.remove('needs-login');
   sidebarAccountSection?.classList.remove('needs-login');
   toggleVisibility(topLoginBtn, false);
-  setDrawerAccountCardInteractive(drawerAccountCard, true);
+  setDrawerAccountCardInteractive(drawerAccountCard, 'profile');
   if (drawerAccountAction) {
     drawerAccountAction.onclick = null;
   }

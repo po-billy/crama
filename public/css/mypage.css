@@ -27,8 +27,8 @@
   width: 72px;
   height: 72px;
   border-radius: 999px;
-  background: #2b7cff;
-  color: #fff;
+  background: linear-gradient(135deg, #38f28b, #18c86d);
+  color: #050608;
   font-size: 22px;
   font-weight: 700;
   display: flex;
@@ -75,7 +75,7 @@
 }
 
 .profile-avatar-status.success {
-  color: #2b7cff;
+  color: #38f28b;
 }
 
 .profile-avatar-status.error {
@@ -183,8 +183,8 @@
 
 .profile-field-control:focus {
   outline: none;
-  border-color: #2b7cff;
-  box-shadow: 0 0 0 2px rgba(43, 124, 255, 0.2);
+  border-color: #38f28b;
+  box-shadow: 0 0 0 2px rgba(56, 242, 139, 0.25);
 }
 
 .profile-field-control::placeholder {
@@ -202,17 +202,18 @@
 .profile-extras-save {
   border: none;
   border-radius: 10px;
-  background: #2b7cff;
-  color: #fff;
+  background: linear-gradient(135deg, #38f28b, #18c86d);
+  color: #050608;
   font-size: 14px;
   font-weight: 600;
   padding: 10px 16px;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: transform 0.2s ease, filter 0.2s ease;
 }
 
 .profile-extras-save:hover {
-  background: #1e65da;
+  filter: brightness(0.95);
+  transform: translateY(-1px);
 }
 
 .profile-extras-save:disabled {
@@ -226,7 +227,7 @@
 }
 
 .profile-extras-status.success {
-  color: #2b7cff;
+  color: #38f28b;
 }
 
 .profile-extras-status.error {
@@ -254,8 +255,8 @@
   padding: 8px 10px;
   border-radius: 8px;
   border: none;
-  background: #2b7cff;
-  color: #fff;
+  background: linear-gradient(135deg, #38f28b, #18c86d);
+  color: #050608;
   font-size: 13px;
   cursor: pointer;
 }
@@ -287,7 +288,7 @@
 }
 
 .daily-welcome-amount {
-  color: #2b7cff;
+  color: #38f28b;
   font-size: 15px;
   font-weight: 700;
 }
@@ -307,17 +308,23 @@
   padding: 10px 16px;
   border-radius: 10px;
   border: none;
-  background: linear-gradient(90deg, #5a7bff, #7a5bff);
-  color: #fff;
+  background: linear-gradient(135deg, #38f28b, #18c86d);
+  color: #050608;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.daily-welcome-btn:hover {
+  transform: translateY(-1px);
+  opacity: 0.95;
 }
 
 .daily-welcome-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
 }
 
 .daily-welcome-hint {

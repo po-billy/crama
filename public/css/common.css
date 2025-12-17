@@ -175,8 +175,8 @@ a {
     height: 40px;
     border-radius: 999px;
     border: none;
-    background: #2b7cff;
-    color: #fff;
+    background: linear-gradient(135deg, #38f28b, #18c86d);
+    color: #050608;
     font-size: 13px;
     font-weight: 600;
     display: flex;
@@ -243,8 +243,8 @@ a {
     width: 38px;
     height: 38px;
     border-radius: 999px;
-    background: #2b7cff;
-    color: #fff;
+    background: linear-gradient(135deg, #38f28b, #18c86d);
+    color: #050608;
     font-size: 13px;
     font-weight: 600;
     display: flex;
@@ -680,6 +680,8 @@ a {
     border: 1px solid #ffffff;
     cursor: default;
     transition: border-color 0.2s ease, background 0.2s ease;
+    margin: 12px 4px 0;
+    margin-bottom: calc(20px + env(safe-area-inset-bottom, 12px));
 }
 
 .drawer-mobile-account.is-link {
@@ -819,6 +821,16 @@ a {
 .tabbar-icon {
     font-size: 16px;
     line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tabbar-icon svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+    fill: currentColor;
 }
 
 .tabbar-label {
@@ -1076,6 +1088,10 @@ a {
 
     .drawer-mobile-account {
         display: flex;
+    }
+
+    .drawer-list-wrap {
+        padding-bottom: calc(90px + env(safe-area-inset-bottom, 16px));
     }
 }
 

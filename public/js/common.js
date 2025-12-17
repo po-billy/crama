@@ -857,6 +857,55 @@ window.openDrawerImageModal = openDrawerImageModal;
 window.openLoginModal = openLoginModal;
 window.requireLogin = requireLogin;
 
+const URL_BAR_MEDIA_QUERY = '(max-width: 960px)';
+function initMobileUrlBarHider() {
+  if (window.__urlBarHiderBound) return;
+  window.__urlBarHiderBound = true;
+  const mediaQuery = window.matchMedia
+    ? window.matchMedia(URL_BAR_MEDIA_QUERY)
+    : { matches: window.innerWidth <= 960 };
+  let pending = false;
+
+  const shouldApply = () =>
+    mediaQuery.matches && !window.matchMedia('(display-mode: standalone)').matches;
+
+  const nudgeScroll = () => {
+    pending = false;
+    if (!shouldApply()) return;
+    window.requestAnimationFrame(() => {
+      const currentY = window.scrollY || window.pageYOffset || 0;
+      if (currentY < 1) {
+        window.scrollTo(0, 1);
+      } else {
+        window.scrollTo(0, currentY);
+      }
+    });
+  };
+
+  const scheduleHide = () => {
+    if (!shouldApply() || pending) return;
+    pending = true;
+    window.requestAnimationFrame(nudgeScroll);
+  };
+
+  if (mediaQuery.addEventListener) {
+    mediaQuery.addEventListener('change', () => {
+      pending = false;
+      scheduleHide();
+    });
+  } else if (mediaQuery.addListener) {
+    mediaQuery.addListener(() => {
+      pending = false;
+      scheduleHide();
+    });
+  }
+
+  window.addEventListener('load', () => setTimeout(scheduleHide, 300));
+  window.addEventListener('orientationchange', () => setTimeout(scheduleHide, 150));
+  window.addEventListener('focus', scheduleHide);
+  window.addEventListener('scroll', scheduleHide, { passive: true });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   loadHead();
   ensureTopUserControls();
@@ -865,6 +914,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateSectionNickname();
   ensureLoginModalLoaded();
   updateSidebarUserInfo();
+  initMobileUrlBarHider();
 });
 
 /* Credit Upsell Partial */

@@ -859,51 +859,105 @@ window.requireLogin = requireLogin;
 
 const URL_BAR_MEDIA_QUERY = '(max-width: 960px)';
 function initMobileUrlBarHider() {
-  if (window.__urlBarHiderBound) return;
-  window.__urlBarHiderBound = true;
+  if (window.__urlBarHiderInstance) return;
+  const instance = {
+    targetHeight: 0,
+    resizeObserver: null,
+  };
+  window.__urlBarHiderInstance = instance;
+
+  const state = {
+    scheduled: false,
+    meta: null,
+    viewportUnit: 'vh',
+  };
   const mediaQuery = window.matchMedia
     ? window.matchMedia(URL_BAR_MEDIA_QUERY)
     : { matches: window.innerWidth <= 960 };
-  let pending = false;
 
   const shouldApply = () =>
     mediaQuery.matches && !window.matchMedia('(display-mode: standalone)').matches;
 
-  const nudgeScroll = () => {
-    pending = false;
-    if (!shouldApply()) return;
-    window.requestAnimationFrame(() => {
-      const currentY = window.scrollY || window.pageYOffset || 0;
-      if (currentY < 1) {
-        window.scrollTo(0, 1);
-      } else {
-        window.scrollTo(0, currentY);
+  const updateTargetHeight = () => {
+    if (!shouldApply()) {
+      instance.targetHeight = 0;
+      return;
+    }
+    const viewportEl = document.documentElement;
+    const height =
+      typeof window.visualViewport?.height === 'number'
+        ? window.visualViewport.height
+        : viewportEl.clientHeight || window.innerHeight;
+    instance.targetHeight = height;
+    viewportEl.style.setProperty('--vh', `${height * 0.01}px`);
+  };
+
+  const ensureMetaTag = () => {
+    if (state.meta) return;
+    let meta = document.querySelector('meta[name="viewport"]');
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.name = 'viewport';
+      document.head.appendChild(meta);
+    }
+    state.meta = meta;
+  };
+
+  const applyViewportAdjustment = () => {
+    state.scheduled = false;
+    if (!shouldApply()) {
+      if (state.meta) {
+        state.meta.setAttribute(
+          'content',
+          'width=device-width, initial-scale=1, viewport-fit=cover'
+        );
       }
-    });
+      document.documentElement.classList.remove('url-bar-hidden');
+      document.documentElement.style.removeProperty('--vh');
+      return;
+    }
+    ensureMetaTag();
+    updateTargetHeight();
+    if (state.meta) {
+      state.meta.setAttribute(
+        'content',
+        'width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover'
+      );
+    }
+    document.documentElement.classList.add('url-bar-hidden');
   };
 
-  const scheduleHide = () => {
-    if (!shouldApply() || pending) return;
-    pending = true;
-    window.requestAnimationFrame(nudgeScroll);
+  const scheduleAdjust = () => {
+    if (state.scheduled) return;
+    state.scheduled = true;
+    window.requestAnimationFrame(applyViewportAdjustment);
   };
 
-  if (mediaQuery.addEventListener) {
-    mediaQuery.addEventListener('change', () => {
-      pending = false;
-      scheduleHide();
-    });
-  } else if (mediaQuery.addListener) {
-    mediaQuery.addListener(() => {
-      pending = false;
-      scheduleHide();
-    });
+  if (window.visualViewport) {
+    instance.resizeObserver = () => {
+      updateTargetHeight();
+      scheduleAdjust();
+    };
+    window.visualViewport.addEventListener('resize', instance.resizeObserver);
+    window.visualViewport.addEventListener('scroll', instance.resizeObserver);
   }
 
-  window.addEventListener('load', () => setTimeout(scheduleHide, 300));
-  window.addEventListener('orientationchange', () => setTimeout(scheduleHide, 150));
-  window.addEventListener('focus', scheduleHide);
-  window.addEventListener('scroll', scheduleHide, { passive: true });
+  if (mediaQuery.addEventListener) {
+    mediaQuery.addEventListener('change', scheduleAdjust);
+  } else if (mediaQuery.addListener) {
+    mediaQuery.addListener(scheduleAdjust);
+  }
+
+  window.addEventListener('orientationchange', () => setTimeout(scheduleAdjust, 150));
+  window.addEventListener('focus', scheduleAdjust);
+  window.addEventListener('resize', scheduleAdjust);
+  window.addEventListener('scroll', () => {
+    if (!shouldApply()) return;
+    scheduleAdjust();
+  });
+
+  window.addEventListener('load', () => setTimeout(scheduleAdjust, 200));
+  scheduleAdjust();
 }
 
 document.addEventListener('DOMContentLoaded', () => {

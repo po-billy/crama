@@ -36,16 +36,35 @@
 
       <main class="main-area creator-main">
         <section class="creator-hero" id="creatorHero">
-          <div class="creator-avatar" id="creatorAvatar">?</div>
+          <div class="creator-avatar" id="creatorAvatar" aria-hidden="true">?</div>
           <div class="creator-meta">
             <div class="creator-handle-row">
               <div class="creator-name" id="creatorName">-</div>
               <span class="creator-handle" id="creatorHandle">@-</span>
-              <span class="creator-badge">CREATOR</span>
+              <span class="creator-badge" id="creatorBadge">CREATOR</span>
             </div>
-            <div class="creator-stats">
+            <p class="creator-bio" id="creatorBio">소개 문구가 여기에 표시됩니다.</p>
+            <dl class="creator-info-list">
+              <div>
+                <dt>직업</dt>
+                <dd id="creatorJob">-</dd>
+              </div>
+              <div>
+                <dt>성별</dt>
+                <dd id="creatorGender">-</dd>
+              </div>
+              <div>
+                <dt>연령대</dt>
+                <dd id="creatorAge">-</dd>
+              </div>
+            </dl>
+            <div class="creator-links">
+              <a href="#" target="_blank" rel="noopener" id="creatorWebsite" class="creator-link" hidden>웹사이트</a>
+            </div>
+            <div class="creator-stats" id="creatorStats">
+              <span>대표 캐릭터 <strong id="creatorCharacterCount">0</strong></span>
+              <span>이미지 작품 <strong id="creatorImageCount">0</strong></span>
               <span>팔로워 <strong id="creatorFollowers">0</strong></span>
-              <span>작품 <strong id="creatorWorksCount">0</strong></span>
             </div>
             <div class="creator-actions">
               <button class="btn btn-accent" id="followBtn">팔로우</button>
@@ -54,17 +73,28 @@
           </div>
         </section>
 
-        <section class="creator-filters">
-          <button class="filter-chip active" data-filter="all">전체</button>
-          <button class="filter-chip" data-filter="character">캐릭터</button>
-          <button class="filter-chip" data-filter="image">이미지</button>
+        <section class="creator-characters" id="creatorCharactersSection">
+          <div class="creator-section-head">
+            <h2 class="creator-section-title">대표 캐릭터</h2>
+            <p class="creator-section-sub">최근 대화를 기반으로 자동으로 채워집니다.</p>
+          </div>
+          <div class="creator-character-list" id="creatorCharacterList"></div>
         </section>
 
-        <section class="creator-grid" id="creatorGrid"></section>
-
-        <div class="creator-empty hidden" id="creatorEmpty">
-          아직 등록된 작품이 없어요. 캐릭터챗을 시작하거나 스튜디오에서 이미지를 생성해보세요.
-        </div>
+        <section class="creator-works" id="creatorWorksSection">
+          <div class="creator-section-head">
+            <h2 class="creator-section-title">작품 아카이브</h2>
+            <div class="creator-filters">
+              <button class="filter-chip active" data-filter="all">전체</button>
+              <button class="filter-chip" data-filter="character">캐릭터</button>
+              <button class="filter-chip" data-filter="image">이미지</button>
+            </div>
+          </div>
+          <section class="creator-grid" id="creatorGrid"></section>
+          <div class="creator-empty hidden" id="creatorEmpty">
+            아직 등록된 작품이 없어요. 캐릭터챗을 시작하거나 스튜디오에서 이미지를 생성해보세요.
+          </div>
+        </section>
       </main>
     </div>
   </div>

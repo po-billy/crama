@@ -615,6 +615,18 @@ function sanitizeFeedContent(value) {
     .slice(0, CREATOR_FEED_MAX_CONTENT_LENGTH);
 }
 
+function sanitizeFeedImageUrl(value) {
+  const trimmed = String(value || "").trim();
+  if (!trimmed) return null;
+  if (!/^https?:\/\//i.test(trimmed)) return null;
+  try {
+    const url = new URL(trimmed);
+    return url.href;
+  } catch (error) {
+    return null;
+  }
+}
+
 function encodeFeedCursor(payload) {
   const base = Buffer.from(JSON.stringify(payload)).toString("base64");
   return base.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
@@ -663,6 +675,7 @@ function mapPostToResponse(post, viewerId) {
     updated_at: post.updated_at,
     content: post.content,
     type: post.type || "characters",
+    image_url: post.image_url || null,
     like_count: likeUserIds.length,
     liked: viewerId ? likeUserIds.includes(viewerId) : false,
     comment_count: commentCount,
@@ -1049,6 +1062,7 @@ app.post("/api/creator-feed", async (req, res) => {
   if (!ensureFeedOwner(user, targetUserId, res)) return;
   const content = sanitizeFeedContent(req.body?.content);
   if (!content) return sendError(res, 400, "content_required");
+  const imageUrl = sanitizeFeedImageUrl(req.body?.image_url);
 
   const now = new Date().toISOString();
   const post = {
@@ -1059,6 +1073,7 @@ app.post("/api/creator-feed", async (req, res) => {
     updated_at: now,
     like_user_ids: [],
     type: "characters",
+    image_url: imageUrl,
     author_snapshot: buildAuthorSnapshot(user),
   };
   creatorFeedStore.posts.unshift(post);
@@ -1073,7 +1088,9 @@ app.put("/api/creator-feed/:postId", async (req, res) => {
   if (!ensureFeedOwner(user, post.owner_id, res)) return;
   const content = sanitizeFeedContent(req.body?.content);
   if (!content) return sendError(res, 400, "content_required");
+  const imageUrl = sanitizeFeedImageUrl(req.body?.image_url);
   post.content = content;
+  post.image_url = imageUrl;
   post.updated_at = new Date().toISOString();
   persistCreatorFeedStore(creatorFeedStore);
   return res.json({ ok: true });

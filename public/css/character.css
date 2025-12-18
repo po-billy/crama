@@ -1364,6 +1364,16 @@ body.modal-open {
   transition: bottom 0.2s ease;
 }
 
+@media (max-width: 768px) {
+  .chat-input-wrapper {
+    bottom: calc(
+      var(--chat-input-keyboard-offset, 0px) + 70px +
+        env(safe-area-inset-bottom, 0px)
+    );
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 16px));
+  }
+}
+
 @media (max-width: 1024px) {
   .character-layout {
     flex-direction: column;

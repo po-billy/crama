@@ -31,7 +31,6 @@
           ☰
         </button>
         <span class="top-title">마이페이지</span>
-        <span class="top-add">+</span>
       </div>
     </header>
 
@@ -45,177 +44,69 @@
       <!-- 메인 -->
       <main class="main-area mypage-main">
         <section class="profile-card" id="profileCard">
-          <!-- 상단 프로필 헤더 -->
-          <div class="profile-header">
-            <div class="profile-avatar" id="profileAvatarCircle">프로필</div>
-            <div class="profile-name-wrap">
-              <div class="profile-display-name" id="profileDisplayName">회원명</div>
-              <div class="profile-handle" id="profileHandle">@username</div>
+          <button type="button" class="profile-header profile-header-link" id="mypageCreatorLink" aria-label="내 크리에이터 페이지로 이동">
+            <div class="profile-header-main">
+              <div class="profile-avatar" id="profileAvatarCircle">프로필</div>
+              <div class="profile-name-wrap">
+                <div class="profile-display-name" id="profileDisplayName">회원명</div>
+                <div class="profile-handle" id="profileHandle">@username</div>
+              </div>
+            </div>
+            <span class="profile-header-arrow" aria-hidden="true">›</span>
+          </button>
+
+          <div class="profile-insights">
+            <div class="profile-insight">
+              <span class="profile-insight__label">닉네임</span>
+              <strong class="profile-insight__value" id="profileNickname">-</strong>
+            </div>
+            <div class="profile-insight">
+              <span class="profile-insight__label">가입일</span>
+              <strong class="profile-insight__value" id="profileJoinedAt">-</strong>
+            </div>
+            <div class="profile-insight">
+              <span class="profile-insight__label">현재 플랜</span>
+              <strong class="profile-insight__value" id="profilePlan">무료</strong>
             </div>
           </div>
-          <div class="profile-avatar-actions">
-            <button type="button" class="profile-avatar-btn" id="profileAvatarUploadBtn">
-              프로필 이미지 변경
-            </button>
-            <input type="file" id="profileAvatarInput" accept="image/*" hidden>
-            <small class="profile-avatar-status" id="profileAvatarStatus"></small>
-          </div>
 
-          <!-- 계정 정보 섹션 -->
-          <div class="profile-section">
-            <div class="profile-section-title">계정 정보</div>
-            <div class="profile-row">
-              <div class="profile-row-label">가입일</div>
-              <div class="profile-row-value" id="profileJoinedAt">-</div>
-            </div>
-            <div class="profile-row">
-              <div class="profile-row-label">닉네임</div>
-              <div class="profile-row-value" id="profileNickname">-</div>
-            </div>
-            <form class="profile-row profile-row-inline" id="handleForm">
-              <input
-                type="text"
-                class="profile-input"
-                id="handleInput"
-                placeholder="새 닉네임 (3~32자)"
-                maxlength="32"
-                autocomplete="off"
-              />
-              <button class="profile-small-btn" id="handleSaveBtn" type="submit">
-                닉네임 변경
-              </button>
-            </form>
-            <div class="profile-row">
-              <div class="profile-row-label"></div>
-              <div class="profile-row-value">
-                <small id="handleStatus" class="handle-status"></small>
-              </div>
-            </div>
-            <div class="profile-row">
-              <div class="profile-row-label">현재 플랜</div>
-              <div class="profile-row-value" id="profilePlan">무료</div>
-            </div>
-            <div class="profile-row">
-              <div class="profile-row-label">scene</div>
-              <div class="profile-row-value">
-                <span id="profileCredits">0</span>
-              </div>
-            </div>
-
-            <div class="profile-row profile-row-inline">
-              <input
-                type="text"
-                class="profile-input"
-                disabled
-                value="추가 scene이 필요하신가요?"
-              />
-              <button class="profile-small-btn" id="buyCreditsBtn">
-                + scene 구매하기
-              </button>
-            </div>
-
-            <div class="daily-welcome-card" id="dailyWelcomeCard">
-              <div class="daily-welcome-texts">
-                <div class="daily-welcome-title">
-                  매일 웰컴 scene
-                  <span class="daily-welcome-amount" id="dailyWelcomeAmount"></span>
-                </div>
-                <div class="daily-welcome-status" id="dailyWelcomeStatus">
-                  상태 확인 중...
-                </div>
-              </div>
-              <button class="daily-welcome-btn" id="dailyWelcomeBtn">
-                받기
-              </button>
-            </div>
-            <p class="daily-welcome-hint" id="dailyWelcomeHint"></p>
-          </div>
-
-          <!-- 추가 프로필 정보 섹션 -->
-          <div class="profile-section profile-section--extras">
-            <div class="profile-section-title">추가 프로필 정보</div>
-            <form class="profile-extras-form" id="profileExtrasForm">
-              <label class="profile-field">
-                <span class="profile-field-label">자기소개</span>
-                <textarea
-                  id="profileBioInput"
-                  class="profile-field-control"
-                  rows="3"
-                  placeholder="간단한 자기소개를 적어주세요."
-                ></textarea>
-              </label>
-
-              <label class="profile-field">
-                <span class="profile-field-label">웹사이트</span>
-                <input
-                  type="url"
-                  id="profileWebsiteInput"
-                  class="profile-field-control"
-                  placeholder="https://example.com"
-                />
-              </label>
-
-              <label class="profile-field">
-                <span class="profile-field-label">직업</span>
-                <input
-                  type="text"
-                  id="profileJobInput"
-                  class="profile-field-control"
-                  placeholder="어떤 일을 하고 계신가요?"
-                />
-              </label>
-
-              <div class="profile-field profile-field--inline">
-                <label class="profile-field-segment">
-                  <span class="profile-field-label">성별</span>
-                  <select id="profileGenderInput" class="profile-field-control">
-                    <option value="">선택 안 함</option>
-                    <option value="여성">여성</option>
-                    <option value="남성">남성</option>
-                    <option value="비공개">비공개</option>
-                    <option value="자유 기재">자유 기재</option>
-                  </select>
-                </label>
-                <label class="profile-field-segment">
-                  <span class="profile-field-label">연령대</span>
-                  <select id="profileAgeRangeInput" class="profile-field-control">
-                    <option value="">선택 안 함</option>
-                    <option value="10대">10대</option>
-                    <option value="20대">20대</option>
-                    <option value="30대">30대</option>
-                    <option value="40대">40대</option>
-                    <option value="50대 이상">50대 이상</option>
-                  </select>
-                </label>
-              </div>
-
-              <div class="profile-extras-actions">
-                <button type="submit" class="profile-extras-save">추가 정보 저장</button>
-                <span class="profile-extras-status" id="profileExtrasStatus"></span>
-              </div>
-            </form>
-          </div>
-
-          <!-- 버튼 영역 -->
           <div class="profile-actions">
-            <!-- <button class="profile-edit-btn" id="editProfileBtn">
-              ✏ 프로필 수정하기 (준비 중)
-            </button> -->
             <button class="profile-logout-btn" id="profileLogoutBtn">
               로그아웃
             </button>
           </div>
+        </section>
 
-          <!-- 위험 구역
-          <div class="profile-danger">
-            <div class="profile-danger-title">위험 구역</div>
-            <p class="profile-danger-desc">
-              다음 작업은 되돌릴 수 없습니다. 신중하게 진행해주세요.
-            </p>
-            <button class="profile-delete-btn" id="profileDeleteBtn">
-              계정 영구 삭제 (서버 구현 필요)
+        <section class="scene-card card" id="sceneSummaryCard">
+          <div class="scene-card__header">
+            <div>
+              <p class="scene-card__eyebrow">scene & 혜택</p>
+              <h3 class="scene-card__title">오늘 Scene 현황</h3>
+            </div>
+            <div class="scene-card__plan" id="scenePlanLabel">무료</div>
+          </div>
+          <div class="scene-card__balance">
+            <div class="scene-card__balance-value" data-profile-credits>0</div>
+            <div class="scene-card__balance-label">잔여 scene</div>
+            <button class="scene-card__balance-btn" id="buyCreditsBtn">
+              scene 충전하기
             </button>
-          </div> -->
+          </div>
+          <div class="daily-welcome-card" id="dailyWelcomeCard">
+            <div class="daily-welcome-texts">
+              <div class="daily-welcome-title">
+                매일 웰컴 scene
+                <span class="daily-welcome-amount" id="dailyWelcomeAmount"></span>
+              </div>
+              <div class="daily-welcome-status" id="dailyWelcomeStatus">
+                상태 확인 중...
+              </div>
+            </div>
+            <button class="daily-welcome-btn" id="dailyWelcomeBtn">
+              받기
+            </button>
+          </div>
+          <p class="daily-welcome-hint" id="dailyWelcomeHint"></p>
         </section>
       </main>
     </div>

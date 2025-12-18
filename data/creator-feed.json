@@ -1,6 +1,21 @@
 {
   "posts": [
     {
+      "id": "post_12230e5d-c2f2-4b09-a845-4cd3cbafa825",
+      "owner_id": "4f87e03a-dd1e-45a5-b1a0-3bcf7940eefb",
+      "content": "## 오늘의 씬 업데이트\n- **Scene 모드 출시!**\n- *눈이 더 즐거운* 상황별 이미지가 나와요.\n- 수집도 해 보세요 😉\n\n> “새로운 감성으로 캐릭터를 만나보세요.”\n\n1. 캐릭터와 대화를 시작하고\n2. `scene run` 명령으로 원하는 분위기를 골라보세요.\n3. [자세히 보기](https://crama.app/updates)",
+      "created_at": "2025-12-18T02:09:20.364Z",
+      "updated_at": "2025-12-18T02:09:20.364Z",
+      "like_user_ids": [],
+      "type": "characters",
+      "author_snapshot": {
+        "id": "4f87e03a-dd1e-45a5-b1a0-3bcf7940eefb",
+        "name": "엄희송",
+        "handle": null,
+        "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocJ1X1hoy6CkshwUR3PRLHigaRRrEFmPyTmA688KXUVi4bl7UA=s96-c"
+      }
+    },
+    {
       "id": "post_38846698-9b86-4f71-a550-f3244fe54161",
       "owner_id": "4f87e03a-dd1e-45a5-b1a0-3bcf7940eefb",
       "content": "fdfdf",

@@ -1,10 +1,7 @@
 // js/mypage.js
 (function () {
 const apiFetch = window.apiFetch || ((...args) => fetch(...args));
-const AVATAR_BUCKET = 'character_profile';
-const USER_AVATAR_FOLDER = 'user-avatars';
 let currentProfileInitial = '사용자';
-let currentProfileAvatarUrl = '';
 let currentProfileUserId = null;
 let currentProfileDisplayName = '사용자';
 
@@ -50,18 +47,12 @@ async function initMyPage() {
 
   // 4) DOM에 바인딩
   bindProfileToDom(vm);
-  setupAvatarUploader(user.id);
 
   // 5) 버튼 이벤트
   setupMyPageActions();
+  setupCreatorShortcut();
 
-  // 6) 핸들 수정 폼
-  setupHandleEditor(vm.handle);
-
-  // 7) 추가 프로필 정보 폼
-  setupProfileExtrasForm();
-
-  // 8) 웰컴 scene 위젯
+  // 6) 웰컴 scene 위젯
   initDailyWelcomeWidget();
 }
 
@@ -101,45 +92,14 @@ function buildProfileViewModel({ user, profile, wallet, subscription }) {
     planName,
     credits,
     avatarUrl,
-    // 추가 정보
-    bio: profile?.bio || "",
-    website: profile?.website || "",
-    job: profile?.job || "",
-    gender: profile?.gender || "",
-    ageRange: profile?.age_range || "",
   };
 }
 
-function safeText(value, fallback = "정보 없음") {
-  if (!value || !String(value).trim()) return fallback;
-  return value;
-}
-
-function setFieldControlValue(el, value) {
-  if (!el) return;
-  const normalized = value || "";
-  if (el.tagName === "SELECT") {
-    Array.from(el.querySelectorAll("option[data-dynamic-option='1']")).forEach((opt) =>
-      opt.remove()
-    );
-    if (normalized) {
-      const hasOption = Array.from(el.options).some((opt) => opt.value === normalized);
-      if (!hasOption) {
-        const opt = document.createElement("option");
-        opt.value = normalized;
-        opt.textContent = normalized;
-        opt.dataset.dynamicOption = "1";
-        el.appendChild(opt);
-      }
-    }
-    el.value = normalized || "";
-    return;
-  }
-  if ("value" in el) {
-    el.value = normalized;
-  } else {
-    el.textContent = safeText(normalized);
-  }
+function setProfileCreditsDisplay(amount) {
+  const formatted = Number(amount || 0).toLocaleString("ko-KR");
+  document.querySelectorAll("[data-profile-credits]").forEach((el) => {
+    el.textContent = formatted;
+  });
 }
 
 function bindProfileToDom(vm) {
@@ -149,13 +109,7 @@ function bindProfileToDom(vm) {
   const joinedAtEl = document.getElementById("profileJoinedAt");
   const nicknameEl = document.getElementById("profileNickname");
   const planEl = document.getElementById("profilePlan");
-  const creditsEl = document.getElementById("profileCredits");
-
-  const bioInput = document.getElementById("profileBioInput");
-  const websiteInput = document.getElementById("profileWebsiteInput");
-  const jobInput = document.getElementById("profileJobInput");
-  const genderInput = document.getElementById("profileGenderInput");
-  const ageRangeInput = document.getElementById("profileAgeRangeInput");
+  const scenePlanLabel = document.getElementById("scenePlanLabel");
 
   const shortName =
     vm.displayName.length <= 2
@@ -165,253 +119,33 @@ function bindProfileToDom(vm) {
   currentProfileDisplayName = vm.displayName;
   setProfileAvatarCircle(vm.avatarUrl, shortName, vm.displayName);
   currentProfileInitial = shortName;
-  currentProfileAvatarUrl = vm.avatarUrl || '';
-
   if (displayNameEl) displayNameEl.textContent = vm.displayName;
   if (handleEl) handleEl.textContent = vm.handle ? `@${vm.handle}` : "";
   if (joinedAtEl) joinedAtEl.textContent = vm.joinedText;
   if (nicknameEl) nicknameEl.textContent = vm.handle || vm.displayName;
   if (planEl) planEl.textContent = vm.planName;
-  if (creditsEl) creditsEl.textContent = vm.credits.toLocaleString("ko-KR");
-
-  setFieldControlValue(bioInput, vm.bio);
-  setFieldControlValue(websiteInput, vm.website);
-  setFieldControlValue(jobInput, vm.job);
-  setFieldControlValue(genderInput, vm.gender);
-  setFieldControlValue(ageRangeInput, vm.ageRange);
+  if (scenePlanLabel) scenePlanLabel.textContent = vm.planName;
+  setProfileCreditsDisplay(vm.credits);
 }
 
-function setupHandleEditor(currentHandle) {
-  const form = document.getElementById("handleForm");
-  const input = document.getElementById("handleInput");
-  const button = document.getElementById("handleSaveBtn");
-  const status = document.getElementById("handleStatus");
-
-  if (!form || !input || !button) return;
-
-  input.value = currentHandle || "";
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const val = (input.value || "").trim().toLowerCase();
-    if (!val || val.length < 3 || val.length > 32) {
-      if (status) {
-        status.textContent = "닉네임은 3~32자여야 합니다.";
-        status.className = "handle-status error";
-      }
-      return;
-    }
-    button.disabled = true;
-    if (status) {
-      status.textContent = "변경 중...";
-      status.className = "handle-status";
-    }
-    try {
-      const { data } = await window.sb.auth.getSession();
-      const token = data?.session?.access_token;
-      const res = await apiFetch("/api/profile/change-handle", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ handle: val }),
-      });
-      const json = await res.json().catch(() => null);
-      if (!res.ok) {
-        if (status) {
-          if (json?.message === "handle_change_cooldown") {
-            status.textContent = `최근 변경 후 ${json?.remainingDays || 0}일 남았습니다.`;
-          } else if (json?.message === "handle_taken") {
-            status.textContent = "이미 사용 중인 닉네임입니다.";
-          } else {
-            status.textContent = json?.message || "변경 실패";
-          }
-          status.className = "handle-status error";
-        }
-        return;
-      }
-      if (status) {
-        status.textContent = "변경 완료!";
-        status.className = "handle-status success";
-      }
-      const handleValue = json?.handle || val;
-      const handleEl = document.getElementById("profileHandle");
-      if (handleEl) handleEl.textContent = handleValue ? `@${handleValue}` : "";
-      const nicknameEl = document.getElementById("profileNickname");
-      if (nicknameEl) nicknameEl.textContent = handleValue;
-    } catch (err) {
-      console.error("handle change error", err);
-      if (status) {
-        status.textContent = "오류가 발생했습니다.";
-        status.className = "handle-status error";
-      }
-    } finally {
-      button.disabled = false;
-    }
-  });
-}
-
-function setupProfileExtrasForm() {
-  const form = document.getElementById("profileExtrasForm");
-  const saveBtn = form?.querySelector(".profile-extras-save");
-  const statusEl = document.getElementById("profileExtrasStatus");
-  if (!form || !saveBtn || form.dataset.bound) return;
-
-  const bioInput = document.getElementById("profileBioInput");
-  const websiteInput = document.getElementById("profileWebsiteInput");
-  const jobInput = document.getElementById("profileJobInput");
-  const genderInput = document.getElementById("profileGenderInput");
-  const ageRangeInput = document.getElementById("profileAgeRangeInput");
-
-  const toNullable = (value) => {
-    const text = (value || "").trim();
-    return text.length ? text : null;
-  };
-
-  const setStatus = (message, variant) => {
-    if (!statusEl) return;
-    statusEl.textContent = message || "";
-    statusEl.className = "profile-extras-status";
-    if (variant) statusEl.classList.add(variant);
-  };
-
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    if (!currentProfileUserId) {
-      setStatus("세션이 만료되었습니다. 다시 로그인해주세요.", "error");
-      return;
-    }
-    const payload = {
-      bio: toNullable(bioInput?.value),
-      website: toNullable(websiteInput?.value),
-      job: toNullable(jobInput?.value),
-      gender: toNullable(genderInput?.value),
-      age_range: toNullable(ageRangeInput?.value),
-    };
-
-    saveBtn.disabled = true;
-    setStatus("저장 중...", "");
-
-    try {
-      const { error } = await window.sb
-        .from("profiles")
-        .update(payload)
-        .eq("id", currentProfileUserId);
-      if (error) throw error;
-      setStatus("저장되었습니다.", "success");
-      setFieldControlValue(bioInput, payload.bio);
-      setFieldControlValue(websiteInput, payload.website);
-      setFieldControlValue(jobInput, payload.job);
-      setFieldControlValue(genderInput, payload.gender);
-      setFieldControlValue(ageRangeInput, payload.age_range);
-    } catch (err) {
-      console.error("profile extras save error", err);
-      setStatus("저장에 실패했습니다. 잠시 후 다시 시도해주세요.", "error");
-    } finally {
-      saveBtn.disabled = false;
-    }
-  });
-
-  form.dataset.bound = "1";
-}
-
-function fileToDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = () => reject(reader.error || new Error("파일을 읽지 못했습니다."));
-    reader.readAsDataURL(file);
-  });
-}
 
 function setProfileAvatarCircle(url, initials = "사용자", title = "프로필") {
   const avatarCircle = document.getElementById("profileAvatarCircle");
   if (!avatarCircle) return;
   const sanitizedInitials = initials || "사용자";
-  if (url) {
-    const sanitizedUrl = url.replace(/(["'()])/g, "\\$1");
-    avatarCircle.style.backgroundImage = `url("${sanitizedUrl}")`;
-    avatarCircle.classList.add("has-image");
-    avatarCircle.textContent = "";
-  } else {
-    avatarCircle.style.backgroundImage = "";
-    avatarCircle.classList.remove("has-image");
-    avatarCircle.textContent = sanitizedInitials;
-  }
+  const placeholder =
+    window.DEFAULT_AVATAR_PLACEHOLDER || "/assets/sample-character-01.png";
+  const finalUrl = (url && url.trim()) || placeholder;
+  const sanitizedUrl = finalUrl.replace(/(["'()])/g, "\\$1");
+  avatarCircle.style.backgroundImage = `url("${sanitizedUrl}")`;
+  avatarCircle.classList.add("has-image");
+  avatarCircle.textContent = "";
   avatarCircle.title = title || sanitizedInitials;
 }
 
-function setupAvatarUploader(userId) {
-  const uploadBtn = document.getElementById("profileAvatarUploadBtn");
-  const fileInput = document.getElementById("profileAvatarInput");
-  const statusEl = document.getElementById("profileAvatarStatus");
-  if (!uploadBtn || !fileInput) return;
-
-  const setStatus = (message, variant) => {
-    if (!statusEl) return;
-    statusEl.textContent = message || "";
-    statusEl.className = "profile-avatar-status";
-    if (variant) statusEl.classList.add(variant);
-  };
-
-  uploadBtn.addEventListener("click", () => fileInput.click());
-
-  fileInput.addEventListener("change", async (event) => {
-    const file = event.target.files && event.target.files[0];
-    if (!file) return;
-    if (!/^image\//i.test(file.type)) {
-      setStatus("이미지 파일만 업로드할 수 있어요.", "error");
-      fileInput.value = "";
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setStatus("5MB 이하의 이미지만 업로드할 수 있어요.", "error");
-      fileInput.value = "";
-      return;
-    }
-    setStatus("업로드 중...", "");
-    uploadBtn.disabled = true;
-    try {
-      const dataUrl = await fileToDataUrl(file);
-      const res = await apiFetch("/api/upload/avatar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          dataUrl,
-          fileName: file.name,
-          bucket: AVATAR_BUCKET,
-          folder: `${USER_AVATAR_FOLDER}/${userId}`,
-        }),
-      });
-      const json = await res.json().catch(() => null);
-      if (!res.ok || !json?.url) {
-        throw new Error(json?.message || "업로드에 실패했습니다.");
-      }
-      const { error } = await window.sb
-        .from("profiles")
-        .update({ avatar_url: json.url })
-        .eq("id", userId);
-      if (error) throw error;
-      currentProfileAvatarUrl = json.url;
-      setProfileAvatarCircle(json.url, currentProfileInitial, currentProfileDisplayName);
-      setStatus("프로필 이미지가 업데이트되었어요.", "success");
-      if (typeof window.updateSidebarUserInfo === "function") {
-        window.updateSidebarUserInfo();
-      }
-    } catch (err) {
-      console.error("avatar upload error", err);
-      setStatus(err?.message || "업로드 중 오류가 발생했습니다.", "error");
-    } finally {
-      uploadBtn.disabled = false;
-      fileInput.value = "";
-    }
-  });
-}
 function setupMyPageActions() {
   const logoutBtn = document.getElementById("profileLogoutBtn");
-  const deleteBtn = document.getElementById("profileDeleteBtn");
   const buyCreditsBtn = document.getElementById("buyCreditsBtn");
-  const editBtn = document.getElementById("editProfileBtn");
 
   if (logoutBtn) {
     logoutBtn.addEventListener("click", async () => {
@@ -430,21 +164,17 @@ function setupMyPageActions() {
       alert("scene 구매 기능은 추후 연결 예정입니다.");
     });
   }
+}
 
-  if (editBtn) {
-    editBtn.addEventListener("click", () => {
-      alert("프로필 수정 기능은 아직 준비 중입니다.");
-    });
-  }
-
-  if (deleteBtn) {
-    deleteBtn.addEventListener("click", () => {
-      alert(
-        "계정 영구 삭제는 보안상 서버(관리자)에서만 가능하게 구현해야 합니다." +
-          "별도의 백엔드/Edge Function에서 구현해 주세요."
-      );
-    });
-  }
+function setupCreatorShortcut() {
+  const linkBtn = document.getElementById("mypageCreatorLink");
+  if (!linkBtn) return;
+  linkBtn.addEventListener("click", () => {
+    if (!currentProfileUserId) return;
+    const targetUrl = new URL("/creator", window.location.origin);
+    targetUrl.searchParams.set("user", currentProfileUserId);
+    window.location.href = targetUrl.toString();
+  });
 }
 
 async function getAuthHeaders() {
@@ -590,8 +320,7 @@ async function initDailyWelcomeWidget() {
       latestState = { ...claim, enabled: true };
       updateDailyWelcomeUI(latestState);
       if (typeof claim.balance === "number") {
-        const creditsEl = document.getElementById("profileCredits");
-        if (creditsEl) creditsEl.textContent = claim.balance.toLocaleString("ko-KR");
+        setProfileCreditsDisplay(claim.balance);
       }
       if (typeof window.updateSidebarUserInfo === "function") {
         window.updateSidebarUserInfo();

@@ -6,6 +6,5 @@
 .url-bar-hidden .app,
 .url-bar-hidden .content,
 .url-bar-hidden .main-area {
-  min-height: calc(var(--vh) * 100);
   height: calc(var(--vh) * 100);
 }

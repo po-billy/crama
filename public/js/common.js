@@ -4,6 +4,7 @@ const SUPABASE_URL = runtimeEnv.SUPABASE_URL || runtimeEnv.PUBLIC_SUPABASE_URL |
 const SUPABASE_ANON_KEY =
   runtimeEnv.SUPABASE_ANON_KEY || runtimeEnv.PUBLIC_SUPABASE_ANON_KEY || '';
 const API_BASE_URL = (runtimeEnv.API_BASE_URL || '').replace(/\/+$/, '');
+const DEFAULT_AVATAR_PLACEHOLDER = '/assets/sample-character-01.png';
 
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   console.error('Supabase 환경 변수가 누락되었습니다. /env.js 설정을 확인하세요.');
@@ -54,9 +55,15 @@ function applyAvatarVisual(target, url, fallbackText = '', options = {}) {
   const safeFallback = fallbackText || '';
   const setText = options.keepText !== true;
   const setAria = options.setAria !== false;
+  const usePlaceholder = options.usePlaceholder !== false;
+  const placeholderUrl =
+    typeof options.placeholderUrl === 'string'
+      ? options.placeholderUrl
+      : DEFAULT_AVATAR_PLACEHOLDER;
+  const resolvedUrl = safeUrl || (usePlaceholder ? placeholderUrl : '');
 
-  if (safeUrl) {
-    const sanitized = safeUrl.replace(/(["'()])/g, '\\$1');
+  if (resolvedUrl) {
+    const sanitized = resolvedUrl.replace(/(["'()])/g, '\\$1');
     target.style.backgroundImage = `url("${sanitized}")`;
     target.classList.add('has-image');
     if (setText) target.textContent = '';
@@ -73,6 +80,8 @@ function applyAvatarVisual(target, url, fallbackText = '', options = {}) {
     }
   }
 }
+
+window.DEFAULT_AVATAR_PLACEHOLDER = DEFAULT_AVATAR_PLACEHOLDER;
 
 function getPreferredUserNickname(context) {
   if (!context) return '사용자';

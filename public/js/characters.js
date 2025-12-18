@@ -5,6 +5,44 @@
 
   let charactersCache = [];
   let previewSelected = null;
+  let activeFilterKey = 'recommended';
+  let currentUserNickname = '게스트';
+
+  const GENRE_FILTERS = [
+    '로맨스',
+    '로판',
+    'SF/판타지',
+    '일상/현대',
+    '무협',
+    '시대',
+    'BL',
+    'GL',
+    '2차 창작',
+    '유틸리티',
+    '기타',
+  ];
+  const TARGET_FILTERS = ['남성향', '여성향', '전체'];
+  const SPECIAL_FILTERS = [
+    { key: 'recommended', label: '추천', type: 'recommended' },
+    { key: 'all', label: '전체', type: 'all' },
+  ];
+  const FILTER_DEFINITIONS = [
+    ...SPECIAL_FILTERS,
+    ...GENRE_FILTERS.map((label) => ({
+      key: `genre-${label}`,
+      label,
+      type: 'genre',
+      value: label,
+    })),
+    ...TARGET_FILTERS.map((label) => ({
+      key: `target-${label}`,
+      label: label === '전체' ? '전체 이용자' : label,
+      type: 'target',
+      value: label,
+    })),
+  ];
+  const AVATAR_PLACEHOLDER =
+    window.DEFAULT_AVATAR_PLACEHOLDER || './assets/sample-character-01.png';
 
   async function isUserLoggedIn() {
     if (!window.sb?.auth) return false;
@@ -28,64 +66,237 @@
     }
   }
 
-  // 카드 렌더: 크리에이터 정보 포함
-  function renderCharacterCard(character) {
-  const card = document.createElement('div');
-  card.className = 'character-card card';
-  card.dataset.id = character.id;
+  function getFilterByKey(key) {
+    return FILTER_DEFINITIONS.find((filter) => filter.key === key) || FILTER_DEFINITIONS[0];
+  }
 
-  const creator = character.creator_profile || {};
-  const creatorName = creator.display_name || ''; 
-  const creatorHandle = creator.handle || 'unknown';
-  const creatorInitial = (creator.display_name || creator.handle || '?').slice(0, 2);
-  const ownerId = character.owner_id || character.user_id;
-
-  card.innerHTML = `
-    <div class="character-card__thumb">
-      <img src="${character.avatar_url || './assets/sample-character.png'}" alt="${character.name}" />
-      ${character.is_monetized ? `<div class="character-card__badge character-card__badge--share">공유 가능</div>` : ''}
-    </div>
-    <div class="character-card__body">
-      <div class="character-card__title-row">
-        <h2 class="character-card__name">${character.name}</h2>
-      </div>
-      <p class="character-card__summary">
-        ${character.one_line || ''}
-      </p>
-      <div class="character-card__meta">
-        <span class="meta-item">좋아요 ${character.like_count || 0}</span>
-        <span class="meta-item">채팅 ${character.chat_count || 0}</span>
-        <span class="meta-item">조회수 ${character.view_count || 0}</span>
-      </div>
-      <div class="character-card__creator">
-        <div class="creator-avatar">${creatorInitial}</div>
-        <div class="creator-info">
-          <div class="creator-name">${creatorName}</div>
-          <div class="creator-handle">@${creatorHandle}</div>
-        </div>
-      </div>
-      <div class="character-card__tags">
-        ${(character.tags || []).slice(0, 3).map(t => `<span class="tag">#${t}</span>`).join('')}
-      </div>
-    </div>
-  `;
-
-  card.addEventListener('click', (e) => {
-    e.preventDefault();
-    openCharacterPreview(character);
-  });
-
-  // 크리에이터 정보 클릭 시 creator 페이지로 이동
-  const creatorBlock = card.querySelector('.character-card__creator');
-  if (creatorBlock && ownerId) {
-    creatorBlock.addEventListener('click', (e) => {
-      e.stopPropagation();
-      window.location.href = `/creator?user=${ownerId}`;
+  function buildFilterChips() {
+    const container = document.getElementById('charactersFilterChips');
+    if (!container) return;
+    container.innerHTML = '';
+    FILTER_DEFINITIONS.forEach((filter) => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chip';
+      chip.textContent = filter.label;
+      chip.dataset.filterKey = filter.key;
+      if (filter.key === activeFilterKey) chip.classList.add('chip--active');
+      chip.addEventListener('click', () => setActiveFilter(filter.key));
+      container.appendChild(chip);
     });
   }
 
-  return card;
-}
+  function refreshFilterActiveState() {
+    const container = document.getElementById('charactersFilterChips');
+    if (!container) return;
+    container
+      .querySelectorAll('.chip')
+      .forEach((chip) =>
+        chip.classList.toggle('chip--active', chip.dataset.filterKey === activeFilterKey)
+      );
+  }
+
+  function normalizeValue(value) {
+    return (value || '').toString().trim().toLowerCase();
+  }
+
+  function selectRecommendedCharacters(list) {
+    if (!Array.isArray(list) || !list.length) return [];
+    const scored = list.map((character) => {
+      const like = Number(character.like_count || 0);
+      const view = Number(character.view_count || 0);
+      const chat = Number(character.chat_count || 0);
+      const premium = character.is_monetized ? 30 : 0;
+      return {
+        character,
+        score: like * 3 + chat * 2 + view + premium,
+      };
+    });
+    const highlighted = scored.filter(
+      (entry) =>
+        entry.character.is_monetized ||
+        Number(entry.character.like_count || 0) >= 5 ||
+        Number(entry.character.view_count || 0) >= 30
+    );
+    const pool = highlighted.length ? highlighted : scored;
+    return pool
+      .sort((a, b) => b.score - a.score)
+      .map((entry) => entry.character)
+      .slice(0, 16);
+  }
+
+  function filterCharacters(list, filter) {
+    if (!Array.isArray(list) || !list.length) return [];
+    if (!filter) return [...list];
+    if (filter.type === 'genre') {
+      const value = normalizeValue(filter.value);
+      return list.filter((ch) => normalizeValue(ch.genre) === value);
+    }
+    if (filter.type === 'target') {
+      const value = normalizeValue(filter.value);
+      return list.filter((ch) => normalizeValue(ch.target) === value);
+    }
+    if (filter.type === 'recommended') {
+      return selectRecommendedCharacters(list);
+    }
+    return [...list];
+  }
+
+  function setCharactersListMessage(message) {
+    const listEl = document.getElementById('charactersList');
+    if (!listEl) return;
+    listEl.innerHTML = `<div class="characters-grid-empty">${message}</div>`;
+  }
+
+  function updateSectionHeading(filter) {
+    const nicknameEl = document.getElementById('sectionNickname');
+    const suffixEl = document.getElementById('sectionEyebrowSuffix');
+    const titleEl = document.getElementById('charactersSectionTitle');
+
+    if (nicknameEl) nicknameEl.textContent = currentUserNickname;
+
+    const activeFilter = filter || getFilterByKey(activeFilterKey);
+    let titleText = '추천 캐릭터';
+    let suffixText = '님을 위한 추천';
+    if (activeFilter.type === 'genre') {
+      titleText = `${activeFilter.label} 캐릭터`;
+      suffixText = `님을 위한 ${activeFilter.label} 추천`;
+    } else if (activeFilter.type === 'target') {
+      const label =
+        activeFilter.value === '전체' ? '전체 이용자' : activeFilter.label || activeFilter.value;
+      titleText = `${label} 취향 캐릭터`;
+      suffixText = `님을 위한 ${label} 추천`;
+    } else if (activeFilter.type === 'all') {
+      titleText = '전체 캐릭터';
+      suffixText = '님이 고른 전체 캐릭터';
+    }
+    if (titleEl) titleEl.textContent = titleText;
+    if (suffixEl) suffixEl.textContent = suffixText;
+  }
+
+  function renderCharactersList(list, filter) {
+    const listEl = document.getElementById('charactersList');
+    if (!listEl) return;
+    listEl.innerHTML = '';
+    if (!list || !list.length) {
+      setCharactersListMessage('조건에 맞는 캐릭터가 아직 없어요.');
+      updateSectionHeading(filter);
+      return;
+    }
+    list.forEach((character) => listEl.appendChild(renderCharacterCard(character)));
+    updateSectionHeading(filter);
+  }
+
+  function applyActiveFilter() {
+    if (!charactersCache.length) return;
+    const filter = getFilterByKey(activeFilterKey);
+    const filtered = filterCharacters(charactersCache, filter);
+    renderCharactersList(filtered, filter);
+  }
+
+  async function hydrateUserNickname() {
+    const nicknameEl = document.getElementById('sectionNickname');
+    if (!nicknameEl) return;
+    try {
+      if (typeof window.fetchUserContext === 'function') {
+        const ctx = await window.fetchUserContext();
+        if (ctx) {
+          const resolver =
+            typeof window.getPreferredUserNickname === 'function'
+              ? window.getPreferredUserNickname
+              : null;
+          const nickname =
+            (resolver && resolver(ctx)) ||
+            ctx.profile?.display_name ||
+            ctx.user?.email?.split('@')?.[0];
+          if (nickname) currentUserNickname = nickname;
+        }
+      }
+    } catch (error) {
+      console.warn('hydrateUserNickname failed', error);
+    }
+    nicknameEl.textContent = currentUserNickname;
+    updateSectionHeading(getFilterByKey(activeFilterKey));
+  }
+
+  function setActiveFilter(key) {
+    if (!FILTER_DEFINITIONS.some((filter) => filter.key === key)) {
+      key = 'recommended';
+    }
+    if (activeFilterKey === key && charactersCache.length) {
+      applyActiveFilter();
+      return;
+    }
+    activeFilterKey = key;
+    refreshFilterActiveState();
+    updateSectionHeading(getFilterByKey(activeFilterKey));
+    applyActiveFilter();
+  }
+
+  // 카드 렌더: 크리에이터 정보 포함
+  function renderCharacterCard(character) {
+    const card = document.createElement('div');
+    card.className = 'character-card card';
+    card.dataset.id = character.id;
+
+    const creator = character.creator_profile || {};
+    const creatorName = creator.display_name || character.creator_name || '크리에이터';
+    const creatorHandle = creator.handle || 'unknown';
+    const creatorAvatar = creator.avatar_url || character.creator_avatar_url || AVATAR_PLACEHOLDER;
+    const ownerId = character.owner_id || character.user_id;
+    const coverImage = character.avatar_url || AVATAR_PLACEHOLDER;
+
+    card.innerHTML = `
+      <div class="character-card__thumb">
+        <img src="${coverImage}" alt="${character.name}" loading="lazy" />
+        ${
+          character.is_monetized
+            ? `<div class="character-card__badge character-card__badge--share">공유 가능</div>`
+            : ''
+        }
+      </div>
+      <div class="character-card__body">
+        <div class="character-card__title-row">
+          <h2 class="character-card__name">${character.name}</h2>
+        </div>
+        <p class="character-card__summary">
+          ${character.one_line || ''}
+        </p>
+        <div class="character-card__meta">
+          <span class="meta-item">좋아요 ${character.like_count || 0}</span>
+          <span class="meta-item">채팅 ${character.chat_count || 0}</span>
+          <span class="meta-item">조회수 ${character.view_count || 0}</span>
+        </div>
+        <div class="character-card__creator">
+          <div class="creator-avatar">
+            <img src="${creatorAvatar}" alt="${creatorName} 프로필" loading="lazy" />
+          </div>
+          <div class="creator-info">
+            <div class="creator-name">${creatorName}</div>
+            <div class="creator-handle">@${creatorHandle}</div>
+          </div>
+        </div>
+        <div class="character-card__tags">
+          ${(character.tags || []).slice(0, 3).map((t) => `<span class="tag">#${t}</span>`).join('')}
+        </div>
+      </div>
+    `;
+
+    card.addEventListener('click', (e) => {
+      e.preventDefault();
+      openCharacterPreview(character);
+    });
+
+    const creatorBlock = card.querySelector('.character-card__creator');
+    if (creatorBlock && ownerId) {
+      creatorBlock.addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.location.href = `/creator?user=${ownerId}`;
+      });
+    }
+
+    return card;
+  }
 
   // ===== Hero carousel (샘플 데이터) =====
   const heroSlidesData = [
@@ -251,14 +462,14 @@ function syncSideSlides(prevData, nextData) {
 
   async function loadCharacters() {
     const sbClient = window.sb;
-    const listEl = document.querySelector('.characters-grid');
+    const listEl = document.getElementById('charactersList');
     if (!listEl) return;
     if (!sbClient) {
-      listEl.innerHTML = '<div>Supabase 클라이언트를 초기화하지 못했습니다.</div>';
+      setCharactersListMessage('Supabase 클라이언트를 초기화하지 못했습니다.');
       return;
     }
 
-    listEl.textContent = '불러오는 중...';
+    setCharactersListMessage('불러오는 중...');
 
     try {
       // public characters 조회
@@ -271,12 +482,12 @@ function syncSideSlides(prevData, nextData) {
 
       if (error) {
         console.error(error);
-        listEl.innerHTML = '<div>캐릭터를 불러오지 못했습니다.</div>';
+        setCharactersListMessage('캐릭터를 불러오지 못했습니다.');
         return;
       }
 
       if (!data || data.length === 0) {
-        listEl.innerHTML = '<div>표시할 캐릭터가 없습니다.</div>';
+        setCharactersListMessage('아직 등록된 캐릭터가 없습니다.');
         return;
       }
 
@@ -299,7 +510,7 @@ function syncSideSlides(prevData, nextData) {
       if (userIds.length) {
         const { data: profiles, error: pErr } = await sbClient
           .from('profiles')
-          .select('id, display_name, handle')
+          .select('id, display_name, handle, avatar_url')
           .in('id', userIds);
         if (!pErr && profiles) {
           profiles.forEach((p) => profileMap.set(p.id, p));
@@ -313,8 +524,7 @@ function syncSideSlides(prevData, nextData) {
         ch.owner_id = ownerId || null;
       });
 
-      listEl.innerHTML = '';
-      data.forEach((ch) => listEl.appendChild(renderCharacterCard(ch)));
+      applyActiveFilter();
     } catch (e) {
       console.error('loadCharacters exception', e);
       // 실패 시 간단한 샘플 카드
@@ -330,8 +540,7 @@ function syncSideSlides(prevData, nextData) {
         },
       ];
       charactersCache = fallback;
-      listEl.innerHTML = '';
-      fallback.forEach((ch) => listEl.appendChild(renderCharacterCard(ch)));
+      applyActiveFilter();
     }
   }
 
@@ -394,7 +603,7 @@ function syncSideSlides(prevData, nextData) {
   track.innerHTML = `
     <div class="preview-slide">
       <div class="preview-hero">
-        <img src="${character.avatar_url || './assets/sample-character.png'}" alt="${character.name}">
+        <img src="${character.avatar_url || AVATAR_PLACEHOLDER}" alt="${character.name}">
         <div class="hero-badge"><span class="dot"></span>${character.is_monetized ? '수익 공유' : '일반'}</div>
       </div>
       <h3 class="preview-name">${character.name || ''}</h3>
@@ -434,18 +643,20 @@ function syncSideSlides(prevData, nextData) {
 
   // DOM 로드 후 초기화
   document.addEventListener('DOMContentLoaded', () => {
-  initHeroCarousel();
-  initChipScrollControls();
-  loadCharacters();
+    buildFilterChips();
+    initHeroCarousel();
+    initChipScrollControls();
+    hydrateUserNickname();
+    loadCharacters();
 
-  const createBtn = document.getElementById('createCharacterBtn');
-  if (createBtn) {
-    createBtn.addEventListener('click', () => {
-      window.location.href = '/create-character';
-    });
-  }
+    const createBtn = document.getElementById('createCharacterBtn');
+    if (createBtn) {
+      createBtn.addEventListener('click', () => {
+        window.location.href = '/create-character';
+      });
+    }
 
-  initPreviewModal();
+    initPreviewModal();
   });
 
 })();

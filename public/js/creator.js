@@ -15,7 +15,9 @@ const creatorPageState = {
   isLoggedIn: false,
   workTab: 'characters',
   charactersEmpty: false,
+  profileData: null,
   targetDisplayName: '작가',
+  shareData: null,
   feed: {
     posts: [],
     nextCursor: null,
@@ -59,6 +61,7 @@ async function initCreatorPage() {
     creatorPageState.viewerUserId = viewerUserId;
     creatorPageState.isSelf = isSelf;
     creatorPageState.isLoggedIn = Boolean(viewerUserId);
+    creatorPageState.profileData = targetProfile;
 
     renderHero(targetProfile, isSelf ? ctx?.user : null, isSelf, Boolean(viewerUserId));
 
@@ -77,6 +80,8 @@ async function initCreatorPage() {
 
     setupFeed(creatorPageState);
     setupShareButton(targetProfile, targetUserId);
+    setupBioToggle();
+    initCreatorProfileEditor();
   } catch (e) {
     console.error('creator init error', e);
     showCreatorUnavailableState('페이지를 불러오는 중 문제가 발생했습니다.');
@@ -110,6 +115,7 @@ function renderHero(profile, fallbackUser, isSelf, viewerLoggedIn) {
 
   const bioEl = document.getElementById('creatorBio');
   if (bioEl) bioEl.textContent = profile?.bio?.trim() || '자기소개를 작성하면 여기서 바로 소개됩니다.';
+  refreshCreatorBioClamp();
   const jobEl = document.getElementById('creatorJob');
   if (jobEl) jobEl.textContent = profile?.job?.trim() || '정보 없음';
   const genderEl = document.getElementById('creatorGender');
@@ -133,7 +139,7 @@ function renderHero(profile, fallbackUser, isSelf, viewerLoggedIn) {
   if (followBtn) {
     if (isSelf && viewerLoggedIn) {
       followBtn.textContent = '프로필 관리';
-      followBtn.onclick = () => (window.location.href = '/mypage');
+      followBtn.onclick = () => openCreatorProfileEditor();
     } else if (!viewerLoggedIn) {
       followBtn.textContent = '로그인';
       followBtn.onclick = () => (window.location.href = '/login');
@@ -315,6 +321,33 @@ function setWorksView(view) {
   }
 }
 
+function setupBioToggle() {
+  const toggle = document.getElementById('creatorBioToggle');
+  if (toggle && !toggle.dataset.bound) {
+    toggle.addEventListener('click', () => {
+      const bioEl = document.getElementById('creatorBio');
+      if (!bioEl) return;
+      const expanded = bioEl.classList.toggle('is-expanded');
+      toggle.textContent = expanded ? '닫기' : '더보기';
+      if (!expanded) refreshCreatorBioClamp();
+    });
+    toggle.dataset.bound = '1';
+  }
+  refreshCreatorBioClamp();
+}
+
+function refreshCreatorBioClamp() {
+  const bioEl = document.getElementById('creatorBio');
+  const toggle = document.getElementById('creatorBioToggle');
+  if (!bioEl || !toggle) return;
+  bioEl.classList.remove('is-expanded');
+  toggle.textContent = '더보기';
+  requestAnimationFrame(() => {
+    const needsToggle = bioEl.scrollHeight > bioEl.clientHeight + 1;
+    toggle.classList.toggle('hidden', !needsToggle);
+  });
+}
+
 async function fetchCharacterItems(userId) {
   if (!window.sb) return { items: [], totalCharacters: 0, totalChats: 0 };
   try {
@@ -388,6 +421,7 @@ function setupShareButton(profile, targetUserId) {
     text: '제가 만든 캐릭터를 소개합니다.',
     url: shareUrl.toString(),
   };
+  creatorPageState.shareData = shareData;
 
   const closeSheet = () => {
     dim.classList.add('hidden');
@@ -402,15 +436,7 @@ function setupShareButton(profile, targetUserId) {
     linkInput.select();
   };
 
-  shareBtn.onclick = async () => {
-    if (navigator.share && window.matchMedia('(pointer: coarse)').matches) {
-      try {
-        await navigator.share(shareData);
-        return;
-      } catch (err) {
-        if (err?.name !== 'AbortError') console.warn('share failed', err);
-      }
-    }
+  shareBtn.onclick = () => {
     openSheet();
   };
 
@@ -654,6 +680,97 @@ function updateFeedComposerCounter() {
   if (counterEl && textarea) {
     counterEl.textContent = String(textarea.value.length);
   }
+}
+
+function initCreatorProfileEditor() {
+  const form = document.getElementById('creatorProfileForm');
+  const cancelBtn = document.getElementById('creatorProfileEditCancel');
+  const closeBtn = document.getElementById('creatorProfileEditClose');
+  const backdrop = document.getElementById('creatorProfileEditBackdrop');
+  if (!form || form.dataset.bound) return;
+
+  const handleClose = () => closeCreatorProfileEditor();
+  cancelBtn?.addEventListener('click', handleClose);
+  closeBtn?.addEventListener('click', handleClose);
+  backdrop?.addEventListener('click', handleClose);
+
+  form.addEventListener('submit', handleCreatorProfileSave);
+  form.dataset.bound = '1';
+}
+
+function openCreatorProfileEditor() {
+  if (!creatorPageState.isSelf) return;
+  const layer = document.getElementById('creatorProfileEditLayer');
+  const nameInput = document.getElementById('creatorProfileNameInput');
+  const bioInput = document.getElementById('creatorProfileBioInput');
+  const statusEl = document.getElementById('creatorProfileEditStatus');
+  if (!layer || !nameInput || !bioInput) return;
+  const profile = creatorPageState.profileData || {};
+  nameInput.value = profile.display_name || creatorPageState.targetDisplayName || '';
+  bioInput.value = profile.bio || '';
+  if (statusEl) statusEl.textContent = '';
+  layer.classList.remove('hidden');
+  document.body.classList.add('modal-open');
+  setTimeout(() => nameInput.focus(), 50);
+}
+
+function closeCreatorProfileEditor() {
+  const layer = document.getElementById('creatorProfileEditLayer');
+  const statusEl = document.getElementById('creatorProfileEditStatus');
+  if (layer && !layer.classList.contains('hidden')) {
+    layer.classList.add('hidden');
+  }
+  if (statusEl) statusEl.textContent = '';
+  document.body.classList.remove('modal-open');
+}
+
+async function handleCreatorProfileSave(event) {
+  event.preventDefault();
+  if (!creatorPageState.isSelf || !window.sb) return;
+  const nameInput = document.getElementById('creatorProfileNameInput');
+  const bioInput = document.getElementById('creatorProfileBioInput');
+  const statusEl = document.getElementById('creatorProfileEditStatus');
+  const submitBtn = document.getElementById('creatorProfileEditSubmit');
+  if (!nameInput || !bioInput) return;
+  const displayName = (nameInput.value || '').trim() || creatorPageState.targetDisplayName || '크리에이터';
+  const bio = (bioInput.value || '').trim();
+  if (statusEl) statusEl.textContent = '저장 중...';
+  if (submitBtn) submitBtn.disabled = true;
+  try {
+    const { error } = await window.sb
+      .from('profiles')
+      .update({
+        display_name: displayName,
+        bio: bio || null,
+      })
+      .eq('id', creatorPageState.targetUserId);
+    if (error) throw error;
+    applyCreatorProfileUpdates(displayName, bio);
+    if (statusEl) statusEl.textContent = '저장되었습니다.';
+    setTimeout(() => closeCreatorProfileEditor(), 500);
+  } catch (err) {
+    console.error('creator profile update error', err);
+    if (statusEl) statusEl.textContent = '저장에 실패했습니다.';
+  } finally {
+    if (submitBtn) submitBtn.disabled = false;
+  }
+}
+
+function applyCreatorProfileUpdates(displayName, bio) {
+  creatorPageState.targetDisplayName = displayName;
+  creatorPageState.profileData = {
+    ...(creatorPageState.profileData || {}),
+    display_name: displayName,
+    bio,
+  };
+  if (creatorPageState.shareData) {
+    creatorPageState.shareData.title = `${displayName} | crama`;
+  }
+  const nameEl = document.getElementById('creatorName');
+  const bioEl = document.getElementById('creatorBio');
+  if (nameEl) nameEl.textContent = displayName;
+  if (bioEl) bioEl.textContent = bio || '자기소개를 작성하면 여기서 바로 소개됩니다.';
+  refreshCreatorBioClamp();
 }
 
 function updateFeedComposerVisibility() {

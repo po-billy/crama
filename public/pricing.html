@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <script src="/env.js"></script>
+    <meta charset="UTF-8" />
+    <title>Scene 요금제 | 크라마(crama)</title>
+    <meta
+      name="description"
+      content="Scene 구독, 일회성 충전, 광고 보상을 한눈에 확인하고 바로 충전하세요."
+    />
+    <meta property="og:title" content="크라마(crama) Scene 요금제" />
+    <meta
+      property="og:description"
+      content="Scene 구독권과 충전팩을 비교하고 지금 바로 Scene을 확보하세요."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://crama.app/pricing" />
+    <meta property="og:site_name" content="크라마(crama)" />
+    <meta
+      property="og:image"
+      content="https://crama.app/assets/og-default.png"
+    />
+    <meta property="og:locale" content="ko_KR" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="크라마(crama) Scene 요금제" />
+    <meta
+      name="twitter:description"
+      content="구독형, 일회성 충전, 광고 보상을 비교하고 필요한 Scene을 선택하세요."
+    />
+    <meta
+      name="twitter:image"
+      content="https://crama.app/assets/og-default.png"
+    />
+    <link rel="canonical" href="https://crama.app/pricing" />
+    <link rel="stylesheet" href="./css/url-bar.css" />
+    <link rel="stylesheet" href="./css/common.css" />
+    <link rel="stylesheet" href="./css/credit-upsell.css" />
+    <link rel="stylesheet" href="./css/pricing.css" />
+  </head>
+
+  <body data-page="pricing" class="page page-pricing">
+    <div class="app">
+      <header class="top-bar">
+        <div class="top-bar-left">
+          <button class="back-btn" id="mobileNavBtn" aria-label="메뉴 열기">
+            ☰
+          </button>
+          <span class="top-title">Scene 요금제</span>
+        </div>
+        <div class="top-bar-right">
+          <a href="/create-character" class="top-add-btn">+ 캐릭터 만들기</a>
+          <button type="button" class="top-login-btn" id="topLoginBtn">
+            로그인
+          </button>
+        </div>
+      </header>
+
+      <div class="content">
+        <div id="sidebar-container"></div>
+        <div id="drawer-container"></div>
+
+        <main class="main-area page-main pricing-main">
+          <section class="pricing-hero card">
+            <div class="pricing-hero__badge">Scene 요금제</div>
+            <h1 class="pricing-hero__title">
+              장기 구독부터 단건 충전까지 원하는 방식으로 Scene을 확보하세요
+            </h1>
+            <p class="pricing-hero__desc">
+              Scene 요금제는 로그인 여부와 관계없이 전체 목록을 확인할 수 있으며,
+              결제는 Paddle을 통해 안전하게 처리됩니다.
+            </p>
+            <div class="pricing-hero__cta">
+              <button class="btn btn--primary" type="button" id="pricingHeroBuy">
+                Scene 충전하기
+              </button>
+              <p class="pricing-hero__note">
+                크레딧이 부족하면 언제든지 여기에서 다시 충전할 수 있어요.
+              </p>
+            </div>
+          </section>
+
+          <section class="pricing-section card">
+            <div class="pricing-section__header">
+              <div>
+                <p class="pricing-section__eyebrow">멤버십</p>
+                <h2 class="pricing-section__title">정기 구독</h2>
+                <p class="pricing-section__desc">
+                  Scene을 꾸준히 이용한다면 구독이 가장 낮은 단가로 Scene을 제공합니다.
+                </p>
+              </div>
+              <div class="pricing-section__meta" id="pricingSubscriptionStatus">
+                요금제를 불러오는 중입니다.
+              </div>
+            </div>
+            <div id="pricingSubscriptionArea" class="pricing-list"></div>
+          </section>
+
+          <div class="pricing-grid">
+            <section class="pricing-section card">
+              <div class="pricing-section__header">
+                <div>
+                  <p class="pricing-section__eyebrow">필요할 때만</p>
+                  <h2 class="pricing-section__title">단건 충전</h2>
+                  <p class="pricing-section__desc">
+                    급하게 Scene이 필요할 때는 원하는 팩을 골라 즉시 충전하세요.
+                  </p>
+                </div>
+              </div>
+              <div id="pricingPackArea" class="pricing-list"></div>
+            </section>
+
+            <section class="pricing-section card pricing-section--ad">
+              <div class="pricing-section__header">
+                <div>
+                  <p class="pricing-section__eyebrow">무료 Scene</p>
+                  <h2 class="pricing-section__title">광고 보상</h2>
+                  <p class="pricing-section__desc">
+                    광고를 시청하면 하루에 정해진 횟수만큼 Scene을 무료로 얻을 수 있습니다.
+                  </p>
+                </div>
+              </div>
+              <p class="cu-ad-desc" id="pricingAdDesc">
+                광고 옵션을 불러오는 중입니다.
+              </p>
+              <button
+                id="pricingWatchAdBtn"
+                class="btn-secondary full-width"
+                data-credit-watch-ad
+                data-ad-info="pricingAdInfo"
+              >
+                광고 시청하고 Scene 받기
+              </button>
+              <p id="pricingAdInfo" class="cu-ad-info"></p>
+            </section>
+          </div>
+
+          <section class="pricing-faq card">
+            <h2>이용 안내</h2>
+            <div class="pricing-faq__grid">
+              <article>
+                <h3>Scene 모드와 일반 모드</h3>
+                <p>
+                  Scene 모드는 모든 대화 맥락을 누적해 보다 자연스러운 대화를 제공합니다.
+                  일반 모드는 최근 20개의 대화만 사용해 크레딧 소모를 줄입니다.
+                </p>
+              </article>
+              <article>
+                <h3>결제 보안</h3>
+                <p>
+                  모든 결제는 Paddle을 통해 처리되며, 결제 내역은 언제든지 계정 메뉴에서 확인할 수 있습니다.
+                </p>
+              </article>
+              <article>
+                <h3>광고 보상</h3>
+                <p>
+                  광고는 하루 제한 횟수가 있으며, 보상은 자동으로 Scene 잔액에 반영됩니다.
+                  제한에 도달하면 다음 날 초기화됩니다.
+                </p>
+              </article>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/common.js"></script>
+    <script src="js/authWidget.js"></script>
+    <script src="js/credits.js"></script>
+    <script src="js/pricing.js"></script>
+  </body>
+</html>

@@ -37,6 +37,9 @@ async function loadCreditConfig() {
 
     creditConfig = json;
     renderCreditUpsell();
+    window.dispatchEvent(
+      new CustomEvent('creditConfig:loaded', { detail: creditConfig })
+    );
   } catch (e) {
     console.error('loadCreditConfig error', e);
   }
@@ -111,35 +114,60 @@ function renderCreditUpsell() {
   const plans = creditConfig.plans || [];
   const adReward = creditConfig.adReward;
 
-  const subArea = document.getElementById('cuSubscriptionArea');
-  const packArea = document.getElementById('cuPackArea');
-  const adDesc = document.getElementById('cuAdDesc');
+  const subAreas = Array.from(
+    document.querySelectorAll('#cuSubscriptionArea, #pricingSubscriptionArea')
+  );
+  const packAreas = Array.from(
+    document.querySelectorAll('#cuPackArea, #pricingPackArea')
+  );
+  const adDescs = Array.from(
+    document.querySelectorAll('#cuAdDesc, #pricingAdDesc')
+  );
 
-  if (adDesc && adReward) {
-    adDesc.textContent = `광고 1회 시청 시 ${adReward.credits} scene 지급 (하루 최대 ${adReward.maxPerDay}회)`;
-  }
-
-  if (!subArea || !packArea) return;
-  subArea.innerHTML = '';
-  packArea.innerHTML = '';
-
-  plans.forEach(p => {
-    const features = p.features || {};
-    const item = document.createElement('div');
-    item.className = 'cu-list-item';
-    item.dataset.planCode = p.code;
-    item.innerHTML = `
-      <div class="cu-item-name">${p.name}</div>
-      <div class="cu-item-desc">${p.description || ''}</div>
-      <div class="cu-item-price">${p.price_cents.toLocaleString('ko-KR')}원</div>
-    `;
-    item.addEventListener('click', () => handleBuyPlan(p.code));
-
-    if (features.is_one_time) {
-      packArea.appendChild(item);
+  adDescs.forEach((el) => {
+    if (!el) return;
+    if (adReward) {
+      el.textContent = `광고 1회 시청 시 ${adReward.credits} scene 지급 (하루 최대 ${adReward.maxPerDay}회)`;
     } else {
-      subArea.appendChild(item);
+      el.textContent = '현재 이용 가능한 광고 보상이 없습니다.';
     }
+  });
+
+  const renderList = (targetEls, items, predicate) => {
+    targetEls.forEach((target) => {
+      if (!target) return;
+      target.innerHTML = '';
+      items
+        .filter(predicate)
+        .forEach((p) => {
+          const item = document.createElement('div');
+          item.className = 'cu-list-item';
+          item.dataset.planCode = p.code;
+          item.innerHTML = `
+            <div class="cu-item-name">${p.name}</div>
+            <div class="cu-item-desc">${p.description || ''}</div>
+            <div class="cu-item-price">${p.price_cents.toLocaleString('ko-KR')}원</div>
+          `;
+          item.addEventListener('click', () => handleBuyPlan(p.code));
+          target.appendChild(item);
+        });
+      if (!target.children.length) {
+        target.innerHTML = '<p class="cu-empty">표시할 요금제가 없습니다.</p>';
+      }
+    });
+  };
+
+  renderList(subAreas, plans, (p) => !(p.features || {}).is_one_time);
+  renderList(packAreas, plans, (p) => (p.features || {}).is_one_time);
+
+  syncAdButtons();
+}
+
+function syncAdButtons() {
+  document.querySelectorAll('[data-credit-watch-ad]').forEach((btn) => {
+    if (btn.dataset.cuWatchBound) return;
+    btn.addEventListener('click', handleWatchAd);
+    btn.dataset.cuWatchBound = '1';
   });
 }
 
@@ -340,8 +368,10 @@ async function handleBuyPlan(planCode) {
   }
 }
 
-async function handleWatchAd() {
-  const infoEl = document.getElementById('cuAdInfo');
+async function handleWatchAd(event) {
+  const btn = event?.currentTarget;
+  const infoId = btn?.dataset?.adInfo || 'cuAdInfo';
+  const infoEl = document.getElementById(infoId);
   if (infoEl) infoEl.textContent = '광고를 불러오는 중입니다...';
 
   try {
@@ -363,14 +393,14 @@ async function handleWatchAd() {
     // - window.loadWebRewardedAd(): 페이지에서 IMA/AdManager로 구현한 함수(권장)
     // - window.admobRewarded: 기존 네이티브 브리지(앱/webview) 백워드 호환
     // 구현 가이드는 아래 주석을 참고하세요.
+    let adResult = null;
     if (typeof window.loadWebRewardedAd === 'function') {
       // loadWebRewardedAd는 { completed: boolean, details?: object } 형태의 결과를 반환해야 합니다.
       // SDK에 따라 처리/검증 토큰을 함께 반환하도록 설계하세요.
       // pass session id to the web ad loader so it can be appended to ad tag params
-      const result = await window.loadWebRewardedAd({ adTagUrl: undefined, extraParams: { sessionId } });
-      if (!result || !result.completed) {
+      adResult = await window.loadWebRewardedAd({ adTagUrl: undefined, extraParams: { sessionId } });
+      if (!adResult || !adResult.completed) {
         // 사용자가 광고를 끝까지 보지 않았거나 광고 재생 실패
-        const infoEl = document.getElementById('cuAdInfo');
         if (infoEl) infoEl.textContent = '광고 시청이 완료되지 않았습니다.';
         return;
       }
@@ -386,7 +416,7 @@ async function handleWatchAd() {
     const res = await apiFetch('/api/earn-credits', {
       method: 'POST',
       headers: headers2,
-      body: JSON.stringify({ sessionId: sessionId, verification: result?.details || null })
+      body: JSON.stringify({ sessionId: sessionId, verification: adResult?.details || null })
     });
     const json = await res.json();
 

@@ -141,6 +141,7 @@ body[data-page="home"] {
   will-change: transform;
 }
 
+
 .hero-card {
   flex: 0 0 150px;
   height: 230px;
@@ -461,4 +462,8 @@ body[data-page="home"] {
     flex: 0 0 120px;
     height: 190px;
   }
+}
+
+.footer-links a{
+  color:#000;
 }

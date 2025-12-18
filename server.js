@@ -101,9 +101,16 @@ const CONTACT_GMAIL_USER = process.env.CONTACT_GMAIL_USER || "";
 const CONTACT_GMAIL_PASS = process.env.CONTACT_GMAIL_PASS || "";
 const OPENAI_IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL || "gpt-image-1";
 const OPENAI_ANALYZE_MODEL = process.env.OPENAI_ANALYZE_MODEL || "gpt-4o-mini";
-const OPENAI_PROMPT_COST_PER_1K_WON = parseFloat(process.env.OPENAI_PROMPT_COST_PER_1K_WON) || 0.2215;
-const OPENAI_COMPLETION_COST_PER_1K_WON = parseFloat(process.env.OPENAI_COMPLETION_COST_PER_1K_WON) || 0.8858;
-const TOKEN_COST_MARGIN = parseFloat(process.env.TOKEN_COST_MARGIN) || 1.6;
+const USD_TO_KRW = parseFloat(process.env.USD_TO_KRW) || 1400;
+const OPENAI_PROMPT_COST_PER_1K_USD = 0.15 / 1_000; // gpt-4o-mini input: $0.15 per 1M tokens
+const OPENAI_COMPLETION_COST_PER_1K_USD = 0.60 / 1_000; // output: $0.60 per 1M tokens
+const OPENAI_PROMPT_COST_PER_1K_WON =
+  parseFloat(process.env.OPENAI_PROMPT_COST_PER_1K_WON) ||
+  OPENAI_PROMPT_COST_PER_1K_USD * USD_TO_KRW;
+const OPENAI_COMPLETION_COST_PER_1K_WON =
+  parseFloat(process.env.OPENAI_COMPLETION_COST_PER_1K_WON) ||
+  OPENAI_COMPLETION_COST_PER_1K_USD * USD_TO_KRW;
+const TOKEN_COST_MARGIN = parseFloat(process.env.TOKEN_COST_MARGIN) || 5;
 const STABILITY_API_KEY = process.env.STABILITY_API_KEY || null;
 const FASHION_CREDIT_COST = parseInt(process.env.FASHION_CREDIT_COST, 10) || 20;
 const STUDIO_CREDIT_COST = parseInt(process.env.STUDIO_CREDIT_COST, 10) || 100;
@@ -443,6 +450,10 @@ const HTML_ROUTE_MAP = {
   "/contact": "contact.html",
   "/login": "login.html",
   "/coming-soon": "coming-soon.html",
+  "/pricing": "pricing.html",
+  "/terms": "terms.html",
+  "/privacy": "privacy.html",
+  "/refund": "refund.html",
 };
 
 for (const [route, file] of Object.entries(HTML_ROUTE_MAP)) {

@@ -4,7 +4,6 @@
   const apiFetchLocal = window.apiFetch || ((...args) => fetch(...args));
 
   let charactersCache = [];
-  let previewSelected = null;
   let activeFilterKey = 'recommended';
   let currentUserNickname = '게스트';
 
@@ -272,7 +271,7 @@
             <img src="${creatorAvatar}" alt="${creatorName} 프로필" loading="lazy" />
           </div>
           <div class="creator-info">
-            <div class="creator-name">${creatorName}</div>
+
             <div class="creator-handle">@${creatorHandle}</div>
           </div>
         </div>
@@ -284,7 +283,7 @@
 
     card.addEventListener('click', (e) => {
       e.preventDefault();
-      openCharacterPreview(character);
+      openCharacterDetailModal(character);
     });
 
     const creatorBlock = card.querySelector('.character-card__creator');
@@ -544,101 +543,9 @@ function syncSideSlides(prevData, nextData) {
     }
   }
 
-  // ===== Preview modal =====
-  function initPreviewModal() {
-  const modal = document.getElementById('characterPreviewModal');
-  const closeBtn = document.getElementById('previewCloseBtn');
-  const enterBtn = document.getElementById('previewEnterBtn');
-  const backdrop = document.querySelector('.character-preview-backdrop');
-  if (!modal) return;
-
-  const close = () => {
-    modal.classList.add('hidden');
-    modal.setAttribute('aria-hidden', 'true');
-    document.body.classList.remove('modal-open');
-    previewSelected = null;
-  };
-  if (closeBtn) closeBtn.addEventListener('click', close);
-  if (backdrop) backdrop.addEventListener('click', close);
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !modal.classList.contains('hidden')) close();
-  });
-  if (enterBtn) {
-    enterBtn.addEventListener('click', async () => {
-      if (!previewSelected) return;
-      const targetUrl = `/character?id=${previewSelected.id}`;
-      const loggedIn = await isUserLoggedIn();
-      if (!loggedIn) {
-        if (window.openLoginModal) {
-          window.openLoginModal({ redirect: targetUrl });
-        } else {
-          window.location.href = `/login?redirect=${encodeURIComponent(targetUrl)}`;
-        }
-        return;
-      }
-      window.location.href = targetUrl;
-    });
-  }
-  }
-
-  function openCharacterPreview(character) {
-  const modal = document.getElementById('characterPreviewModal');
-  const track = document.getElementById('previewTrack');
-  const meta = document.getElementById('previewMeta');
-  const enterBtn = document.getElementById('previewEnterBtn');
-  if (!modal || !track || !meta || !enterBtn) return;
-
-  previewSelected = character;
-  modal.classList.remove('hidden');
-  modal.setAttribute('aria-hidden', 'false');
-  document.body.classList.add('modal-open');
-
-  meta.innerHTML = `
-    <span>좋아요 ${character.like_count || 0}</span>
-    <span>채팅 ${character.chat_count || 0}</span>
-    <span>조회수 ${character.view_count || 0}</span>
-  `;
-
-  const tags = (character.tags || []).map((t) => `#${t}`).join(' ');
-  track.innerHTML = `
-    <div class="preview-slide">
-      <div class="preview-hero">
-        <img src="${character.avatar_url || AVATAR_PLACEHOLDER}" alt="${character.name}">
-        <div class="hero-badge"><span class="dot"></span>${character.is_monetized ? '수익 공유' : '일반'}</div>
-      </div>
-      <h3 class="preview-name">${character.name || ''}</h3>
-      <p class="preview-one-line">${character.one_line || ''}</p>
-      <div class="preview-tags">
-        ${(character.tags || []).slice(0, 6).map((t) => `<span class="preview-tag">#${t}</span>`).join('')}
-      </div>
-    </div>
-    <div class="preview-slide">
-      <div class="preview-field">
-        <div class="preview-label">설명</div>
-        <div class="preview-box">${character.description || '설명이 없습니다.'}</div>
-      </div>
-      <div class="preview-field">
-        <div class="preview-label">플레이 가이드</div>
-        <div class="preview-box">${character.play_guide || '가이드가 없습니다.'}</div>
-      </div>
-    </div>
-    <div class="preview-slide">
-      <div class="preview-field">
-        <div class="preview-label">장르</div>
-        <div class="preview-box">${character.genre || '-'}</div>
-      </div>
-      <div class="preview-field">
-        <div class="preview-label">타겟</div>
-        <div class="preview-box">${character.target || '-'}</div>
-      </div>
-      <div class="preview-field">
-        <div class="preview-label">태그</div>
-        <div class="preview-box">${tags || '-'}</div>
-      </div>
-    </div>
-  `;
-
-  enterBtn.focus();
+  function openCharacterDetailModal(character) {
+    if (!character || !window.CharacterDetailModal) return;
+    window.CharacterDetailModal.openWithData(character);
   }
 
   // DOM 로드 후 초기화
@@ -656,7 +563,6 @@ function syncSideSlides(prevData, nextData) {
       });
     }
 
-    initPreviewModal();
   });
 
 })();

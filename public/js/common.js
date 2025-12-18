@@ -22,6 +22,7 @@ function apiFetch(path, options) {
   return fetch(target || path, options);
 }
 
+
 function toggleVisibility(el, shouldShow) {
   if (!el) return;
   if (shouldShow) el.classList.remove('is-hidden');
@@ -287,6 +288,8 @@ async function loadHead() {
     console.error('head.html load failed', e);
   }
 }
+
+// footer는 index에서만 직접 포함하므로 전역 삽입 로직 제거
 
 
 async function initSidebar() {

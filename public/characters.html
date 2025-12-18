@@ -36,6 +36,7 @@
     <link rel="stylesheet" href="./css/common.css" />
     <link rel="stylesheet" href="./css/index.css" />
     <link rel="stylesheet" href="./css/characters.css" />
+    <link rel="stylesheet" href="./css/character-detail-modal.css" />
   </head>
 
   <body data-page="characters" class="page page-characters">
@@ -158,33 +159,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/common.js"></script>
     <script src="js/authWidget.js"></script>
+    <script src="js/characterDetailModal.js"></script>
     <script src="js/characters.js"></script>
 
-    <!-- 캐릭터 프리뷰 모달 -->
-    <div id="characterPreviewModal" class="character-preview-modal hidden">
-      <div class="character-preview-backdrop"></div>
-      <div class="character-preview-dialog">
-        <button
-          class="preview-close-btn"
-          id="previewCloseBtn"
-          aria-label="닫기"
-        >
-          ×
-        </button>
-        <div class="preview-header">
-          <h2 class="preview-title">캐릭터 정보</h2>
-        </div>
-        <div class="preview-meta" id="previewMeta"></div>
-
-        <div class="preview-track" id="previewTrack">
-          <!-- JS에서 슬라이드 삽입 -->
-        </div>
-        <div class="preview-actions">
-          <button class="btn btn--primary" id="previewEnterBtn">
-            입장하기
-          </button>
-        </div>
-      </div>
-    </div>
   </body>
 </html>

@@ -245,6 +245,16 @@ function renderGrid(items) {
     const card = document.createElement('article');
     card.className = 'creator-card';
     card.dataset.kind = item.kind;
+    const detailData =
+      item.detailData && item.detailData.id
+        ? item.detailData
+        : {
+            id: item.id,
+            name: item.title,
+            one_line: item.subtitle,
+            description: item.subtitle,
+            avatar_url: item.thumbUrl,
+          };
 
     const thumb = document.createElement('div');
     thumb.className = 'creator-card-thumb';
@@ -272,8 +282,11 @@ function renderGrid(items) {
     card.appendChild(thumb);
     card.appendChild(body);
 
-    card.addEventListener('click', () => {
-      window.location.href = `/character?id=${item.id}`;
+    card.addEventListener('click', (event) => {
+      event.preventDefault();
+      if (window.CharacterDetailModal) {
+        window.CharacterDetailModal.openWithData(detailData);
+      }
     });
 
     grid.appendChild(card);
@@ -353,7 +366,7 @@ async function fetchCharacterItems(userId) {
   try {
     const listPromise = window.sb
       .from('character_chats')
-      .select('character_id, created_at, characters(name, avatar_url, description), content')
+      .select('character_id, created_at, characters(*), content')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(200);
@@ -374,13 +387,29 @@ async function fetchCharacterItems(userId) {
     }
 
     return {
-      items: unique.map((row) => ({
-        id: row.character_id,
-        kind: 'character',
-        title: row.characters?.name || '나의 캐릭터',
-        subtitle: row.characters?.description || truncate(row.content, 60) || '소개가 아직 없습니다.',
-        thumbUrl: row.characters?.avatar_url || PLACEHOLDER_AVATAR,
-      })),
+      items: unique.map((row) => {
+        const raw = row.characters || {};
+        const detailData = {
+          ...raw,
+          id: raw.id || row.character_id,
+        };
+        if (typeof detailData.like_count === 'undefined') detailData.like_count = raw.like_count || 0;
+        if (typeof detailData.chat_count === 'undefined') detailData.chat_count = raw.chat_count || 0;
+        if (typeof detailData.view_count === 'undefined') detailData.view_count = raw.view_count || 0;
+        const subtitle =
+          raw.one_line ||
+          raw.description ||
+          truncate(row.content, 60) ||
+          '소개가 아직 없습니다.';
+        return {
+          id: row.character_id,
+          kind: 'character',
+          title: raw.name || '나의 캐릭터',
+          subtitle,
+          thumbUrl: raw.avatar_url || PLACEHOLDER_AVATAR,
+          detailData,
+        };
+      }),
       totalCharacters: unique.length,
       totalChats: typeof count === 'number' ? count : data?.length || 0,
     };

@@ -1,0 +1,141 @@
+<div class="character-detail-modal hidden" id="characterDetailModal" aria-hidden="true" data-character-detail>
+  <div class="character-detail-modal__backdrop" data-character-detail-close></div>
+  <div class="character-detail-modal__panel" role="dialog" aria-modal="true" aria-labelledby="characterDetailModalName">
+    <header class="character-detail-header">
+      <div class="character-detail-heading">
+        <p class="character-detail-eyebrow">캐릭터 정보</p>
+        <h3 id="characterDetailModalName">캐릭터 이름</h3>
+      </div>
+      <button type="button" class="character-detail-close" data-character-detail-close aria-label="닫기">×</button>
+    </header>
+
+    <div class="character-detail-body" id="characterDetailBody">
+      <section class="character-detail-section detail-profile">
+        <figure class="detail-profile__thumb">
+          <img src="/assets/img/sample-character-01.png" alt="캐릭터 썸네일" id="characterDetailThumb" />
+          <div class="detail-profile__pill" id="characterDetailHeroBadge">일반</div>
+          <button type="button" class="character-detail-like" id="characterDetailLikeBtn" title="좋아요">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path
+                d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+              ></path>
+            </svg>
+            <span id="characterDetailLikeCount">0</span>
+          </button>
+        </figure>
+        <div class="detail-profile__info">
+          <div class="detail-profile__title">
+            <h4 id="characterDetailDisplayName">캐릭터 이름</h4>
+            <button type="button" class="detail-follow" id="characterDetailFollowBtn">팔로우</button>
+          </div>
+          <button type="button" class="detail-creator-link" id="characterDetailCreatorLink">
+            <span id="characterDetailCreatorName">크리에이터</span>
+          </button>
+          <p class="character-detail-one-line" id="characterDetailOneLine">한 줄 소개가 여기에 표시됩니다.</p>
+          <div class="detail-pill-row">
+            <span id="characterDetailSceneCount">Scene 0</span>
+            <span id="characterDetailGenre">장르 -</span>
+            <span id="characterDetailTarget">타깃 -</span>
+            <span class="detail-pill detail-pill--stat">
+              <strong>대화 수</strong>
+              <em id="characterDetailChats">0</em>
+            </span>
+            <span class="detail-pill detail-pill--stat">
+              <strong>좋아요</strong>
+              <em id="characterDetailLikes">0</em>
+            </span>
+            <span class="detail-pill detail-pill--stat">
+              <strong>댓글</strong>
+              <em id="characterDetailCommentCount">0</em>
+            </span>
+          </div>
+          <div class="character-detail-badges" id="characterDetailBadges"></div>
+        </div>
+      </section>
+
+      <section class="character-detail-section detail-collapsible hidden" id="characterDetailGuideBlock">
+        <div class="detail-section__header">
+          <h4>플레이 가이드</h4>
+          <button type="button" class="detail-toggle" data-collapsible-toggle="guide">펼치기</button>
+        </div>
+        <div class="detail-collapsible__body is-collapsed" data-collapsible-body="guide">
+          <p class="intro-text" id="characterDetailGuideText">플레이 가이드가 여기에 표시됩니다.</p>
+        </div>
+      </section>
+
+      <section class="character-detail-section detail-collapsible">
+        <div class="detail-section__header">
+          <h4>캐릭터 설명</h4>
+          <button type="button" class="detail-toggle" data-collapsible-toggle="description">펼치기</button>
+        </div>
+        <div class="detail-collapsible__body is-collapsed" data-collapsible-body="description">
+          <p class="character-detail-description" id="characterDetailDescription">
+            캐릭터 설명을 불러오는 중입니다.
+          </p>
+        </div>
+      </section>
+
+      <section class="character-detail-section detail-collapsible hidden" id="characterDetailIntroBlock">
+        <div class="detail-section__header">
+          <h4>인트로 미리보기</h4>
+          <button type="button" class="detail-toggle" data-collapsible-toggle="intro">펼치기</button>
+        </div>
+        <div class="detail-collapsible__body is-collapsed" data-collapsible-body="intro">
+          <div class="character-detail-intro-card">
+            <img src="/assets/sample-character-02.png" alt="인트로 장면" id="characterDetailIntroImage" />
+            <p class="intro-text" id="characterDetailIntroText">인트로 내용이 여기에 표시됩니다.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="character-detail-section detail-collapsible hidden" id="characterDetailScenesBlock">
+        <div class="detail-section__header">
+          <h4>Scene 스킨 미리보기</h4>
+          <button type="button" class="detail-toggle" data-collapsible-toggle="scenes">펼치기</button>
+        </div>
+        <div class="detail-collapsible__body is-collapsed" data-collapsible-body="scenes">
+          <div class="character-detail-scene-list" id="characterDetailSceneList"></div>
+          <p class="detail-empty" id="characterDetailSceneEmpty">등록된 Scene 이미지가 없습니다.</p>
+        </div>
+      </section>
+
+      <section class="character-detail-section detail-collapsible hidden" id="characterDetailExampleBlock">
+        <div class="detail-section__header">
+          <h4>예시 대화 미리보기</h4>
+          <button type="button" class="detail-toggle" data-collapsible-toggle="examples">펼치기</button>
+        </div>
+        <div class="detail-collapsible__body is-collapsed" data-collapsible-body="examples">
+          <ul class="character-detail-example-list" id="characterDetailExampleList"></ul>
+          <p class="detail-empty" id="characterDetailExampleEmpty">준비된 예시 대화가 없습니다.</p>
+        </div>
+      </section>
+
+      <section class="character-detail-section detail-comments">
+        <div class="detail-section__header">
+          <h4>댓글 <span id="characterDetailCommentsCount">(0)</span></h4>
+          <button type="button" class="character-detail-comments__toggle" id="characterDetailCommentsToggle">
+            전체보기
+          </button>
+        </div>
+        <ul class="character-detail-comments__list" id="characterDetailComments"></ul>
+      </section>
+    </div>
+
+    <footer class="character-detail-footer">
+      <button type="button" class="character-detail-play" id="characterDetailEnterBtn">
+        <span>플레이</span>
+      </button>
+    </footer>
+  </div>
+</div>
+
+<div class="avatar-preview-modal hidden" id="avatarPreviewModal" aria-hidden="true">
+  <div class="avatar-preview-backdrop" data-avatar-close></div>
+  <div class="avatar-preview-panel" role="dialog" aria-modal="true" aria-labelledby="avatarPreviewCaption">
+    <button type="button" class="avatar-preview-close" data-avatar-close aria-label="닫기">×</button>
+    <figure class="avatar-preview-frame">
+      <img src="/assets/img/sample-character-01.png" alt="캐릭터 프로필" id="avatarPreviewImage" />
+      <figcaption id="avatarPreviewCaption">캐릭터 프로필</figcaption>
+    </figure>
+  </div>
+</div>

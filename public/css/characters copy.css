@@ -110,7 +110,6 @@
 .hero-carousel {
   display: grid;
   grid-template-columns: 0.15fr 0.7fr 0.15fr;
-  padding-top: 100px;
   gap: 12px;
   align-items: stretch;
   margin-top: 8px;

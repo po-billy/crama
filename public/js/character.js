@@ -58,6 +58,9 @@ let sceneModeNoteTimer = null;
 let activeCharacterId = null;
 let currentUserContext = null;
 let currentUserId = null;
+let currentCharacterAvatarUrl = '/assets/img/sample-character-01.png';
+let currentCharacterData = null;
+let headerSheetsInitialized = false;
 
 function updateCharacterMetaTags(meta = {}) {
   const rawName = typeof meta.name === 'string' ? meta.name.trim() : '';
@@ -1073,12 +1076,6 @@ function initSceneModeToggle() {
       infoPanel.classList.toggle('hidden', !next);
     });
   }
-  const openSettingsBtn = document.getElementById('openChatSettingsBtn');
-  if (openSettingsBtn) {
-    openSettingsBtn.addEventListener('click', () => {
-      openChatSettingsPanel();
-    });
-  }
   updateSceneModeIndicator();
 }
 
@@ -1139,15 +1136,85 @@ function renderSceneTemplates(list = [], charName = '캐릭터', userName = plac
   }
 }
 
+function setBodyModalState() {
+  const hasOpen =
+    document.querySelector('.character-sheet:not(.hidden)') ||
+    document.querySelector('.character-detail-modal:not(.hidden)') ||
+    document.querySelector('.avatar-preview-modal:not(.hidden)');
+  document.body.classList.toggle('modal-open', Boolean(hasOpen));
+}
+
+window.__cramaUpdateModalState = setBodyModalState;
+
+function toggleSheet(id, show) {
+  const sheet = document.getElementById(id);
+  if (!sheet) return;
+  sheet.classList.toggle('hidden', !show);
+  sheet.setAttribute('aria-hidden', show ? 'false' : 'true');
+  setBodyModalState();
+}
+
+function openChatModeSheet() {
+  toggleSheet('chatModeSheet', true);
+}
+
+function openSceneSkinSheet() {
+  toggleSheet('sceneSkinSheet', true);
+}
+
+function openCharacterDetailModalShared() {
+  if (!currentCharacterData || !window.CharacterDetailModal) return;
+  window.CharacterDetailModal.openWithData(currentCharacterData);
+}
+
+async function openAvatarPreviewPanel(src, caption) {
+  if (!window.CharacterDetailModal?.openAvatarPreview) return;
+  try {
+    if (typeof window.CharacterDetailModal.ensureLoaded === 'function') {
+      await window.CharacterDetailModal.ensureLoaded();
+    }
+  } catch (error) {
+    console.warn('character detail modal load skipped', error);
+  }
+  window.CharacterDetailModal.openAvatarPreview(
+    src || currentCharacterAvatarUrl || '/assets/img/sample-character-01.png',
+    caption || '캐릭터 프로필'
+  );
+}
+
+function initHeaderSheets() {
+  if (headerSheetsInitialized) return;
+  headerSheetsInitialized = true;
+  const chatBtn = document.getElementById('chatModeSheetBtn');
+  if (chatBtn && !chatBtn.dataset.bound) {
+    chatBtn.addEventListener('click', openChatModeSheet);
+    chatBtn.dataset.bound = '1';
+  }
+  const skinBtn = document.getElementById('sceneSkinSheetBtn');
+  if (skinBtn && !skinBtn.dataset.bound) {
+    skinBtn.addEventListener('click', openSceneSkinSheet);
+    skinBtn.dataset.bound = '1';
+  }
+  document.querySelectorAll('[data-sheet-close]').forEach((btn) => {
+    if (btn.dataset.bound) return;
+    const target = btn.getAttribute('data-sheet-close');
+    btn.addEventListener('click', () => toggleSheet(target, false));
+    btn.dataset.bound = '1';
+  });
+  const trigger = document.getElementById('characterDetailTrigger');
+  if (trigger && !trigger.dataset.bound) {
+    trigger.addEventListener('click', openCharacterDetailModalShared);
+    trigger.dataset.bound = '1';
+  }
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    toggleSheet('chatModeSheet', false);
+    toggleSheet('sceneSkinSheet', false);
+  });
+}
+
 function openChatSettingsPanel() {
-  const sidePanel = document.querySelector('.character-side');
-  if (sidePanel?.classList.contains('character-side--collapsed')) {
-    document.getElementById('sideToggleBtn')?.click();
-  }
-  const chatTab = document.querySelector('.side-tab[data-panel="chatSettingsPanel"]');
-  if (chatTab && !chatTab.classList.contains('side-tab--active')) {
-    chatTab.click();
-  }
+  openChatModeSheet();
 }
 
 function updateSceneModeIndicator(modeOverride, usageOverride) {
@@ -1457,12 +1524,8 @@ function renderCharacterDetail(c) {
     description: applyPlaceholders(c.description || '')
   });
 
-  // 아바타 이미지
-  const avatarImg = document.querySelector(".character-avatar-wrapper img");
-  if (avatarImg) {
-    avatarImg.src = c.avatar_url || "/assets/img/sample-character-01.png";
-    avatarImg.alt = charName;
-  }
+  currentCharacterAvatarUrl = c.avatar_url || "/assets/img/sample-character-01.png";
+  currentCharacterData = c;
 
   // 캐릭터 이름
   const nameEl = document.querySelector(".character-name");
@@ -1594,7 +1657,7 @@ function renderMessage(msg) {
   const el = document.createElement("div");
   el.className = "chat-message " + (msg.role === "character" ? "chat-message--character" : "chat-message--user");
 
-  const avatarSrc = document.querySelector('.character-avatar-wrapper img')?.src || '/assets/img/sample-character-01.png';
+  const avatarSrc = currentCharacterAvatarUrl || '/assets/img/sample-character-01.png';
   const characterName = document.querySelector('.character-name')?.textContent || '캐릭터';
   const sceneImage =
     msg.sceneImage ||
@@ -1619,7 +1682,7 @@ function renderMessage(msg) {
   if (msg.role === "character") {
     el.innerHTML = `
       <div class="chat-message__avatar">
-        <img src="${avatarSrc}" />
+        <img src="${avatarSrc}" alt="${characterName}">
       </div>
       <div class="chat-message__bubble">
         <div class="chat-message__name">${characterName}</div>
@@ -1634,6 +1697,14 @@ function renderMessage(msg) {
         <div class="chat-message__text">${formattedContent}</div>
       </div>
     `;
+  }
+
+  if (msg.role === "character") {
+    const avatarEl = el.querySelector('.chat-message__avatar img');
+    if (avatarEl && !avatarEl.dataset.bound) {
+      avatarEl.addEventListener('click', () => openAvatarPreviewPanel(avatarSrc, characterName));
+      avatarEl.dataset.bound = '1';
+    }
   }
 
   return el;
@@ -1882,6 +1953,14 @@ document.addEventListener('DOMContentLoaded', () => {
 // 페이지 초기화
 // ================================
 document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    if (window.CharacterDetailModal?.ensureLoaded) {
+      window.CharacterDetailModal.ensureLoaded();
+    }
+  } catch (error) {
+    console.warn('character detail modal preload skipped', error);
+  }
+  initHeaderSheets();
   await initPlaceholderContext();
   const characterId = getParam("id");
   if (!characterId) return;
@@ -1908,22 +1987,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupChat(characterId);
   initKeyboardAwareInput();
 
-  const likeBtn = document.querySelector('.btn-favorite');
-  if (likeBtn) {
-    likeBtn.addEventListener('click', async () => {
-      const result = await likeCharacter(characterId);
-      if (result && typeof result.like_count !== 'undefined') {
-        const statNumbers = document.querySelectorAll(".character-stats .stat-item span:last-child");
-        const formatCount = (value) => {
-          if (value === undefined || value === null) return "0";
-          const num = Number(value);
-          return Number.isNaN(num) ? String(value) : num.toLocaleString();
-        };
-        if (statNumbers[0]) statNumbers[0].textContent = formatCount(result.like_count);
-        likeBtn.classList.add('active');
-      }
-    });
-  }
 });
 
 window.requestCharacterBackgroundReload = function () {

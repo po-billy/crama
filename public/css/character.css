@@ -1359,7 +1359,7 @@ body.modal-open {
   bottom: calc(var(--chat-input-keyboard-offset, 0px));
   left: 0;
   right: 0;
-  z-index: 15;
+  z-index: 1505;
   padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
   transition: bottom 0.2s ease;
 }

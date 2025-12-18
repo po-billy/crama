@@ -366,7 +366,6 @@ a {
     justify-content: center;
     align-items: flex-start;
     transition: opacity 0.18s ease-out, transform 0.18s ease-out;
-
 }
 
 
@@ -682,6 +681,8 @@ a {
     transition: border-color 0.2s ease, background 0.2s ease;
     margin: 12px 4px 0;
     margin-bottom: calc(20px + env(safe-area-inset-bottom, 12px));
+    position: relative;
+    z-index: 1300;
 }
 
 .drawer-mobile-account.is-link {
@@ -1207,7 +1208,13 @@ a {
     }
 
     body {
-        padding-bottom: 70px;
+        padding-bottom: calc(96px + env(safe-area-inset-bottom, 20px));
+    }
+
+    .content,
+    .main-area,
+    main {
+        padding-bottom: calc(40px + env(safe-area-inset-bottom, 12px));
     }
 }
 

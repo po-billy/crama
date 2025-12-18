@@ -15,6 +15,7 @@ const creatorPageState = {
   isLoggedIn: false,
   workTab: 'characters',
   charactersEmpty: false,
+  targetDisplayName: '작가',
   feed: {
     posts: [],
     nextCursor: null,
@@ -98,6 +99,7 @@ function renderHero(profile, fallbackUser, isSelf, viewerLoggedIn) {
     'creator';
 
   setCreatorAvatar(profile?.avatar_url || fallbackUser?.user_metadata?.avatar_url, displayName);
+  creatorPageState.targetDisplayName = displayName;
 
   const nameEl = document.getElementById('creatorName');
   if (nameEl) nameEl.textContent = displayName;
@@ -278,8 +280,6 @@ function setupWorksTabs() {
   tabs.forEach((tab) => {
     if (tab.dataset.bound) return;
     tab.addEventListener('click', () => {
-      tabs.forEach((t) => t.classList.remove('active'));
-      tab.classList.add('active');
       const view = tab.getAttribute('data-work-tab') || 'characters';
       setWorksView(view);
     });
@@ -292,6 +292,11 @@ function setupWorksTabs() {
 function setWorksView(view) {
   const normalized = view === 'feed' ? 'feed' : 'characters';
   creatorPageState.workTab = normalized;
+  document.querySelectorAll('[data-work-tab]').forEach((tab) => {
+    const isActive = tab.getAttribute('data-work-tab') === normalized;
+    tab.classList.toggle('active', isActive);
+    tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+  });
   const grid = document.getElementById('creatorGrid');
   const empty = document.getElementById('creatorEmpty');
   const feedBlock = document.getElementById('creatorFeedBlock');
@@ -503,59 +508,17 @@ function setupFeed(state) {
   if (emptyEl && !emptyEl.dataset.defaultText) {
     emptyEl.dataset.defaultText = emptyEl.textContent.trim();
   }
-  const composerForm = document.getElementById('feedComposerForm');
-  if (composerForm && !composerForm.dataset.bound) {
-    composerForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      if (!state.isSelf) return;
-      if (!ensureLoggedIn()) return;
-      const textarea = document.getElementById('feedComposerInput');
-      const statusEl = document.getElementById('feedComposerStatus');
-      const content = (textarea?.value || '').trim();
-      if (!content) {
-        if (statusEl) statusEl.textContent = '내용을 입력해주세요.';
-        return;
-      }
-      composerForm.classList.add('loading');
-      if (statusEl) statusEl.textContent = '등록 중...';
-      try {
-        await createFeedPost({
-          user_id: state.targetUserId,
-          content,
-        });
-        if (statusEl) statusEl.textContent = '등록되었습니다.';
-        if (textarea) textarea.value = '';
-        state.feed.editingPostId = null;
-        loadFeed({ reset: true });
-      } catch (err) {
-        console.error('createFeedPost failed', err);
-        if (statusEl) {
-          statusEl.textContent =
-            err?.message === FEED_API_UNAVAILABLE_ERROR
-              ? FEED_UNAVAILABLE_MESSAGE
-              : '등록에 실패했습니다. 잠시 후 다시 시도해주세요.';
-        }
-      } finally {
-        composerForm.classList.remove('loading');
-        setTimeout(() => {
-          if (statusEl) statusEl.textContent = '';
-        }, 2500);
-      }
-    });
-    composerForm.dataset.bound = '1';
+  const launcher = document.getElementById('feedComposeLauncher');
+  if (launcher) {
+    launcher.classList.toggle('hidden', !state.isSelf);
+  }
+  const openBtn = document.getElementById('openFeedComposer');
+  if (openBtn && !openBtn.dataset.bound) {
+    openBtn.addEventListener('click', () => openFeedComposer());
+    openBtn.dataset.bound = '1';
   }
 
-  const composerCancel = document.getElementById('feedComposerCancel');
-  if (composerCancel && !composerCancel.dataset.bound) {
-    composerCancel.addEventListener('click', () => {
-      const textarea = document.getElementById('feedComposerInput');
-      const statusEl = document.getElementById('feedComposerStatus');
-      if (textarea) textarea.value = '';
-      if (statusEl) statusEl.textContent = '';
-      state.feed.editingPostId = null;
-    });
-    composerCancel.dataset.bound = '1';
-  }
+  initFeedComposerSheet();
 
   const loadMoreBtn = document.getElementById('feedLoadMore');
   if (loadMoreBtn && !loadMoreBtn.dataset.bound) {
@@ -580,11 +543,128 @@ function setupFeed(state) {
   state.feed.initialized = false;
 }
 
+function initFeedComposerSheet() {
+  const composerForm = document.getElementById('feedComposerForm');
+  if (!composerForm || composerForm.dataset.bound) return;
+  const textarea = document.getElementById('feedComposerInput');
+  const imageInput = document.getElementById('feedComposerImageInput');
+  const statusEl = document.getElementById('feedComposerStatus');
+  const cancelBtn = document.getElementById('feedComposerCancel');
+  const closeBtn = document.getElementById('feedComposerClose');
+  const backdrop = document.getElementById('feedComposerBackdrop');
+  textarea?.addEventListener('input', updateFeedComposerCounter);
+  updateFeedComposerCounter();
+
+  const handleClose = () => {
+    closeFeedComposer();
+  };
+  cancelBtn?.addEventListener('click', handleClose);
+  closeBtn?.addEventListener('click', handleClose);
+  backdrop?.addEventListener('click', handleClose);
+
+  composerForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!creatorPageState.isSelf) return;
+    if (!ensureLoggedIn()) return;
+    if (!ensureFeedApiAvailable('피드')) return;
+    const content = (textarea?.value || '').trim();
+    const imageUrl = (imageInput?.value || '').trim();
+    if (!content) {
+      if (statusEl) statusEl.textContent = '내용을 입력해주세요.';
+      return;
+    }
+    composerForm.classList.add('loading');
+    if (statusEl) statusEl.textContent = creatorPageState.feed.editingPostId ? '수정 중...' : '등록 중...';
+    try {
+      await createFeedPost({
+        user_id: creatorPageState.targetUserId,
+        content,
+        image_url: imageUrl || null,
+      });
+      if (statusEl) statusEl.textContent = '등록되었습니다.';
+      closeFeedComposer();
+      loadFeed({ reset: true });
+    } catch (err) {
+      console.error('createFeedPost failed', err);
+      if (statusEl) {
+        statusEl.textContent =
+          err?.message === FEED_API_UNAVAILABLE_ERROR
+            ? FEED_UNAVAILABLE_MESSAGE
+            : '등록에 실패했습니다. 잠시 후 다시 시도해주세요.';
+      }
+    } finally {
+      composerForm.classList.remove('loading');
+      setTimeout(() => {
+        if (statusEl) statusEl.textContent = '';
+      }, 2500);
+    }
+  });
+
+  composerForm.dataset.bound = '1';
+}
+
+function openFeedComposer(item = null) {
+  if (!creatorPageState.isSelf) return;
+  if (!ensureFeedApiAvailable('피드')) return;
+  const layer = document.getElementById('feedComposerLayer');
+  const textarea = document.getElementById('feedComposerInput');
+  const imageInput = document.getElementById('feedComposerImageInput');
+  const statusEl = document.getElementById('feedComposerStatus');
+  if (!layer || !textarea || !imageInput) return;
+  if (item) {
+    textarea.value = item.content || '';
+    imageInput.value = item.image_url || '';
+    creatorPageState.feed.editingPostId = item.id;
+    if (statusEl) statusEl.textContent = '수정 모드입니다. 저장하면 기존 피드가 업데이트됩니다.';
+  } else {
+    creatorPageState.feed.editingPostId = null;
+    textarea.value = '';
+    imageInput.value = '';
+    if (statusEl) statusEl.textContent = '';
+  }
+  updateFeedComposerCounter();
+  document.body.classList.add('modal-open');
+  layer.classList.remove('hidden');
+  setTimeout(() => textarea.focus(), 50);
+}
+
+function closeFeedComposer() {
+  const layer = document.getElementById('feedComposerLayer');
+  if (layer && !layer.classList.contains('hidden')) {
+    layer.classList.add('hidden');
+  }
+  document.body.classList.remove('modal-open');
+  resetFeedComposerForm();
+}
+
+function resetFeedComposerForm() {
+  const textarea = document.getElementById('feedComposerInput');
+  const imageInput = document.getElementById('feedComposerImageInput');
+  const statusEl = document.getElementById('feedComposerStatus');
+  if (textarea) textarea.value = '';
+  if (imageInput) imageInput.value = '';
+  if (statusEl) statusEl.textContent = '';
+  creatorPageState.feed.editingPostId = null;
+  updateFeedComposerCounter();
+}
+
+function updateFeedComposerCounter() {
+  const counterEl = document.getElementById('feedComposerCounter');
+  const textarea = document.getElementById('feedComposerInput');
+  if (counterEl && textarea) {
+    counterEl.textContent = String(textarea.value.length);
+  }
+}
+
 function updateFeedComposerVisibility() {
-  const composer = document.getElementById('feedComposer');
-  if (!composer) return;
-  const shouldHide = !creatorPageState.isSelf || !creatorPageState.feed.apiAvailable;
-  composer.classList.toggle('hidden', shouldHide);
+  const launcher = document.getElementById('feedComposeLauncher');
+  const shouldShow = creatorPageState.isSelf && creatorPageState.feed.apiAvailable;
+  if (launcher) {
+    launcher.classList.toggle('hidden', !shouldShow);
+  }
+  if (!shouldShow) {
+    closeFeedComposer();
+  }
 }
 
 function setFeedApiAvailability(isAvailable, message = FEED_UNAVAILABLE_MESSAGE) {
@@ -714,13 +794,21 @@ function renderFeedList(items) {
 
     const header = document.createElement('div');
     header.className = 'feed-post-header';
+    const meta = document.createElement('div');
+    meta.className = 'feed-post-meta';
     const typeSpan = document.createElement('span');
     typeSpan.className = 'feed-post-type';
     typeSpan.textContent = '피드';
-    const metaSpan = document.createElement('span');
-    metaSpan.textContent = `${item.author_name || '작가'} · ${formatFeedDate(item.created_at)}`;
-    header.appendChild(typeSpan);
-    header.appendChild(metaSpan);
+    const authorEl = document.createElement('span');
+    authorEl.className = 'feed-post-author';
+    authorEl.textContent = item.author_name || creatorPageState.targetDisplayName || '작가';
+    const dateEl = document.createElement('span');
+    dateEl.className = 'feed-post-date';
+    dateEl.textContent = formatFeedDate(item.created_at);
+    meta.appendChild(typeSpan);
+    meta.appendChild(authorEl);
+    meta.appendChild(dateEl);
+    header.appendChild(meta);
 
     const actions = document.createElement('div');
     actions.className = 'feed-post-actions';
@@ -740,7 +828,18 @@ function renderFeedList(items) {
 
     const body = document.createElement('div');
     body.className = 'feed-post-body';
-    body.textContent = item.content || '';
+    body.innerHTML = renderMarkdownToHtml(item.content || '');
+
+    let figure = null;
+    if (item.image_url) {
+      figure = document.createElement('div');
+      figure.className = 'feed-post-image';
+      const img = document.createElement('img');
+      img.src = item.image_url;
+      img.alt = `${authorEl.textContent} 피드 이미지`;
+      img.loading = 'lazy';
+      figure.appendChild(img);
+    }
 
     const footer = document.createElement('div');
     footer.className = 'feed-post-footer';
@@ -759,6 +858,7 @@ function renderFeedList(items) {
 
     card.appendChild(header);
     card.appendChild(body);
+    if (figure) card.appendChild(figure);
     card.appendChild(footer);
     listEl.appendChild(card);
   });
@@ -775,12 +875,55 @@ function formatFeedDate(dateValue) {
   if (!dateValue) return '';
   const date = new Date(dateValue);
   if (Number.isNaN(date.valueOf())) return '';
-  return date.toLocaleString('ko-KR', {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hour = String(date.getHours()).padStart(2, '0');
+  const minute = String(date.getMinutes()).padStart(2, '0');
+  return `${year}.${month}.${day} ${hour}:${minute}`;
+}
+
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function renderMarkdownToHtml(value) {
+  if (!value) return '';
+  let html = escapeHtml(value);
+  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+
+  const lines = html.split('\n');
+  const output = [];
+  let inList = false;
+  lines.forEach((line) => {
+    const listMatch = line.match(/^\s*-\s+(.+)/);
+    if (listMatch) {
+      if (!inList) {
+        output.push('<ul>');
+        inList = true;
+      }
+      output.push(`<li>${listMatch[1]}</li>`);
+    } else {
+      if (inList) {
+        output.push('</ul>');
+        inList = false;
+      }
+      output.push(line);
+    }
   });
+  if (inList) output.push('</ul>');
+  html = output.join('\n');
+  html = html.replace(/\n{2,}/g, '<br><br>');
+  html = html.replace(/\n/g, '<br>');
+  return html;
 }
 
 function beginEditFeedPost(item) {
@@ -788,14 +931,7 @@ function beginEditFeedPost(item) {
   if (creatorPageState.workTab !== 'feed') {
     document.querySelector('[data-work-tab="feed"]')?.click();
   }
-  const composer = document.getElementById('feedComposer');
-  const textarea = document.getElementById('feedComposerInput');
-  const statusEl = document.getElementById('feedComposerStatus');
-  if (!composer || !textarea) return;
-  composer.scrollIntoView({ behavior: 'smooth' });
-  textarea.value = item.content || '';
-  creatorPageState.feed.editingPostId = item.id;
-  if (statusEl) statusEl.textContent = '수정 모드입니다. 저장하면 기존 피드가 업데이트됩니다.';
+  openFeedComposer(item);
 }
 
 async function createFeedPost(payload) {
@@ -881,6 +1017,7 @@ async function openFeedDetail(postId) {
   const commentForm = document.getElementById('feedCommentForm');
   const commentInput = document.getElementById('feedCommentInput');
   const commentStatus = document.getElementById('feedCommentStatus');
+  const detailImage = document.getElementById('feedDetailImage');
   if (!sheet || !bodyEl || !typeEl || !dateEl || !likeBtn || !commentForm) return;
 
   sheet.classList.remove('hidden');
@@ -900,9 +1037,18 @@ async function openFeedDetail(postId) {
   try {
     const detail = await fetchFeedDetail(postId);
     currentFeedDetail = detail;
-    bodyEl.textContent = detail.content || '';
-    typeEl.textContent = detail.type === 'works' ? '작품' : '캐릭터';
+    bodyEl.innerHTML = renderMarkdownToHtml(detail.content || '');
+    typeEl.textContent = detail.author_name || creatorPageState.targetDisplayName || '작가';
     dateEl.textContent = formatFeedDate(detail.created_at);
+    if (detailImage) {
+      if (detail.image_url) {
+        detailImage.classList.remove('hidden');
+        detailImage.innerHTML = `<img src="${detail.image_url}" alt="피드 이미지">`;
+      } else {
+        detailImage.classList.add('hidden');
+        detailImage.innerHTML = '';
+      }
+    }
     likeBtn.disabled = false;
     updateFeedLikeButton(likeBtn, detail);
     likeBtn.onclick = () => toggleFeedLike(detail, likeBtn);
@@ -1007,7 +1153,7 @@ function createCommentElement(comment) {
 
   const body = document.createElement('div');
   body.className = 'feed-comment-body';
-  body.textContent = comment.content || '';
+  body.innerHTML = renderMarkdownToHtml(comment.content || '');
 
   commentEl.appendChild(header);
   commentEl.appendChild(body);
@@ -1080,7 +1226,7 @@ function beginEditComment(commentEl, comment) {
     try {
       await updateFeedComment(comment, content);
       if (body) {
-        body.textContent = content;
+        body.innerHTML = renderMarkdownToHtml(content);
         textarea.replaceWith(body);
         actions.remove();
       }

@@ -85,9 +85,13 @@
         <section class="creator-works" id="creatorWorksSection">
           <div class="creator-section-head">
             <h2 class="creator-section-title">작가 아카이브</h2>
-            <div class="creator-filters" id="creatorWorkTabs">
-              <button class="filter-chip active" data-work-tab="characters">캐릭터</button>
-              <button class="filter-chip" data-work-tab="feed">피드</button>
+            <div class="creator-tabs" id="creatorWorkTabs" role="tablist">
+              <button class="creator-tab active" data-work-tab="characters" role="tab" aria-selected="true">
+                캐릭터
+              </button>
+              <button class="creator-tab" data-work-tab="feed" role="tab" aria-selected="false">
+                피드
+              </button>
             </div>
           </div>
           <section class="creator-grid" id="creatorGrid"></section>
@@ -96,20 +100,11 @@
           </div>
 
           <div class="creator-feed hidden" id="creatorFeedBlock">
-            <div class="feed-composer hidden" id="feedComposer">
-              <form id="feedComposerForm">
-                <textarea
-                  id="feedComposerInput"
-                  rows="3"
-                  placeholder="피드에 공유할 내용을 작성하세요."
-                  maxlength="2000"
-                ></textarea>
-                <div class="feed-composer-actions">
-                  <button type="submit" class="btn btn-accent">등록</button>
-                  <button type="button" class="btn btn-ghost" id="feedComposerCancel">초기화</button>
-                </div>
-                <p class="feed-composer-status" id="feedComposerStatus"></p>
-              </form>
+            <div class="feed-compose-launcher hidden" id="feedComposeLauncher">
+              <button type="button" class="feed-compose-btn" id="openFeedComposer">
+                피드 작성하기
+              </button>
+              <p class="feed-compose-hint">마크다운과 이미지 URL을 지원해요.</p>
             </div>
             <div class="creator-feed-list" id="feedList"></div>
             <div class="creator-empty hidden" id="feedEmpty">아직 작성된 피드가 없습니다.</div>
@@ -145,6 +140,7 @@
           <span class="feed-detail-date" id="feedDetailDate"></span>
         </div>
         <div class="feed-detail-body" id="feedDetailBody"></div>
+        <div class="feed-detail-image hidden" id="feedDetailImage"></div>
         <div class="feed-detail-actions">
           <button type="button" class="feed-detail-like" id="feedDetailLikeBtn"></button>
           <button type="button" class="feed-detail-edit hidden" id="feedDetailEditBtn">수정</button>
@@ -158,6 +154,37 @@
           <button type="submit" class="btn btn-accent">댓글 등록</button>
         </div>
         <p class="feed-comment-status" id="feedCommentStatus"></p>
+      </form>
+    </div>
+  </div>
+
+  <div class="feed-composer-layer hidden" id="feedComposerLayer" role="dialog" aria-modal="true">
+    <div class="feed-composer-backdrop" id="feedComposerBackdrop"></div>
+    <div class="feed-composer-card">
+      <header class="feed-composer-header">
+        <h3>글쓰기</h3>
+        <button type="button" class="feed-composer-close" id="feedComposerClose" aria-label="닫기">×</button>
+      </header>
+      <form id="feedComposerForm">
+        <label for="feedComposerInput">내용</label>
+        <textarea
+          id="feedComposerInput"
+          rows="6"
+          maxlength="2000"
+          placeholder="피드에 올라갈 내용을 작성해주세요. 마크다운을 사용할 수 있어요."
+        ></textarea>
+        <div class="feed-composer-counter"><span id="feedComposerCounter">0</span> / 2000</div>
+        <label for="feedComposerImageInput">이미지 URL (선택)</label>
+        <input
+          type="url"
+          id="feedComposerImageInput"
+          placeholder="https://이미지를 첨부하려면 주소를 붙여넣으세요."
+        />
+        <p class="feed-composer-status" id="feedComposerStatus"></p>
+        <div class="feed-composer-actions">
+          <button type="button" class="btn btn-ghost" id="feedComposerCancel">취소</button>
+          <button type="submit" class="btn btn-accent">게시</button>
+        </div>
       </form>
     </div>
   </div>

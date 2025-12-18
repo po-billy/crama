@@ -2,16 +2,16 @@
 
 // server.js
 import express from "express";
-import fs from 'fs';
-import https from 'https';
-import net from 'net';
-import crypto from 'crypto';
+import fs from "fs";
+import https from "https";
+import net from "net";
+import crypto from "crypto";
 import fetch, { FormData } from "node-fetch";
-import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { Jimp } from 'jimp';
-import sharp from 'sharp';
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+import { Jimp } from "jimp";
+import sharp from "sharp";
 import nodemailer from "nodemailer";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -567,6 +567,174 @@ function sendError(res, status, message, extra = {}) {
   });
 }
 
+// ===============================
+// Creator feed local store (file-based)
+// ===============================
+const CREATOR_FEED_DIR = path.join(__dirname, "data");
+const CREATOR_FEED_STORE_PATH = path.join(CREATOR_FEED_DIR, "creator-feed.json");
+const CREATOR_FEED_PAGE_SIZE = 10;
+const CREATOR_FEED_MAX_CONTENT_LENGTH = 2000;
+
+function loadCreatorFeedStore() {
+  try {
+    if (!fs.existsSync(CREATOR_FEED_STORE_PATH)) {
+      return { posts: [], comments: [] };
+    }
+    const raw = fs.readFileSync(CREATOR_FEED_STORE_PATH, "utf-8");
+    const parsed = JSON.parse(raw);
+    return {
+      posts: Array.isArray(parsed?.posts) ? parsed.posts : [],
+      comments: Array.isArray(parsed?.comments) ? parsed.comments : [],
+    };
+  } catch (error) {
+    console.warn("[creator-feed] failed to load store", error);
+    return { posts: [], comments: [] };
+  }
+}
+
+function persistCreatorFeedStore(store) {
+  try {
+    if (!fs.existsSync(CREATOR_FEED_DIR)) {
+      fs.mkdirSync(CREATOR_FEED_DIR, { recursive: true });
+    }
+    fs.writeFileSync(
+      CREATOR_FEED_STORE_PATH,
+      JSON.stringify(store, null, 2),
+      "utf-8"
+    );
+  } catch (error) {
+    console.error("[creator-feed] persist failed", error);
+  }
+}
+
+const creatorFeedStore = loadCreatorFeedStore();
+
+function sanitizeFeedContent(value) {
+  return String(value || "")
+    .trim()
+    .slice(0, CREATOR_FEED_MAX_CONTENT_LENGTH);
+}
+
+function encodeFeedCursor(payload) {
+  const base = Buffer.from(JSON.stringify(payload)).toString("base64");
+  return base.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+function decodeFeedCursor(cursor) {
+  if (!cursor) return null;
+  try {
+    const normalized = cursor.replace(/-/g, "+").replace(/_/g, "/");
+    const padLength = (4 - (normalized.length % 4)) % 4;
+    const padded = normalized + "=".repeat(padLength);
+    const decoded = Buffer.from(padded, "base64").toString("utf-8");
+    return JSON.parse(decoded);
+  } catch (error) {
+    console.warn("[creator-feed] invalid cursor", error);
+    return null;
+  }
+}
+
+function buildAuthorSnapshot(user) {
+  if (!user) return null;
+  const fallbackName = user.email ? user.email.split("@")[0] : "크리에이터";
+  return {
+    id: user.id,
+    name:
+      user.user_metadata?.name ||
+      user.user_metadata?.full_name ||
+      fallbackName ||
+      "크리에이터",
+    handle: user.user_metadata?.user_name || null,
+    avatar_url: user.user_metadata?.avatar_url || null,
+  };
+}
+
+function mapPostToResponse(post, viewerId) {
+  const likeUserIds = Array.isArray(post.like_user_ids) ? post.like_user_ids : [];
+  const commentCount = creatorFeedStore.comments.filter(
+    (comment) => comment.post_id === post.id
+  ).length;
+  return {
+    id: post.id,
+    owner_id: post.owner_id,
+    author_name: post.author_snapshot?.name || "작가",
+    author_handle: post.author_snapshot?.handle || null,
+    created_at: post.created_at,
+    updated_at: post.updated_at,
+    content: post.content,
+    type: post.type || "characters",
+    like_count: likeUserIds.length,
+    liked: viewerId ? likeUserIds.includes(viewerId) : false,
+    comment_count: commentCount,
+    is_owner: viewerId ? viewerId === post.owner_id : false,
+  };
+}
+
+function findPostById(postId) {
+  return creatorFeedStore.posts.find((post) => post.id === postId) || null;
+}
+
+function findCommentById(commentId) {
+  return creatorFeedStore.comments.find((comment) => comment.id === commentId) || null;
+}
+
+function removePostComments(postId) {
+  const remaining = creatorFeedStore.comments.filter(
+    (comment) => comment.post_id !== postId
+  );
+  creatorFeedStore.comments = remaining;
+}
+
+function removeCommentWithChildren(commentId) {
+  const queue = [commentId];
+  const toDelete = new Set();
+  while (queue.length) {
+    const current = queue.shift();
+    if (!current || toDelete.has(current)) continue;
+    toDelete.add(current);
+    creatorFeedStore.comments.forEach((comment) => {
+      if (comment.parent_id === current) queue.push(comment.id);
+    });
+  }
+  creatorFeedStore.comments = creatorFeedStore.comments.filter(
+    (comment) => !toDelete.has(comment.id)
+  );
+}
+
+function buildCommentTree(postId, viewerId) {
+  const related = creatorFeedStore.comments
+    .filter((comment) => comment.post_id === postId)
+    .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+  const map = new Map();
+  related.forEach((comment) => {
+    const likeUserIds = Array.isArray(comment.like_user_ids) ? comment.like_user_ids : [];
+    map.set(comment.id, {
+      id: comment.id,
+      post_id: comment.post_id,
+      root_post_id: comment.post_id,
+      parent_id: comment.parent_id,
+      content: comment.content,
+      created_at: comment.created_at,
+      updated_at: comment.updated_at,
+      author_name: comment.author_snapshot?.name || "사용자",
+      author_handle: comment.author_snapshot?.handle || null,
+      like_count: likeUserIds.length,
+      liked: viewerId ? likeUserIds.includes(viewerId) : false,
+      is_owner: viewerId ? viewerId === comment.user_id : false,
+      replies: [],
+    });
+  });
+  const roots = [];
+  map.forEach((node) => {
+    if (node.parent_id && map.has(node.parent_id)) {
+      map.get(node.parent_id).replies.push(node);
+    } else {
+      roots.push(node);
+    }
+  });
+  return roots;
+}
+
 function getDailyResetTimes() {
   const start = new Date();
   start.setHours(0, 0, 0, 0);
@@ -830,6 +998,236 @@ async function getUserFromRequest(req) {
 
   return data.user; // { id, email, ... }
 }
+
+// ===============================
+// Creator feed routes
+// ===============================
+function ensureFeedOwner(user, targetUserId, res) {
+  if (!user) {
+    sendError(res, 401, "unauthorized");
+    return false;
+  }
+  if (user.id !== targetUserId) {
+    sendError(res, 403, "forbidden");
+    return false;
+  }
+  return true;
+}
+
+app.get("/api/creator-feed", async (req, res) => {
+  const targetUserId = String(req.query.user_id || "").trim();
+  if (!targetUserId) return sendError(res, 400, "user_id_required");
+  const viewer = await getUserFromRequest(req);
+  const cursorPayload = decodeFeedCursor(req.query.cursor);
+
+  const sorted = creatorFeedStore.posts
+    .filter((post) => post.owner_id === targetUserId)
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+  let startIndex = 0;
+  if (cursorPayload?.id) {
+    const idx = sorted.findIndex((post) => post.id === cursorPayload.id);
+    if (idx >= 0) startIndex = idx + 1;
+  }
+  const pageItems = sorted.slice(startIndex, startIndex + CREATOR_FEED_PAGE_SIZE);
+  const nextIndex = startIndex + pageItems.length;
+  const nextCursor =
+    nextIndex < sorted.length && pageItems.length
+      ? encodeFeedCursor({ id: pageItems[pageItems.length - 1].id })
+      : null;
+
+  const items = pageItems.map((post) => mapPostToResponse(post, viewer?.id));
+  return res.json({
+    items,
+    next_cursor: nextCursor,
+  });
+});
+
+app.post("/api/creator-feed", async (req, res) => {
+  const user = await getUserFromRequest(req);
+  const targetUserId = String(req.body?.user_id || "").trim() || user?.id;
+  if (!ensureFeedOwner(user, targetUserId, res)) return;
+  const content = sanitizeFeedContent(req.body?.content);
+  if (!content) return sendError(res, 400, "content_required");
+
+  const now = new Date().toISOString();
+  const post = {
+    id: `post_${crypto.randomUUID()}`,
+    owner_id: targetUserId,
+    content,
+    created_at: now,
+    updated_at: now,
+    like_user_ids: [],
+    type: "characters",
+    author_snapshot: buildAuthorSnapshot(user),
+  };
+  creatorFeedStore.posts.unshift(post);
+  persistCreatorFeedStore(creatorFeedStore);
+  return res.json({ ok: true, id: post.id });
+});
+
+app.put("/api/creator-feed/:postId", async (req, res) => {
+  const user = await getUserFromRequest(req);
+  const post = findPostById(req.params.postId);
+  if (!post) return sendError(res, 404, "post_not_found");
+  if (!ensureFeedOwner(user, post.owner_id, res)) return;
+  const content = sanitizeFeedContent(req.body?.content);
+  if (!content) return sendError(res, 400, "content_required");
+  post.content = content;
+  post.updated_at = new Date().toISOString();
+  persistCreatorFeedStore(creatorFeedStore);
+  return res.json({ ok: true });
+});
+
+app.delete("/api/creator-feed/:postId", async (req, res) => {
+  const user = await getUserFromRequest(req);
+  const postIndex = creatorFeedStore.posts.findIndex(
+    (p) => p.id === req.params.postId
+  );
+  if (postIndex === -1) return sendError(res, 404, "post_not_found");
+  const post = creatorFeedStore.posts[postIndex];
+  if (!ensureFeedOwner(user, post.owner_id, res)) return;
+  creatorFeedStore.posts.splice(postIndex, 1);
+  removePostComments(post.id);
+  persistCreatorFeedStore(creatorFeedStore);
+  return res.json({ ok: true });
+});
+
+app.post("/api/creator-feed/:postId/like", async (req, res) => {
+  const user = await getUserFromRequest(req);
+  if (!user) return sendError(res, 401, "unauthorized");
+  const post = findPostById(req.params.postId);
+  if (!post) return sendError(res, 404, "post_not_found");
+  post.like_user_ids = Array.isArray(post.like_user_ids) ? post.like_user_ids : [];
+  if (!post.like_user_ids.includes(user.id)) {
+    post.like_user_ids.push(user.id);
+    persistCreatorFeedStore(creatorFeedStore);
+  }
+  return res.json({ ok: true, like_count: post.like_user_ids.length, liked: true });
+});
+
+app.delete("/api/creator-feed/:postId/like", async (req, res) => {
+  const user = await getUserFromRequest(req);
+  if (!user) return sendError(res, 401, "unauthorized");
+  const post = findPostById(req.params.postId);
+  if (!post) return sendError(res, 404, "post_not_found");
+  post.like_user_ids = Array.isArray(post.like_user_ids) ? post.like_user_ids : [];
+  const nextLikes = post.like_user_ids.filter((id) => id !== user.id);
+  if (nextLikes.length !== post.like_user_ids.length) {
+    post.like_user_ids = nextLikes;
+    persistCreatorFeedStore(creatorFeedStore);
+  } else {
+    post.like_user_ids = nextLikes;
+  }
+  return res.json({ ok: true, like_count: post.like_user_ids.length, liked: false });
+});
+
+app.get("/api/creator-feed/:postId", async (req, res) => {
+  const viewer = await getUserFromRequest(req);
+  const post = findPostById(req.params.postId);
+  if (!post) return sendError(res, 404, "post_not_found");
+  const detail = {
+    ...mapPostToResponse(post, viewer?.id),
+    comments: buildCommentTree(post.id, viewer?.id),
+  };
+  return res.json(detail);
+});
+
+app.post("/api/creator-feed/:postId/comments", async (req, res) => {
+  const user = await getUserFromRequest(req);
+  if (!user) return sendError(res, 401, "unauthorized");
+  const post = findPostById(req.params.postId);
+  if (!post) return sendError(res, 404, "post_not_found");
+  const content = sanitizeFeedContent(req.body?.content);
+  if (!content) return sendError(res, 400, "content_required");
+  const parentId = req.body?.parent_id ? String(req.body.parent_id).trim() : null;
+  if (parentId) {
+    const parentComment = findCommentById(parentId);
+    if (!parentComment || parentComment.post_id !== post.id) {
+      return sendError(res, 404, "parent_comment_not_found");
+    }
+  }
+  const now = new Date().toISOString();
+  creatorFeedStore.comments.push({
+    id: `comment_${crypto.randomUUID()}`,
+    post_id: post.id,
+    parent_id: parentId || null,
+    user_id: user.id,
+    content,
+    created_at: now,
+    updated_at: now,
+    like_user_ids: [],
+    author_snapshot: buildAuthorSnapshot(user),
+  });
+  persistCreatorFeedStore(creatorFeedStore);
+  return res.json({ ok: true });
+});
+
+app.put("/api/creator-feed/:postId/comments/:commentId", async (req, res) => {
+  const user = await getUserFromRequest(req);
+  if (!user) return sendError(res, 401, "unauthorized");
+  const comment = findCommentById(req.params.commentId);
+  if (!comment || comment.post_id !== req.params.postId) {
+    return sendError(res, 404, "comment_not_found");
+  }
+  if (comment.user_id !== user.id) {
+    return sendError(res, 403, "forbidden");
+  }
+  const content = sanitizeFeedContent(req.body?.content);
+  if (!content) return sendError(res, 400, "content_required");
+  comment.content = content;
+  comment.updated_at = new Date().toISOString();
+  persistCreatorFeedStore(creatorFeedStore);
+  return res.json({ ok: true });
+});
+
+app.delete("/api/creator-feed/:postId/comments/:commentId", async (req, res) => {
+  const user = await getUserFromRequest(req);
+  if (!user) return sendError(res, 401, "unauthorized");
+  const comment = findCommentById(req.params.commentId);
+  if (!comment || comment.post_id !== req.params.postId) {
+    return sendError(res, 404, "comment_not_found");
+  }
+  if (comment.user_id !== user.id) {
+    return sendError(res, 403, "forbidden");
+  }
+  removeCommentWithChildren(comment.id);
+  persistCreatorFeedStore(creatorFeedStore);
+  return res.json({ ok: true });
+});
+
+app.post("/api/creator-feed/:postId/comments/:commentId/like", async (req, res) => {
+  const user = await getUserFromRequest(req);
+  if (!user) return sendError(res, 401, "unauthorized");
+  const comment = findCommentById(req.params.commentId);
+  if (!comment || comment.post_id !== req.params.postId) {
+    return sendError(res, 404, "comment_not_found");
+  }
+  comment.like_user_ids = Array.isArray(comment.like_user_ids) ? comment.like_user_ids : [];
+  if (!comment.like_user_ids.includes(user.id)) {
+    comment.like_user_ids.push(user.id);
+    persistCreatorFeedStore(creatorFeedStore);
+  }
+  return res.json({ ok: true, liked: true, like_count: comment.like_user_ids.length });
+});
+
+app.delete("/api/creator-feed/:postId/comments/:commentId/like", async (req, res) => {
+  const user = await getUserFromRequest(req);
+  if (!user) return sendError(res, 401, "unauthorized");
+  const comment = findCommentById(req.params.commentId);
+  if (!comment || comment.post_id !== req.params.postId) {
+    return sendError(res, 404, "comment_not_found");
+  }
+  comment.like_user_ids = Array.isArray(comment.like_user_ids) ? comment.like_user_ids : [];
+  const nextLikes = comment.like_user_ids.filter((id) => id !== user.id);
+  if (nextLikes.length !== comment.like_user_ids.length) {
+    comment.like_user_ids = nextLikes;
+    persistCreatorFeedStore(creatorFeedStore);
+  } else {
+    comment.like_user_ids = nextLikes;
+  }
+  return res.json({ ok: true, liked: false, like_count: comment.like_user_ids.length });
+});
 
 // ===============================
 // Profile handle helpers

@@ -44,7 +44,7 @@
               <span class="creator-badge" id="creatorBadge">CREATOR</span>
             </div>
             <p class="creator-bio" id="creatorBio">소개 문구가 여기에 표시됩니다.</p>
-            <dl class="creator-info-list">
+            <!-- <dl class="creator-info-list">
               <div>
                 <dt>직업</dt>
                 <dd id="creatorJob">-</dd>
@@ -57,13 +57,14 @@
                 <dt>연령대</dt>
                 <dd id="creatorAge">-</dd>
               </div>
-            </dl>
+            </dl> -->
             <div class="creator-links">
               <a href="#" target="_blank" rel="noopener" id="creatorWebsite" class="creator-link" hidden>웹사이트</a>
             </div>
             <div class="creator-stats" id="creatorStats">
               <span>대표 캐릭터 <strong id="creatorCharacterCount">0</strong></span>
-              <span>이미지 작품 <strong id="creatorImageCount">0</strong></span>
+              <span>총 캐릭터 <strong id="creatorTotalCharacters">0</strong></span>
+              <span>총 대화 <strong id="creatorTotalChats">0</strong></span>
               <span>팔로워 <strong id="creatorFollowers">0</strong></span>
             </div>
             <div class="creator-actions">
@@ -73,29 +74,91 @@
           </div>
         </section>
 
-        <section class="creator-characters" id="creatorCharactersSection">
+        <!-- <section class="creator-characters" id="creatorCharactersSection">
           <div class="creator-section-head">
             <h2 class="creator-section-title">대표 캐릭터</h2>
             <p class="creator-section-sub">최근 대화를 기반으로 자동으로 채워집니다.</p>
           </div>
           <div class="creator-character-list" id="creatorCharacterList"></div>
-        </section>
+        </section> -->
 
         <section class="creator-works" id="creatorWorksSection">
           <div class="creator-section-head">
-            <h2 class="creator-section-title">작품 아카이브</h2>
-            <div class="creator-filters">
-              <button class="filter-chip active" data-filter="all">전체</button>
-              <button class="filter-chip" data-filter="character">캐릭터</button>
-              <button class="filter-chip" data-filter="image">이미지</button>
+            <h2 class="creator-section-title">작가 아카이브</h2>
+            <div class="creator-filters" id="creatorWorkTabs">
+              <button class="filter-chip active" data-work-tab="characters">캐릭터</button>
+              <button class="filter-chip" data-work-tab="feed">피드</button>
             </div>
           </div>
           <section class="creator-grid" id="creatorGrid"></section>
           <div class="creator-empty hidden" id="creatorEmpty">
-            아직 등록된 작품이 없어요. 캐릭터챗을 시작하거나 스튜디오에서 이미지를 생성해보세요.
+            아직 등록된 캐릭터가 없어요. 캐릭터챗을 시작해보세요.
+          </div>
+
+          <div class="creator-feed hidden" id="creatorFeedBlock">
+            <div class="feed-composer hidden" id="feedComposer">
+              <form id="feedComposerForm">
+                <textarea
+                  id="feedComposerInput"
+                  rows="3"
+                  placeholder="피드에 공유할 내용을 작성하세요."
+                  maxlength="2000"
+                ></textarea>
+                <div class="feed-composer-actions">
+                  <button type="submit" class="btn btn-accent">등록</button>
+                  <button type="button" class="btn btn-ghost" id="feedComposerCancel">초기화</button>
+                </div>
+                <p class="feed-composer-status" id="feedComposerStatus"></p>
+              </form>
+            </div>
+            <div class="creator-feed-list" id="feedList"></div>
+            <div class="creator-empty hidden" id="feedEmpty">아직 작성된 피드가 없습니다.</div>
+            <button type="button" class="feed-load-more hidden" id="feedLoadMore">더 보기</button>
           </div>
         </section>
       </main>
+    </div>
+  </div>
+
+  <div class="creator-share-dim hidden" id="creatorShareDim"></div>
+  <div class="creator-share-sheet hidden" id="creatorShareSheet" role="dialog" aria-modal="true">
+    <div class="creator-share-card">
+      <h3>크리에이터 공유</h3>
+      <p>링크를 복사하거나 기기 공유 기능을 사용하세요.</p>
+      <div class="creator-share-link">
+        <input type="text" id="creatorShareLink" readonly>
+        <button type="button" id="creatorShareCopy">복사</button>
+      </div>
+      <div class="creator-share-actions">
+        <button class="btn btn-accent" type="button" id="creatorShareSystem">기기 공유</button>
+        <button class="btn btn-ghost" type="button" id="creatorShareClose">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="creator-feed-detail hidden" id="feedDetailSheet" role="dialog" aria-modal="true">
+    <div class="feed-detail-card">
+      <button class="feed-detail-close" id="feedDetailClose" aria-label="닫기">×</button>
+      <div class="feed-detail-content">
+        <div class="feed-detail-meta">
+          <span class="feed-detail-type" id="feedDetailType"></span>
+          <span class="feed-detail-date" id="feedDetailDate"></span>
+        </div>
+        <div class="feed-detail-body" id="feedDetailBody"></div>
+        <div class="feed-detail-actions">
+          <button type="button" class="feed-detail-like" id="feedDetailLikeBtn"></button>
+          <button type="button" class="feed-detail-edit hidden" id="feedDetailEditBtn">수정</button>
+          <button type="button" class="feed-detail-delete hidden" id="feedDetailDeleteBtn">삭제</button>
+        </div>
+      </div>
+      <div class="feed-comments" id="feedComments"></div>
+      <form class="feed-comment-form hidden" id="feedCommentForm">
+        <textarea id="feedCommentInput" rows="2" placeholder="댓글을 입력하세요."></textarea>
+        <div class="feed-comment-actions">
+          <button type="submit" class="btn btn-accent">댓글 등록</button>
+        </div>
+        <p class="feed-comment-status" id="feedCommentStatus"></p>
+      </form>
     </div>
   </div>
 

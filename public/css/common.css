@@ -983,7 +983,6 @@ a {
     /* 메인 ?�역 ?�딩 조금 줄이�?*/
     .main-area {
         justify-content: stretch;
-        padding: 0 12px 24px;
         display: flex;
     }
 

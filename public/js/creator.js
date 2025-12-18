@@ -4,8 +4,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
 const PLACEHOLDER_AVATAR = './assets/sample-character-01.png';
 const PLACEHOLDER_IMAGE = './assets/og-default.png';
+const creatorApiFetch = window.apiFetch || ((...args) => fetch(...args));
+const FEED_API_UNAVAILABLE_ERROR = 'feed_api_unavailable';
+const FEED_UNAVAILABLE_MESSAGE = '피드 기능은 준비 중입니다. 잠시 후 다시 이용해주세요.';
 
-let cachedImageItems = [];
+const creatorPageState = {
+  targetUserId: null,
+  viewerUserId: null,
+  isSelf: false,
+  isLoggedIn: false,
+  workTab: 'characters',
+  charactersEmpty: false,
+  feed: {
+    posts: [],
+    nextCursor: null,
+    loading: false,
+    editingPostId: null,
+    initialized: false,
+    loadingDetail: false,
+    apiAvailable: true,
+  },
+};
+
+let currentFeedDetail = null;
 
 async function initCreatorPage() {
   try {
@@ -33,24 +54,27 @@ async function initCreatorPage() {
       return;
     }
 
+    creatorPageState.targetUserId = targetUserId;
+    creatorPageState.viewerUserId = viewerUserId;
+    creatorPageState.isSelf = isSelf;
+    creatorPageState.isLoggedIn = Boolean(viewerUserId);
+
     renderHero(targetProfile, isSelf ? ctx?.user : null, isSelf, Boolean(viewerUserId));
 
-    const [characterItems, imageItems] = await Promise.all([
-      fetchCharacterItems(targetUserId),
-      fetchImageItems(targetUserId),
-    ]);
+    const { items: characterItems, totalCharacters, totalChats } = await fetchCharacterItems(targetUserId);
 
-    cachedImageItems = imageItems;
     updateHeroStats({
       characterCount: characterItems.length,
-      imageCount: imageItems.length,
+      totalCharacters,
+      totalChats,
       followers: targetProfile.followers_count || 0,
     });
     renderCharacterHighlights(characterItems);
+    renderGrid(characterItems);
 
-    const allItems = [...characterItems, ...imageItems];
-    setupFilters(allItems, cachedImageItems);
+    setupWorksTabs();
 
+    setupFeed(creatorPageState);
     setupShareButton(targetProfile, targetUserId);
   } catch (e) {
     console.error('creator init error', e);
@@ -132,11 +156,13 @@ function setCreatorAvatar(url, fallbackInitial) {
   }
 }
 
-function updateHeroStats({ characterCount = 0, imageCount = 0, followers = 0 }) {
+function updateHeroStats({ characterCount = 0, totalCharacters = 0, totalChats = 0, followers = 0 }) {
   const charEl = document.getElementById('creatorCharacterCount');
   if (charEl) charEl.textContent = characterCount.toLocaleString('ko-KR');
-  const imageEl = document.getElementById('creatorImageCount');
-  if (imageEl) imageEl.textContent = imageCount.toLocaleString('ko-KR');
+  const totalCharEl = document.getElementById('creatorTotalCharacters');
+  if (totalCharEl) totalCharEl.textContent = totalCharacters.toLocaleString('ko-KR');
+  const totalChatsEl = document.getElementById('creatorTotalChats');
+  if (totalChatsEl) totalChatsEl.textContent = totalChats.toLocaleString('ko-KR');
   const followersEl = document.getElementById('creatorFollowers');
   if (followersEl) followersEl.textContent = followers.toLocaleString('ko-KR');
 }
@@ -155,6 +181,8 @@ function showCreatorUnavailableState(message) {
   }
   document.getElementById('creatorCharactersSection')?.classList.add('hidden');
   document.getElementById('creatorWorksSection')?.classList.add('hidden');
+  document.getElementById('creatorFeedBlock')?.classList.add('hidden');
+  document.getElementById('feedDetailSheet')?.classList.add('hidden');
 }
 
 function renderCharacterHighlights(items) {
@@ -191,7 +219,7 @@ function renderCharacterHighlights(items) {
   });
 }
 
-function renderGrid(items, imageItems = []) {
+function renderGrid(items) {
   const grid = document.getElementById('creatorGrid');
   const empty = document.getElementById('creatorEmpty');
   if (!grid || !empty) return;
@@ -199,11 +227,11 @@ function renderGrid(items, imageItems = []) {
   grid.innerHTML = '';
   if (!items.length) {
     empty.classList.remove('hidden');
+    creatorPageState.charactersEmpty = true;
     return;
   }
   empty.classList.add('hidden');
-
-  const imagesOnly = imageItems.length ? imageItems : items.filter((i) => i.kind === 'image');
+  creatorPageState.charactersEmpty = false;
 
   items.forEach((item) => {
     const card = document.createElement('article');
@@ -213,7 +241,7 @@ function renderGrid(items, imageItems = []) {
     const thumb = document.createElement('div');
     thumb.className = 'creator-card-thumb';
     const picture = createPictureElement(item.thumbUrl || PLACEHOLDER_IMAGE, {
-      alt: item.title || (item.kind === 'image' ? '이미지 작품' : '캐릭터'),
+      alt: item.title || '캐릭터',
     });
     thumb.appendChild(picture);
 
@@ -221,13 +249,13 @@ function renderGrid(items, imageItems = []) {
     body.className = 'creator-card-body';
     const title = document.createElement('div');
     title.className = 'creator-card-title';
-    title.textContent = item.title || (item.kind === 'image' ? '이미지 작품' : '캐릭터');
+    title.textContent = item.title || '캐릭터';
     const sub = document.createElement('div');
     sub.className = 'creator-card-sub';
     sub.textContent = item.subtitle || '';
     const meta = document.createElement('div');
     meta.className = 'creator-card-meta';
-    meta.textContent = item.kind === 'image' ? '이미지' : '캐릭터';
+    meta.textContent = '캐릭터';
 
     body.appendChild(title);
     body.appendChild(sub);
@@ -237,51 +265,67 @@ function renderGrid(items, imageItems = []) {
     card.appendChild(body);
 
     card.addEventListener('click', () => {
-      if (item.kind === 'image' && typeof window.openDrawerImageModal === 'function') {
-        window.openDrawerImageModal(imagesOnly, item.id);
-      } else if (item.kind === 'character') {
-        window.location.href = `/character?id=${item.id}`;
-      }
+      window.location.href = `/character?id=${item.id}`;
     });
 
     grid.appendChild(card);
   });
 }
 
-function setupFilters(allItems, imageItems) {
-  const chips = document.querySelectorAll('.filter-chip');
-  if (!chips.length) return;
-
-  const applyFilter = (filter) => {
-    let filtered = allItems;
-    if (filter === 'image') filtered = allItems.filter((i) => i.kind === 'image');
-    if (filter === 'character') filtered = allItems.filter((i) => i.kind === 'character');
-    renderGrid(filtered, imageItems);
-  };
-
-  chips.forEach((chip) => {
-    chip.addEventListener('click', () => {
-      chips.forEach((c) => c.classList.remove('active'));
-      chip.classList.add('active');
-      const filter = chip.dataset.filter || 'all';
-      applyFilter(filter);
+function setupWorksTabs() {
+  const tabs = document.querySelectorAll('[data-work-tab]');
+  if (!tabs.length) return;
+  tabs.forEach((tab) => {
+    if (tab.dataset.bound) return;
+    tab.addEventListener('click', () => {
+      tabs.forEach((t) => t.classList.remove('active'));
+      tab.classList.add('active');
+      const view = tab.getAttribute('data-work-tab') || 'characters';
+      setWorksView(view);
     });
+    tab.dataset.bound = '1';
   });
+  const initialTab = document.querySelector('[data-work-tab].active');
+  setWorksView(initialTab?.getAttribute('data-work-tab') || 'characters');
+}
 
-  const activeChip = document.querySelector('.filter-chip.active');
-  applyFilter(activeChip?.dataset.filter || 'all');
+function setWorksView(view) {
+  const normalized = view === 'feed' ? 'feed' : 'characters';
+  creatorPageState.workTab = normalized;
+  const grid = document.getElementById('creatorGrid');
+  const empty = document.getElementById('creatorEmpty');
+  const feedBlock = document.getElementById('creatorFeedBlock');
+  if (normalized === 'feed') {
+    grid?.classList.add('hidden');
+    empty?.classList.add('hidden');
+    feedBlock?.classList.remove('hidden');
+    if (!creatorPageState.feed.initialized) {
+      loadFeed({ reset: true });
+      creatorPageState.feed.initialized = true;
+    }
+  } else {
+    grid?.classList.remove('hidden');
+    if (empty) empty.classList.toggle('hidden', !creatorPageState.charactersEmpty);
+    feedBlock?.classList.add('hidden');
+  }
 }
 
 async function fetchCharacterItems(userId) {
-  if (!window.sb) return [];
+  if (!window.sb) return { items: [], totalCharacters: 0, totalChats: 0 };
   try {
-    const { data, error } = await window.sb
+    const listPromise = window.sb
       .from('character_chats')
-      .select('character_id, created_at, characters(name, avatar_url, description)')
+      .select('character_id, created_at, characters(name, avatar_url, description), content')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
-      .limit(150);
+      .limit(200);
+    const countPromise = window.sb
+      .from('character_chats')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId);
+    const [{ data, error }, { count, error: countError }] = await Promise.all([listPromise, countPromise]);
     if (error) throw error;
+    if (countError) console.warn('character chat count error', countError);
 
     const seen = new Set();
     const unique = [];
@@ -291,45 +335,20 @@ async function fetchCharacterItems(userId) {
       unique.push(row);
     }
 
-    return unique.map((row) => ({
-      id: row.character_id,
-      kind: 'character',
-      title: row.characters?.name || '나의 캐릭터',
-      subtitle: row.characters?.description || '소개가 아직 없습니다.',
-      thumbUrl: row.characters?.avatar_url || PLACEHOLDER_AVATAR,
-    }));
+    return {
+      items: unique.map((row) => ({
+        id: row.character_id,
+        kind: 'character',
+        title: row.characters?.name || '나의 캐릭터',
+        subtitle: row.characters?.description || truncate(row.content, 60) || '소개가 아직 없습니다.',
+        thumbUrl: row.characters?.avatar_url || PLACEHOLDER_AVATAR,
+      })),
+      totalCharacters: unique.length,
+      totalChats: typeof count === 'number' ? count : data?.length || 0,
+    };
   } catch (e) {
     console.error('fetchCharacterItems error', e);
-    return [];
-  }
-}
-
-async function fetchImageItems(userId) {
-  if (!window.sb) return [];
-  try {
-    const { data, error } = await window.sb
-      .from('user_contents')
-      .select('id, title, prompt, thumb_url, full_url, created_at')
-      .eq('user_id', userId)
-      .eq('kind', 'image')
-      .is('deleted_at', null)
-      .order('created_at', { ascending: false })
-      .limit(80);
-    if (error) throw error;
-
-    return (data || []).map((row) => ({
-      id: row.id,
-      kind: 'image',
-      title: row.title?.trim() || truncate(row.prompt, 40) || '이미지 작품',
-      subtitle: row.created_at
-        ? new Date(row.created_at).toLocaleDateString('ko-KR')
-        : '최근 생성',
-      thumbUrl: row.thumb_url || row.full_url || PLACEHOLDER_IMAGE,
-      fullUrl: row.full_url || row.thumb_url || PLACEHOLDER_IMAGE,
-    }));
-  } catch (e) {
-    console.error('fetchImageItems error', e);
-    return [];
+    return { items: [], totalCharacters: 0, totalChats: 0 };
   }
 }
 
@@ -347,35 +366,78 @@ async function fetchProfileById(userId) {
 
 function setupShareButton(profile, targetUserId) {
   const shareBtn = document.getElementById('shareBtn');
-  if (!shareBtn) return;
+  const dim = document.getElementById('creatorShareDim');
+  const sheet = document.getElementById('creatorShareSheet');
+  const linkInput = document.getElementById('creatorShareLink');
+  const copyBtn = document.getElementById('creatorShareCopy');
+  const closeBtn = document.getElementById('creatorShareClose');
+  const systemBtn = document.getElementById('creatorShareSystem');
+  if (!shareBtn || !dim || !sheet || !linkInput || !copyBtn || !closeBtn || !systemBtn) return;
+
   const shareUrl = new URL(window.location.origin + '/creator');
   if (targetUserId) {
     shareUrl.searchParams.set('user', targetUserId);
   }
   const shareData = {
     title: `${profile?.display_name || '크리에이터'} | crama`,
-    text: '제가 만든 캐릭터와 이미지를 소개합니다.',
+    text: '제가 만든 캐릭터를 소개합니다.',
     url: shareUrl.toString(),
   };
 
+  const closeSheet = () => {
+    dim.classList.add('hidden');
+    sheet.classList.add('hidden');
+  };
+
+  const openSheet = () => {
+    linkInput.value = shareData.url;
+    dim.classList.remove('hidden');
+    sheet.classList.remove('hidden');
+    linkInput.focus();
+    linkInput.select();
+  };
+
   shareBtn.onclick = async () => {
+    if (navigator.share && window.matchMedia('(pointer: coarse)').matches) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch (err) {
+        if (err?.name !== 'AbortError') console.warn('share failed', err);
+      }
+    }
+    openSheet();
+  };
+
+  copyBtn.onclick = async () => {
+    try {
+      await navigator.clipboard?.writeText(shareData.url);
+      copyBtn.textContent = '복사 완료';
+      setTimeout(() => (copyBtn.textContent = '복사'), 1500);
+    } catch (e) {
+      console.warn('copy failed', e);
+      alert(shareData.url);
+    }
+  };
+
+  systemBtn.onclick = async () => {
     if (navigator.share) {
       try {
         await navigator.share(shareData);
+        closeSheet();
+        return;
       } catch (err) {
-        if (err?.name !== 'AbortError') {
-          console.warn('share failed', err);
-        }
+        if (err?.name !== 'AbortError') console.warn('share failed', err);
       }
-      return;
     }
-    if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(shareData.url);
-      alert('링크가 복사되었습니다.');
-    } else {
-      prompt('아래 링크를 복사해서 공유하세요.', shareData.url);
-    }
+    copyBtn.click();
   };
+
+  [dim, closeBtn].forEach((el) =>
+    el.addEventListener('click', () => {
+      closeSheet();
+    })
+  );
 }
 
 function normalizeWebsite(url) {
@@ -432,4 +494,734 @@ function createPictureElement(originalUrl, { alt = '', className = '' } = {}) {
   if (className) img.className = className;
   picture.appendChild(img);
   return picture;
+}
+
+function setupFeed(state) {
+  if (!document.getElementById('creatorFeedBlock')) return;
+
+  const emptyEl = document.getElementById('feedEmpty');
+  if (emptyEl && !emptyEl.dataset.defaultText) {
+    emptyEl.dataset.defaultText = emptyEl.textContent.trim();
+  }
+  const composerForm = document.getElementById('feedComposerForm');
+  if (composerForm && !composerForm.dataset.bound) {
+    composerForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!state.isSelf) return;
+      if (!ensureLoggedIn()) return;
+      const textarea = document.getElementById('feedComposerInput');
+      const statusEl = document.getElementById('feedComposerStatus');
+      const content = (textarea?.value || '').trim();
+      if (!content) {
+        if (statusEl) statusEl.textContent = '내용을 입력해주세요.';
+        return;
+      }
+      composerForm.classList.add('loading');
+      if (statusEl) statusEl.textContent = '등록 중...';
+      try {
+        await createFeedPost({
+          user_id: state.targetUserId,
+          content,
+        });
+        if (statusEl) statusEl.textContent = '등록되었습니다.';
+        if (textarea) textarea.value = '';
+        state.feed.editingPostId = null;
+        loadFeed({ reset: true });
+      } catch (err) {
+        console.error('createFeedPost failed', err);
+        if (statusEl) {
+          statusEl.textContent =
+            err?.message === FEED_API_UNAVAILABLE_ERROR
+              ? FEED_UNAVAILABLE_MESSAGE
+              : '등록에 실패했습니다. 잠시 후 다시 시도해주세요.';
+        }
+      } finally {
+        composerForm.classList.remove('loading');
+        setTimeout(() => {
+          if (statusEl) statusEl.textContent = '';
+        }, 2500);
+      }
+    });
+    composerForm.dataset.bound = '1';
+  }
+
+  const composerCancel = document.getElementById('feedComposerCancel');
+  if (composerCancel && !composerCancel.dataset.bound) {
+    composerCancel.addEventListener('click', () => {
+      const textarea = document.getElementById('feedComposerInput');
+      const statusEl = document.getElementById('feedComposerStatus');
+      if (textarea) textarea.value = '';
+      if (statusEl) statusEl.textContent = '';
+      state.feed.editingPostId = null;
+    });
+    composerCancel.dataset.bound = '1';
+  }
+
+  const loadMoreBtn = document.getElementById('feedLoadMore');
+  if (loadMoreBtn && !loadMoreBtn.dataset.bound) {
+    loadMoreBtn.addEventListener('click', () => loadFeed({ reset: false }));
+    loadMoreBtn.dataset.bound = '1';
+  }
+
+  const detailSheet = document.getElementById('feedDetailSheet');
+  const detailClose = document.getElementById('feedDetailClose');
+  if (detailClose && !detailClose.dataset.bound) {
+    detailClose.addEventListener('click', closeFeedDetail);
+    detailClose.dataset.bound = '1';
+  }
+  if (detailSheet && !detailSheet.dataset.bound) {
+    detailSheet.addEventListener('click', (event) => {
+      if (event.target === detailSheet) closeFeedDetail();
+    });
+    detailSheet.dataset.bound = '1';
+  }
+
+  updateFeedComposerVisibility();
+  state.feed.initialized = false;
+}
+
+function updateFeedComposerVisibility() {
+  const composer = document.getElementById('feedComposer');
+  if (!composer) return;
+  const shouldHide = !creatorPageState.isSelf || !creatorPageState.feed.apiAvailable;
+  composer.classList.toggle('hidden', shouldHide);
+}
+
+function setFeedApiAvailability(isAvailable, message = FEED_UNAVAILABLE_MESSAGE) {
+  creatorPageState.feed.apiAvailable = isAvailable;
+  updateFeedComposerVisibility();
+
+  const emptyEl = document.getElementById('feedEmpty');
+  if (emptyEl) {
+    const defaultText = emptyEl.dataset.defaultText || emptyEl.textContent || '';
+    if (isAvailable) {
+      emptyEl.textContent = defaultText || '아직 작성된 피드가 없습니다.';
+      emptyEl.classList.toggle('hidden', creatorPageState.feed.posts.length > 0);
+    } else {
+      emptyEl.textContent = message;
+      emptyEl.classList.remove('hidden');
+    }
+  }
+
+  const loadMoreBtn = document.getElementById('feedLoadMore');
+  if (loadMoreBtn) {
+    if (isAvailable) {
+      loadMoreBtn.classList.toggle('hidden', !creatorPageState.feed.nextCursor);
+    } else {
+      loadMoreBtn.classList.add('hidden');
+    }
+  }
+  if (!isAvailable) {
+    creatorPageState.feed.posts = [];
+    creatorPageState.feed.nextCursor = null;
+    const listEl = document.getElementById('feedList');
+    if (listEl) listEl.innerHTML = '';
+  }
+}
+
+function markFeedApiUnavailable(message = FEED_UNAVAILABLE_MESSAGE) {
+  setFeedApiAvailability(false, message);
+  const error = new Error(FEED_API_UNAVAILABLE_ERROR);
+  error.isFeedApiUnavailable = true;
+  return error;
+}
+
+function ensureFeedApiAvailable(actionLabel) {
+  if (creatorPageState.feed.apiAvailable) return true;
+  const alertMessage = actionLabel
+    ? `${FEED_UNAVAILABLE_MESSAGE}\n${actionLabel} 기능은 잠시 후 다시 이용해주세요.`
+    : FEED_UNAVAILABLE_MESSAGE;
+  window.alert(alertMessage);
+  return false;
+}
+
+function ensureFeedApiResponse(res, failureCode) {
+  if (res?.status === 404) {
+    throw markFeedApiUnavailable();
+  }
+  if (!res?.ok) {
+    throw new Error(failureCode || 'feed_request_failed');
+  }
+}
+
+async function loadFeed({ reset = false } = {}) {
+  if (
+    creatorPageState.feed.loading ||
+    !creatorPageState.targetUserId ||
+    !creatorPageState.feed.apiAvailable
+  )
+    return;
+  const listEl = document.getElementById('feedList');
+  const emptyEl = document.getElementById('feedEmpty');
+  const loadMoreBtn = document.getElementById('feedLoadMore');
+  if (reset) {
+    creatorPageState.feed.posts = [];
+    creatorPageState.feed.nextCursor = null;
+    if (listEl) listEl.innerHTML = '';
+    if (loadMoreBtn) loadMoreBtn.classList.add('hidden');
+  }
+
+  creatorPageState.feed.loading = true;
+  try {
+    const response = await fetchFeedPostsFromApi({
+      user_id: creatorPageState.targetUserId,
+      cursor: reset ? null : creatorPageState.feed.nextCursor,
+    });
+    const items = response?.items || [];
+    creatorPageState.feed.nextCursor = response?.next_cursor || null;
+    creatorPageState.feed.posts = reset
+      ? items
+      : [...creatorPageState.feed.posts, ...items];
+    renderFeedList(creatorPageState.feed.posts);
+    if (emptyEl) {
+      emptyEl.classList.toggle('hidden', creatorPageState.feed.posts.length > 0);
+    }
+    if (loadMoreBtn) {
+      loadMoreBtn.classList.toggle('hidden', !creatorPageState.feed.nextCursor);
+    }
+    creatorPageState.feed.initialized = true;
+  } catch (err) {
+    console.error('loadFeed error', err);
+    if (err?.message === FEED_API_UNAVAILABLE_ERROR) return;
+    if (emptyEl) {
+      emptyEl.classList.remove('hidden');
+      emptyEl.textContent = '피드를 불러오지 못했습니다.';
+    }
+  } finally {
+    creatorPageState.feed.loading = false;
+  }
+}
+
+async function fetchFeedPostsFromApi({ user_id, cursor }) {
+  const url = new URL('/api/creator-feed', window.location.origin);
+  url.searchParams.set('user_id', user_id);
+  if (cursor) url.searchParams.set('cursor', cursor);
+  const res = await creatorApiFetch(url.toString(), {
+    headers: await getCreatorAuthHeaders(),
+  });
+  ensureFeedApiResponse(res, 'feed_fetch_failed');
+  return res.json().catch(() => ({ items: [] }));
+}
+
+function renderFeedList(items) {
+  const listEl = document.getElementById('feedList');
+  if (!listEl) return;
+  listEl.innerHTML = '';
+  items.forEach((item) => {
+    const card = document.createElement('article');
+    card.className = 'feed-post';
+    card.dataset.postId = item.id;
+
+    const header = document.createElement('div');
+    header.className = 'feed-post-header';
+    const typeSpan = document.createElement('span');
+    typeSpan.className = 'feed-post-type';
+    typeSpan.textContent = '피드';
+    const metaSpan = document.createElement('span');
+    metaSpan.textContent = `${item.author_name || '작가'} · ${formatFeedDate(item.created_at)}`;
+    header.appendChild(typeSpan);
+    header.appendChild(metaSpan);
+
+    const actions = document.createElement('div');
+    actions.className = 'feed-post-actions';
+    if (item.is_owner) {
+      const editBtn = document.createElement('button');
+      editBtn.type = 'button';
+      editBtn.textContent = '수정';
+      editBtn.addEventListener('click', () => beginEditFeedPost(item));
+      const deleteBtn = document.createElement('button');
+      deleteBtn.type = 'button';
+      deleteBtn.textContent = '삭제';
+      deleteBtn.addEventListener('click', () => deleteFeedPost(item));
+      actions.appendChild(editBtn);
+      actions.appendChild(deleteBtn);
+    }
+    header.appendChild(actions);
+
+    const body = document.createElement('div');
+    body.className = 'feed-post-body';
+    body.textContent = item.content || '';
+
+    const footer = document.createElement('div');
+    footer.className = 'feed-post-footer';
+    const likeBtn = document.createElement('button');
+    likeBtn.type = 'button';
+    updateFeedLikeButton(likeBtn, item);
+    likeBtn.addEventListener('click', () => toggleFeedLike(item, likeBtn));
+
+    const detailBtn = document.createElement('button');
+    detailBtn.type = 'button';
+    detailBtn.className = 'feed-detail-trigger';
+    detailBtn.textContent = `댓글 ${item.comment_count || 0}개 · 상세 보기`;
+    detailBtn.addEventListener('click', () => handleFeedDetailOpen(item));
+    footer.appendChild(likeBtn);
+    footer.appendChild(detailBtn);
+
+    card.appendChild(header);
+    card.appendChild(body);
+    card.appendChild(footer);
+    listEl.appendChild(card);
+  });
+}
+
+function updateFeedLikeButton(button, item) {
+  if (!button) return;
+  const liked = Boolean(item.liked);
+  const count = Number(item.like_count || 0);
+  button.textContent = `${liked ? '♥' : '♡'} ${count.toLocaleString('ko-KR')}`;
+}
+
+function formatFeedDate(dateValue) {
+  if (!dateValue) return '';
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.valueOf())) return '';
+  return date.toLocaleString('ko-KR', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function beginEditFeedPost(item) {
+  if (!creatorPageState.isSelf) return;
+  if (creatorPageState.workTab !== 'feed') {
+    document.querySelector('[data-work-tab="feed"]')?.click();
+  }
+  const composer = document.getElementById('feedComposer');
+  const textarea = document.getElementById('feedComposerInput');
+  const statusEl = document.getElementById('feedComposerStatus');
+  if (!composer || !textarea) return;
+  composer.scrollIntoView({ behavior: 'smooth' });
+  textarea.value = item.content || '';
+  creatorPageState.feed.editingPostId = item.id;
+  if (statusEl) statusEl.textContent = '수정 모드입니다. 저장하면 기존 피드가 업데이트됩니다.';
+}
+
+async function createFeedPost(payload) {
+  if (!creatorPageState.feed.apiAvailable) {
+    throw markFeedApiUnavailable();
+  }
+  const headers = await getCreatorAuthHeaders();
+  const body = JSON.stringify(payload);
+  const method = creatorPageState.feed.editingPostId ? 'PUT' : 'POST';
+  const url = creatorPageState.feed.editingPostId
+    ? `/api/creator-feed/${creatorPageState.feed.editingPostId}`
+    : '/api/creator-feed';
+  const res = await creatorApiFetch(url, {
+    method,
+    headers,
+    body,
+  });
+  ensureFeedApiResponse(res, 'feed_save_failed');
+  creatorPageState.feed.editingPostId = null;
+}
+
+async function deleteFeedPost(item) {
+  if (!item?.id || !creatorPageState.isSelf) return;
+  if (!ensureFeedApiAvailable('피드')) return;
+  if (!window.confirm('이 피드를 삭제할까요?')) return;
+  try {
+    const res = await creatorApiFetch(`/api/creator-feed/${item.id}`, {
+      method: 'DELETE',
+      headers: await getCreatorAuthHeaders(),
+    });
+    ensureFeedApiResponse(res, 'feed_delete_failed');
+    loadFeed({ reset: true });
+  } catch (e) {
+    console.error('delete feed error', e);
+    if (e?.message !== FEED_API_UNAVAILABLE_ERROR) {
+      alert('삭제에 실패했습니다.');
+    }
+  }
+}
+
+async function toggleFeedLike(item, button) {
+  if (!ensureLoggedIn()) return;
+  if (!ensureFeedApiAvailable()) return;
+  if (!item?.id) return;
+  const liked = !item.liked;
+  item.liked = liked;
+  item.like_count = (Number(item.like_count) || 0) + (liked ? 1 : -1);
+  updateFeedLikeButton(button, item);
+  try {
+    const res = await creatorApiFetch(`/api/creator-feed/${item.id}/like`, {
+      method: liked ? 'POST' : 'DELETE',
+      headers: await getCreatorAuthHeaders(),
+    });
+    ensureFeedApiResponse(res, 'like_failed');
+  } catch (e) {
+    console.error('toggle like failed', e);
+    item.liked = !liked;
+    item.like_count = (Number(item.like_count) || 0) + (liked ? -1 : 1);
+    updateFeedLikeButton(button, item);
+    if (e?.message === FEED_API_UNAVAILABLE_ERROR) return;
+    if (!liked) alert('좋아요 취소에 실패했습니다.');
+  }
+}
+
+function handleFeedDetailOpen(item) {
+  if (!ensureFeedApiAvailable()) return;
+  if (!creatorPageState.isLoggedIn) {
+    ensureLoggedIn();
+    return;
+  }
+  openFeedDetail(item.id);
+}
+
+async function openFeedDetail(postId) {
+  if (!postId) return;
+  const sheet = document.getElementById('feedDetailSheet');
+  const bodyEl = document.getElementById('feedDetailBody');
+  const typeEl = document.getElementById('feedDetailType');
+  const dateEl = document.getElementById('feedDetailDate');
+  const likeBtn = document.getElementById('feedDetailLikeBtn');
+  const editBtn = document.getElementById('feedDetailEditBtn');
+  const deleteBtn = document.getElementById('feedDetailDeleteBtn');
+  const commentForm = document.getElementById('feedCommentForm');
+  const commentInput = document.getElementById('feedCommentInput');
+  const commentStatus = document.getElementById('feedCommentStatus');
+  if (!sheet || !bodyEl || !typeEl || !dateEl || !likeBtn || !commentForm) return;
+
+  sheet.classList.remove('hidden');
+  creatorPageState.feed.loadingDetail = true;
+  currentFeedDetail = null;
+  bodyEl.textContent = '불러오는 중...';
+  typeEl.textContent = '';
+  dateEl.textContent = '';
+  likeBtn.textContent = '♡ 0';
+  likeBtn.disabled = true;
+  editBtn?.classList.add('hidden');
+  deleteBtn?.classList.add('hidden');
+  if (commentInput) commentInput.value = '';
+  if (commentStatus) commentStatus.textContent = '';
+  document.getElementById('feedComments')?.replaceChildren();
+
+  try {
+    const detail = await fetchFeedDetail(postId);
+    currentFeedDetail = detail;
+    bodyEl.textContent = detail.content || '';
+    typeEl.textContent = detail.type === 'works' ? '작품' : '캐릭터';
+    dateEl.textContent = formatFeedDate(detail.created_at);
+    likeBtn.disabled = false;
+    updateFeedLikeButton(likeBtn, detail);
+    likeBtn.onclick = () => toggleFeedLike(detail, likeBtn);
+    if (detail.is_owner) {
+      editBtn?.classList.remove('hidden');
+      deleteBtn?.classList.remove('hidden');
+      editBtn?.addEventListener('click', () => {
+        beginEditFeedPost(detail);
+        closeFeedDetail();
+      });
+      deleteBtn?.addEventListener('click', () => deleteFeedPost(detail));
+    }
+
+    renderFeedComments(detail.comments || []);
+    if (commentForm && !commentForm.dataset.bound) {
+      commentForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        submitFeedComment(detail.id, null);
+      });
+      commentForm.dataset.bound = '1';
+    }
+  } catch (e) {
+    console.error('openFeedDetail failed', e);
+    if (e?.message === FEED_API_UNAVAILABLE_ERROR) {
+      bodyEl.textContent = FEED_UNAVAILABLE_MESSAGE;
+      closeFeedDetail();
+      return;
+    }
+    bodyEl.textContent = '상세 정보를 불러올 수 없습니다.';
+  } finally {
+    creatorPageState.feed.loadingDetail = false;
+  }
+}
+
+function closeFeedDetail() {
+  const sheet = document.getElementById('feedDetailSheet');
+  if (sheet) sheet.classList.add('hidden');
+  currentFeedDetail = null;
+}
+
+async function fetchFeedDetail(postId) {
+  const res = await creatorApiFetch(`/api/creator-feed/${postId}`, {
+    headers: await getCreatorAuthHeaders(),
+  });
+  ensureFeedApiResponse(res, 'feed_detail_failed');
+  const detail = await res.json().catch(() => null);
+  if (!detail) throw new Error('feed_detail_invalid');
+  return detail;
+}
+
+function renderFeedComments(comments) {
+  const listEl = document.getElementById('feedComments');
+  if (!listEl) return;
+  listEl.innerHTML = '';
+  (comments || []).forEach((comment) => {
+    const commentEl = createCommentElement(comment);
+    listEl.appendChild(commentEl);
+  });
+  const form = document.getElementById('feedCommentForm');
+  if (form) {
+    form.classList.toggle('hidden', !creatorPageState.isLoggedIn);
+  }
+}
+
+function createCommentElement(comment) {
+  const commentEl = document.createElement('div');
+  commentEl.className = 'feed-comment';
+  commentEl.dataset.commentId = comment.id;
+
+  const header = document.createElement('div');
+  header.className = 'feed-comment-header';
+  header.textContent = `${comment.author_name || '사용자'} · ${formatFeedDate(comment.created_at)}`;
+  const actions = document.createElement('div');
+  actions.className = 'feed-comment-actions';
+
+  const likeBtn = document.createElement('button');
+  likeBtn.type = 'button';
+  likeBtn.textContent = `${comment.liked ? '♥' : '♡'} ${Number(comment.like_count || 0).toLocaleString('ko-KR')}`;
+  likeBtn.addEventListener('click', () => toggleCommentLike(comment, likeBtn));
+  actions.appendChild(likeBtn);
+
+  const replyBtn = document.createElement('button');
+  replyBtn.type = 'button';
+  replyBtn.textContent = '대댓글';
+  replyBtn.addEventListener('click', () => showReplyForm(commentEl, comment));
+  actions.appendChild(replyBtn);
+
+  if (comment.is_owner) {
+    const editBtn = document.createElement('button');
+    editBtn.type = 'button';
+    editBtn.textContent = '수정';
+    editBtn.addEventListener('click', () => beginEditComment(commentEl, comment));
+    const deleteBtn = document.createElement('button');
+    deleteBtn.type = 'button';
+    deleteBtn.textContent = '삭제';
+    deleteBtn.addEventListener('click', () => deleteFeedComment(comment));
+    actions.appendChild(editBtn);
+    actions.appendChild(deleteBtn);
+  }
+
+  header.appendChild(actions);
+
+  const body = document.createElement('div');
+  body.className = 'feed-comment-body';
+  body.textContent = comment.content || '';
+
+  commentEl.appendChild(header);
+  commentEl.appendChild(body);
+
+  if (Array.isArray(comment.replies) && comment.replies.length) {
+    const replyList = document.createElement('div');
+    replyList.className = 'feed-reply-list';
+    comment.replies.forEach((reply) => {
+      replyList.appendChild(createCommentElement(reply));
+    });
+    commentEl.appendChild(replyList);
+  }
+
+  return commentEl;
+}
+
+function showReplyForm(commentEl, parentComment) {
+  if (!ensureLoggedIn()) return;
+  if (!commentEl || !parentComment) return;
+  let form = commentEl.querySelector('.feed-reply-form');
+  if (form) {
+    form.classList.toggle('hidden');
+    return;
+  }
+  form = document.createElement('form');
+  form.className = 'feed-reply-form';
+  const textarea = document.createElement('textarea');
+  textarea.rows = 2;
+  textarea.placeholder = '대댓글을 입력하세요.';
+  const submitBtn = document.createElement('button');
+  submitBtn.type = 'submit';
+  submitBtn.className = 'btn btn-accent';
+  submitBtn.textContent = '등록';
+  form.appendChild(textarea);
+  form.appendChild(submitBtn);
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    submitFeedComment(parentComment.root_post_id || parentComment.post_id || currentFeedDetail?.id, parentComment.id, textarea.value, () => {
+      form.remove();
+    });
+  });
+  commentEl.appendChild(form);
+}
+
+function beginEditComment(commentEl, comment) {
+  if (!commentEl) return;
+  const body = commentEl.querySelector('.feed-comment-body');
+  if (!body) return;
+  const textarea = document.createElement('textarea');
+  textarea.value = comment.content || '';
+  textarea.rows = 3;
+  const actions = document.createElement('div');
+  actions.className = 'feed-comment-actions';
+  const saveBtn = document.createElement('button');
+  saveBtn.type = 'button';
+  saveBtn.textContent = '저장';
+  const cancelBtn = document.createElement('button');
+  cancelBtn.type = 'button';
+  cancelBtn.textContent = '취소';
+  actions.append(saveBtn, cancelBtn);
+  body.replaceWith(textarea);
+  commentEl.appendChild(actions);
+
+  saveBtn.addEventListener('click', async () => {
+    const content = textarea.value.trim();
+    if (!content) {
+      alert('내용을 입력하세요.');
+      return;
+    }
+    try {
+      await updateFeedComment(comment, content);
+      if (body) {
+        body.textContent = content;
+        textarea.replaceWith(body);
+        actions.remove();
+      }
+    } catch (e) {
+      console.error('comment edit failed', e);
+      if (e?.message !== FEED_API_UNAVAILABLE_ERROR) {
+        alert('수정에 실패했습니다.');
+      }
+    }
+  });
+  cancelBtn.addEventListener('click', () => {
+    textarea.replaceWith(body);
+    actions.remove();
+  });
+}
+
+async function submitFeedComment(postId, parentId = null, overrideContent = null, callback = () => {}) {
+  if (!ensureLoggedIn()) return;
+  if (!ensureFeedApiAvailable('댓글')) return;
+  if (!postId) return;
+  const commentInput = parentId ? null : document.getElementById('feedCommentInput');
+  const statusEl = parentId ? null : document.getElementById('feedCommentStatus');
+  const content = overrideContent !== null ? overrideContent : (commentInput?.value || '');
+  if (!content.trim()) {
+    if (statusEl) statusEl.textContent = '내용을 입력해주세요.';
+    return;
+  }
+  if (statusEl) statusEl.textContent = '등록 중...';
+  try {
+    const res = await creatorApiFetch(`/api/creator-feed/${postId}/comments`, {
+      method: 'POST',
+      headers: await getCreatorAuthHeaders(),
+      body: JSON.stringify({
+        content,
+        parent_id: parentId,
+      }),
+    });
+    ensureFeedApiResponse(res, 'comment_create_failed');
+    if (commentInput) commentInput.value = '';
+    if (statusEl) statusEl.textContent = '등록되었습니다.';
+    const detail = await fetchFeedDetail(postId);
+    currentFeedDetail = detail;
+    renderFeedComments(detail.comments || []);
+    callback();
+  } catch (e) {
+    console.error('submit comment failed', e);
+    if (statusEl) {
+      statusEl.textContent =
+        e?.message === FEED_API_UNAVAILABLE_ERROR ? FEED_UNAVAILABLE_MESSAGE : '등록에 실패했습니다.';
+    }
+  } finally {
+    if (statusEl) {
+      setTimeout(() => {
+        statusEl.textContent = '';
+      }, 2000);
+    }
+  }
+}
+
+async function updateFeedComment(comment, content) {
+  const postId = comment.root_post_id || comment.post_id || currentFeedDetail?.id;
+  if (!postId) throw new Error('invalid_comment');
+  if (!creatorPageState.feed.apiAvailable) {
+    throw markFeedApiUnavailable();
+  }
+  const res = await creatorApiFetch(`/api/creator-feed/${postId}/comments/${comment.id}`, {
+    method: 'PUT',
+    headers: await getCreatorAuthHeaders(),
+    body: JSON.stringify({ content }),
+  });
+  ensureFeedApiResponse(res, 'comment_update_failed');
+  const detail = await fetchFeedDetail(postId);
+  currentFeedDetail = detail;
+  renderFeedComments(detail.comments || []);
+}
+
+async function deleteFeedComment(comment) {
+  if (!window.confirm('댓글을 삭제할까요?')) return;
+  const postId = comment.root_post_id || comment.post_id || currentFeedDetail?.id;
+  if (!postId) return;
+  if (!ensureFeedApiAvailable('댓글')) return;
+  try {
+    const res = await creatorApiFetch(`/api/creator-feed/${postId}/comments/${comment.id}`, {
+      method: 'DELETE',
+      headers: await getCreatorAuthHeaders(),
+    });
+    ensureFeedApiResponse(res, 'comment_delete_failed');
+    const detail = await fetchFeedDetail(postId);
+    currentFeedDetail = detail;
+    renderFeedComments(detail.comments || []);
+  } catch (e) {
+    console.error('delete comment failed', e);
+    if (e?.message !== FEED_API_UNAVAILABLE_ERROR) {
+      alert('삭제에 실패했습니다.');
+    }
+  }
+}
+
+async function toggleCommentLike(comment, button) {
+  if (!ensureLoggedIn()) return;
+  if (!ensureFeedApiAvailable('댓글')) return;
+  const postId = comment.root_post_id || comment.post_id || currentFeedDetail?.id;
+  if (!postId) return;
+  const liked = !comment.liked;
+  comment.liked = liked;
+  comment.like_count = (Number(comment.like_count) || 0) + (liked ? 1 : -1);
+  button.textContent = `${liked ? '♥' : '♡'} ${Number(comment.like_count || 0).toLocaleString('ko-KR')}`;
+  try {
+    const res = await creatorApiFetch(`/api/creator-feed/${postId}/comments/${comment.id}/like`, {
+      method: liked ? 'POST' : 'DELETE',
+      headers: await getCreatorAuthHeaders(),
+    });
+    ensureFeedApiResponse(res, 'comment_like_failed');
+  } catch (e) {
+    console.error('comment like error', e);
+    comment.liked = !liked;
+    comment.like_count = (Number(comment.like_count) || 0) + (liked ? -1 : 1);
+    button.textContent = `${comment.liked ? '♥' : '♡'} ${Number(comment.like_count || 0).toLocaleString('ko-KR')}`;
+    if (e?.message === FEED_API_UNAVAILABLE_ERROR) return;
+  }
+}
+
+async function getCreatorAuthHeaders() {
+  const headers = { 'Content-Type': 'application/json' };
+  if (!window.sb?.auth) return headers;
+  try {
+    const { data } = await window.sb.auth.getSession();
+    const token = data?.session?.access_token;
+    if (token) headers.Authorization = `Bearer ${token}`;
+  } catch (e) {
+    console.warn('getCreatorAuthHeaders failed', e);
+  }
+  return headers;
+}
+
+function ensureLoggedIn() {
+  if (creatorPageState.isLoggedIn) return true;
+  if (window.openLoginModal) {
+    window.openLoginModal({ redirect: window.location.href });
+  } else {
+    window.location.href = '/login';
+  }
+  return false;
 }

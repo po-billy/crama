@@ -61,21 +61,53 @@
 
         <main class="main-area page-main pricing-main">
           <section class="pricing-hero card">
-            <div class="pricing-hero__badge">Scene 요금제</div>
-            <h1 class="pricing-hero__title">
-              장기 구독부터 단건 충전까지 원하는 방식으로 Scene을 확보하세요
-            </h1>
-            <p class="pricing-hero__desc">
-              Scene 요금제는 로그인 여부와 관계없이 전체 목록을 확인할 수 있으며,
-              결제는 Paddle을 통해 안전하게 처리됩니다.
-            </p>
-            <div class="pricing-hero__cta">
-              <button class="btn btn--primary" type="button" id="pricingHeroBuy">
-                Scene 충전하기
-              </button>
-              <p class="pricing-hero__note">
-                크레딧이 부족하면 언제든지 여기에서 다시 충전할 수 있어요.
-              </p>
+            <div class="pricing-hero__badge">Scene Plans</div>
+            <div class="pricing-hero__split">
+              <div class="pricing-hero__copy">
+                <h1 class="pricing-hero__title">
+                  장기 구독부터 단건 충전까지 원하는 방식으로 Scene을 확보하세요
+                </h1>
+                <p class="pricing-hero__desc">
+                  로그인하지 않아도 요금제를 모두 확인할 수 있습니다. Scene이 부족하면 언제든지 이곳에서 충전하고,
+                  Scene 모드/일반 모드에 맞춰 효율적으로 사용해 보세요.
+                </p>
+                <ul class="pricing-hero__list">
+                  <li>구독권은 가장 낮은 단가로 Scene을 정기 충전</li>
+                  <li>단건 팩은 급할 때 즉시 Scene 확보</li>
+                  <li>광고 보상으로 무료 Scene 확보 (일일 제한)</li>
+                </ul>
+                <div class="pricing-hero__cta">
+                  <button class="btn btn--primary" type="button" id="pricingHeroBuy">
+                    Scene 충전하기
+                  </button>
+                  <p class="pricing-hero__note">
+                    Paddle 결제로 안전하게 처리되며, 영수증은 이메일로 발송됩니다.
+                  </p>
+                </div>
+              </div>
+              <div class="pricing-hero__summary">
+                <div class="hero-stat">
+                  <p class="hero-stat__label">일반 모드</p>
+                  <strong class="hero-stat__value">최근 20대화</strong>
+                  <p class="hero-stat__desc">크레딧 소모 15 / 대화 한 쌍</p>
+                </div>
+                <div class="hero-stat">
+                  <p class="hero-stat__label">Scene 모드</p>
+                  <strong class="hero-stat__value">맥락 누적</strong>
+                  <p class="hero-stat__desc">크레딧 소모 35 / 대화 한 쌍</p>
+                </div>
+                <div class="hero-stat hero-stat--outline">
+                  <p class="hero-stat__label">무료 Scene</p>
+                  <strong class="hero-stat__value">광고 보상</strong>
+                  <p class="hero-stat__desc">일 최대 3회, 계정당 동일 정책</p>
+                </div>
+              </div>
+            </div>
+            <div class="pricing-hero__chips">
+              <span>Scene 모드</span>
+              <span>단건 충전</span>
+              <span>광고 보상</span>
+              <span>Paddle 결제</span>
             </div>
           </section>
 
@@ -105,6 +137,7 @@
                     급하게 Scene이 필요할 때는 원하는 팩을 골라 즉시 충전하세요.
                   </p>
                 </div>
+                <div class="pricing-section__meta" id="pricingPackStatus"></div>
               </div>
               <div id="pricingPackArea" class="pricing-list"></div>
             </section>

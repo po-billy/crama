@@ -133,7 +133,7 @@ function renderCreditUpsell() {
     }
   });
 
-  const renderList = (targetEls, items, predicate) => {
+  const renderList = (targetEls, items, predicate, emptyMessage) => {
     targetEls.forEach((target) => {
       if (!target) return;
       target.innerHTML = '';
@@ -152,13 +152,23 @@ function renderCreditUpsell() {
           target.appendChild(item);
         });
       if (!target.children.length) {
-        target.innerHTML = '<p class="cu-empty">표시할 요금제가 없습니다.</p>';
+        target.innerHTML = `<p class="cu-empty">${emptyMessage || '준비 중인 요금제입니다.'}</p>`;
       }
     });
   };
 
-  renderList(subAreas, plans, (p) => !(p.features || {}).is_one_time);
-  renderList(packAreas, plans, (p) => (p.features || {}).is_one_time);
+  renderList(
+    subAreas,
+    plans,
+    (p) => !(p.features || {}).is_one_time,
+    'Scene 구독 옵션이 준비 중입니다.'
+  );
+  renderList(
+    packAreas,
+    plans,
+    (p) => (p.features || {}).is_one_time,
+    'Scene 충전 팩이 준비 중입니다.'
+  );
 
   syncAdButtons();
 }

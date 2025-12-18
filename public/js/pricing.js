@@ -12,15 +12,24 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const loadingState = document.getElementById('pricingSubscriptionStatus');
-  if (loadingState) {
+  const packState = document.getElementById('pricingPackStatus');
+  if (loadingState || packState) {
     const handleLoaded = (event) => {
       const detail = event?.detail;
       if (!detail) return;
       const plans = detail.plans || [];
-      const subCount = plans.filter((p) => !(p.features || {}).is_one_time).length;
-      loadingState.textContent = subCount
-        ? `구독 옵션 ${subCount}개`
-        : '구독 옵션을 불러오는 데 실패했습니다.';
+      const subs = plans.filter((p) => !(p.features || {}).is_one_time);
+      const packs = plans.filter((p) => (p.features || {}).is_one_time);
+      if (loadingState) {
+        loadingState.textContent = subs.length
+          ? `구독 옵션 ${subs.length}개`
+          : 'Scene 구독 옵션 준비 중';
+      }
+      if (packState) {
+        packState.textContent = packs.length
+          ? `충전 팩 ${packs.length}개`
+          : 'Scene 충전 팩 준비 중';
+      }
     };
     window.addEventListener('creditConfig:loaded', handleLoaded, { once: true });
   }

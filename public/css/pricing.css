@@ -2,17 +2,104 @@
   background: var(--bg-default, #050716);
 }
 
+
 .pricing-main {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  padding-bottom: 80px;
+  gap: 2rem;
+  padding: 36px 20px 120px;
+  width: min(1100px, 100%);
+  margin: 0 auto;
+  justify-content:unset;
+  align-items: unset;
+
 }
 
 .pricing-hero {
-  background: linear-gradient(145deg, rgba(56, 242, 139, 0.15), rgba(5, 7, 22, 0.8));
+  background: radial-gradient(circle at 20% 20%, rgba(56, 242, 139, 0.35), rgba(5, 7, 22, 0.92));
+  border: 1px solid rgba(56, 242, 139, 0.45);
+  color: #f7f9ff;
+  border-radius: 28px;
+  padding: 2.6rem;
+  position: relative;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55);
+}
+
+.pricing-hero::after {
+  content: '';
+  position: absolute;
+  right: -60px;
+  top: -80px;
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(56, 242, 139, 0.45), transparent 70%);
+  filter: blur(4px);
+}
+
+.pricing-hero__split {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  position: relative;
+  z-index: 1;
+  flex-wrap: wrap;
+}
+
+.pricing-hero__summary {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.hero-stat {
+  background: rgba(7, 10, 22, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 18px;
+  padding: 1.1rem 1.3rem;
+}
+
+.hero-stat--outline {
+  border-color: rgba(56, 242, 139, 0.4);
+}
+
+.hero-stat__label {
+  margin: 0;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.65);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hero-stat__value {
+  display: block;
+  margin: 0.4rem 0;
+  font-size: 1.4rem;
+  color: #ffffff;
+}
+
+.hero-stat__desc {
+  margin: 0;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.pricing-hero__chips {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  position: relative;
+  z-index: 1;
+}
+
+.pricing-hero__chips span {
+  background: rgba(5, 7, 22, 0.6);
   border: 1px solid rgba(56, 242, 139, 0.4);
-  color: var(--text-primary, #fff);
+  border-radius: 999px;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .pricing-hero__badge {
@@ -36,9 +123,25 @@
 }
 
 .pricing-hero__desc {
-  color: var(--text-secondary, #c7c7d0);
+  color: rgba(255, 255, 255, 0.86);
   font-size: 0.95rem;
   line-height: 1.6;
+}
+
+.pricing-hero__list {
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.pricing-hero__list li::before {
+  content: '•';
+  color: #38f28b;
+  margin-right: 0.4rem;
 }
 
 .pricing-hero__cta {
@@ -49,14 +152,16 @@
 
 .pricing-hero__note {
   font-size: 0.85rem;
-  color: var(--text-secondary, #c7c7d0);
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .pricing-section {
-  background: var(--bg-card, #101222);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 18px;
-  padding: 1.5rem;
+  background: rgba(10, 12, 24, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 22px;
+  padding: 1.8rem;
+  color: #f5f6ff;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
 }
 
 .pricing-section__header {
@@ -80,14 +185,14 @@
 
 .pricing-section__desc {
   margin: 0;
-  color: var(--text-secondary, #c7c7d0);
-  font-size: 0.9rem;
-  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.95rem;
+  line-height: 1.6;
 }
 
 .pricing-section__meta {
   font-size: 0.85rem;
-  color: var(--text-secondary, #c7c7d0);
+  color: rgba(255, 255, 255, 0.68);
 }
 
 .pricing-list {
@@ -97,14 +202,17 @@
 }
 
 .pricing-list .cu-list-item {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  transition: transform 0.2s ease, border 0.2s ease;
+  background: rgba(12, 14, 27, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #f4f6ff;
+  transition: transform 0.2s ease, border 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
 }
 
 .pricing-list .cu-list-item:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
   border-color: #38f28b;
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.35);
 }
 
 .pricing-grid {
@@ -114,8 +222,8 @@
 }
 
 .pricing-section--ad {
-  background: rgba(56, 242, 139, 0.07);
-  border: 1px solid rgba(56, 242, 139, 0.2);
+  background: rgba(19, 28, 20, 0.9);
+  border: 1px solid rgba(56, 242, 139, 0.35);
 }
 
 .pricing-faq {
@@ -152,6 +260,22 @@
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
+  }
+
+  .pricing-hero__split {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 2.5rem;
+    flex-wrap: nowrap;
+  }
+
+  .pricing-hero__copy,
+  .pricing-hero__summary {
+    flex: 1;
+  }
+
+  .pricing-hero__summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .pricing-grid {

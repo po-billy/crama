@@ -4,6 +4,32 @@
   overflow-x: hidden;
 }
 
+/* Thin custom scrollbars scoped to characters page */
+.page-characters * {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(56, 242, 139, 0.6) rgba(255, 255, 255, 0.05);
+}
+
+.page-characters *::-webkit-scrollbar {
+  width: 8px;
+  height: 6px;
+}
+
+.page-characters *::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 999px;
+}
+
+.page-characters *::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(56, 242, 139, 0.85), rgba(20, 120, 72, 0.9));
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.page-characters *::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(56, 242, 139, 1), rgba(16, 96, 58, 0.95));
+}
+
 /* === 메인 공통 영역 === */
 .main-area {
   flex: 1;

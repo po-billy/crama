@@ -61,6 +61,8 @@
     el.genre = document.getElementById('characterDetailGenre');
     el.target = document.getElementById('characterDetailTarget');
     el.creatorName = document.getElementById('characterDetailCreatorName');
+    el.creatorHandle = document.getElementById('characterDetailCreatorHandle');
+    el.creatorAvatar = document.getElementById('characterDetailCreatorAvatar');
     el.creatorLink = document.getElementById('characterDetailCreatorLink');
     el.followBtn = document.getElementById('characterDetailFollowBtn');
     el.introBlock = document.getElementById('characterDetailIntroBlock');
@@ -334,7 +336,7 @@
     try {
       const { data, error } = await window.sb
         .from('profiles')
-        .select('id, display_name, handle')
+        .select('id, display_name, handle, avatar_url')
         .eq('id', ownerId)
         .maybeSingle();
       if (error) throw error;
@@ -403,6 +405,27 @@
     el.sceneEmpty.style.display = templates.length ? 'none' : 'block';
   }
 
+  function renderCreatorAvatar(url, fallback) {
+    if (!el.creatorAvatar) return;
+    const initials = (fallback || '').trim().slice(0, 2).toUpperCase() || 'CR';
+    if (typeof window.applyAvatarVisual === 'function') {
+      window.applyAvatarVisual(el.creatorAvatar, url, initials, {
+        setAria: false,
+        placeholderUrl: DEFAULT_AVATAR,
+      });
+      return;
+    }
+    // Fallback if applyAvatarVisual is unavailable
+    if (url) {
+      const sanitized = url.replace(/(["'()])/g, '\\$1');
+      el.creatorAvatar.style.backgroundImage = `url("${sanitized}")`;
+      el.creatorAvatar.textContent = '';
+    } else {
+      el.creatorAvatar.style.backgroundImage = '';
+      el.creatorAvatar.textContent = initials;
+    }
+  }
+
   function renderExamplePreview(character = {}) {
     if (!el.exampleBlock || !el.exampleList || !el.exampleEmpty) return;
     const pairs = Array.isArray(character.example_dialog_pairs) ? character.example_dialog_pairs : [];
@@ -457,10 +480,19 @@
   function renderCreatorSection() {
     const ownerId = state.currentCharacter?.owner_id || state.currentCharacter?.user_id;
     const profile = state.creatorProfile;
+    const displayName = profile?.display_name || profile?.handle || (ownerId ? '크리에이터' : '등록되지 않음');
+    const handleText = profile?.handle
+      ? `@${profile.handle}`
+      : ownerId
+      ? '프로필 정보 없음'
+      : '크리에이터 정보 없음';
     if (el.creatorName) {
-      el.creatorName.textContent =
-        profile?.display_name || profile?.handle || (ownerId ? '크리에이터' : '등록되지 않음');
+      el.creatorName.textContent = displayName;
     }
+    if (el.creatorHandle) {
+      el.creatorHandle.textContent = handleText;
+    }
+    renderCreatorAvatar(profile?.avatar_url, displayName);
     if (el.creatorLink) {
       el.creatorLink.disabled = !ownerId;
       el.creatorLink.style.opacity = ownerId ? '1' : '0.5';

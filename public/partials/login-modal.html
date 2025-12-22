@@ -2,27 +2,20 @@
   <div class="login-modal__backdrop" data-login-close></div>
   <div class="login-modal__panel" role="dialog" aria-modal="true">
     <button type="button" class="login-modal__close" data-login-close>&times;</button>
-    <div class="login-modal__hero">
-      <div class="hero-badge">CRAMA STUDIO</div>
-      <h2>한 번의 로그인으로<br>캐릭터와 스튜디오를 이어보세요.</h2>
-      <p>로그인하면 생성한 캐릭터, 이미지, scene 크레딧이 모든 기기에서 동기화되고 최신 기능을 먼저 체험할 수 있습니다.</p>
-      <ul class="login-modal__benefits">
-        <li>🎨 스튜디오 작업과 캐릭터 히스토리 자동 저장</li>
-        <li>💬 채팅 기록, 즐겨찾기 동기화</li>
-        <li>⚡ scene 크레딧과 플랜을 안전하게 관리</li>
-      </ul>
+    <div class="login-modal__brand">
+      <div class="login-modal__logo">
+        <img src="./assets/crama-logo1.png" alt="crama" />
+      </div>
+      <h3 class="login-modal__title">로그인</h3>
+      <p class="login-modal__desc">이용약관과 개인정보 수집 및 이용에 동의합니다.</p>
     </div>
-    <div class="login-modal__body">
-      <h3 class="login-modal__title">크라마 로그인</h3>
-      <p class="login-modal__desc">Google 계정으로 빠르게 로그인하고 Crama의 모든 기능을 이용하세요.</p>
-      <button type="button" class="login-modal__button" id="loginModalGoogleBtn">
+    <div class="login-providers">
+      <button type="button" class="login-modal__button login-modal__button--google" id="loginModalGoogleBtn">
         <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" width="20" height="20">
-        구글로 로그인
+        Google
       </button>
-      <div class="login-modal__status" id="loginModalStatus"></div>
-      <p class="login-modal__desc" style="font-size:13px;">
-        문의: help@crama.app
-      </p>
     </div>
+    <div class="login-modal__status" id="loginModalStatus"></div>
+    <p class="login-modal__legal">문의: help@crama.app</p>
   </div>
 </div>

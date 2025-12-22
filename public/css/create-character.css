@@ -1028,7 +1028,7 @@
     box-shadow: 0 22px 60px rgba(0, 0, 0, 0.6);
     transform: translateY(20px);
     transition: transform 0.2s ease;
-    z-index: 1;
+    z-index: 1400;
 }
 
 .preview-modal--open .preview-modal__dialog {
@@ -1189,13 +1189,13 @@ body.modal-open {
 
     .step__footer {
         position: sticky;
-        bottom: 0;
+        bottom: calc(62px + env(safe-area-inset-bottom, 0px));
         margin-top: auto;
         border-top: 1px solid #23262f;
         background: rgba(5, 6, 8, 0.96);
         box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.45);
         padding: 14px 16px calc(14px + env(safe-area-inset-bottom, 0));
-        z-index: 85;
+        z-index: 1300;
     }
 }
 

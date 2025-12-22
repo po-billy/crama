@@ -162,6 +162,68 @@
   color: rgba(255, 255, 255, 0.6);
 }
 
+/* White mode for standalone login page */
+body[data-page="login"] {
+  background: #f7f9fc;
+  color: #1c2033;
+}
+
+body[data-page="login"] .login-modal__backdrop {
+  background: rgba(0, 0, 0, 0.06);
+  backdrop-filter: blur(3px);
+}
+
+body[data-page="login"] .login-modal__panel {
+  background: #ffffff;
+  color: #111320;
+  border: 1px solid #e5e7ef;
+  box-shadow: 0 18px 44px rgba(17, 19, 32, 0.14);
+}
+
+body[data-page="login"] .login-modal__logo {
+  background: #f0f2f7;
+}
+
+body[data-page="login"] .login-modal__title {
+  color: #0f1426;
+}
+
+body[data-page="login"] .login-modal__desc,
+body[data-page="login"] .login-modal__legal {
+  color: #4c5368;
+}
+
+body[data-page="login"] .login-modal__status {
+  color: #2c3242;
+}
+
+body[data-page="login"] .login-modal__status.error {
+  color: #d83b3b;
+}
+
+body[data-page="login"] .login-modal__status.success {
+  color: #137b4c;
+}
+
+body[data-page="login"] .login-modal__close {
+  background: rgba(17, 19, 32, 0.04);
+  color: #2c3242;
+}
+
+body[data-page="login"] .login-modal__close:hover {
+  background: rgba(17, 19, 32, 0.08);
+}
+
+body[data-page="login"] .login-modal__button {
+  box-shadow: none;
+}
+
+body[data-page="login"] .login-modal__button--google {
+  background: #ffffff;
+  color: #3c4043;
+  border: 1px solid #dadce0;
+}
+
 @media (max-width: 720px) {
   .login-modal__panel {
     padding: 24px 20px;

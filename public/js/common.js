@@ -809,13 +809,33 @@ async function updateSidebarUserInfo() {
   }
 }
 
+function clearSupabaseAuthStorage() {
+  if (typeof localStorage === 'undefined') return;
+  const keysToRemove = [];
+  for (let i = 0; i < localStorage.length; i += 1) {
+    const key = localStorage.key(i);
+    if (!key) continue;
+    if ((key.startsWith('sb-') && key.includes('auth-token')) || key.startsWith('supabase.auth.')) {
+      keysToRemove.push(key);
+    }
+  }
+  keysToRemove.forEach((key) => localStorage.removeItem(key));
+}
+
 async function performLogout() {
   try {
-    await sb?.auth?.signOut();
+    // try full revoke first; if it fails (403), fall back to clearing local session
+    await sb?.auth?.signOut({ scope: 'global' });
   } catch (e) {
-    console.error('logout error', e);
+    console.warn('global logout failed, clearing local session', e);
+    try {
+      await sb?.auth?.signOut({ scope: 'local' });
+    } catch (err) {
+      console.warn('local logout fallback failed', err);
+    }
   }
-  window.location.href = '/';
+  clearSupabaseAuthStorage();
+  window.location.href = '/login';
 }
 
 function setupAccountPopover() {
@@ -904,6 +924,7 @@ window.loadCreditUpsellPartial = loadCreditUpsellPartial;
 window.openDrawerImageModal = openDrawerImageModal;
 window.openLoginModal = openLoginModal;
 window.requireLogin = requireLogin;
+window.performLogout = performLogout;
 
 const URL_BAR_MEDIA_QUERY = '(max-width: 960px)';
 function initMobileUrlBarHider() {

@@ -149,12 +149,16 @@ function setupMyPageActions() {
 
   if (logoutBtn) {
     logoutBtn.addEventListener("click", async () => {
-      await window.sb.auth.signOut();
-      if (window.openLoginModal) {
-        await window.openLoginModal({ redirect: window.location.origin });
-      } else {
-        window.location.href = "/login";
+      if (typeof window.performLogout === "function") {
+        await window.performLogout();
+        return;
       }
+      try {
+        await window.sb?.auth?.signOut({ scope: "local" });
+      } catch (e) {
+        console.error("logout failed", e);
+      }
+      window.location.href = "/login";
     });
   }
 

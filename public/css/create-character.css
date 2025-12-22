@@ -1003,7 +1003,7 @@
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s ease;
-    z-index: 500;
+    z-index: 1800;
 }
 
 .preview-modal--open {
@@ -1028,7 +1028,7 @@
     box-shadow: 0 22px 60px rgba(0, 0, 0, 0.6);
     transform: translateY(20px);
     transition: transform 0.2s ease;
-    z-index: 1400;
+    z-index: 1900;
 }
 
 .preview-modal--open .preview-modal__dialog {
@@ -1195,7 +1195,7 @@ body.modal-open {
         background: rgba(5, 6, 8, 0.96);
         box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.45);
         padding: 14px 16px calc(14px + env(safe-area-inset-bottom, 0));
-        z-index: 1300;
+        z-index: 1100; /* below drawer (1201) but above content */
     }
 }
 

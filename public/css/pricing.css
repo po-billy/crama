@@ -15,6 +15,79 @@
 
 }
 
+.pricing-main .btn {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  padding: 0.9rem 1.2rem;
+  border-radius: 14px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease,
+    color 0.2s ease;
+  text-align: center;
+}
+
+.pricing-main .btn--primary {
+  background: linear-gradient(120deg, #38f28b, #1e9f69 55%, #0f6f48);
+  color: #04130c;
+  border: 1px solid rgba(56, 242, 139, 0.55);
+  box-shadow: 0 18px 30px rgba(56, 242, 139, 0.3);
+}
+
+.pricing-main .btn--primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 22px 40px rgba(56, 242, 139, 0.35);
+}
+
+.pricing-main .btn--primary:active {
+  transform: translateY(0);
+  box-shadow: 0 12px 26px rgba(56, 242, 139, 0.3);
+}
+
+.pricing-main .btn--primary:focus-visible {
+  outline: 2px solid rgba(56, 242, 139, 0.5);
+  outline-offset: 3px;
+}
+
+.pricing-main .btn-secondary {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #e7eaf9;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  font-weight: 600;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.25);
+}
+
+.pricing-main .btn-secondary:hover {
+  background: rgba(56, 242, 139, 0.12);
+  border-color: rgba(56, 242, 139, 0.55);
+  color: #38f28b;
+  transform: translateY(-1px);
+}
+
+.pricing-main .btn-secondary:active {
+  transform: translateY(0);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+}
+
+.pricing-main .btn-secondary:focus-visible {
+  outline: 2px solid rgba(56, 242, 139, 0.4);
+  outline-offset: 3px;
+}
+
+.pricing-main .full-width {
+  width: 100%;
+}
+
+.pricing-hero__cta .btn {
+  width: min(320px, 100%);
+}
+
 .pricing-hero {
   background: radial-gradient(circle at 20% 20%, rgba(56, 242, 139, 0.35), rgba(5, 7, 22, 0.92));
   border: 1px solid rgba(56, 242, 139, 0.45);

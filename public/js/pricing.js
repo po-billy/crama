@@ -2,7 +2,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const heroBtn = document.getElementById('pricingHeroBuy');
   if (heroBtn && !heroBtn.dataset.bound) {
     heroBtn.dataset.bound = '1';
-    heroBtn.addEventListener('click', () => {
+    heroBtn.addEventListener('click', async () => {
+      let isLoggedIn = true;
+      if (typeof window.requireLogin === 'function') {
+        try {
+          isLoggedIn = await window.requireLogin({
+            redirect: window.location.href,
+          });
+        } catch (e) {
+          console.warn('pricing login check failed', e);
+        }
+      }
+
+      if (!isLoggedIn) return;
+
       if (typeof window.openCreditUpsell === 'function') {
         window.openCreditUpsell();
       } else {

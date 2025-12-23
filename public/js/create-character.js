@@ -24,6 +24,7 @@ let currentTagList = [];
 let tagInputFieldRef = null;
 const exampleDialogPairs = [];
 let sceneImages = [];
+let narratorValue = '';
 const apiFetch = window.apiFetch || ((...args) => fetch(...args));
 const imagePickerState = {
   context: 'character',
@@ -73,8 +74,70 @@ function escapeHtml(value) {
     .replace(/"/g, '&quot;');
 }
 
+function renderSceneTextHtml(content = '') {
+  const text = typeof content === 'string' ? content : String(content ?? '');
+  const segments = [];
+  const regex = /(\*{1,2})([^*]+?)\1/g;
+  let lastIndex = 0;
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      segments.push({ type: 'line', text: text.slice(lastIndex, match.index) });
+    }
+    const sceneText = match[2]?.trim();
+    if (sceneText) segments.push({ type: 'scene', text: sceneText });
+    lastIndex = match.index + match[0].length;
+  }
+  if (lastIndex < text.length) {
+    segments.push({ type: 'line', text: text.slice(lastIndex) });
+  }
+  if (!segments.length) return escapeHtml(text);
+  return segments
+    .map((seg) => {
+      const safe = escapeHtml(seg.text || '');
+      if (!safe) return '';
+      if (seg.type === 'scene') return `<div class="scene-text scene-text--scene">${safe}</div>`;
+      return `<div class="scene-text scene-text--line">${safe}</div>`;
+    })
+    .join('');
+}
+
 
 // ---------- 예시 대화 관리 ----------
+
+function insertSceneMarker(textarea) {
+  if (!textarea) return;
+  const value = textarea.value || '';
+  const start = textarea.selectionStart ?? value.length;
+  const end = textarea.selectionEnd ?? value.length;
+  const selected = value.slice(start, end);
+  const insertText = selected ? `**${selected}**` : '**';
+  if (typeof textarea.setRangeText === 'function') {
+    textarea.setRangeText(insertText, start, end, 'select');
+  } else {
+    textarea.value = value.slice(0, start) + insertText + value.slice(end);
+  }
+  const caretPos = start + (selected ? insertText.length : 1);
+  requestAnimationFrame(() => {
+    textarea.focus();
+    if (typeof textarea.setSelectionRange === 'function') {
+      textarea.setSelectionRange(caretPos, caretPos);
+    }
+  });
+}
+
+function bindSceneInsertButtons(root = document) {
+  root.querySelectorAll('.scene-insert-btn').forEach((btn) => {
+    if (btn.dataset.sceneBound) return;
+    btn.addEventListener('click', () => {
+      const targetId = btn.getAttribute('data-scene-target');
+      if (!targetId) return;
+      const target = document.getElementById(targetId);
+      insertSceneMarker(target);
+    });
+    btn.dataset.sceneBound = '1';
+  });
+}
 
 function addExamplePair(initial = { user: '', character: '' }) {
   if (exampleDialogPairs.length >= MAX_EXAMPLE_PAIRS) {
@@ -111,10 +174,22 @@ function renderExamplePairs() {
         <button type="button" class="btn btn--ghost btn--small example-remove" data-index="${index}">삭제</button>
       </div>
       <div class="example-pair__body">
-        <label class="field__label">사용자</label>
-        <textarea class="field__control field__control--textarea example-user" data-index="${index}" placeholder="사용자의 메시지">${pair.user || ''}</textarea>
-        <label class="field__label">캐릭터</label>
-        <textarea class="field__control field__control--textarea example-character" data-index="${index}" placeholder="캐릭터의 답변">${pair.character || ''}</textarea>
+        <div class="example-role">
+          <label class="field__label">사용자</label>
+          <div class="scene-helper scene-helper--compact">
+            <button type="button" class="scene-insert-btn" data-scene-target="example-user-${index}">✱ 상황 묘사</button>
+            <span class="scene-helper__hint">**내용** 으로 감싸면 상황 묘사</span>
+          </div>
+        </div>
+        <textarea class="field__control field__control--textarea example-user" id="example-user-${index}" data-index="${index}" placeholder="사용자의 메시지">${pair.user || ''}</textarea>
+        <div class="example-role">
+          <label class="field__label">캐릭터</label>
+          <div class="scene-helper scene-helper--compact">
+            <button type="button" class="scene-insert-btn" data-scene-target="example-character-${index}">✱ 상황 묘사</button>
+            <span class="scene-helper__hint">**내용** 으로 감싸면 상황 묘사</span>
+          </div>
+        </div>
+        <textarea class="field__control field__control--textarea example-character" id="example-character-${index}" data-index="${index}" placeholder="캐릭터의 답변">${pair.character || ''}</textarea>
       </div>
     `;
     listEl.appendChild(item);
@@ -132,6 +207,7 @@ function renderExamplePairs() {
       removeExamplePair(idx);
     });
   });
+  bindSceneInsertButtons(listEl);
 }
 
 function getExampleDialogPairsForPayload() {
@@ -700,6 +776,8 @@ function collectCharacterForm() {
 
     const promptTextarea = document.getElementById('promptTextarea');
     const prompt = promptTextarea ? promptTextarea.value.trim() : '';
+    const narratorField = document.getElementById('narratorTextarea');
+    const narrator = narratorField ? narratorField.value.trim() : '';
 
     // STEP 5: 상세
     const detail = document.getElementById('step-detail');
@@ -731,6 +809,7 @@ function collectCharacterForm() {
         exampleDialog,
         playGuide,
         prompt,
+        narrator,
         description,
         genre,
         target,
@@ -917,6 +996,7 @@ async function handleSaveDraft(event) {
       example_dialog: form.exampleDialog || null,
       play_guide: form.playGuide || null,
       prompt: form.prompt || null,
+      narrator: form.narrator || null,
       description: form.description || null,
       genre: form.genre || null,
       target: form.target || null,
@@ -1018,6 +1098,7 @@ async function handleSubmitCharacter() {
     example_dialog: form.exampleDialog || null,
     play_guide: form.playGuide || null,
     prompt: form.prompt,
+    narrator: form.narrator || null,
     description: form.description,
     genre: form.genre || null,
     target: form.target || null,
@@ -1885,8 +1966,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const previewIntro = document.getElementById('previewIntro');
     if (introTextarea && previewIntro) {
         introTextarea.addEventListener('input', () => {
-            previewIntro.textContent = introTextarea.value || '인트로 입력 시 첫 대화에 사용됩니다.';
+            const html = renderSceneTextHtml(introTextarea.value || '인트로 입력 시 첫 대화에 사용됩니다.');
+            previewIntro.innerHTML = html;
         });
+        bindSceneInsertButtons(document);
     }
 
     setupTagInput();

@@ -4,7 +4,7 @@
   "modes": [
     {
       "key": "neon_story",
-      "name": "네온 스토리 1.0",
+      "name": "스토리 모드",
       "tagline": "대화 몰입형 기본 모드",
       "badge": "추천",
       "baseTokens": 600,
@@ -54,6 +54,20 @@
       "defaultMultiplier": 1.25,
       "description": "세계관 설명과 장문 전개를 안정적으로 처리해요.",
       "accent": "#ffb347"
+    },
+    {
+      "key": "scene_pro",
+      "name": "Scene Pro 4.0",
+      "tagline": "클로드 소넷 4.0 기반 SCENE 특화",
+      "badge": "PRO",
+      "baseTokens": 950,
+      "baseCredits": 18,
+      "extraCreditPerIncrement": 7,
+      "multipliers": [1, 1.25, 1.5, 2, 2.5, 3],
+      "defaultMultiplier": 1.5,
+      "description": "섬세한 상황 묘사와 감정 연출에 최적화된 클로드 소넷 4.0 모델입니다.",
+      "sceneMode": true,
+      "accent": "#4ba5ff"
     }
   ]
 }

@@ -3,17 +3,96 @@
   const apiFetch = window.apiFetch || ((...args) => fetch(...args));
   const DEFAULT_AVATAR = window.DEFAULT_AVATAR_PLACEHOLDER || '/assets/sample-character-01.png';
 
-  let partialPromise = null;
-  const el = {};
+let partialPromise = null;
+const el = {};
 
-  const state = {
-    comments: [],
-    commentsExpanded: false,
-    currentCharacter: null,
-    stats: null,
-    likeBusy: false,
-    creatorProfile: null,
-  };
+const state = {
+  comments: [],
+  commentsExpanded: false,
+  currentCharacter: null,
+  stats: null,
+  likeBusy: false,
+  creatorProfile: null,
+  followBusy: false,
+  isFollowing: false,
+};
+let currentUserAvatarUrl = '/assets/sample-character-03.png';
+let userAvatarChecked = false;
+
+async function ensureCurrentUserAvatar() {
+  if (userAvatarChecked) return currentUserAvatarUrl;
+  userAvatarChecked = true;
+  if (!window.sb?.auth) return currentUserAvatarUrl;
+  try {
+    const { data } = await window.sb.auth.getSession();
+    const meta = data?.session?.user?.user_metadata || {};
+    const avatar =
+      meta.avatar_url ||
+      meta.picture ||
+      meta.image ||
+      meta.profile_image ||
+      meta.user_image ||
+      '';
+    if (avatar) currentUserAvatarUrl = avatar;
+  } catch (e) {
+    console.warn('ensureCurrentUserAvatar failed', e);
+  }
+  return currentUserAvatarUrl;
+}
+
+async function getCurrentUserId() {
+  try {
+    const { data } = await window.sb?.auth?.getSession();
+    return data?.session?.user?.id || null;
+  } catch (e) {
+    console.warn('getCurrentUserId failed', e);
+    return null;
+  }
+}
+
+async function fetchFollowState(ownerId) {
+  if (!ownerId || !window.sb) return false;
+  const userId = await getCurrentUserId();
+  if (!userId) return false;
+  try {
+    const { data, error } = await window.sb
+      .from('follows')
+      .select('id')
+      .eq('follower_id', userId)
+      .eq('following_id', ownerId)
+      .maybeSingle();
+    if (error) throw error;
+    return Boolean(data);
+  } catch (e) {
+    console.warn('fetchFollowState error', e);
+    return false;
+  }
+}
+
+async function setFollowState(ownerId, follow) {
+  if (!ownerId || !window.sb) return false;
+  const userId = await getCurrentUserId();
+  if (!userId) return false;
+  try {
+    if (follow) {
+      const { error } = await window.sb
+        .from('follows')
+        .upsert({ follower_id: userId, following_id: ownerId }, { onConflict: 'follower_id,following_id', ignoreDuplicates: false });
+      if (error) throw error;
+    } else {
+      const { error } = await window.sb
+        .from('follows')
+        .delete()
+        .eq('follower_id', userId)
+        .eq('following_id', ownerId);
+      if (error) throw error;
+    }
+    return true;
+  } catch (e) {
+    console.warn('setFollowState error', e);
+    return false;
+  }
+}
 
   async function ensurePartialLoaded() {
     if (partialPromise) return partialPromise;
@@ -122,10 +201,10 @@
       el.creatorLink.dataset.bound = '1';
     }
 
-    if (el.followBtn && !el.followBtn.dataset.bound) {
-      el.followBtn.addEventListener('click', handleFollowAction);
-      el.followBtn.dataset.bound = '1';
-    }
+  if (el.followBtn && !el.followBtn.dataset.bound) {
+    el.followBtn.addEventListener('click', handleFollowAction);
+    el.followBtn.dataset.bound = '1';
+  }
 
     document.addEventListener('keydown', (event) => {
       if (event.key !== 'Escape') return;
@@ -176,6 +255,40 @@
     return text.replace(/[&<>"']/g, (m) => map[m]);
   }
 
+  function splitSceneSegments(content = '') {
+    const text = typeof content === 'string' ? content : String(content ?? '');
+    const segments = [];
+    if (!text) return segments;
+    const regex = /(\*{1,2})([^*]+?)\1/g;
+    let lastIndex = 0;
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        segments.push({ type: 'line', text: text.slice(lastIndex, match.index) });
+      }
+      const sceneText = match[2]?.trim();
+      if (sceneText) segments.push({ type: 'scene', text: sceneText });
+      lastIndex = match.index + match[0].length;
+    }
+    if (lastIndex < text.length) {
+      segments.push({ type: 'line', text: text.slice(lastIndex) });
+    }
+    return segments;
+  }
+
+  function renderSceneText(content = '') {
+    const segments = splitSceneSegments(content);
+    if (!segments.length) return escapeHtml(content || '');
+    return segments
+      .map((seg) => {
+        const safe = escapeHtml(seg.text || '');
+        if (!safe) return '';
+        if (seg.type === 'scene') return `<div class="scene-text scene-text--scene">${safe}</div>`;
+        return `<div class="scene-text scene-text--line">${safe}</div>`;
+      })
+      .join('');
+  }
+
   function formatCount(value) {
     if (value === null || value === undefined) return '0';
     const num = Number(value);
@@ -203,14 +316,14 @@
       .map((comment) => {
         const author = escapeHtml(comment.author || comment.nickname || '이용자');
         const likes = Number(comment.likes || comment.like_count || 0).toLocaleString('ko-KR');
-        const body = escapeHtml(comment.content || comment.body || '');
+        const body = renderSceneText(comment.content || comment.body || '');
         return `
           <li class="detail-comment">
             <div class="detail-comment__meta">
               <strong>${author}</strong>
               <span>👍 ${likes}</span>
             </div>
-            <p>${body || '내용이 없습니다.'}</p>
+            <div class="detail-comment__body">${body || '내용이 없습니다.'}</div>
           </li>
         `;
       })
@@ -348,24 +461,34 @@
     }
   }
 
-  function handleFollowAction() {
-    const ownerId = state.currentCharacter?.owner_id || state.currentCharacter?.user_id;
-    if (!ownerId) return;
-    handleFollowInternal(ownerId);
-  }
+function handleFollowAction() {
+  const ownerId = state.currentCharacter?.owner_id || state.currentCharacter?.user_id;
+  if (!ownerId) return;
+  handleFollowInternal(ownerId);
+}
 
-  async function handleFollowInternal(ownerId) {
-    const loggedIn = await isUserLoggedIn();
-    if (!loggedIn) {
-      if (window.openLoginModal) {
-        window.openLoginModal({ redirect: `/creator?user=${ownerId}` });
-      } else {
-        window.location.href = `/login?redirect=${encodeURIComponent(`/creator?user=${ownerId}`)}`;
-      }
-      return;
+async function handleFollowInternal(ownerId) {
+  if (state.followBusy) return;
+  const loggedIn = await isUserLoggedIn();
+  if (!loggedIn) {
+    if (window.openLoginModal) {
+      window.openLoginModal({ redirect: `/creator?user=${ownerId}` });
+    } else {
+      window.location.href = `/login?redirect=${encodeURIComponent(`/creator?user=${ownerId}`)}`;
     }
-    alert('팔로우 기능은 준비 중입니다.');
+    return;
   }
+  state.followBusy = true;
+  const nextFollow = !state.isFollowing;
+  const ok = await setFollowState(ownerId, nextFollow);
+  if (ok) {
+    state.isFollowing = nextFollow;
+    updateFollowButton();
+  } else {
+    alert('팔로우 처리 중 오류가 발생했습니다.');
+  }
+  state.followBusy = false;
+}
 
   function navigateToCreator() {
     const ownerId = state.currentCharacter?.owner_id || state.currentCharacter?.user_id;
@@ -460,7 +583,8 @@
     el.exampleList.innerHTML = exampleLines
       .map((line) => {
         const isUser = line.type === 'user';
-        const avatarSrc = isUser ? '/assets/sample-character-03.png' : characterAvatar;
+        const avatarSrc = isUser ? (currentUserAvatarUrl || '/assets/sample-character-03.png') : characterAvatar;
+        const textHtml = renderSceneText(line.text || '');
         return `
           <li class="chat-message ${isUser ? 'chat-message--user' : 'chat-message--character'}">
             <div class="chat-message__avatar">
@@ -468,7 +592,7 @@
             </div>
             <div class="chat-message__bubble">
               <div class="chat-message__name">${escapeHtml(line.role || '')}</div>
-              <div class="chat-message__text">${escapeHtml(line.text || '')}</div>
+              <div class="chat-message__text">${textHtml}</div>
             </div>
           </li>
         `;
@@ -499,7 +623,7 @@
     }
     if (el.followBtn) {
       el.followBtn.disabled = !ownerId;
-      el.followBtn.textContent = ownerId ? '팔로우' : '팔로우 불가';
+      updateFollowButton();
     }
   }
 
@@ -520,7 +644,7 @@
     }
     if (el.sceneCount) {
       const count = Array.isArray(data.scene_image_templates) ? data.scene_image_templates.length : 0;
-      el.sceneCount.textContent = `Scene ${count}`;
+      el.sceneCount.textContent = `${count}개의 Scene`;
     }
     if (el.genre) el.genre.textContent = `장르 ${data.genre?.trim() || '-'}`;
     if (el.target) el.target.textContent = `타깃 ${data.target?.trim() || '-'}`;
@@ -539,7 +663,8 @@
         el.introImage.src = data.intro_image_url || data.avatar_url || DEFAULT_AVATAR;
       }
       if (el.introText) {
-        el.introText.textContent = data.intro?.trim() || '인트로가 아직 등록되지 않았습니다.';
+        const introHtml = renderSceneText(data.intro?.trim() || '인트로가 아직 등록되지 않았습니다.');
+        el.introText.innerHTML = introHtml;
       }
     }
 
@@ -548,6 +673,13 @@
     renderPlayGuide(data.play_guide);
     renderCreatorSection();
     updateStats();
+  }
+
+  function updateFollowButton() {
+    if (!el.followBtn) return;
+    const ownerId = state.currentCharacter?.owner_id || state.currentCharacter?.user_id;
+    el.followBtn.disabled = !ownerId || state.followBusy;
+    el.followBtn.textContent = state.isFollowing ? '언팔로우' : '팔로우';
   }
 
   function renderPlayGuide(guide) {
@@ -592,11 +724,17 @@
       chat_count: base.chat_count,
       view_count: base.view_count,
     };
+    await ensureCurrentUserAvatar();
     state.creatorProfile = base.creator_profile || null;
     resetCollapsibles();
     const ownerId = base.owner_id || base.user_id;
     if (!state.creatorProfile && ownerId) {
       await loadCreatorProfile(ownerId);
+    }
+    if (ownerId) {
+      state.isFollowing = await fetchFollowState(ownerId);
+    } else {
+      state.isFollowing = false;
     }
     const [stats, comments] = await Promise.all([fetchStats(base.id), fetchComments(base.id)]);
     if (stats) state.stats = stats;

@@ -58,7 +58,8 @@ let sceneModeNoteTimer = null;
 let activeCharacterId = null;
 let currentUserContext = null;
 let currentUserId = null;
-let currentCharacterAvatarUrl = '/assets/img/sample-character-01.png';
+const DEFAULT_AVATAR_PLACEHOLDER = '/assets/sample-character-01.png';
+let currentCharacterAvatarUrl = DEFAULT_AVATAR_PLACEHOLDER;
 let currentCharacterData = null;
 let headerSheetsInitialized = false;
 
@@ -781,8 +782,7 @@ function setActiveChatMode(modeKey) {
   if (!mode) return;
   const hasSceneTemplates = currentSceneTemplates.length > 0;
   if (mode.sceneMode && !hasSceneTemplates) {
-    showSceneModeNote('이 캐릭터에는 상황 이미지가 없어 Scene 모드를 사용할 수 없습니다.');
-    return;
+    showSceneModeNote('상황 이미지가 없어서 SCENE 연출만 비활성화됩니다.');
   }
   ensureModePref(mode);
   activeChatModeKey = mode.key;
@@ -986,12 +986,6 @@ async function initChatModes() {
     activeChatModeKey = fallback?.key || DEFAULT_CHAT_MODE_FALLBACK.key;
     chatModePrefs.selectedKey = activeChatModeKey;
   }
-  if (getChatModeList().find((mode) => mode.key === activeChatModeKey)?.sceneMode && !currentSceneTemplates.length) {
-    if (firstNonSceneMode) {
-      activeChatModeKey = firstNonSceneMode.key;
-      chatModePrefs.selectedKey = firstNonSceneMode.key;
-    }
-  }
   chatModesInitialized = true;
   setActiveChatMode(activeChatModeKey);
   bindChatModeListEvents();
@@ -1177,7 +1171,7 @@ async function openAvatarPreviewPanel(src, caption) {
     console.warn('character detail modal load skipped', error);
   }
   window.CharacterDetailModal.openAvatarPreview(
-    src || currentCharacterAvatarUrl || '/assets/img/sample-character-01.png',
+    src || currentCharacterAvatarUrl || DEFAULT_AVATAR_PLACEHOLDER,
     caption || '캐릭터 프로필'
   );
 }
@@ -1293,6 +1287,67 @@ function getOrCreateChatSessionId(characterId) {
   return sessionId;
 }
 
+let typingIndicatorEl = null;
+
+function showTypingIndicator() {
+  const chatWindow = document.getElementById('chatWindow');
+  if (!chatWindow) return;
+  hideTypingIndicator();
+  const el = document.createElement('div');
+  el.className = 'chat-message chat-message--character chat-message--typing';
+  el.innerHTML = `
+    <div class="chat-message__avatar"><div class="typing-dot typing-dot--avatar"></div></div>
+    <div class="chat-message__bubble">
+      <div class="chat-message__name">캐릭터</div>
+      <div class="chat-message__text">
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+      </div>
+    </div>
+  `;
+  chatWindow.appendChild(el);
+  typingIndicatorEl = el;
+  ensureLatestMessageVisible({ focus: 'character' });
+}
+
+function hideTypingIndicator() {
+  if (typingIndicatorEl && typingIndicatorEl.parentNode) {
+    typingIndicatorEl.parentNode.removeChild(typingIndicatorEl);
+  }
+  typingIndicatorEl = null;
+}
+
+function renderCharacterMessageGradual(characterMessage = {}) {
+  const chatWindow = document.getElementById('chatWindow');
+  if (!chatWindow) return;
+  hideTypingIndicator();
+  const finalText = characterMessage.content || '';
+  const msgEl = renderMessage({
+    role: 'character',
+    content: '',
+    sceneImage: characterMessage.sceneImage || null,
+  });
+  const textEl = msgEl.querySelector('.chat-message__text');
+  if (!textEl) {
+    msgEl.querySelector('.chat-message__bubble')?.append(finalText);
+    chatWindow.appendChild(msgEl);
+    return;
+  }
+  chatWindow.appendChild(msgEl);
+  let index = 0;
+  const chunk = Math.max(1, Math.floor(finalText.length / 60)); // ~60 steps max
+  const step = () => {
+    index = Math.min(finalText.length, index + chunk);
+    const partial = finalText.slice(0, index);
+    textEl.innerHTML = renderChatTextContent(partial);
+    if (index < finalText.length) {
+      setTimeout(step, 16);
+    }
+  };
+  step();
+}
+
 function persistChatSessionId(characterId, sessionId) {
   if (!sessionId) return;
   const sessionKey = `cc_session_${characterId}`;
@@ -1331,8 +1386,14 @@ function immediateScrollToBottom() {
 
 function ensureLatestMessageVisible(options = {}) {
   const focusTarget = options.focus || (options.focus === null ? null : 'character');
+  const chatWindow = document.getElementById('chatWindow');
+  const scrollToLatest = () => {
+    if (!chatWindow || !chatWindow.lastElementChild) return;
+    chatWindow.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  };
   immediateScrollToBottom();
   scrollChatToBottom();
+  scrollToLatest();
   if (focusTarget === 'character') {
     focusLatestCharacterMessage();
   } else if (focusTarget === 'user') {
@@ -1340,12 +1401,13 @@ function ensureLatestMessageVisible(options = {}) {
   }
   setTimeout(() => {
     scrollChatToBottom();
+    scrollToLatest();
     if (focusTarget === 'character') {
       focusLatestCharacterMessage();
     } else if (focusTarget === 'user') {
       focusLatestUserMessage();
     }
-  }, 80);
+  }, 120);
 }
 
 function appendChatMessages(messages = []) {
@@ -1524,7 +1586,7 @@ function renderCharacterDetail(c) {
     description: applyPlaceholders(c.description || '')
   });
 
-  currentCharacterAvatarUrl = c.avatar_url || "/assets/img/sample-character-01.png";
+  currentCharacterAvatarUrl = c.avatar_url || DEFAULT_AVATAR_PLACEHOLDER;
   currentCharacterData = c;
 
   // 캐릭터 이름
@@ -1576,7 +1638,8 @@ function renderCharacterDetail(c) {
       introHero.style.display = 'flex';
       introHeroImage.src = c.intro_image_url;
       introHeroImage.alt = `${charName || ''} 인트로 이미지`;
-      introHeroText.textContent = applyPlaceholders(c.intro || '인트로 정보가 제공되지 않았습니다.');
+      const introText = applyPlaceholders(c.intro || '인트로 정보가 제공되지 않았습니다.');
+      introHeroText.innerHTML = renderChatTextContent(introText);
     } else {
       introHero.style.display = 'none';
     }
@@ -1630,6 +1693,37 @@ function renderChatTextContent(content = '') {
     .join('');
 }
 
+function splitNarrationBlocks(text = '') {
+  const lines = text.split('\n');
+  const blocks = [];
+  let buffer = [];
+  let currentType = 'text';
+  const flush = () => {
+    if (!buffer.length) return;
+    blocks.push({ type: currentType, text: buffer.join('\n').trim() });
+    buffer = [];
+  };
+  const markerRegex = /^\[(?:NARRATION|나레이션)\]|^@:/i;
+  const stripMarker = (value) => value.replace(/^\[(?:NARRATION|나레이션)\]\s*|^@:\s*/i, '');
+  lines.forEach((line) => {
+    const trimmed = line.trim();
+    const isNarration = markerRegex.test(trimmed);
+    if (isNarration && currentType !== 'narration') {
+      flush();
+      currentType = 'narration';
+      buffer.push(stripMarker(trimmed));
+    } else if (!isNarration && currentType === 'narration') {
+      flush();
+      currentType = 'text';
+      buffer.push(line);
+    } else {
+      buffer.push(currentType === 'narration' ? stripMarker(trimmed) : line);
+    }
+  });
+  flush();
+  return blocks.filter((b) => b.text);
+}
+
 function focusLatestCharacterMessage() {
   const chatWindow = document.getElementById('chatWindow');
   if (!chatWindow) return;
@@ -1657,7 +1751,7 @@ function renderMessage(msg) {
   const el = document.createElement("div");
   el.className = "chat-message " + (msg.role === "character" ? "chat-message--character" : "chat-message--user");
 
-  const avatarSrc = currentCharacterAvatarUrl || '/assets/img/sample-character-01.png';
+  const avatarSrc = currentCharacterAvatarUrl || DEFAULT_AVATAR_PLACEHOLDER;
   const characterName = document.querySelector('.character-name')?.textContent || '캐릭터';
   const sceneImage =
     msg.sceneImage ||
@@ -1680,6 +1774,38 @@ function renderMessage(msg) {
   const formattedContent = renderChatTextContent(msg.content || '');
 
   if (msg.role === "character") {
+    const narrationBlocks = splitNarrationBlocks(msg.content || '');
+    if (narrationBlocks.length > 1 || (narrationBlocks.length === 1 && narrationBlocks[0].type === 'narration')) {
+      const frag = document.createDocumentFragment();
+      narrationBlocks.forEach((block) => {
+        if (block.type === 'narration') {
+          const nEl = document.createElement('div');
+          nEl.className = 'chat-message chat-message--narration';
+          nEl.innerHTML = `
+            <div class="chat-message__bubble">
+              <div class="chat-message__name"></div>
+              <div class="chat-message__text">${renderChatTextContent(block.text)}</div>
+            </div>
+          `;
+          frag.appendChild(nEl);
+        } else {
+          const cEl = document.createElement('div');
+          cEl.className = "chat-message chat-message--character";
+          cEl.innerHTML = `
+            <div class="chat-message__avatar">
+              <img src="${avatarSrc}" alt="${characterName}">
+            </div>
+            <div class="chat-message__bubble">
+              <div class="chat-message__name">${characterName}</div>
+              <div class="chat-message__text">${renderChatTextContent(block.text)}</div>
+              ${sceneMarkup}
+            </div>
+          `;
+          frag.appendChild(cEl);
+        }
+      });
+      return frag;
+    }
     el.innerHTML = `
       <div class="chat-message__avatar">
         <img src="${avatarSrc}" alt="${characterName}">
@@ -1715,11 +1841,7 @@ function handleSceneModeFeedback(result) {
   if (result.sceneModeDeniedReason) {
     sceneModeEnabled = false;
     showSceneModeNote(result.sceneModeDeniedReason);
-    if (lastNonSceneModeKey && lastNonSceneModeKey !== activeChatModeKey) {
-      setActiveChatMode(lastNonSceneModeKey);
-    } else {
-      updateSceneModeIndicator();
-    }
+    updateSceneModeIndicator();
     return;
   }
 }
@@ -1798,24 +1920,26 @@ async function setupChat(characterId) {
     const userMessageEl = renderMessage({ role: "user", content: text });
     chatWindow.appendChild(userMessageEl);
     ensureLatestMessageVisible({ focus: 'user' });
+    showTypingIndicator();
 
     // 서버 메시지 전송 및 답변 받기
     try {
       const headers = await buildAuthHeaders();
-      const response = await apiFetch(`/api/characters/${characterId}/chat`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          sessionId,
-          message: text,
-          sceneMode: sceneModeEnabled,
-          chatModeKey: chatModeSelection?.mode?.key,
-          tokenMultiplier: chatModeSelection?.multiplier
-        })
-      });
+    const response = await apiFetch(`/api/characters/${characterId}/chat`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        sessionId,
+        message: text,
+        sceneMode: sceneModeEnabled,
+        chatModeKey: chatModeSelection?.mode?.key,
+        tokenMultiplier: chatModeSelection?.multiplier
+      })
+    });
       const result = await response.json();
 
       if (response.status === 401) {
+        hideTypingIndicator();
         const loginMessage = renderMessage({
           role: "character",
           content: "로그인이 필요합니다. 로그인 후 다시 시도해주세요."
@@ -1826,6 +1950,7 @@ async function setupChat(characterId) {
       }
 
       if (response.status === 402 || result?.error === 'insufficient_credits') {
+        hideTypingIndicator();
         const creditMessage = renderMessage({
           role: "character",
           content: "scene이 부족합니다. 충전 또는 구독 후 시도해주세요."
@@ -1851,13 +1976,9 @@ async function setupChat(characterId) {
           }
         }
         if (result.characterMessage) {
-          const characterMessageEl = renderMessage({
-            role: "character",
-            content: result.characterMessage.content,
-            sceneImage: result.characterMessage.sceneImage || null
-          });
-          chatWindow.appendChild(characterMessageEl);
+          renderCharacterMessageGradual(result.characterMessage);
         } else if (!result.introMessage) {
+          hideTypingIndicator();
           const errorMessageEl = renderMessage({
             role: "character",
             content: "오류가 발생했습니다: " + (result.error || "알 수 없는 오류")
@@ -1868,6 +1989,7 @@ async function setupChat(characterId) {
         window.checkChatEmpty();
         handleSceneModeFeedback(result);
       } else {
+        hideTypingIndicator();
         const errorReply = renderMessage({
           role: "character",
           content: "오류가 발생했습니다: " + (result.error || "알 수 없는 오류")
@@ -1878,6 +2000,7 @@ async function setupChat(characterId) {
         handleSceneModeFeedback(result);
       }
     } catch (err) {
+      hideTypingIndicator();
       const connectionError = renderMessage({
         role: "character",
         content: "서버 연결 오류: " + err.message

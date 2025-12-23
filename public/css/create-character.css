@@ -165,6 +165,61 @@
     resize: vertical;
 }
 
+.scene-helper {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    color: #aeb4cc;
+    font-size: 12px;
+    flex-wrap: wrap;
+}
+
+.scene-helper--compact {
+    margin-top: 4px;
+}
+
+.scene-insert-btn {
+    border: 1px solid #2b2e36;
+    background: #1a1c23;
+    color: #38f28b;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.scene-insert-btn:hover {
+    background: rgba(56, 242, 139, 0.12);
+    border-color: rgba(56, 242, 139, 0.4);
+}
+
+.scene-helper__hint {
+    color: #8c92ac;
+}
+
+.scene-text {
+    font-size: 13px;
+    line-height: 1.5;
+    color: #e1e5f3;
+}
+
+.scene-text--scene {
+    border-radius: 10px;
+    padding: 8px 10px;
+    color: #e1e5f3;
+    margin: 4px 0;
+}
+
+.scene-text--line + .scene-text--scene,
+.scene-text--scene + .scene-text--line {
+    margin-top: 4px;
+}
+
 .field__control::placeholder {
     color: #7b8191;
 }

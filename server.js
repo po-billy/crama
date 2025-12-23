@@ -193,7 +193,11 @@ const FALLBACK_CHAT_MODE = {
   multipliers: [1, 1.5, 2, 3],
   defaultMultiplier: 1
 };
-
+const ANTHROPIC_MODEL =
+  process.env.ANTHROPIC_MODEL ||
+  process.env.ANTHROPIC_CHAT_MODEL ||
+  'claude-sonnet-4-20250514';
+  
 function getChatModeList() {
   return Array.isArray(chatModeConfig?.modes) ? chatModeConfig.modes : [];
 }
@@ -211,6 +215,30 @@ function getDefaultChatModeConfig() {
     if (match) return match;
   }
   return list[0];
+}
+
+function buildAnthropicPayloadFromMessages(messages, maxTokens) {
+  const systemParts = [];
+  const convo = [];
+  (messages || []).forEach((m) => {
+    if (m.role === 'system' || m.role === 'developer') {
+      if (m.content) systemParts.push(m.content);
+      return;
+    }
+    if (m.role === 'user' || m.role === 'assistant') {
+      convo.push({
+        role: m.role === 'assistant' ? 'assistant' : 'user',
+        content: [{ type: 'text', text: m.content || '' }],
+      });
+    }
+  });
+  return {
+    model: ANTHROPIC_MODEL,
+    system: systemParts.join('\n\n'),
+    messages: convo,
+    max_tokens: maxTokens || 512,
+    temperature: 0.8,
+  };
 }
 
 function resolveModeMultiplier(mode, multiplier) {
@@ -255,6 +283,30 @@ function computeChatModeUsage(modeInput, multiplier) {
     creditCost,
     multiplier: selectedMultiplier
   };
+}
+
+async function callAnthropicChat(messages, maxTokens) {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    throw new Error('ANTHROPIC_API_KEY missing');
+  }
+  const payload = buildAnthropicPayloadFromMessages(messages, maxTokens);
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'x-api-key': process.env.ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    console.warn('anthropic error', res.status, text);
+    throw new Error(`anthropic error ${res.status}: ${text}`);
+  }
+  const json = await res.json();
+  const content = Array.isArray(json?.content) ? json.content.find((c) => c.type === 'text') : null;
+  return content?.text || json?.content?.[0]?.text || '';
 }
 
 function computeTokenCreditCost(inputTokens, outputTokens, fallbackCost = 1) {
@@ -876,14 +928,40 @@ function parseExampleDialogPairs(examplePairs, fallbackText) {
   return [];
 }
 
-function buildExampleMessages(pairs = []) {
+function resolveUserLabel(user) {
+  if (!user) return '사용자';
+  const meta = user.user_metadata || {};
+  return (
+    meta.handle ||
+    meta.user_name ||
+    meta.name ||
+    meta.full_name ||
+    meta.username ||
+    (user.email ? user.email.split('@')[0] : '') ||
+    '사용자'
+  );
+}
+
+function renderPlaceholders(input = '', characterName = '캐릭터', userName = '사용자') {
+  const text = typeof input === 'string' ? input : String(input || '');
+  if (!text) return '';
+  const charLabel = characterName || '캐릭터';
+  const userLabel = userName || '사용자';
+  return text
+    .replace(/{{\s*char\s*}}/gi, charLabel)
+    .replace(/{{\s*user\s*}}/gi, userLabel);
+}
+
+function buildExampleMessages(pairs = [], characterName = '캐릭터', userName = '사용자') {
   const messages = [];
   pairs.forEach((pair) => {
+    const userContent = renderPlaceholders(pair.user || '', characterName, userName);
+    const charContent = renderPlaceholders(pair.character || '', characterName, userName);
     if (pair.user) {
-      messages.push({ role: 'user', content: pair.user });
+      messages.push({ role: 'user', content: userContent });
     }
     if (pair.character) {
-      messages.push({ role: 'assistant', content: pair.character });
+      messages.push({ role: 'assistant', content: charContent });
     }
   });
   return messages;
@@ -2482,7 +2560,7 @@ app.post('/api/characters/:id/chat', async (req, res) => {
       .maybeSingle(),
     supabase
       .from('characters')
-      .select('id, name, prompt, intro, example_dialog, example_dialog_pairs, scene_image_templates')
+      .select('id, name, prompt, intro, description, narrator, example_dialog, example_dialog_pairs, scene_image_templates')
       .eq('id', id)
       .single(),
     supabase
@@ -2561,9 +2639,16 @@ app.post('/api/characters/:id/chat', async (req, res) => {
     return res.status(500).json({ error: chatErr.message });
   }
 
+  const characterName = character.name || '캐릭터';
+  const userLabel = resolveUserLabel(user);
+  const promptText = renderPlaceholders(character.prompt || '', characterName, userLabel);
+  const introText = renderPlaceholders(character.intro || '', characterName, userLabel);
+  const descriptionText = renderPlaceholders(character.description || '', characterName, userLabel);
+  const narratorText = renderPlaceholders(character.narrator || '', characterName, userLabel);
+
   const sceneTemplates = sanitizeSceneTemplates(character.scene_image_templates || []);
   const examplePairs = parseExampleDialogPairs(character.example_dialog_pairs, character.example_dialog);
-  const exampleMessages = buildExampleMessages(examplePairs);
+  const exampleMessages = buildExampleMessages(examplePairs, characterName, userLabel);
   const sceneModeInput =
     typeof sceneMode === 'string'
       ? sceneMode.toLowerCase() === 'true'
@@ -2585,10 +2670,15 @@ app.post('/api/characters/:id/chat', async (req, res) => {
 아래 캐릭터 설정과 분위기를 철저히 따르며, 시스템적인 설명은 하지 않는다.
 
 [캐릭터 설정]
-${character.prompt ?? ''}
+${promptText}
 
 [인물 정보/배경]
-${character.intro ?? ''}
+${introText}
+
+[캐릭터 설명/노트]
+${descriptionText}
+
+${narratorText ? `[나레이터 지시]\n${narratorText}` : ''}
 `;
 
   let developerPrompt = `
@@ -2598,10 +2688,8 @@ Developer Message (공통 규칙)
 
 1. 캐릭터 일관성 유지
 - 언제나 캐릭터 생성자가 제공한 성격, 말투, 설정, 배경 스토리, 직업, 가치관, 관계관계, 금기 사항을 유지한다.
-- 캐릭터 설정과 충돌하는 정보는 생성하지 않는다.
 - 캐릭터 설정에 명시되지 않은 정보는 설정의 톤·세계관과 자연스럽게 맞는 범위 내에서만 창작한다.
 - 대화 도중에도 캐릭터의 말투, 감정, 표현 방식이 변하지 않도록 한다.
-- 사용자가 설정을 벗어난 질문을 하더라도, 캐릭터가 할 법한 방식으로 반응하며 일관성을 유지한다.
 
 2. 캐릭터 생성자의 정보 기반 응답
 - 응답의 1순위 기준은 캐릭터 생성자가 등록한 정보이다.
@@ -2625,6 +2713,16 @@ Developer Message (공통 규칙)
 - 사용자가 *장면* 형태로 입력한 경우, 그 묘사를 응답 서두에서 받아 적고 캐릭터 대사와 자연스럽게 연결한다.
 - 응답은 항상 "장면/상황 묘사 단락 → 큰따옴표 대사 단락" 순서를 지킨다. 장면 묘사는 반드시 별도의 단락으로 작성하고(필요 시 *…* 사용), 대사는 큰따옴표로만 작성한다. 추가 설명이 필요하면 이 두 단락을 순서대로 반복하되, 묘사와 대사를 하나의 단락에 섞어 쓰지 않는다.
 `;
+
+  if (narratorText) {
+    developerPrompt += `
+[내레이션 출력 규칙]
+- 나레이션 문단은 [NARRATION] 또는 @: 로 시작한다. 예) [NARRATION] 그녀는 속으로 한숨을 내쉰다.
+- 나레이션이 필요한 경우 응답의 첫 단락에 [NARRATION] 블록을 배치해 캐릭터 대사 위에 표시한다.
+- 나레이션 문단에는 인물 이름 접두사를 반복하지 않는다. 장면 분위기, 속마음, 서술만 쓴다.
+- 대사와 나레이션은 분리된 문단으로 작성한다. 같은 문단에 섞지 않는다.
+- 나레이션이 필요 없는 응답은 평소 규칙대로 작성한다.`;
+  }
 
   if (sceneModeAllowed && sceneTemplates.length) {
     const catalogLines = sceneTemplates
@@ -2674,14 +2772,15 @@ ${catalogLines}
   }
   if (recentMessages && recentMessages.length > 0) {
     for (const m of recentMessages) {
+      const renderedContent = renderPlaceholders(m.content || '', characterName, userLabel);
       messagesForModel.push({
         role: m.role === 'character' ? 'assistant' :
               m.role === 'user' ? 'user' : 'system',
-        content: m.content
+        content: renderedContent
       });
     }
   }
-  messagesForModel.push({ role: 'user', content: message });
+  messagesForModel.push({ role: 'user', content: renderPlaceholders(message, characterName, userLabel) });
 
   // 4-3) 최근 대화가 20개 이상 쌓이면 요약 레코드를 갱신해 장기 문맥을 보존한다
   if (recentMessages && recentMessages.length >= 20) {
@@ -2727,12 +2826,17 @@ ${catalogLines}
   // 5) OpenAI ?몄텧
   let completion;
   try {
-    completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: messagesForModel,
-      max_tokens: modeUsage.maxTokens,
-      temperature: 0.8,
-    });
+    if (selectedModeConfig?.key === 'scene_pro') {
+      const reply = await callAnthropicChat(messagesForModel, modeUsage.maxTokens);
+      completion = { choices: [{ message: { content: reply } }] };
+    } else {
+      completion = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: messagesForModel,
+        max_tokens: modeUsage.maxTokens,
+        temperature: 0.8,
+      });
+    }
   } catch (e) {
     console.error(e);
     return res.status(500).json({ error: 'LLM ?몄텧 ?ㅽ뙣' });

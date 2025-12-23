@@ -99,13 +99,22 @@
                   <strong id="creatorTotalCharacters">0</strong></span
                 >
                 <span>총 대화 <strong id="creatorTotalChats">0</strong></span>
-                <span>팔로워 <strong id="creatorFollowers">0</strong></span>
+                <span data-follow-target="followers"
+                  >팔로워 <strong id="creatorFollowers">0</strong></span
+                >
+                <span data-follow-target="followings"
+                  >팔로잉 <strong id="creatorFollowings">0</strong></span
+                >
               </div>
               <div class="creator-bio-block" id="creatorBioBlock">
                 <p class="creator-bio" id="creatorBio">
                   소개 문구가 여기에 표시됩니다.
                 </p>
-                <button type="button" class="creator-bio-toggle hidden" id="creatorBioToggle">
+                <button
+                  type="button"
+                  class="creator-bio-toggle hidden"
+                  id="creatorBioToggle"
+                >
                   더보기
                 </button>
               </div>
@@ -113,6 +122,46 @@
               <div class="creator-actions">
                 <button class="btn btn-accent" id="followBtn">팔로우</button>
                 <button class="btn btn-ghost" id="shareBtn">공유</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="creator-follow-list hidden" id="creatorFollowList">
+            <div class="follow-modal">
+              <button
+                type="button"
+                class="follow-modal__close"
+                id="closeFollowModal"
+                aria-label="닫기"
+              >
+                ×
+              </button>
+              <div class="creator-section-head">
+                <h2 class="creator-section-title" id="followListTitle">
+                  팔로워
+                </h2>
+              </div>
+              <div class="follow-tabs">
+                <button
+                  type="button"
+                  class="follow-tab"
+                  data-follow-tab="followers"
+                >
+                  팔로워
+                </button>
+                <button
+                  type="button"
+                  class="follow-tab"
+                  data-follow-tab="followings"
+                >
+                  팔로잉
+                </button>
+              </div>
+              <div class="follow-modal__body">
+                <div class="follow-list" id="followListBody"></div>
+                <p class="follow-empty" id="followListEmpty">
+                  목록이 없습니다.
+                </p>
               </div>
             </div>
           </section>
@@ -315,28 +364,91 @@
       </div>
     </div>
 
-    <div class="creator-profile-edit hidden" id="creatorProfileEditLayer" role="dialog" aria-modal="true">
-      <div class="creator-profile-edit-backdrop" id="creatorProfileEditBackdrop"></div>
+    <div
+      class="creator-profile-edit hidden"
+      id="creatorProfileEditLayer"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div
+        class="creator-profile-edit-backdrop"
+        id="creatorProfileEditBackdrop"
+      ></div>
       <div class="creator-profile-edit-card">
         <header class="creator-profile-edit-header">
           <h3>프로필 수정</h3>
-          <button type="button" class="creator-profile-edit-close" id="creatorProfileEditClose" aria-label="닫기">
+          <button
+            type="button"
+            class="creator-profile-edit-close"
+            id="creatorProfileEditClose"
+            aria-label="닫기"
+          >
             ×
           </button>
         </header>
         <form id="creatorProfileForm">
+          <fieldset class="creator-profile-field creator-profile-avatar-field">
+            <legend>아바타 이미지</legend>
+            <div
+              class="creator-profile-avatar-picker"
+              id="creatorProfileAvatarPreview"
+              role="button"
+              tabindex="0"
+              aria-label="아바타 업로드"
+            >
+              <span class="creator-profile-avatar-placeholder">+</span>
+            </div>
+            <span class="creator-profile-hint"
+              >아이콘을 눌러 프로필 이미지를 업로드하세요.</span
+            >
+            <span
+              class="creator-profile-hint"
+              id="creatorProfileAvatarUploadStatus"
+            ></span>
+            <input
+              type="file"
+              id="creatorProfileAvatarFile"
+              accept="image/*"
+              class="hidden-input"
+            />
+          </fieldset>
           <label class="creator-profile-field">
             <span>닉네임</span>
-            <input type="text" id="creatorProfileNameInput" maxlength="32" placeholder="닉네임을 입력하세요." />
+            <input
+              type="text"
+              id="creatorProfileNameInput"
+              maxlength="32"
+              placeholder="닉네임을 입력하세요."
+            />
           </label>
           <label class="creator-profile-field">
             <span>자기소개</span>
-            <textarea id="creatorProfileBioInput" rows="4" maxlength="2000" placeholder="간단한 자기소개를 작성해주세요."></textarea>
+            <textarea
+              id="creatorProfileBioInput"
+              rows="4"
+              maxlength="2000"
+              placeholder="간단한 자기소개를 작성해주세요."
+            ></textarea>
           </label>
-          <p class="creator-profile-edit-status" id="creatorProfileEditStatus"></p>
+          <p
+            class="creator-profile-edit-status"
+            id="creatorProfileEditStatus"
+          ></p>
           <div class="creator-profile-edit-actions">
-            <button type="button" class="btn btn-ghost" id="creatorProfileEditCancel">취소</button>
-            <button type="submit" class="btn btn-accent" id="creatorProfileEditSubmit">저장</button>
+            <button
+              type="button"
+              class="btn btn-ghost"
+              id="creatorProfileEditCancel"
+            >
+              취소
+            </button>
+            <button
+              type="submit"
+              class="btn btn-accent"
+              id="creatorProfileEditSubmit"
+            >
+              저장
+            </button>
           </div>
         </form>
       </div>

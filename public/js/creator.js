@@ -7,12 +7,17 @@ const PLACEHOLDER_IMAGE = './assets/og-default.png';
 const creatorApiFetch = window.apiFetch || ((...args) => fetch(...args));
 const FEED_API_UNAVAILABLE_ERROR = 'feed_api_unavailable';
 const FEED_UNAVAILABLE_MESSAGE = '피드 기능은 준비 중입니다. 잠시 후 다시 이용해주세요.';
+const FOLLOW_TABLE = 'follows';
+const AVATAR_BUCKET = 'character_profile';
 
 const creatorPageState = {
   targetUserId: null,
   viewerUserId: null,
   isSelf: false,
   isLoggedIn: false,
+  following: false,
+  followerCount: 0,
+  followingCount: 0,
   workTab: 'characters',
   charactersEmpty: false,
   profileData: null,
@@ -30,6 +35,89 @@ const creatorPageState = {
 };
 
 let currentFeedDetail = null;
+const toDataUrl = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+async function uploadAvatarFile(file, targetUserId) {
+  const dataUrl = await toDataUrl(file);
+  const res = await creatorApiFetch('/api/upload/avatar', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      dataUrl,
+      fileName: file.name,
+      bucket: AVATAR_BUCKET,
+      folder: 'creator-avatars',
+      userId: targetUserId,
+    }),
+  });
+  if (!res.ok) {
+    const msg = await res.text();
+    throw new Error(msg || '업로드에 실패했습니다.');
+  }
+  const json = await res.json();
+  if (!json?.url) throw new Error('업로드 URL을 받을 수 없습니다.');
+  return json.url;
+}
+
+async function getCurrentUserId() {
+  try {
+    const { data } = await window.sb?.auth?.getSession();
+    return data?.session?.user?.id || null;
+  } catch (e) {
+    console.warn('getCurrentUserId failed', e);
+    return null;
+  }
+}
+
+async function fetchFollowState(targetUserId) {
+  if (!targetUserId || !window.sb) return false;
+  const userId = await getCurrentUserId();
+  if (!userId) return false;
+  try {
+    const { data, error } = await window.sb
+      .from(FOLLOW_TABLE)
+      .select('id')
+      .eq('follower_id', userId)
+      .eq('following_id', targetUserId)
+      .maybeSingle();
+    if (error) throw error;
+    return Boolean(data);
+  } catch (e) {
+    console.warn('fetchFollowState error', e);
+    return false;
+  }
+}
+
+async function setFollowState(targetUserId, follow) {
+  if (!targetUserId || !window.sb) return false;
+  const userId = await getCurrentUserId();
+  if (!userId) return false;
+  try {
+    if (follow) {
+      const { error } = await window.sb
+        .from(FOLLOW_TABLE)
+        .upsert({ follower_id: userId, following_id: targetUserId }, { onConflict: 'follower_id,following_id', ignoreDuplicates: false });
+      if (error) throw error;
+    } else {
+      const { error } = await window.sb
+        .from(FOLLOW_TABLE)
+        .delete()
+        .eq('follower_id', userId)
+        .eq('following_id', targetUserId);
+      if (error) throw error;
+    }
+    return true;
+  } catch (e) {
+    console.warn('setFollowState error', e);
+    return false;
+  }
+}
 
 async function initCreatorPage() {
   try {
@@ -63,7 +151,7 @@ async function initCreatorPage() {
     creatorPageState.isLoggedIn = Boolean(viewerUserId);
     creatorPageState.profileData = targetProfile;
 
-    renderHero(targetProfile, isSelf ? ctx?.user : null, isSelf, Boolean(viewerUserId));
+    await renderHero(targetProfile, isSelf ? ctx?.user : null, isSelf, Boolean(viewerUserId));
 
     const { items: characterItems, totalCharacters, totalChats } = await fetchCharacterItems(targetUserId);
 
@@ -82,13 +170,15 @@ async function initCreatorPage() {
     setupShareButton(targetProfile, targetUserId);
     setupBioToggle();
     initCreatorProfileEditor();
+    setupFollowShortcuts();
+    await loadFollowStatsAndList('followers');
   } catch (e) {
     console.error('creator init error', e);
     showCreatorUnavailableState('페이지를 불러오는 중 문제가 발생했습니다.');
   }
 }
 
-function renderHero(profile, fallbackUser, isSelf, viewerLoggedIn) {
+async function renderHero(profile, fallbackUser, isSelf, viewerLoggedIn) {
   const displayName =
     profile?.display_name ||
     profile?.handle ||
@@ -144,10 +234,42 @@ function renderHero(profile, fallbackUser, isSelf, viewerLoggedIn) {
       followBtn.textContent = '로그인';
       followBtn.onclick = () => (window.location.href = '/login');
     } else {
-      followBtn.textContent = '팔로우';
-      followBtn.onclick = () => alert('팔로우 기능은 준비 중입니다.');
+      const updateBtn = () => {
+        followBtn.textContent = creatorPageState.isSelf ? '프로필 관리' : (creatorPageState.isLoggedIn ? (creatorPageState.following ? '언팔로우' : '팔로우') : '로그인');
+      };
+      const handleFollow = async () => {
+        if (!creatorPageState.isLoggedIn) {
+          window.location.href = '/login';
+          return;
+        }
+        const next = !creatorPageState.following;
+        followBtn.disabled = true;
+        const ok = await setFollowState(creatorPageState.targetUserId, next);
+        if (!ok) {
+          alert('팔로우 처리 중 오류가 발생했습니다.');
+        } else {
+          creatorPageState.following = next;
+        }
+        followBtn.disabled = false;
+        updateBtn();
+      };
+      creatorPageState.following = Boolean(await fetchFollowState(creatorPageState.targetUserId));
+      followBtn.onclick = handleFollow;
+      updateBtn();
     }
   }
+  // stats click -> follow modal
+  const statsSpans = document.querySelectorAll('#creatorStats span');
+  statsSpans.forEach((span) => {
+    span.style.cursor = 'pointer';
+    if (span.dataset.followBound) return;
+    span.addEventListener('click', () => {
+      const label = span.textContent || '';
+      const mode = label.includes('팔로잉') ? 'followings' : 'followers';
+      openFollowModal(mode);
+    });
+    span.dataset.followBound = '1';
+  });
 }
 
 function setCreatorAvatar(url, fallbackInitial) {
@@ -172,7 +294,9 @@ function updateHeroStats({ characterCount = 0, totalCharacters = 0, totalChats =
   const totalChatsEl = document.getElementById('creatorTotalChats');
   if (totalChatsEl) totalChatsEl.textContent = totalChats.toLocaleString('ko-KR');
   const followersEl = document.getElementById('creatorFollowers');
-  if (followersEl) followersEl.textContent = followers.toLocaleString('ko-KR');
+  if (followersEl) followersEl.textContent = (creatorPageState.followerCount || followers || 0).toLocaleString('ko-KR');
+  const followingsEl = document.getElementById('creatorFollowings');
+  if (followingsEl) followingsEl.textContent = (creatorPageState.followingCount || 0).toLocaleString('ko-KR');
 }
 
 function showCreatorUnavailableState(message) {
@@ -227,6 +351,146 @@ function renderCharacterHighlights(items) {
   });
 }
 
+async function fetchFollowList(mode = 'followers') {
+  const listEl = document.getElementById('followListBody');
+  const emptyEl = document.getElementById('followListEmpty');
+  if (!listEl || !emptyEl) return;
+  listEl.innerHTML = '';
+  emptyEl.textContent = '불러오는 중...';
+  emptyEl.style.display = 'block';
+
+  const targetId = creatorPageState.targetUserId;
+  if (!targetId || !window.sb) {
+    emptyEl.textContent = '목록을 불러올 수 없습니다.';
+    return;
+  }
+  try {
+    const { data, error } = await window.sb
+      .from(FOLLOW_TABLE)
+      .select('follower_id, following_id')
+      .eq(mode === 'followings' ? 'follower_id' : 'following_id', targetId);
+    if (error) throw error;
+    if (!data?.length) {
+      emptyEl.textContent = '목록이 없습니다.';
+      listEl.innerHTML = '';
+      return;
+    }
+    // collect user ids
+    const ids = Array.from(
+      new Set(
+        data.map((row) => (mode === 'followings' ? row.following_id : row.follower_id)).filter(Boolean)
+      )
+    );
+    if (!ids.length) {
+      emptyEl.textContent = '목록이 없습니다.';
+      listEl.innerHTML = '';
+      return;
+    }
+    const { data: profiles, error: pErr } = await window.sb
+      .from('profiles')
+      .select('id, display_name, handle, avatar_url')
+      .in('id', ids);
+    if (pErr) throw pErr;
+
+    const map = new Map();
+    profiles?.forEach((p) => map.set(p.id, p));
+    listEl.innerHTML = '';
+    ids.forEach((id) => {
+      const p = map.get(id) || {};
+      const name = p.display_name || p.handle || '사용자';
+      const handle = p.handle ? `@${p.handle}` : '';
+      const avatar = p.avatar_url || PLACEHOLDER_AVATAR;
+      const card = document.createElement('div');
+      card.className = 'follow-card';
+      card.innerHTML = `
+        <div class="follow-card__avatar">${p.avatar_url ? `<img src="${avatar}" alt="${name}">` : name.slice(0,2)}</div>
+        <div class="follow-card__meta">
+          <div class="follow-card__name">${name}</div>
+          <div class="follow-card__handle">${handle}</div>
+        </div>
+      `;
+      card.addEventListener('click', () => {
+        window.location.href = `/creator?user=${id}`;
+      });
+      listEl.appendChild(card);
+    });
+    emptyEl.style.display = 'none';
+  } catch (e) {
+    console.warn('fetchFollowList error', e);
+    emptyEl.textContent = '목록을 불러올 수 없습니다.';
+  }
+}
+
+function bindFollowTabs() {
+  const tabs = document.querySelectorAll('[data-follow-tab]');
+  if (!tabs.length) return;
+  tabs.forEach((tab) => {
+    tab.addEventListener('click', async () => {
+      tabs.forEach((t) => t.classList.toggle('follow-tab--active', t === tab));
+      const mode = tab.getAttribute('data-follow-tab');
+      const title = document.getElementById('followListTitle');
+      if (title) title.textContent = mode === 'followings' ? '팔로잉' : '팔로워';
+      await loadFollowStatsAndList(mode === 'followings' ? 'followings' : 'followers');
+    });
+  });
+}
+
+async function loadFollowStatsAndList(mode = 'followers') {
+  if (!window.sb || !creatorPageState.targetUserId) return;
+  try {
+    const targetId = creatorPageState.targetUserId;
+    const followerRes = await window.sb
+      .from(FOLLOW_TABLE)
+      .select('id', { count: 'exact', head: true })
+      .eq('following_id', targetId);
+    const followerCount = followerRes?.count ?? 0;
+
+    const followingRes = await window.sb
+      .from(FOLLOW_TABLE)
+      .select('id', { count: 'exact', head: true })
+      .eq('follower_id', targetId);
+    const followingCount = followingRes?.count ?? 0;
+
+    creatorPageState.followerCount = followerCount ?? 0;
+    creatorPageState.followingCount = followingCount ?? 0;
+    updateHeroStats({ followers: followerCount ?? 0 });
+  } catch (e) {
+    console.warn('follow stats error', e);
+  }
+  await fetchFollowList(mode);
+}
+
+function setupFollowShortcuts() {
+  const section = document.getElementById('creatorFollowList');
+  const tabs = section?.querySelectorAll('[data-follow-tab]');
+  const stats = document.querySelectorAll('#creatorStats span[data-follow-target]');
+  const closeBtn = document.getElementById('closeFollowModal');
+  const modal = document.getElementById('creatorFollowList');
+  const activateTab = async (targetMode) => {
+    tabs.forEach((t) => t.classList.toggle('follow-tab--active', t.getAttribute('data-follow-tab') === targetMode));
+    const title = document.getElementById('followListTitle');
+    if (title) title.textContent = targetMode === 'followings' ? '팔로잉' : '팔로워';
+    await loadFollowStatsAndList(targetMode);
+  };
+  tabs?.forEach((tab, idx) => {
+    tab.addEventListener('click', () => activateTab(tab.getAttribute('data-follow-tab')));
+    if (idx === 0) tab.classList.add('follow-tab--active');
+  });
+  // bind stats clicks
+  stats.forEach((node) => {
+    node.style.cursor = 'pointer';
+    node.addEventListener('click', () => {
+      const targetMode = node.getAttribute('data-follow-target') === 'followings' ? 'followings' : 'followers';
+      openFollowModal(targetMode);
+    });
+  });
+  if (closeBtn && modal) {
+    closeBtn.addEventListener('click', closeFollowModal);
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeFollowModal();
+    });
+  }
+}
 function renderGrid(items) {
   const grid = document.getElementById('creatorGrid');
   const empty = document.getElementById('creatorEmpty');
@@ -306,6 +570,30 @@ function setupWorksTabs() {
   });
   const initialTab = document.querySelector('[data-work-tab].active');
   setWorksView(initialTab?.getAttribute('data-work-tab') || 'characters');
+}
+
+function openFollowModal(mode = 'followers') {
+  const modal = document.getElementById('creatorFollowList');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+  modal.classList.add('is-open');
+  document.body.classList.add('modal-open');
+  const tabs = modal.querySelectorAll('[data-follow-tab]');
+  tabs.forEach((tab) => {
+    const isActive = tab.getAttribute('data-follow-tab') === mode;
+    tab.classList.toggle('follow-tab--active', isActive);
+  });
+  const title = document.getElementById('followListTitle');
+  if (title) title.textContent = mode === 'followings' ? '팔로잉' : '팔로워';
+  loadFollowStatsAndList(mode);
+}
+
+function closeFollowModal() {
+  const modal = document.getElementById('creatorFollowList');
+  if (!modal) return;
+  modal.classList.add('hidden');
+  modal.classList.remove('is-open');
+  document.body.classList.remove('modal-open');
 }
 
 function setWorksView(view) {
@@ -732,15 +1020,63 @@ function openCreatorProfileEditor() {
   const layer = document.getElementById('creatorProfileEditLayer');
   const nameInput = document.getElementById('creatorProfileNameInput');
   const bioInput = document.getElementById('creatorProfileBioInput');
+  const avatarFileInput = document.getElementById('creatorProfileAvatarFile');
+  const avatarUploadStatus = document.getElementById('creatorProfileAvatarUploadStatus');
+  const avatarPreview = document.getElementById('creatorProfileAvatarPreview');
   const statusEl = document.getElementById('creatorProfileEditStatus');
   if (!layer || !nameInput || !bioInput) return;
   const profile = creatorPageState.profileData || {};
+  creatorPageState.uploadedAvatarUrl = null;
   nameInput.value = profile.display_name || creatorPageState.targetDisplayName || '';
   bioInput.value = profile.bio || '';
+  if (avatarUploadStatus) avatarUploadStatus.textContent = '';
+  if (avatarFileInput) avatarFileInput.value = '';
+  if (avatarPreview) {
+    avatarPreview.classList.toggle('has-image', Boolean(profile.avatar_url));
+    avatarPreview.innerHTML = profile.avatar_url
+      ? `<img src="${profile.avatar_url}" alt="현재 아바타">`
+      : '<span class="creator-profile-avatar-placeholder">+</span>';
+  }
   if (statusEl) statusEl.textContent = '';
   layer.classList.remove('hidden');
   document.body.classList.add('modal-open');
   setTimeout(() => nameInput.focus(), 50);
+
+  const triggerUpload = async (file) => {
+    if (!file) {
+      if (avatarUploadStatus) avatarUploadStatus.textContent = '파일을 선택하세요.';
+      return;
+    }
+    try {
+      if (avatarUploadStatus) avatarUploadStatus.textContent = '업로드 중...';
+      const publicUrl = await uploadAvatarFile(file, creatorPageState.targetUserId || 'me');
+      creatorPageState.uploadedAvatarUrl = publicUrl;
+      if (avatarPreview) {
+        avatarPreview.classList.add('has-image');
+        avatarPreview.innerHTML = `<img src="${publicUrl}" alt="업로드된 아바타">`;
+      }
+      if (avatarUploadStatus) avatarUploadStatus.textContent = '업로드 완료! 저장을 눌러 반영하세요.';
+    } catch (e) {
+      console.error('avatar upload error', e);
+      if (avatarUploadStatus) avatarUploadStatus.textContent = '업로드 실패. 다시 시도하세요.';
+    }
+  };
+
+  if (avatarFileInput && avatarPreview && !avatarFileInput.dataset.bound) {
+    avatarFileInput.dataset.bound = '1';
+    avatarFileInput.addEventListener('change', () => {
+      const file = avatarFileInput.files?.[0];
+      if (file) triggerUpload(file);
+    });
+    const openPicker = () => avatarFileInput.click();
+    avatarPreview.addEventListener('click', openPicker);
+    avatarPreview.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openPicker();
+      }
+    });
+  }
 }
 
 function closeCreatorProfileEditor() {
@@ -759,10 +1095,12 @@ async function handleCreatorProfileSave(event) {
   const nameInput = document.getElementById('creatorProfileNameInput');
   const bioInput = document.getElementById('creatorProfileBioInput');
   const statusEl = document.getElementById('creatorProfileEditStatus');
+  const avatarUploadStatus = document.getElementById('creatorProfileAvatarUploadStatus');
   const submitBtn = document.getElementById('creatorProfileEditSubmit');
   if (!nameInput || !bioInput) return;
   const displayName = (nameInput.value || '').trim() || creatorPageState.targetDisplayName || '크리에이터';
   const bio = (bioInput.value || '').trim();
+  let avatarUrl = (creatorPageState.uploadedAvatarUrl || creatorPageState.profileData?.avatar_url || '').trim();
   if (statusEl) statusEl.textContent = '저장 중...';
   if (submitBtn) submitBtn.disabled = true;
   try {
@@ -771,10 +1109,11 @@ async function handleCreatorProfileSave(event) {
       .update({
         display_name: displayName,
         bio: bio || null,
+        avatar_url: avatarUrl || null,
       })
       .eq('id', creatorPageState.targetUserId);
     if (error) throw error;
-    applyCreatorProfileUpdates(displayName, bio);
+    applyCreatorProfileUpdates(displayName, bio, avatarUrl || null);
     if (statusEl) statusEl.textContent = '저장되었습니다.';
     setTimeout(() => closeCreatorProfileEditor(), 500);
   } catch (err) {
@@ -785,18 +1124,31 @@ async function handleCreatorProfileSave(event) {
   }
 }
 
-function applyCreatorProfileUpdates(displayName, bio) {
+function applyCreatorProfileUpdates(displayName, bio, avatarUrl) {
   creatorPageState.targetDisplayName = displayName;
   creatorPageState.profileData = {
     ...(creatorPageState.profileData || {}),
     display_name: displayName,
     bio,
+    avatar_url: avatarUrl ?? creatorPageState.profileData?.avatar_url,
   };
   if (creatorPageState.shareData) {
     creatorPageState.shareData.title = `${displayName} | crama`;
   }
   const nameEl = document.getElementById('creatorName');
   const bioEl = document.getElementById('creatorBio');
+  const avatarEl = document.getElementById('creatorAvatar');
+  if (avatarEl) {
+    if (avatarUrl) {
+      avatarEl.style.backgroundImage = `url("${avatarUrl}")`;
+      avatarEl.classList.add('has-image');
+      avatarEl.textContent = '';
+    } else if (creatorPageState.profileData?.avatar_url) {
+      avatarEl.style.backgroundImage = `url("${creatorPageState.profileData.avatar_url}")`;
+      avatarEl.classList.add('has-image');
+      avatarEl.textContent = '';
+    }
+  }
   if (nameEl) nameEl.textContent = displayName;
   if (bioEl) bioEl.textContent = bio || '자기소개를 작성하면 여기서 바로 소개됩니다.';
   refreshCreatorBioClamp();

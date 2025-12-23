@@ -199,6 +199,10 @@
                         maxlength="1500"
                         placeholder="사용자에게는 보이지 않지만 캐릭터는 알고 있어야 하는 상황·배경 등을 작성해 주세요."
                       ></textarea>
+                      <div class="scene-helper">
+                        <button type="button" class="scene-insert-btn" data-scene-target="introTextarea">✱ 상황 묘사</button>
+                        <span class="scene-helper__hint">대괄호 없이 **내용**처럼 감싸면 상황 묘사로 표시돼요.</span>
+                      </div>
                       <button class="btn btn--ghost btn--small">
                         예시 대화로부터 인트로 자동 생성
                       </button>
@@ -400,6 +404,19 @@
                           인트로/예시 기반 자동 완성 (준비 중)
                         </button>
                       </div>
+                    </div>
+
+                    <div class="field-group">
+                      <label class="field__label">나레이터 (선택)</label>
+                      <p class="field__hint">
+                        이야기 흐름을 정리해 줄 내레이션 톤이나 목소리를 적어 주세요. 비워두면 일반 대화만 진행됩니다.
+                      </p>
+                      <textarea
+                        id="narratorTextarea"
+                        class="field__control field__control--textarea"
+                        maxlength="800"
+                        placeholder="예) 인물의 속마음을 속삭이듯 묘사하는 차분한 여성 내레이션"
+                      ></textarea>
                     </div>
 
                     <div class="field-group">

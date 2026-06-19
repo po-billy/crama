@@ -34,6 +34,19 @@ node run.js --category=ai     # 카테고리 강제
 - 본문: `WRITE_MODEL`(기본 sonnet) · 리서치: `RESEARCH_MODEL`(기본 opus)
 - 글 1개 ≈ ₩700~1,100 (모델·이미지에 따라). 프롬프트 캐싱 시 추가 절감.
 
-## 무인 운영
-`.github/workflows/publish.yml` 가 매일 1회 실행 → 글 생성 → 커밋/푸시 → Vercel 자동 배포.
-GitHub repo Settings → Secrets 에 `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`(또는 STABILITY) 등록.
+## 두 가지 운영 모드
+
+### 1) 수동 모드 (Claude Code에서, 가장 저렴) — 글당 ~₩80
+리서치·글은 Claude Code(Max 플랜=정액, API 과금 0)에서 작성하고, **이미지만 OpenAI로** 생성.
+1. 대화에서 글을 작성 → `site/src/content/blog/<slug>.mdx` 로 저장 (heroImage는 임시값)
+2. 이미지만 붙이기 (Anthropic API 미사용):
+   ```bash
+   node add-image.js <slug> "A clean editorial illustration of ..."
+   ```
+3. `cd ../site && npm run build` 확인 → git 커밋·푸시 → Vercel 배포
+
+### 2) 무인 모드 (GitHub Actions cron) — 글당 ~₩400~1,000
+`.github/workflows/publish.yml` 가 매일 1회 `run.js` 실행 → 리서치·글·이미지 자동 생성 → 커밋/푸시 → Vercel 배포.
+GitHub repo Settings → Secrets 에 `ANTHROPIC_API_KEY`, `OPENAI_API_KEY` 등록.
+
+> 권장: 챙길 수 있는 고품질 글은 **수동 모드**, 밤새 자동 양산은 **무인 모드**.

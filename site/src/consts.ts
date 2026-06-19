@@ -38,3 +38,11 @@ export const NAV = [
   { label: 'AI 트렌드', href: '/category/ai/' },
   { label: '소개', href: '/about/' },
 ] as const;
+
+// 상단 공지/추천 배너 — 내용만 바꾸면 됨. key를 바꾸면 닫았던 사용자에게 다시 표시.
+export const NOTICE = {
+  enabled: true,
+  key: '2026-06',
+  text: '📈 새 글 — 스페이스X(SPCX) 주식 사는 법: 2026 나스닥 상장 후 가이드',
+  href: '/blog/spacex-stock-buying-guide/',
+} as const;

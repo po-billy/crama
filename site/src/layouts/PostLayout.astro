@@ -6,6 +6,10 @@ import AdSlot from '../components/AdSlot.astro';
 import PostCard from '../components/PostCard.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import TableOfContents from '../components/TableOfContents.astro';
+import ReadingProgress from '../components/ReadingProgress.astro';
+import ShareButtons from '../components/ShareButtons.astro';
+import TagList from '../components/TagList.astro';
+import AuthorBox from '../components/AuthorBox.astro';
 import { SITE, CATEGORIES, type CategorySlug } from '../consts';
 
 interface RelatedPost {
@@ -26,12 +30,13 @@ interface Props {
   heroImage?: string;
   readingTime?: number;
   premium?: boolean;
+  tags?: string[];
   headings?: MarkdownHeading[];
   related?: RelatedPost[];
 }
 const {
   title, description, pubDate, updatedDate, category, author, heroImage,
-  readingTime, premium = false, headings = [], related = [],
+  readingTime, premium = false, tags = [], headings = [], related = [],
 } = Astro.props;
 
 const cat = CATEGORIES[category];
@@ -57,6 +62,7 @@ const jsonLd = {
   publishedTime={pubDate}
   jsonLd={jsonLd}
 >
+  <ReadingProgress />
   <article class="wrap">
     <Breadcrumbs items={[{ label: cat.name, href: `/category/${cat.slug}/` }, { label: title }]} />
 
@@ -83,6 +89,14 @@ const jsonLd = {
     <div class:list={['prose', 'measure', { 'is-premium': premium }]}>
       <slot />
     </div>
+
+    {!premium && (
+      <div class="measure article-footer">
+        <TagList tags={tags} />
+        <ShareButtons title={title} />
+        <AuthorBox author={author} />
+      </div>
+    )}
 
     {premium ? (
       <aside class="paywall">

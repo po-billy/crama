@@ -1,8 +1,12 @@
 ---
 import { SITE } from '../consts';
+import SubscribeBox from './SubscribeBox.astro';
 const year = new Date().getFullYear();
 ---
 <footer class="site-footer">
+  <div class="wrap">
+    <SubscribeBox />
+  </div>
   <div class="wrap site-footer__inner">
     <div>© {year} {SITE.name}. {SITE.tagline}.</div>
     <nav aria-label="푸터 메뉴">

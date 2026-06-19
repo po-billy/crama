@@ -1,0 +1,17 @@
+---
+// 저자/편집부 정보 박스 — 글 하단(E-E-A-T 신뢰 신호)
+import { SITE } from '../consts';
+interface Props { author?: string; }
+const { author = SITE.author } = Astro.props;
+---
+<aside class="author-box">
+  <div class="author-box__avatar" aria-hidden="true">C</div>
+  <div>
+    <p class="author-box__name">{author}</p>
+    <p class="author-box__bio">
+      {SITE.name}는 주식·재테크와 AI 트렌드를 깊이 있게 다루는 인사이트 매거진입니다.
+      흩어진 정보를 정리하고 맥락을 더해, 실전에 바로 쓰이는 원본 콘텐츠를 전합니다.
+    </p>
+    <a class="author-box__link" href="/about/">편집 원칙 보기 →</a>
+  </div>
+</aside>

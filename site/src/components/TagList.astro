@@ -1,0 +1,12 @@
+---
+// 태그 링크 목록 — 글 하단
+interface Props { tags?: string[]; }
+const { tags = [] } = Astro.props;
+---
+{tags.length > 0 && (
+  <div class="tag-list">
+    {tags.map((t) => (
+      <a href={`/tag/${encodeURIComponent(t)}/`} class="tag">#{t}</a>
+    ))}
+  </div>
+)}

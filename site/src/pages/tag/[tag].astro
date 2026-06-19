@@ -1,0 +1,42 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+
+export async function getStaticPaths() {
+  const posts = (await getCollection('blog')).filter((p) => !p.data.draft);
+  const tags = [...new Set(posts.flatMap((p) => p.data.tags))];
+  return tags.map((tag) => ({
+    params: { tag },
+    props: {
+      tag,
+      posts: posts
+        .filter((p) => p.data.tags.includes(tag))
+        .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()),
+    },
+  }));
+}
+
+const { tag, posts } = Astro.props;
+---
+<BaseLayout title={`#${tag} 글 모음`} description={`'${tag}' 태그가 달린 글 ${posts.length}개 — Crama`}>
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">Tag</span>
+      <h1>#{tag}</h1>
+      <p>{posts.length}개의 글</p>
+    </header>
+    <div class="card-grid">
+      {posts.map((p) => (
+        <PostCard
+          href={`/blog/${p.id}/`}
+          title={p.data.title}
+          description={p.data.description}
+          pubDate={p.data.pubDate}
+          category={p.data.category}
+          heroImage={p.data.heroImage}
+        />
+      ))}
+    </div>
+  </div>
+</BaseLayout>

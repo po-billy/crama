@@ -1,0 +1,18 @@
+---
+// 글 읽기 진행바 (상단 얇은 바) — PostLayout 전용
+---
+<div class="reading-progress" id="reading-progress" aria-hidden="true"></div>
+<script is:inline>
+  (() => {
+    const bar = document.getElementById('reading-progress');
+    if (!bar) return;
+    const update = () => {
+      const h = document.documentElement;
+      const max = h.scrollHeight - h.clientHeight;
+      bar.style.transform = `scaleX(${max > 0 ? Math.min(h.scrollTop / max, 1) : 0})`;
+    };
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+  })();
+</script>

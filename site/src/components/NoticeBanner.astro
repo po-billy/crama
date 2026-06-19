@@ -1,0 +1,23 @@
+---
+// 상단 공지/추천 배너 (닫기 가능, localStorage 기억) — 전역
+import { NOTICE } from '../consts';
+---
+{NOTICE.enabled && (
+  <div class="notice-banner" id="notice-banner" data-key={NOTICE.key} hidden>
+    <a class="notice-banner__text" href={NOTICE.href}>{NOTICE.text}</a>
+    <button class="notice-banner__close" id="notice-close" aria-label="공지 닫기">×</button>
+  </div>
+)}
+<script is:inline>
+  (() => {
+    const el = document.getElementById('notice-banner');
+    if (!el) return;
+    const key = 'crama:notice:' + (el.dataset.key || '');
+    if (localStorage.getItem(key) === 'closed') return;
+    el.hidden = false;
+    document.getElementById('notice-close')?.addEventListener('click', () => {
+      el.hidden = true;
+      localStorage.setItem(key, 'closed');
+    });
+  })();
+</script>

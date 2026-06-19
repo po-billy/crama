@@ -1,0 +1,14 @@
+---
+// 맨 위로 버튼 (스크롤 시 노출) — 전역
+---
+<button class="back-to-top" id="back-to-top" aria-label="맨 위로" title="맨 위로">↑</button>
+<script is:inline>
+  (() => {
+    const btn = document.getElementById('back-to-top');
+    if (!btn) return;
+    const onScroll = () => btn.classList.toggle('is-visible', window.scrollY > 600);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    onScroll();
+  })();
+</script>

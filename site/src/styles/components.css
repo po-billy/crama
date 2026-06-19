@@ -174,3 +174,106 @@
 .contact-status { font-size: 0.92rem; margin: 0.3rem 0 0; min-height: 1.2em; }
 .contact-status.is-ok { color: #2f8f5b; }
 .contact-status.is-err { color: var(--accent); }
+
+/* ---------- 읽기 진행바 ---------- */
+.reading-progress {
+  position: fixed; top: 0; left: 0; height: 3px; width: 100%;
+  background: var(--accent); transform: scaleX(0); transform-origin: 0 50%;
+  z-index: 60; transition: transform 0.05s linear; pointer-events: none;
+}
+
+/* ---------- 맨 위로 버튼 ---------- */
+.back-to-top {
+  position: fixed; right: 1.2rem; bottom: 1.2rem; z-index: 55;
+  width: 2.7rem; height: 2.7rem; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--paper); color: var(--ink);
+  font-size: 1.1rem; cursor: pointer; display: grid; place-items: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  opacity: 0; visibility: hidden; transform: translateY(8px); transition: all 0.2s;
+}
+.back-to-top.is-visible { opacity: 1; visibility: visible; transform: translateY(0); }
+.back-to-top:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ---------- 공유 버튼 ---------- */
+.share { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin: 1.5rem 0; }
+.share__label { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-right: 0.2rem; }
+.share__btn {
+  font: inherit; font-size: 0.88rem; font-weight: 500; cursor: pointer;
+  border: 1px solid var(--line); border-radius: 999px; padding: 0.4rem 0.9rem;
+  background: var(--paper); color: var(--ink-soft);
+}
+.share__btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ---------- 태그 목록 ---------- */
+.tag-list { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1.8rem 0 0.5rem; }
+.tag {
+  font-size: 0.84rem; color: var(--muted); border: 1px solid var(--line);
+  border-radius: 999px; padding: 0.25rem 0.7rem; background: var(--paper-2);
+}
+.tag:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ---------- 글 하단 푸터(공유·태그·저자) ---------- */
+.article-footer { margin: 2.5rem auto 0; padding-top: 1.5rem; border-top: 1px solid var(--line); }
+
+/* ---------- 저자 박스 ---------- */
+.author-box {
+  display: flex; gap: 1rem; align-items: flex-start; margin: 2rem 0 0;
+  padding: 1.3rem 1.4rem; border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--paper-2);
+}
+.author-box__avatar {
+  flex: none; width: 3rem; height: 3rem; border-radius: 999px; background: var(--ink); color: var(--paper);
+  font-family: var(--font-serif); font-weight: 600; font-size: 1.4rem; display: grid; place-items: center;
+}
+.author-box__name { font-family: var(--font-serif); font-size: 1.1rem; font-weight: 600; margin: 0 0 0.3rem; color: var(--ink); }
+.author-box__bio { color: var(--muted); font-size: 0.94rem; line-height: 1.6; margin: 0 0 0.5rem; }
+.author-box__link { font-size: 0.9rem; font-weight: 600; color: var(--accent); }
+
+/* ---------- 상단 공지 배너 ---------- */
+.notice-banner {
+  display: flex; align-items: center; justify-content: center; gap: 1rem;
+  background: var(--ink); color: var(--paper); padding: 0.6rem 1rem;
+  font-size: 0.9rem; position: relative;
+}
+.notice-banner__text { color: var(--paper); text-align: center; }
+.notice-banner__text:hover { color: var(--accent-soft); text-decoration: underline; }
+.notice-banner__close {
+  position: absolute; right: 0.8rem; background: none; border: none; color: var(--paper);
+  font-size: 1.3rem; line-height: 1; cursor: pointer; opacity: 0.7;
+}
+.notice-banner__close:hover { opacity: 1; }
+
+/* ---------- 쿠키 동의 배너 ---------- */
+.cookie-consent {
+  position: fixed; left: 1rem; right: 1rem; bottom: 1rem; z-index: 70;
+  max-width: 38rem; margin-inline: auto;
+  display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;
+  background: var(--ink); color: var(--paper); padding: 1rem 1.2rem; border-radius: var(--radius);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+}
+.cookie-consent__text { font-size: 0.9rem; margin: 0; color: var(--paper); line-height: 1.5; flex: 1 1 16rem; }
+.cookie-consent__text a { color: var(--accent-soft); text-decoration: underline; }
+.cookie-consent .btn { background: var(--paper); color: var(--ink); }
+.cookie-consent .btn:hover { background: var(--accent); color: #fff; }
+
+/* ---------- 구독 폼 ---------- */
+.subscribe {
+  border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper-2);
+  padding: 1.5rem 1.6rem; margin-bottom: 2.5rem;
+  display: grid; gap: 1rem; grid-template-columns: 1fr 1.3fr; align-items: center;
+}
+.subscribe__title { font-family: var(--font-serif); font-size: 1.2rem; margin: 0 0 0.2rem; color: var(--ink); }
+.subscribe__sub { color: var(--muted); font-size: 0.92rem; margin: 0; }
+.subscribe__row { display: flex; gap: 0.6rem; }
+.subscribe__row input[type='email'] {
+  flex: 1; font: inherit; padding: 0.65rem 0.9rem; border: 1px solid var(--line);
+  border-radius: var(--radius); background: var(--paper); color: var(--ink); min-width: 0;
+}
+.subscribe__row input:focus { outline: none; border-color: var(--accent); }
+.subscribe .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.subscribe__status { grid-column: 1 / -1; font-size: 0.88rem; margin: 0; min-height: 1.1em; }
+.subscribe__status.is-ok { color: #2f8f5b; }
+.subscribe__status.is-err { color: var(--accent); }
+@media (max-width: 640px) {
+  .subscribe { grid-template-columns: 1fr; }
+}

@@ -136,9 +136,9 @@ hr {
 }
 .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
 
-/* 스크롤 시 컴팩트 헤더: 브랜드 줄을 숨기고 메뉴·검색·테마 바만 노출 */
-.site-header.is-compact .brand { display: none; }
-.site-header.is-compact .site-header__inner { justify-content: flex-end; padding-block: 0.55rem; }
+/* 스크롤 시 컴팩트 헤더: 데스크톱은 로고를 유지하고 여백만 살짝 줄인다
+   (브랜드를 숨기는 동작은 모바일 전용 — 아래 @media 600px 참고) */
+.site-header.is-compact .site-header__inner { padding-block: 0.6rem; }
 
 /* ---------- 카테고리 배지(텍스트) ---------- */
 .eyebrow {
@@ -305,9 +305,10 @@ hr {
   }
   .nav .search-link { margin-left: auto; } /* 검색·토글을 오른쪽 끝으로 */
 
-  /* 컴팩트(스크롤) 시 메뉴바가 유일한 줄 — 경계선·여백 정리 */
+  /* 컴팩트(스크롤) 시: 모바일에서만 브랜드를 숨기고 메뉴바만 남긴다 */
+  .site-header.is-compact .brand { display: none; }
   .site-header.is-compact .nav { border-top: none; padding-top: 0; }
-  .site-header.is-compact .site-header__inner { padding-block: 0.45rem; }
+  .site-header.is-compact .site-header__inner { justify-content: flex-end; padding-block: 0.45rem; }
 
   .home-masthead { padding: 2rem 0 1.8rem; }
   .home-masthead h1 { font-size: clamp(1.85rem, 7vw, 2.4rem); }

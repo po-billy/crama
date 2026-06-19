@@ -43,6 +43,15 @@ const fullTitle = title === SITE.title ? title : `${title} · ${SITE.name}`;
 <meta name="google-adsense-account" content="ca-pub-8780643027232358" />
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8780643027232358" crossorigin="anonymous"></script>
 
+<!-- Google Analytics (GA4) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-4NSBZ832J7"></script>
+<script is:inline>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-4NSBZ832J7');
+</script>
+
 <!-- Open Graph -->
 <meta property="og:type" content={type} />
 <meta property="og:site_name" content={SITE.name} />

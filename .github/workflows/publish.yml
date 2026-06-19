@@ -1,0 +1,43 @@
+name: Publish article
+
+# 무인 자동 발행: 매일 1회 + 수동 실행. 글을 생성해 커밋하면 Vercel이 자동 배포.
+on:
+  schedule:
+    - cron: '0 0 * * *' # 매일 09:00 KST (UTC 00:00)
+  workflow_dispatch:
+    inputs:
+      category:
+        description: '강제 카테고리 (money | ai, 비우면 자동)'
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install deps
+        working-directory: automation
+        run: npm install
+      - name: Generate article
+        working-directory: automation
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          STABILITY_API_KEY: ${{ secrets.STABILITY_API_KEY }}
+          IMAGE_PROVIDER: ${{ vars.IMAGE_PROVIDER }}
+          WRITE_MODEL: ${{ vars.WRITE_MODEL }}
+          RESEARCH_MODEL: ${{ vars.RESEARCH_MODEL }}
+        run: node run.js ${{ github.event.inputs.category && format('--category={0}', github.event.inputs.category) || '' }}
+      - name: Commit & push
+        run: |
+          git config user.name "crama-bot"
+          git config user.email "bot@crama.app"
+          git add -A
+          git commit -m "post: automated article ($(date +%F))" || echo "변경 없음"
+          git push

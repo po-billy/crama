@@ -1,0 +1,77 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { CATEGORIES } from '../consts';
+const catNames = Object.fromEntries(
+  Object.values(CATEGORIES).map((c) => [c.slug, c.name]),
+);
+---
+<BaseLayout title="검색" description="Crama의 글을 검색하세요 — 주식·재테크와 AI 트렌드.">
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">Search</span>
+      <h1>검색</h1>
+      <p>제목·설명·태그로 글을 찾습니다.</p>
+    </header>
+
+    <div class="search-box">
+      <input
+        type="search"
+        id="q"
+        class="search-input"
+        placeholder="예: ETF, 배당, AI 에이전트, 프롬프트…"
+        autocomplete="off"
+        autofocus
+      />
+    </div>
+
+    <div class="search-results" id="results" aria-live="polite"></div>
+  </div>
+
+  <script define:vars={{ catNames }}>
+    const input = document.getElementById('q');
+    const out = document.getElementById('results');
+    let data = [];
+
+    fetch('/search.json')
+      .then((r) => r.json())
+      .then((d) => {
+        data = d;
+        const params = new URLSearchParams(location.search);
+        const q = params.get('q');
+        if (q) { input.value = q; render(q); }
+      });
+
+    function esc(s) {
+      return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    }
+
+    function render(query) {
+      const q = query.trim().toLowerCase();
+      if (!q) { out.innerHTML = ''; return; }
+      const hits = data.filter((p) => {
+        const hay = (p.title + ' ' + p.description + ' ' + (p.tags || []).join(' ')).toLowerCase();
+        return q.split(/\s+/).every((t) => hay.includes(t));
+      });
+      if (hits.length === 0) {
+        out.innerHTML = `<p class="search-empty">"${esc(query)}"에 대한 결과가 없습니다.</p>`;
+        return;
+      }
+      out.innerHTML = hits
+        .map(
+          (p) => `
+        <a class="search-result" href="${p.url}">
+          <span class="eyebrow">${esc(catNames[p.category] || p.category)}</span>
+          <h3>${esc(p.title)}${p.premium ? '<span class="premium-tag">멤버십</span>' : ''}</h3>
+          <p>${esc(p.description)}</p>
+        </a>`,
+        )
+        .join('');
+    }
+
+    let t;
+    input.addEventListener('input', () => {
+      clearTimeout(t);
+      t = setTimeout(() => render(input.value), 120);
+    });
+  </script>
+</BaseLayout>

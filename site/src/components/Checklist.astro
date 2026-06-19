@@ -1,0 +1,47 @@
+---
+// 동작하는 체크리스트(localStorage 저장): <Checklist title="..." items={["...","..."]} />
+interface Props { items: string[]; title?: string; id?: string; }
+const { items, title, id = 'list' } = Astro.props;
+---
+<ul class="checklist" data-checklist={id}>
+  {title && <li class="checklist__title" style="display:block;">{title}</li>}
+  {items.map((text, i) => (
+    <li>
+      <label>
+        <input type="checkbox" data-i={i} />
+        <span>{text}</span>
+      </label>
+    </li>
+  ))}
+  <li class="checklist__progress" data-progress style="display:block;"></li>
+</ul>
+
+<script>
+  // 모든 체크리스트를 찾아 글(경로)+리스트 id 기준으로 상태 저장/복원
+  function initChecklists() {
+    document.querySelectorAll<HTMLElement>('[data-checklist]').forEach((list) => {
+      const key = `crama:check:${location.pathname}:${list.dataset.checklist}`;
+      const saved: Record<string, boolean> = JSON.parse(localStorage.getItem(key) || '{}');
+      const boxes = list.querySelectorAll<HTMLInputElement>('input[type=checkbox]');
+      const progress = list.querySelector<HTMLElement>('[data-progress]');
+
+      const render = () => {
+        const done = [...boxes].filter((b) => b.checked).length;
+        if (progress) progress.textContent = `${done} / ${boxes.length} 완료`;
+      };
+
+      boxes.forEach((box) => {
+        const i = box.dataset.i!;
+        box.checked = !!saved[i];
+        box.addEventListener('change', () => {
+          saved[i] = box.checked;
+          localStorage.setItem(key, JSON.stringify(saved));
+          render();
+        });
+      });
+      render();
+    });
+  }
+  initChecklists();
+  document.addEventListener('astro:after-swap', initChecklists);
+</script>

@@ -1,0 +1,10 @@
+---
+// MDX 본문용 콜아웃: <Callout type="tip|warn|info">내용</Callout>
+interface Props { type?: 'tip' | 'warn' | 'info'; title?: string; }
+const { type = 'info', title } = Astro.props;
+const labels = { tip: '팁', warn: '주의', info: '참고' };
+---
+<div class={`callout callout--${type}`}>
+  <span class="callout__label">{title ?? labels[type]}</span>
+  <slot />
+</div>

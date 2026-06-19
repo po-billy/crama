@@ -1,0 +1,29 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  image?: string;
+  type?: 'website' | 'article';
+  publishedTime?: Date;
+  jsonLd?: Record<string, unknown>;
+}
+const props = Astro.props;
+---
+<!doctype html>
+<html lang="ko">
+  <head>
+    <BaseHead {...props} />
+  </head>
+  <body>
+    <a href="#main" class="skip-link">본문으로 건너뛰기</a>
+    <Header />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

@@ -1,0 +1,14 @@
+# dependencies
+node_modules/
+# build output
+site/dist/
+.astro/
+# env / secrets
+.env
+.env.*
+!.env.example
+# automation dry-run output
+automation/output/
+# os/editor
+.DS_Store
+*.log

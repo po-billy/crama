@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-label="주식·재테크">
+  <rect width="800" height="500" fill="#f3f1ec"/>
+  <rect x="0" y="0" width="800" height="6" fill="#b04a2f"/>
+  <text x="56" y="120" font-family="Pretendard, sans-serif" font-size="20" letter-spacing="3" fill="#b04a2f">주식·재테크</text>
+  <text x="56" y="250" font-family="Georgia, 'Noto Serif KR', serif" font-size="92" font-weight="600" fill="#1a1a1a">ETF</text>
+  <text x="56" y="320" font-family="Georgia, 'Noto Serif KR', serif" font-size="44" fill="#3c3a37">vs 펀드</text>
+  <line x1="56" y1="380" x2="744" y2="380" stroke="#d8d3c8" stroke-width="1"/>
+  <text x="56" y="430" font-family="Pretendard, sans-serif" font-size="22" fill="#6b6862">수수료 · 거래 · 세금의 차이</text>
+</svg>

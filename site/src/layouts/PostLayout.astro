@@ -1,0 +1,107 @@
+---
+import type { MarkdownHeading } from 'astro';
+import BaseLayout from './BaseLayout.astro';
+import FormattedDate from '../components/FormattedDate.astro';
+import AdSlot from '../components/AdSlot.astro';
+import PostCard from '../components/PostCard.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import TableOfContents from '../components/TableOfContents.astro';
+import { SITE, CATEGORIES, type CategorySlug } from '../consts';
+
+interface RelatedPost {
+  href: string;
+  title: string;
+  description: string;
+  pubDate: Date;
+  category: CategorySlug;
+  heroImage?: string;
+}
+interface Props {
+  title: string;
+  description: string;
+  pubDate: Date;
+  updatedDate?: Date;
+  category: CategorySlug;
+  author: string;
+  heroImage?: string;
+  readingTime?: number;
+  premium?: boolean;
+  headings?: MarkdownHeading[];
+  related?: RelatedPost[];
+}
+const {
+  title, description, pubDate, updatedDate, category, author, heroImage,
+  readingTime, premium = false, headings = [], related = [],
+} = Astro.props;
+
+const cat = CATEGORIES[category];
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: title,
+  description,
+  datePublished: pubDate.toISOString(),
+  dateModified: (updatedDate ?? pubDate).toISOString(),
+  author: { '@type': 'Organization', name: author },
+  publisher: { '@type': 'Organization', name: SITE.name },
+  articleSection: cat.name,
+  ...(heroImage ? { image: new URL(heroImage, SITE.url).href } : {}),
+  isAccessibleForFree: !premium,
+};
+---
+<BaseLayout
+  title={title}
+  description={description}
+  image={heroImage}
+  type="article"
+  publishedTime={pubDate}
+  jsonLd={jsonLd}
+>
+  <article class="wrap">
+    <Breadcrumbs items={[{ label: cat.name, href: `/category/${cat.slug}/` }, { label: title }]} />
+
+    <header class="article-head measure">
+      <a href={`/category/${cat.slug}/`} class="eyebrow">{cat.name}</a>
+      <h1>{title}{premium && <span class="premium-tag">멤버십</span>}</h1>
+      <p class="dek">{description}</p>
+      <div class="article-meta">
+        <span>{author}</span>
+        <span aria-hidden="true">·</span>
+        <FormattedDate date={pubDate} />
+        {readingTime && (<><span aria-hidden="true">·</span><span>{readingTime}분 읽기</span></>)}
+      </div>
+    </header>
+
+    {heroImage && (
+      <figure class="article-hero measure">
+        <img src={heroImage} alt={title} />
+      </figure>
+    )}
+
+    <TableOfContents headings={headings} />
+
+    <div class:list={['prose', 'measure', { 'is-premium': premium }]}>
+      <slot />
+    </div>
+
+    {premium ? (
+      <aside class="paywall">
+        <span class="paywall__badge">멤버십 전용</span>
+        <h2>이어지는 내용은 멤버 전용입니다</h2>
+        <p>광고 없이 더 깊은 분석을 보시려면 멤버십에 가입하세요.</p>
+        <a class="paywall__cta" href="/membership/">멤버십 알아보기</a>
+      </aside>
+    ) : (
+      <AdSlot slot="article-bottom" />
+    )}
+
+    {related.length > 0 && (
+      <section class="wrap" style="padding-inline:0;">
+        <div class="section-head"><h2>이어 읽기</h2></div>
+        <div class="card-grid">
+          {related.map((p) => <PostCard {...p} />)}
+        </div>
+      </section>
+    )}
+  </article>
+</BaseLayout>

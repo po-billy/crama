@@ -1,0 +1,28 @@
+---
+import { SITE } from '../consts';
+interface Crumb { label: string; href?: string; }
+interface Props { items: Crumb[]; }
+const { items } = Astro.props;
+
+// BreadcrumbList 구조화 데이터(리치 결과)
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [{ name: SITE.name, href: '/' }, ...items].map((c, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: c.label,
+    ...(c.href ? { item: new URL(c.href, SITE.url).href } : {}),
+  })),
+};
+---
+<nav class="breadcrumbs measure" aria-label="현재 위치">
+  <a href="/">홈</a>
+  {items.map((c) => (
+    <>
+      <span class="sep" aria-hidden="true">/</span>
+      {c.href ? <a href={c.href}>{c.label}</a> : <span>{c.label}</span>}
+    </>
+  ))}
+</nav>
+<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />

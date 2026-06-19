@@ -1,0 +1,19 @@
+---
+import type { MarkdownHeading } from 'astro';
+interface Props { headings: MarkdownHeading[]; }
+const { headings } = Astro.props;
+// H2·H3만 목차에 노출
+const items = headings.filter((h) => h.depth === 2 || h.depth === 3);
+---
+{items.length >= 3 && (
+  <nav class="toc measure" aria-label="목차">
+    <div class="toc__title">목차</div>
+    <ol>
+      {items.map((h) => (
+        <li class={`depth-${h.depth}`}>
+          <a href={`#${h.slug}`}>{h.text}</a>
+        </li>
+      ))}
+    </ol>
+  </nav>
+)}

@@ -1,0 +1,63 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostCard from '../components/PostCard.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { SITE, CATEGORIES } from '../consts';
+
+const posts = (await getCollection('blog'))
+  .filter((p) => !p.data.draft)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const toCard = (p: (typeof posts)[number]) => ({
+  href: `/blog/${p.id}/`,
+  title: p.data.title,
+  description: p.data.description,
+  pubDate: p.data.pubDate,
+  category: p.data.category,
+  heroImage: p.data.heroImage,
+});
+
+const [featured, ...rest] = posts;
+const latest = rest.slice(0, 6);
+const byCategory = (slug: 'money' | 'ai') =>
+  posts.filter((p) => p.data.category === slug).slice(0, 3);
+---
+<BaseLayout title={SITE.title} description={SITE.description}>
+  <div class="wrap">
+    <header class="home-masthead">
+      <h1>주식·재테크와 AI 트렌드, <em>깊이 있게 읽다</em></h1>
+      <p>{SITE.description}</p>
+    </header>
+
+    {featured && (
+      <section>
+        <PostCard {...toCard(featured)} feature />
+      </section>
+    )}
+
+    <section>
+      <div class="section-head">
+        <h2>최신 글</h2>
+        <a href="/category/ai/">전체 보기</a>
+      </div>
+      <div class="card-grid">
+        {latest.map((p) => <PostCard {...toCard(p)} />)}
+      </div>
+    </section>
+
+    <AdSlot slot="home-mid" />
+
+    {(['money', 'ai'] as const).map((slug) => (
+      <section>
+        <div class="section-head">
+          <h2>{CATEGORIES[slug].name}</h2>
+          <a href={`/category/${slug}/`}>{CATEGORIES[slug].tagline} →</a>
+        </div>
+        <div class="card-grid">
+          {byCategory(slug).map((p) => <PostCard {...toCard(p)} />)}
+        </div>
+      </section>
+    ))}
+  </div>
+</BaseLayout>

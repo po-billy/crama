@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-label="AI 트렌드">
+  <rect width="800" height="500" fill="#edeef0"/>
+  <rect x="0" y="0" width="800" height="6" fill="#b04a2f"/>
+  <text x="56" y="120" font-family="Pretendard, sans-serif" font-size="20" letter-spacing="3" fill="#b04a2f">AI 트렌드</text>
+  <text x="56" y="260" font-family="Georgia, 'Noto Serif KR', serif" font-size="72" font-weight="600" fill="#1a1a1a">AI 에이전트</text>
+  <line x1="56" y1="330" x2="744" y2="330" stroke="#d4d6da" stroke-width="1"/>
+  <text x="56" y="390" font-family="Pretendard, sans-serif" font-size="22" fill="#6b6862">반복 업무 자동화 실전 가이드</text>
+</svg>

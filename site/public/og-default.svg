@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="Crama">
+  <rect width="1200" height="630" fill="#fbfaf8"/>
+  <rect x="0" y="0" width="1200" height="10" fill="#b04a2f"/>
+  <text x="80" y="300" font-family="Georgia, serif" font-size="120" font-weight="600" fill="#1a1a1a">Cr<tspan fill="#b04a2f">a</tspan>ma</text>
+  <text x="86" y="370" font-family="Pretendard, sans-serif" font-size="34" letter-spacing="6" fill="#6b6862">트렌드를 읽다</text>
+  <text x="86" y="520" font-family="Pretendard, sans-serif" font-size="30" fill="#3c3a37">주식·재테크 · AI 트렌드 인사이트 매거진</text>
+</svg>

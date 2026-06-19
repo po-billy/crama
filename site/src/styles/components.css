@@ -1,0 +1,150 @@
+/* ============================================================
+   Crama — 컴포넌트 스타일
+   (SEO/인터랙션/검색/페이월 관련 UI)
+   ============================================================ */
+
+/* ---------- 빵부스러기(Breadcrumbs) ---------- */
+.breadcrumbs {
+  font-size: 0.84rem; color: var(--muted);
+  display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center;
+  margin: 1.5rem auto 0;
+}
+.breadcrumbs a:hover { color: var(--accent); }
+.breadcrumbs .sep { opacity: 0.5; }
+
+/* ---------- 목차(TOC) ---------- */
+.toc {
+  border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--paper-2); padding: 1.1rem 1.3rem; margin: 0 auto 2.5rem;
+}
+.toc__title {
+  font-family: var(--font-sans); font-size: 0.74rem; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.6rem;
+}
+.toc ol { list-style: none; margin: 0; padding: 0; counter-reset: toc; }
+.toc li { margin: 0.25rem 0; }
+.toc li.depth-3 { padding-left: 1rem; font-size: 0.92rem; }
+.toc a { color: var(--ink-soft); text-decoration: none; }
+.toc a:hover { color: var(--accent); }
+
+/* 본문 헤딩 앵커(스크롤 여백) */
+.prose :is(h2, h3, h4) { scroll-margin-top: 5rem; }
+
+/* ---------- 핵심 요약(Key takeaways) ---------- */
+.takeaways {
+  border: 1px solid var(--line); border-top: 3px solid var(--accent);
+  border-radius: var(--radius); background: var(--paper-2);
+  padding: 1.3rem 1.5rem; margin: 2rem 0;
+}
+.takeaways__title { font-family: var(--font-serif); font-size: 1.15rem; margin: 0 0 0.6rem; }
+.takeaways ul { margin: 0; padding-left: 1.2rem; }
+.takeaways li { margin: 0.35rem 0; }
+
+/* ---------- 콜아웃(Callout) ---------- */
+.callout {
+  border: 1px solid var(--line); border-left: 3px solid var(--accent);
+  border-radius: var(--radius); padding: 1rem 1.2rem; margin: 1.8rem 0;
+  background: var(--paper-2); font-size: 1rem; line-height: 1.65;
+}
+.callout--tip { border-left-color: #2f8f5b; }
+.callout--warn { border-left-color: #c9892b; }
+.callout--info { border-left-color: #2f6fb0; }
+.callout__label {
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 0.3rem; display: block;
+}
+.callout > :last-child { margin-bottom: 0; }
+
+/* ---------- 동작하는 체크리스트 ---------- */
+.checklist {
+  list-style: none; margin: 1.8rem 0; padding: 1.1rem 1.3rem;
+  border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper-2);
+}
+.checklist__title { font-family: var(--font-serif); font-size: 1.1rem; margin: 0 0 0.7rem; }
+.checklist li { margin: 0.5rem 0; }
+.checklist label { display: flex; align-items: flex-start; gap: 0.65rem; cursor: pointer; line-height: 1.5; }
+.checklist input[type='checkbox'] {
+  appearance: none; -webkit-appearance: none;
+  width: 1.2rem; height: 1.2rem; margin-top: 0.15rem; flex: none;
+  border: 1.5px solid var(--muted); border-radius: 4px; cursor: pointer;
+  display: grid; place-content: center; transition: all .15s;
+}
+.checklist input[type='checkbox']:checked { background: var(--accent); border-color: var(--accent); }
+.checklist input[type='checkbox']:checked::after { content: '✓'; color: #fff; font-size: 0.85rem; line-height: 1; }
+.checklist label { cursor: pointer; line-height: 1.5; }
+.checklist input:checked + span { color: var(--muted); text-decoration: line-through; }
+.checklist__progress { font-size: 0.8rem; color: var(--muted); margin-top: 0.7rem; }
+
+/* ---------- FAQ(아코디언) ---------- */
+.faq { margin: 2.5rem 0; }
+.faq__h { font-family: var(--font-serif); font-size: 1.5rem; margin-bottom: 1rem; }
+.faq details {
+  border-bottom: 1px solid var(--line); padding: 0.2rem 0;
+}
+.faq summary {
+  cursor: pointer; list-style: none; padding: 0.9rem 0;
+  font-weight: 600; color: var(--ink); display: flex; justify-content: space-between; gap: 1rem;
+  font-size: 1.05rem;
+}
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: '+'; color: var(--accent); font-size: 1.3rem; line-height: 1; flex: none; }
+.faq details[open] summary::after { content: '−'; }
+.faq__a { padding: 0 0 1rem; color: var(--ink-soft); line-height: 1.7; }
+
+/* ---------- 소프트 페이월(유료 콘텐츠) ---------- */
+.prose.is-premium {
+  max-height: 34rem; overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent);
+  mask-image: linear-gradient(to bottom, #000 55%, transparent);
+}
+.paywall {
+  max-width: var(--measure); margin: -2rem auto 0; position: relative; z-index: 2;
+  border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--paper); padding: 2rem; text-align: center;
+  box-shadow: 0 -30px 40px -20px var(--paper);
+}
+.paywall__badge {
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--accent);
+}
+.paywall h2 { font-size: 1.6rem; margin: 0.5rem 0; }
+.paywall p { color: var(--muted); margin: 0 0 1.2rem; }
+.paywall__cta {
+  display: inline-block; background: var(--ink); color: var(--paper);
+  padding: 0.7rem 1.6rem; border-radius: 999px; font-weight: 600;
+}
+.paywall__cta:hover { background: var(--accent); color: #fff; }
+.premium-tag {
+  display: inline-block; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--accent); border: 1px solid var(--accent);
+  border-radius: 999px; padding: 0.1rem 0.5rem; margin-left: 0.5rem; vertical-align: middle;
+}
+
+/* ---------- 검색 ---------- */
+.search-box {
+  display: flex; gap: 0.6rem; max-width: 34rem;
+}
+.search-input {
+  flex: 1; font: inherit; font-size: 1.05rem;
+  padding: 0.8rem 1rem; border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--paper); color: var(--ink);
+}
+.search-input:focus { border-color: var(--accent); outline: none; }
+.search-results { margin-top: 2rem; }
+.search-result {
+  display: block; padding: 1.1rem 0; border-bottom: 1px solid var(--line);
+}
+.search-result h3 { font-size: 1.2rem; margin: 0 0 0.3rem; }
+.search-result:hover h3 { color: var(--accent); }
+.search-result p { color: var(--muted); font-size: 0.95rem; margin: 0; }
+.search-result .eyebrow { font-size: 0.7rem; }
+.search-empty { color: var(--muted); padding: 2rem 0; }
+.nav .search-link { font-size: 1.25rem; }
+
+/* ---------- 홈 마스트헤드(H1) ---------- */
+.home-masthead { padding: 3rem 0 2.5rem; max-width: 52rem; }
+.home-masthead h1 {
+  font-size: clamp(2.1rem, 5vw, 3.4rem); line-height: 1.1; letter-spacing: -0.015em;
+}
+.home-masthead h1 em { color: var(--accent); font-style: italic; }
+.home-masthead p { color: var(--muted); font-size: 1.12rem; margin-top: 0.8rem; max-width: 40rem; }

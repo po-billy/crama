@@ -1,0 +1,49 @@
+---
+import { getCollection, render } from 'astro:content';
+import PostLayout from '../../layouts/PostLayout.astro';
+import type { CategorySlug } from '../../consts';
+
+export async function getStaticPaths() {
+  const posts = (await getCollection('blog')).filter((p) => !p.data.draft);
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post, all: posts },
+  }));
+}
+
+const { post, all } = Astro.props;
+const { Content, headings } = await render(post);
+
+// 읽는 시간 추정(한글 기준 분당 ~500자)
+const words = post.body?.length ?? 0;
+const readingTime = Math.max(1, Math.round(words / 500));
+
+// 같은 카테고리 관련글 3개
+const related = all
+  .filter((p) => p.id !== post.id && p.data.category === post.data.category)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3)
+  .map((p) => ({
+    href: `/blog/${p.id}/`,
+    title: p.data.title,
+    description: p.data.description,
+    pubDate: p.data.pubDate,
+    category: p.data.category as CategorySlug,
+    heroImage: p.data.heroImage,
+  }));
+---
+<PostLayout
+  title={post.data.title}
+  description={post.data.description}
+  pubDate={post.data.pubDate}
+  updatedDate={post.data.updatedDate}
+  category={post.data.category}
+  author={post.data.author}
+  heroImage={post.data.heroImage}
+  readingTime={readingTime}
+  premium={post.data.premium}
+  headings={headings}
+  related={related}
+>
+  <Content />
+</PostLayout>

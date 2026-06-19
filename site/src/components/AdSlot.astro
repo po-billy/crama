@@ -1,0 +1,21 @@
+---
+// 애드센스 광고 슬롯 — 승인 전엔 빈 플레이스홀더.
+// 승인 후 PUBLISHER_ID/슬롯ID를 환경변수로 주입하면 실제 광고 렌더.
+interface Props { slot?: string; label?: string; }
+const { slot, label = 'Advertisement' } = Astro.props;
+const publisher = import.meta.env.PUBLIC_ADSENSE_ID; // 예: ca-pub-XXXXXXXX
+const enabled = Boolean(publisher && slot);
+---
+{enabled ? (
+  <ins
+    class="adsbygoogle"
+    style="display:block"
+    data-ad-client={publisher}
+    data-ad-slot={slot}
+    data-ad-format="auto"
+    data-full-width-responsive="true"
+  ></ins>
+  <script is:inline>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+) : (
+  <div class="ad-slot" aria-hidden="true">{label}</div>
+)}

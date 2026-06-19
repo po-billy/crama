@@ -1,0 +1,15 @@
+{
+  "name": "crama-automation",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Crama 콘텐츠 자동화 파이프라인 (리서치→작성→이미지→품질게이트→발행)",
+  "scripts": {
+    "generate": "node run.js",
+    "dry": "node run.js --dry-run"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.70.0",
+    "dotenv": "^16.4.5"
+  }
+}

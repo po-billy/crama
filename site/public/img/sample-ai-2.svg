@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-label="프롬프트 작성법">
+  <rect width="800" height="500" fill="#eceef1"/>
+  <rect x="0" y="0" width="800" height="6" fill="#b04a2f"/>
+  <text x="56" y="120" font-family="Pretendard, sans-serif" font-size="20" letter-spacing="3" fill="#b04a2f">AI 트렌드</text>
+  <text x="56" y="250" font-family="Georgia, 'Noto Serif KR', serif" font-size="68" font-weight="600" fill="#1a1a1a">프롬프트</text>
+  <text x="56" y="320" font-family="Georgia, 'Noto Serif KR', serif" font-size="40" fill="#3c3a37">7가지 원칙</text>
+  <line x1="56" y1="380" x2="744" y2="380" stroke="#d4d6da" stroke-width="1"/>
+  <text x="56" y="430" font-family="Pretendard, sans-serif" font-size="22" fill="#6b6862">결과가 달라지는 질문법</text>
+</svg>

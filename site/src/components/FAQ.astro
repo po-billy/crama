@@ -1,0 +1,27 @@
+---
+// FAQ 아코디언 + FAQPage 구조화 데이터(구글 리치 결과)
+// 사용: <FAQ items={[{ q: "질문", a: "답변" }, ...]} />
+interface Item { q: string; a: string; }
+interface Props { items: Item[]; title?: string; }
+const { items, title = '자주 묻는 질문' } = Astro.props;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: items.map((it) => ({
+    '@type': 'Question',
+    name: it.q,
+    acceptedAnswer: { '@type': 'Answer', text: it.a },
+  })),
+};
+---
+<section class="faq">
+  <h2 class="faq__h">{title}</h2>
+  {items.map((it) => (
+    <details>
+      <summary>{it.q}</summary>
+      <div class="faq__a">{it.a}</div>
+    </details>
+  ))}
+</section>
+<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />

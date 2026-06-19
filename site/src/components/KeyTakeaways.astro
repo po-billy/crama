@@ -1,0 +1,11 @@
+---
+// 글 상단 핵심 요약(스니펫·SEO에 유리): <KeyTakeaways items={["...","..."]} />
+interface Props { items: string[]; title?: string; }
+const { items, title = '핵심 요약' } = Astro.props;
+---
+<aside class="takeaways">
+  <p class="takeaways__title">{title}</p>
+  <ul>
+    {items.map((t) => <li>{t}</li>)}
+  </ul>
+</aside>

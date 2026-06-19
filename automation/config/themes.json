@@ -1,0 +1,35 @@
+{
+  "postsPerRun": 1,
+  "fillOrder": "byTargetThenNext",
+  "categories": [
+    {
+      "slug": "money",
+      "name": "주식·재테크",
+      "lang": "ko",
+      "targetPosts": 20,
+      "affiliate": "coupang",
+      "clusters": [
+        "국내주식 입문",
+        "ETF와 인덱스 투자",
+        "배당주와 현금흐름",
+        "미국주식 시작하기",
+        "증권사·계좌 비교",
+        "절세와 연금(ISA·연금저축)"
+      ]
+    },
+    {
+      "slug": "ai",
+      "name": "AI 트렌드",
+      "lang": "ko",
+      "targetPosts": 20,
+      "affiliate": "coupang",
+      "clusters": [
+        "AI 뉴스와 모델 동향",
+        "AI 툴 리뷰",
+        "업무 자동화",
+        "프롬프트 작성법",
+        "AI로 돈 벌기"
+      ]
+    }
+  ]
+}

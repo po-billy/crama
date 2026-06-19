@@ -1,0 +1,39 @@
+---
+import FormattedDate from './FormattedDate.astro';
+import { CATEGORIES, type CategorySlug } from '../consts';
+
+interface Props {
+  href: string;
+  title: string;
+  description: string;
+  pubDate: Date;
+  category: CategorySlug;
+  heroImage?: string;
+  feature?: boolean;
+}
+const { href, title, description, pubDate, category, heroImage, feature = false } = Astro.props;
+const cat = CATEGORIES[category];
+---
+{feature ? (
+  <a href={href} class="feature card">
+    <div class="feature__media card__media">
+      {heroImage && <img src={heroImage} alt="" loading="eager" />}
+    </div>
+    <div>
+      <span class="eyebrow">{cat.name}</span>
+      <h2 class="feature__title card__title">{title}</h2>
+      <p class="feature__excerpt">{description}</p>
+      <div class="card__meta"><FormattedDate date={pubDate} /></div>
+    </div>
+  </a>
+) : (
+  <a href={href} class="card">
+    <div class="card__media">
+      {heroImage && <img src={heroImage} alt="" loading="lazy" />}
+    </div>
+    <span class="eyebrow">{cat.name}</span>
+    <h3 class="card__title">{title}</h3>
+    <p class="card__excerpt">{description}</p>
+    <div class="card__meta"><FormattedDate date={pubDate} /></div>
+  </a>
+)}

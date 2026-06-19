@@ -1,32 +1,36 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import sharp from 'sharp';
 
 /**
  * 히어로 이미지 생성. provider = openai | stability | placeholder
- * 반환: { file: 저장경로, publicPath: 사이트에서 참조할 경로 }
+ * 생성 후 webp(가로 1200, 품질 80)로 변환해 페이지 속도/SEO 최적화.
+ * 반환: { file, publicPath }
  */
 export async function generateHero({ prompt, slug, outDir, provider }) {
   provider = provider || process.env.IMAGE_PROVIDER || 'placeholder';
   await fs.mkdir(outDir, { recursive: true });
 
-  if (provider === 'openai') {
-    const file = path.join(outDir, `${slug}-hero.png`);
-    await openai(prompt, file);
-    return { file, publicPath: `/img/generated/${slug}-hero.png` };
+  if (provider === 'placeholder') {
+    const file = path.join(outDir, `${slug}-hero.svg`);
+    await fs.writeFile(file, placeholderSvg(prompt));
+    return { file, publicPath: `/img/generated/${slug}-hero.svg` };
   }
-  if (provider === 'stability') {
-    const file = path.join(outDir, `${slug}-hero.png`);
-    await stability(prompt, file);
-    return { file, publicPath: `/img/generated/${slug}-hero.png` };
-  }
-  // 키 없이 테스트: SVG 더미
-  const file = path.join(outDir, `${slug}-hero.svg`);
-  await fs.writeFile(file, placeholderSvg(prompt));
-  return { file, publicPath: `/img/generated/${slug}-hero.svg` };
+
+  let buf;
+  if (provider === 'openai') buf = await openai(prompt);
+  else if (provider === 'stability') buf = await stability(prompt);
+  else throw new Error('unknown image provider: ' + provider);
+
+  const file = path.join(outDir, `${slug}-hero.webp`);
+  await sharp(buf)
+    .resize({ width: 1200, withoutEnlargement: true })
+    .webp({ quality: 80 })
+    .toFile(file);
+  return { file, publicPath: `/img/generated/${slug}-hero.webp` };
 }
 
-async function openai(prompt, file) {
-  // gpt-image-1: 최신 이미지 모델. b64_json 기본 반환(response_format 없음).
+async function openai(prompt) {
   const model = process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1';
   const res = await fetch('https://api.openai.com/v1/images/generations', {
     method: 'POST',
@@ -34,21 +38,16 @@ async function openai(prompt, file) {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
     },
-    body: JSON.stringify({
-      model,
-      prompt,
-      size: '1536x1024', // 가로형(≈3:2) 히어로
-      n: 1,
-    }),
+    body: JSON.stringify({ model, prompt, size: '1536x1024', n: 1 }),
   });
   if (!res.ok) throw new Error('OpenAI image error: ' + (await res.text()));
   const json = await res.json();
   const b64 = json.data?.[0]?.b64_json;
   if (!b64) throw new Error('OpenAI image: 빈 응답');
-  await fs.writeFile(file, Buffer.from(b64, 'base64'));
+  return Buffer.from(b64, 'base64');
 }
 
-async function stability(prompt, file) {
+async function stability(prompt) {
   const res = await fetch(
     'https://api.stability.ai/v2beta/stable-image/generate/core',
     {
@@ -67,7 +66,7 @@ async function stability(prompt, file) {
     },
   );
   if (!res.ok) throw new Error('Stability image error: ' + (await res.text()));
-  await fs.writeFile(file, Buffer.from(await res.arrayBuffer()));
+  return Buffer.from(await res.arrayBuffer());
 }
 
 function placeholderSvg(prompt) {

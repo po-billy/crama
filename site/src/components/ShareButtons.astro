@@ -1,12 +1,11 @@
 ---
-// 공유 버튼: 모바일 네이티브 공유(카카오톡 등) + X + 링크 복사
+// 공유 버튼(글 하단): 공유하기(모바일 네이티브 / PC는 링크복사로 대체) + 링크 복사
 interface Props { title: string; }
 const { title } = Astro.props;
 ---
 <div class="share" data-title={title}>
   <span class="share__label">공유</span>
   <button class="share__btn" data-share="native" type="button">공유하기</button>
-  <a class="share__btn" data-share="x" target="_blank" rel="noopener" href="#">X</a>
   <button class="share__btn" data-share="copy" type="button">링크 복사</button>
 </div>
 <script is:inline>
@@ -15,26 +14,20 @@ const { title } = Astro.props;
     if (!el || !el.classList.contains('share')) return;
     const title = el.dataset.title || document.title;
     const url = location.href;
-    const x = el.querySelector('[data-share="x"]');
     const native = el.querySelector('[data-share="native"]');
     const copy = el.querySelector('[data-share="copy"]');
-    if (x) x.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`;
-    if (native) {
-      if (navigator.share) {
-        native.addEventListener('click', () => navigator.share({ title, url }).catch(() => {}));
-      } else {
-        native.style.display = 'none';
-      }
-    }
-    if (copy) {
-      copy.addEventListener('click', async () => {
-        try {
-          await navigator.clipboard.writeText(url);
-          const t = copy.textContent;
-          copy.textContent = '복사됨!';
-          setTimeout(() => (copy.textContent = t), 1500);
-        } catch {}
-      });
-    }
+    const doCopy = async (btn) => {
+      try {
+        await navigator.clipboard.writeText(url);
+        const t = btn.textContent;
+        btn.textContent = '복사됨!';
+        setTimeout(() => (btn.textContent = t), 1500);
+      } catch {}
+    };
+    if (native) native.addEventListener('click', () => {
+      if (navigator.share) navigator.share({ title, url }).catch(() => {});
+      else doCopy(native);
+    });
+    if (copy) copy.addEventListener('click', () => doCopy(copy));
   })();
 </script>

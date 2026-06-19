@@ -1,24 +1,31 @@
 ---
-// 쿠키 동의 배너 (하단) — 전역. 동의 여부를 localStorage에 기록.
+// 쿠키 동의 카드 (하단 좌측, 슬라이드업) — 전역
 ---
-<div class="cookie-consent" id="cookie-consent" hidden>
-  <p class="cookie-consent__text">
-    이 사이트는 분석과 광고를 위해 쿠키를 사용합니다. 계속 이용하시면 동의로 간주됩니다.
-    <a href="/privacy/">자세히 보기</a>
-  </p>
-  <div class="cookie-consent__actions">
-    <button id="cookie-accept" class="btn">동의</button>
+<div class="cookie-card" id="cookie-consent" hidden>
+  <div class="cookie-card__body">
+    <p class="cookie-card__title">쿠키 사용 안내</p>
+    <p class="cookie-card__text">
+      더 나은 이용 경험과 분석·맞춤 광고를 위해 쿠키를 사용합니다.
+      <a href="/privacy/">자세히 보기</a>
+    </p>
+  </div>
+  <div class="cookie-card__actions">
+    <button id="cookie-decline" class="cookie-card__btn cookie-card__btn--ghost" type="button">거부</button>
+    <button id="cookie-accept" class="cookie-card__btn" type="button">동의</button>
   </div>
 </div>
 <script is:inline>
   (() => {
     const el = document.getElementById('cookie-consent');
     if (!el) return;
-    if (localStorage.getItem('crama:cookie') === 'ok') return;
-    el.hidden = false;
-    document.getElementById('cookie-accept')?.addEventListener('click', () => {
-      localStorage.setItem('crama:cookie', 'ok');
-      el.hidden = true;
-    });
+    if (localStorage.getItem('crama:cookie')) return;
+    requestAnimationFrame(() => { el.hidden = false; });
+    const close = (v) => {
+      localStorage.setItem('crama:cookie', v);
+      el.classList.add('is-hiding');
+      setTimeout(() => { el.hidden = true; }, 260);
+    };
+    document.getElementById('cookie-accept')?.addEventListener('click', () => close('ok'));
+    document.getElementById('cookie-decline')?.addEventListener('click', () => close('declined'));
   })();
 </script>

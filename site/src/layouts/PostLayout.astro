@@ -8,6 +8,7 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
 import TableOfContents from '../components/TableOfContents.astro';
 import ReadingProgress from '../components/ReadingProgress.astro';
 import ShareButtons from '../components/ShareButtons.astro';
+import FloatingShare from '../components/FloatingShare.astro';
 import TagList from '../components/TagList.astro';
 import AuthorBox from '../components/AuthorBox.astro';
 import { SITE, CATEGORIES, type CategorySlug } from '../consts';
@@ -63,6 +64,7 @@ const jsonLd = {
   jsonLd={jsonLd}
 >
   <ReadingProgress />
+  <FloatingShare />
   <article class="wrap">
     <Breadcrumbs items={[{ label: cat.name, href: `/category/${cat.slug}/` }, { label: title }]} />
 

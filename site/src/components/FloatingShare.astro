@@ -1,0 +1,42 @@
+---
+// 스크롤 중에도 보이는 플로팅 공유/복사 (글 페이지 전용)
+---
+<div class="fshare" id="fshare">
+  <button class="fshare__btn" id="fshare-share" type="button" aria-label="공유하기" title="공유하기">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle>
+      <line x1="8.6" y1="13.5" x2="15.4" y2="17.5"></line><line x1="15.4" y1="6.5" x2="8.6" y2="10.5"></line>
+    </svg>
+  </button>
+  <button class="fshare__btn" id="fshare-copy" type="button" aria-label="링크 복사" title="링크 복사">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5"></path>
+      <path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5"></path>
+    </svg>
+  </button>
+  <span class="fshare__toast" id="fshare-toast" aria-hidden="true">링크 복사됨</span>
+</div>
+<script is:inline>
+  (() => {
+    const dock = document.getElementById('fshare');
+    if (!dock) return;
+    const onScroll = () => dock.classList.toggle('is-visible', window.scrollY > 400);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    const toast = document.getElementById('fshare-toast');
+    const showToast = () => {
+      toast.classList.add('show');
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => toast.classList.remove('show'), 1400);
+    };
+    const copy = async () => {
+      try { await navigator.clipboard.writeText(location.href); showToast(); } catch {}
+    };
+    document.getElementById('fshare-share')?.addEventListener('click', () => {
+      if (navigator.share) navigator.share({ title: document.title, url: location.href }).catch(() => {});
+      else copy();
+    });
+    document.getElementById('fshare-copy')?.addEventListener('click', copy);
+  })();
+</script>

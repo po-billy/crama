@@ -6,16 +6,17 @@ const { slot, label = 'Advertisement' } = Astro.props;
 const publisher = import.meta.env.PUBLIC_ADSENSE_ID; // 예: ca-pub-XXXXXXXX
 const enabled = Boolean(publisher && slot);
 ---
-{enabled ? (
-  <ins
-    class="adsbygoogle"
-    style="display:block"
-    data-ad-client={publisher}
-    data-ad-slot={slot}
-    data-ad-format="auto"
-    data-full-width-responsive="true"
-  ></ins>
-  <script is:inline>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-) : (
-  <div class="ad-slot" aria-hidden="true">{label}</div>
+{enabled && (
+  <>
+    <ins
+      class="adsbygoogle"
+      style="display:block"
+      data-ad-client={publisher}
+      data-ad-slot={slot}
+      data-ad-format="auto"
+      data-full-width-responsive="true"
+    ></ins>
+    <script is:inline>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </>
 )}
+{/* 미설정 시 아무것도 렌더하지 않음 — Auto ads가 자동 배치, 빈 박스 없음 */}

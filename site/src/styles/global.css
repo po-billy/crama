@@ -149,7 +149,7 @@ hr {
 /* ---------- 글 카드 ---------- */
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
   gap: 2.4rem 2rem;
 }
 .card { display: block; }
@@ -289,8 +289,22 @@ hr {
 .skip-link:focus { left: 1rem; top: 1rem; background: var(--ink); color: var(--paper); padding: 0.5rem 1rem; border-radius: var(--radius); z-index: 100; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-@media (max-width: 560px) {
-  .nav { gap: 1rem; }
-  .nav a:not(.theme-toggle) { display: none; }
-  .nav a.is-cat { display: inline; }
+@media (max-width: 600px) {
+  /* 헤더: 브랜드 한 줄, 메뉴는 아랫줄로 분리해 좁은 화면에서도 안 넘치게 */
+  .site-header__inner { flex-wrap: wrap; gap: 0.3rem 1rem; padding-block: 0.7rem; }
+  .brand { font-size: 1.35rem; }
+  .brand small { display: none; }
+  .nav {
+    width: 100%; gap: 1.15rem; font-size: 0.92rem;
+    justify-content: flex-start; align-items: center;
+    padding-top: 0.55rem; border-top: 1px solid var(--line);
+  }
+  .nav .search-link { margin-left: auto; } /* 검색·토글을 오른쪽 끝으로 */
+
+  .home-masthead { padding: 2rem 0 1.8rem; }
+  .home-masthead h1 { font-size: clamp(1.85rem, 7vw, 2.4rem); }
+
+  /* 본문 표: 좁은 화면에서 가로 스크롤 허용 */
+  .prose table { display: block; overflow-x: auto; }
+  .prose { font-size: 1.05rem; }
 }

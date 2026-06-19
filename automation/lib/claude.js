@@ -55,39 +55,27 @@ export async function research({ topic, keywords }) {
  *    구조화 출력으로 title/description/tags/slug/body 반환.
  */
 export async function writeArticle({ brief, cluster, categoryName, lang = 'ko' }) {
-  const schema = {
-    type: 'object',
-    properties: {
-      title: { type: 'string' },
-      description: { type: 'string' },
-      slug: { type: 'string', description: 'SEO용 영문 kebab-case 슬러그' },
-      tags: { type: 'array', items: { type: 'string' } },
-      body: { type: 'string', description: 'MDX 본문 (frontmatter·import 제외)' },
-    },
-    required: ['title', 'description', 'slug', 'tags', 'body'],
-    additionalProperties: false,
-  };
-
+  // --- 1) 본문: 자유 텍스트(MDX)로 길게 생성 (구조화출력에 욱여넣지 않음) ---
   const system =
     `너는 "${categoryName}" 분야의 전문 에디터다. 한국어로 깊이 있고 정확한 SEO 원본 글을 쓴다. ` +
     '다른 매체의 문장을 복제하지 않으며, 실전에 바로 쓰이는 구체적 정보와 예시를 담는다.';
 
   const rules = [
-    '분량: 한국어 2,000~3,500자.',
-    '구조: 도입 → H2 5~7개(필요시 H3) → 마무리. 제목(H1)은 본문에 쓰지 말 것(frontmatter가 담당).',
+    '분량: 한국어 2,000~3,500자 (충분히 길게).',
+    '구조: 도입 문단 → ## H2 5~7개(필요시 ### H3) → 마무리. 제목(# H1)은 쓰지 말 것(frontmatter가 담당).',
     '본문 맨 앞에 <KeyTakeaways items={["...","..."]} /> 로 핵심 3~4개 요약.',
-    '중요한 팁/주의는 <Callout type="tip|warn|info" title="...">내용</Callout> 으로.',
-    '단계형 가이드가 어울리면 <Checklist id="고유id" title="..." items={["...","..."]} /> 삽입.',
-    '마지막에 <FAQ items={[{ q: "질문", a: "답변" }, ...]} /> 로 4개 내외 FAQ.',
-    'import 문은 쓰지 말 것(발행 시 자동 삽입). 마크다운 ##, ### 로 헤딩 작성.',
-    'JSX 속성값의 따옴표/중괄호가 깨지지 않게 유효한 MDX로 작성.',
+    '중요한 팁/주의는 <Callout type="tip">내용</Callout> (type: tip|warn|info).',
+    '단계형 가이드가 어울리면 <Checklist id="고유영문id" title="..." items={["...","..."]} /> 삽입.',
+    '마지막에 <FAQ items={[{ q: "질문", a: "답변" }]} /> 로 4개 내외 FAQ.',
+    'import 문은 쓰지 말 것(발행 시 자동 삽입).',
+    'JSX 속성값의 따옴표/중괄호가 깨지지 않게 유효한 MDX로 작성. 큰따옴표 안의 큰따옴표 금지.',
     '과장·허위 금지. 투자 주제면 정보 제공 목적임을 자연스럽게 전제.',
+    '출력은 MDX 본문만. 코드펜스(```)나 설명 문구 없이 바로 본문부터.',
   ].join('\n- ');
 
-  const resp = await client.messages.create({
+  const bodyResp = await client.messages.create({
     model: WRITE_MODEL,
     max_tokens: 8000,
-    thinking: { type: 'adaptive' },
     system,
     messages: [
       {
@@ -97,11 +85,43 @@ export async function writeArticle({ brief, cluster, categoryName, lang = 'ko' }
           `위 브리프를 바탕으로 완전 원본 글을 작성해줘.\n규칙:\n- ${rules}`,
       },
     ],
+  });
+  let body = bodyResp.content
+    .filter((b) => b.type === 'text')
+    .map((b) => b.text)
+    .join('\n')
+    .trim();
+  // 혹시 모를 코드펜스/선두 H1 제거
+  body = body.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim();
+  body = body.replace(/^#\s+.+\n+/, '');
+
+  // --- 2) 메타데이터: 본문 기반 작은 구조화 출력 ---
+  const schema = {
+    type: 'object',
+    properties: {
+      title: { type: 'string' },
+      description: { type: 'string' },
+      slug: { type: 'string', description: 'SEO용 영문 kebab-case 슬러그' },
+      tags: { type: 'array', items: { type: 'string' } },
+    },
+    required: ['title', 'description', 'slug', 'tags'],
+    additionalProperties: false,
+  };
+  const metaResp = await client.messages.create({
+    model: WRITE_MODEL,
+    max_tokens: 800,
+    system: '너는 SEO 메타데이터 생성기다. 한국어 제목(검색 친화적, 30자 내외)과 설명(120자 내외), 영문 kebab-case 슬러그, 태그 4~6개를 만든다.',
+    messages: [
+      {
+        role: 'user',
+        content: `다음 글의 메타데이터를 만들어줘. 제목은 본문 주제를 정확히 반영.\n\n${body.slice(0, 3000)}`,
+      },
+    ],
     output_config: { format: { type: 'json_schema', schema } },
   });
+  const meta = JSON.parse(metaResp.content.find((b) => b.type === 'text')?.text || '{}');
 
-  const text = resp.content.find((b) => b.type === 'text')?.text || '{}';
-  return JSON.parse(text);
+  return { ...meta, body };
 }
 
 /** 이미지 생성용 영문 프롬프트 — 글 주제에 맞는 에디토리얼 일러스트 */

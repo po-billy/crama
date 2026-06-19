@@ -26,6 +26,8 @@ export async function generateHero({ prompt, slug, outDir, provider }) {
 }
 
 async function openai(prompt, file) {
+  // gpt-image-1: 최신 이미지 모델. b64_json 기본 반환(response_format 없음).
+  const model = process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1';
   const res = await fetch('https://api.openai.com/v1/images/generations', {
     method: 'POST',
     headers: {
@@ -33,16 +35,17 @@ async function openai(prompt, file) {
       Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
     },
     body: JSON.stringify({
-      model: 'dall-e-3',
+      model,
       prompt,
-      size: '1792x1024',
-      response_format: 'b64_json',
+      size: '1536x1024', // 가로형(≈3:2) 히어로
       n: 1,
     }),
   });
   if (!res.ok) throw new Error('OpenAI image error: ' + (await res.text()));
   const json = await res.json();
-  await fs.writeFile(file, Buffer.from(json.data[0].b64_json, 'base64'));
+  const b64 = json.data?.[0]?.b64_json;
+  if (!b64) throw new Error('OpenAI image: 빈 응답');
+  await fs.writeFile(file, Buffer.from(b64, 'base64'));
 }
 
 async function stability(prompt, file) {

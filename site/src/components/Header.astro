@@ -7,12 +7,14 @@ import { SITE, NAV } from '../consts';
       Cr<span>a</span>ma
       <small>{SITE.tagline}</small>
     </a>
+    <div class="header-actions">
+      <a href="/search/" class="search-link" aria-label="검색" title="검색">⌕</a>
+      <button class="theme-toggle" id="theme-toggle" aria-label="다크 모드 전환" title="다크 모드 전환">◐</button>
+    </div>
     <nav class="nav" aria-label="주요 메뉴">
       {NAV.map((item) => (
         <a href={item.href} class="is-cat">{item.label}</a>
       ))}
-      <a href="/search/" class="is-cat search-link" aria-label="검색" title="검색">⌕</a>
-      <button class="theme-toggle" id="theme-toggle" aria-label="다크 모드 전환" title="다크 모드 전환">◐</button>
     </nav>
   </div>
 </header>

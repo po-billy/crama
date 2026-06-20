@@ -100,11 +100,16 @@ hr {
 }
 .site-header__inner {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: flex-start;
   gap: 1.5rem;
   padding-block: 1.05rem;
 }
+.brand { order: 1; }
+/* 검색·테마 버튼 — 로고와 같은 줄(상단)에 배치 */
+.header-actions { order: 3; display: flex; align-items: center; gap: 0.7rem; }
+.search-link { font-size: 1.25rem; color: var(--ink-soft); line-height: 1; }
+.search-link:hover { color: var(--accent); }
 .brand {
   font-family: var(--font-serif);
   font-weight: 600;
@@ -123,7 +128,7 @@ hr {
   color: var(--muted);
   margin-top: 0.15rem;
 }
-.nav { display: flex; align-items: center; gap: 1.4rem; }
+.nav { order: 2; margin-left: auto; display: flex; align-items: center; gap: 1.4rem; }
 .nav a {
   font-size: 0.94rem;
   font-weight: 500;
@@ -301,13 +306,14 @@ hr {
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 @media (max-width: 600px) {
-  /* 헤더: 브랜드 한 줄, 메뉴는 아랫줄로 분리해 좁은 화면에서도 안 넘치게 */
+  /* 헤더: 윗줄=브랜드+검색·테마, 아랫줄=메뉴(가로 스크롤) */
   .site-header__inner { flex-wrap: wrap; gap: 0.3rem 1rem; padding-block: 0.7rem; }
   .brand { font-size: 1.35rem; }
   .brand small { display: none; }
+  .header-actions { order: 2; margin-left: auto; } /* 로고 줄 오른쪽 끝에 고정 */
   /* 메뉴가 많아져도 안 깨지게 — 한 줄 가로 스크롤 스트립 */
   .nav {
-    width: 100%; gap: 1.15rem; font-size: 0.92rem;
+    order: 3; width: 100%; margin-left: 0; gap: 1.15rem; font-size: 0.92rem;
     justify-content: flex-start; align-items: center;
     padding-top: 0.55rem; border-top: 1px solid var(--line);
     flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden;
@@ -315,7 +321,6 @@ hr {
   }
   .nav::-webkit-scrollbar { display: none; }
   .nav > * { flex: 0 0 auto; white-space: nowrap; } /* 항목이 줄지 않고 가로로 스크롤 */
-  .nav .search-link { margin-left: 0; }
 
   /* 컴팩트(스크롤) 시: 모바일에서만 브랜드를 숨기고 메뉴바만 남긴다 */
   .site-header.is-compact .brand { display: none; }

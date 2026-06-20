@@ -248,16 +248,23 @@
 
 /* 좌측 — 콘텐츠 로테이터(배경 이미지 + 부드러운 크로스페이드) */
 .rotator__viewport {
-  position: relative; border-radius: var(--radius); overflow: hidden; min-height: 270px;
-  background:
-    linear-gradient(120deg, rgba(16,12,10,0.84) 0%, rgba(16,12,10,0.6) 55%, rgba(16,12,10,0.42) 100%),
-    url('/img/generated/rotator-bg-hero.webp') center / cover no-repeat;
+  position: relative; border-radius: var(--radius); overflow: hidden; min-height: 280px;
+  background: #14100d;
 }
 .rslide {
-  position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center;
-  gap: 0.55rem; padding: 1.9rem; opacity: 0; pointer-events: none; transition: opacity .6s ease;
+  position: absolute; inset: 0; overflow: hidden;
+  display: flex; flex-direction: column; justify-content: center;
+  gap: 0.55rem; padding: 1.9rem; opacity: 0; pointer-events: none; transition: opacity .7s ease;
+  /* 텍스트 가독용 오버레이(좌측을 더 어둡게) — 이미지는 ::before로 분리 */
+  background: linear-gradient(100deg, rgba(12,9,8,0.8) 0%, rgba(12,9,8,0.46) 52%, rgba(12,9,8,0.2) 100%);
+}
+.rslide::before {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background: var(--slide-bg) center / cover no-repeat;
+  transform: scale(1.05); transition: transform 7s ease-out;
 }
 .rslide.is-active { opacity: 1; pointer-events: auto; }
+.rslide.is-active::before { transform: scale(1.13); }
 .rslide__badge {
   align-self: flex-start; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
   color: #fff; background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.45);

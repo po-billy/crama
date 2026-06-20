@@ -28,10 +28,10 @@ const ranking = picks;
 
 // 좌측 콘텐츠 로테이터 — 가이드/진단/도구/사전이 롤링(슬라이드는 추가만 하면 됨)
 const slides = [
-  { badge: '가이드', title: '주식 투자 완벽 가이드', desc: '기본기·계좌·종목·운용까지, 처음이라면 여기서 시작하세요.', href: '/blog/stock-investing-complete-guide/', cta: '가이드 보기' },
-  { badge: '진단', title: '투자 성향 진단', desc: '5가지 질문으로 내 성향과 그에 맞는 투자법을 찾아보세요.', href: '/quiz/investor-type/', cta: '진단 시작' },
-  { badge: '도구', title: '바로 쓰는 금융 계산기', desc: '복리·평단가·대출 등 7종, 입력하면 즉시 계산.', href: '/tools/', cta: '계산기 열기' },
-  { badge: '사전', title: '금융·AI 용어 사전', desc: '모르는 용어를 빠르게 찾고 관련 글로 이동.', href: '/glossary/', cta: '용어 보기' },
+  { badge: '가이드', title: '주식 투자 완벽 가이드', desc: '기본기·계좌·종목·운용까지, 처음이라면 여기서 시작하세요.', href: '/blog/stock-investing-complete-guide/', cta: '가이드 보기', img: '/img/generated/rotator-guide-hero.webp' },
+  { badge: '진단', title: '투자 성향 진단', desc: '5가지 질문으로 내 성향과 그에 맞는 투자법을 찾아보세요.', href: '/quiz/investor-type/', cta: '진단 시작', img: '/img/generated/rotator-quiz-hero.webp' },
+  { badge: '도구', title: '바로 쓰는 금융 계산기', desc: '복리·평단가·대출 등 7종, 입력하면 즉시 계산.', href: '/tools/', cta: '계산기 열기', img: '/img/generated/rotator-tools-hero.webp' },
+  { badge: '사전', title: '금융·AI 용어 사전', desc: '모르는 용어를 빠르게 찾고 관련 글로 이동.', href: '/glossary/', cta: '용어 보기', img: '/img/generated/rotator-glossary-hero.webp' },
 ];
 
 const latest = posts.slice(0, 6);
@@ -51,7 +51,7 @@ const catCount = (slug: 'money' | 'ai' | 'income') =>
       <aside class="rotator" aria-label="추천 콘텐츠">
         <div class="rotator__viewport">
           {slides.map((s, i) => (
-            <a class={i === 0 ? 'rslide is-active' : 'rslide'} href={s.href} data-slide={i}>
+            <a class={i === 0 ? 'rslide is-active' : 'rslide'} href={s.href} data-slide={i} style={`--slide-bg: url('${s.img}')`}>
               <span class="rslide__badge">{s.badge}</span>
               <h2 class="rslide__title">{s.title}</h2>
               <p class="rslide__desc">{s.desc}</p>

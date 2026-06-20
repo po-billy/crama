@@ -37,6 +37,8 @@ const slides = [
 const latest = posts.slice(0, 6);
 const byCategory = (slug: 'money' | 'ai' | 'income') =>
   posts.filter((p) => p.data.category === slug).slice(0, 3);
+const catCount = (slug: 'money' | 'ai' | 'income') =>
+  posts.filter((p) => p.data.category === slug).length;
 ---
 <BaseLayout title={SITE.title} description={SITE.description}>
   <div class="wrap">
@@ -45,6 +47,7 @@ const byCategory = (slug: 'money' | 'ai' | 'income') =>
     </header>
 
     <section class="home-hero">
+      <div class="home-hero__main">
       <aside class="rotator" aria-label="추천 콘텐츠">
         <div class="rotator__viewport">
           {slides.map((s, i) => (
@@ -62,6 +65,25 @@ const byCategory = (slug: 'money' | 'ai' | 'income') =>
           ))}
         </div>
       </aside>
+
+      <section class="home-cats" aria-label="카테고리">
+        <div class="side-head"><h2>카테고리</h2><a href="/glossary/">용어사전 →</a></div>
+        <ul class="home-cats__list">
+          {(['money', 'ai', 'income'] as const).map((slug) => (
+            <li>
+              <a class="home-cat" href={`/category/${slug}/`}>
+                <span class="home-cat__info">
+                  <span class="home-cat__name">{CATEGORIES[slug].name}</span>
+                  <span class="home-cat__tag">{CATEGORIES[slug].tagline}</span>
+                </span>
+                <span class="home-cat__count">{catCount(slug)}편</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+      </div>
+
       <div class="home-hero__side">
         <div class="side-head"><h2>주목할 아티클</h2></div>
         <ol class="ranked-list">

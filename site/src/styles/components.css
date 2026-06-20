@@ -234,6 +234,18 @@
 .side-head a { font-size: 0.85rem; color: var(--muted); }
 .side-head a:hover { color: var(--accent); }
 
+/* 좌측 컬럼 래퍼(로테이터 + 카테고리 스택) */
+.home-hero__main { display: flex; flex-direction: column; gap: 1.8rem; }
+
+/* 좌측 하단 — 카테고리 둘러보기 */
+.home-cats__list { list-style: none; margin: 0; padding: 0; }
+.home-cat { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.85rem 0; border-bottom: 1px solid var(--line); }
+.home-cat__info { display: flex; flex-direction: column; }
+.home-cat__name { font-family: var(--font-serif); font-weight: 600; font-size: 1.05rem; }
+.home-cat:hover .home-cat__name { color: var(--accent); }
+.home-cat__tag { color: var(--muted); font-size: 0.82rem; margin-top: 0.1rem; }
+.home-cat__count { color: var(--muted); font-size: 0.85rem; flex: none; font-variant-numeric: tabular-nums; }
+
 /* 좌측 — 콘텐츠 로테이터(롤링: 가이드/진단/도구/사전) */
 .rotator__viewport {
   position: relative; border: 1px solid var(--line); border-left: 3px solid var(--accent);

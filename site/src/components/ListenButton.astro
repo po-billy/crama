@@ -1,0 +1,168 @@
+---
+// 본문 음성 듣기 (Web Speech API) — 무료, 클라이언트 전용.
+// .prose 본문 텍스트를 문장 단위로 끊어 큐로 재생한다(긴 문장 끊김 버그 회피).
+// 잠금화면/백그라운드 재생은 지원하지 않음(브라우저 TTS 한계) — 추후 음성파일 방식으로 업그레이드 예정.
+---
+<div class="listen" data-listen hidden>
+  <button class="listen__btn" type="button" data-play aria-label="본문 듣기">
+    <span class="listen__icon" aria-hidden="true">▶</span>
+    <span class="listen__label">본문 듣기</span>
+  </button>
+  <button class="listen__stop" type="button" data-stop aria-label="정지" hidden>■</button>
+  <label class="listen__rate">
+    <span class="visually-hidden">재생 속도</span>
+    <select data-rate aria-label="재생 속도">
+      <option value="0.9">0.9×</option>
+      <option value="1" selected>1.0×</option>
+      <option value="1.15">1.15×</option>
+      <option value="1.3">1.3×</option>
+      <option value="1.5">1.5×</option>
+    </select>
+  </label>
+  <span class="listen__hint">출퇴근에 들어보세요 · 화면을 끄면 멈춥니다</span>
+</div>
+
+<style>
+  .listen {
+    display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
+    max-width: var(--measure); margin: 1.6rem auto 0;
+    padding: 0.6rem 0.8rem; border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--paper-2, var(--paper));
+  }
+  .listen__btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    border: none; cursor: pointer; border-radius: 999px;
+    padding: 0.5rem 1rem; font-size: 0.95rem; font-weight: 600;
+    background: var(--ink); color: var(--paper);
+  }
+  .listen__btn:hover { background: var(--accent); }
+  .listen__icon { font-size: 0.8rem; line-height: 1; }
+  .listen__stop {
+    width: 2.1rem; height: 2.1rem; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--paper); color: var(--ink-soft);
+    font-size: 0.7rem; line-height: 1; display: grid; place-items: center;
+  }
+  .listen__stop:hover { border-color: var(--accent); color: var(--accent); }
+  .listen__rate select {
+    border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--paper); color: var(--ink); padding: 0.35rem 0.5rem; font-size: 0.9rem; cursor: pointer;
+  }
+  .listen__hint { font-size: 0.82rem; color: var(--muted); margin-left: auto; }
+  .visually-hidden {
+    position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  }
+  @media (max-width: 600px) {
+    .listen__hint { margin-left: 0; width: 100%; }
+  }
+</style>
+
+<script is:inline>
+  (() => {
+    const root = document.querySelector('[data-listen]');
+    if (!root) return;
+    const synth = window.speechSynthesis;
+    if (!synth || typeof SpeechSynthesisUtterance === 'undefined') return; // 미지원 → 버튼 숨김 유지
+
+    const prose = document.querySelector('.prose');
+    if (!prose) return;
+
+    root.hidden = false;
+
+    const playBtn = root.querySelector('[data-play]');
+    const stopBtn = root.querySelector('[data-stop]');
+    const rateSel = root.querySelector('[data-rate]');
+    const icon = root.querySelector('.listen__icon');
+    const label = root.querySelector('.listen__label');
+
+    // 본문 텍스트 → 문장 청크. 제목도 맨 앞에 포함.
+    function buildChunks() {
+      const titleEl = document.querySelector('.article-head h1');
+      const title = titleEl ? titleEl.textContent.trim() : '';
+      const raw = prose.innerText || prose.textContent || '';
+      const text = (title ? title + '. ' : '') + raw;
+      // 문장부호/줄바꿈으로 분리 후, 너무 긴 청크는 쉼표 기준으로 추가 분할
+      const sentences = text
+        .replace(/\s+/g, ' ')
+        .match(/[^.!?。…\n]+[.!?。…]?/g) || [];
+      const chunks = [];
+      for (let s of sentences) {
+        s = s.trim();
+        if (!s) continue;
+        if (s.length <= 180) { chunks.push(s); continue; }
+        let buf = '';
+        for (const part of s.split(/(?<=[,;:、])\s*/)) {
+          if ((buf + part).length > 180) { if (buf) chunks.push(buf.trim()); buf = part; }
+          else buf += part;
+        }
+        if (buf.trim()) chunks.push(buf.trim());
+      }
+      return chunks;
+    }
+
+    let chunks = [];
+    let idx = 0;
+    let state = 'idle'; // idle | playing | paused
+
+    function pickVoice() {
+      const voices = synth.getVoices() || [];
+      return voices.find((v) => v.lang && v.lang.toLowerCase().startsWith('ko'))
+          || voices.find((v) => /korean/i.test(v.name))
+          || null;
+    }
+
+    function setState(next) {
+      state = next;
+      const playing = state === 'playing';
+      icon.textContent = playing ? '❚❚' : '▶';
+      label.textContent = state === 'idle' ? '본문 듣기' : (playing ? '일시정지' : '이어 듣기');
+      stopBtn.hidden = state === 'idle';
+    }
+
+    function speakFrom(i) {
+      if (i >= chunks.length) { stop(); return; }
+      idx = i;
+      const u = new SpeechSynthesisUtterance(chunks[i]);
+      u.lang = 'ko-KR';
+      const v = pickVoice();
+      if (v) u.voice = v;
+      u.rate = parseFloat(rateSel.value) || 1;
+      u.onend = () => { if (state === 'playing') speakFrom(idx + 1); };
+      u.onerror = () => { if (state === 'playing') speakFrom(idx + 1); };
+      synth.speak(u);
+    }
+
+    function start() {
+      synth.cancel();
+      chunks = buildChunks();
+      if (!chunks.length) return;
+      setState('playing');
+      speakFrom(0);
+    }
+    function stop() {
+      synth.cancel();
+      idx = 0;
+      setState('idle');
+    }
+
+    playBtn.addEventListener('click', () => {
+      if (state === 'idle') { start(); }
+      else if (state === 'playing') { synth.pause(); setState('paused'); }
+      else { synth.resume(); setState('playing'); }
+    });
+    stopBtn.addEventListener('click', stop);
+
+    // 재생 중 속도 변경 → 현재 문장부터 새 속도로 재시작
+    rateSel.addEventListener('change', () => {
+      if (state === 'playing') { synth.cancel(); speakFrom(idx); }
+    });
+
+    // 페이지 이탈 시 음성 정지(다른 글로 이동/뒤로가기)
+    window.addEventListener('pagehide', () => synth.cancel());
+    window.addEventListener('beforeunload', () => synth.cancel());
+
+    // 일부 브라우저는 voices가 비동기 로드 — 미리 깨워둠
+    if (synth.getVoices().length === 0) {
+      synth.addEventListener?.('voiceschanged', () => {}, { once: true });
+    }
+  })();
+</script>

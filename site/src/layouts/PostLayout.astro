@@ -9,6 +9,7 @@ import TableOfContents from '../components/TableOfContents.astro';
 import ReadingProgress from '../components/ReadingProgress.astro';
 import ShareButtons from '../components/ShareButtons.astro';
 import FloatingShare from '../components/FloatingShare.astro';
+import ListenButton from '../components/ListenButton.astro';
 import TagList from '../components/TagList.astro';
 import AuthorBox from '../components/AuthorBox.astro';
 import { SITE, CATEGORIES, type CategorySlug } from '../consts';
@@ -85,6 +86,8 @@ const jsonLd = {
         <img src={heroImage} alt={title} />
       </figure>
     )}
+
+    <ListenButton />
 
     <TableOfContents headings={headings} />
 

@@ -35,10 +35,11 @@ interface Props {
   tags?: string[];
   headings?: MarkdownHeading[];
   related?: RelatedPost[];
+  guide?: { title: string; href: string };
 }
 const {
   title, description, pubDate, updatedDate, category, author, heroImage,
-  readingTime, premium = false, tags = [], headings = [], related = [],
+  readingTime, premium = false, tags = [], headings = [], related = [], guide,
 } = Astro.props;
 
 const cat = CATEGORIES[category];
@@ -88,6 +89,14 @@ const jsonLd = {
     )}
 
     <ListenButton />
+
+    {guide && (
+      <a class="guide-link measure" href={guide.href}>
+        <span class="guide-link__badge">가이드</span>
+        <span class="guide-link__text">이 글은 <strong>{guide.title}</strong>의 일부입니다</span>
+        <span class="guide-link__cta">전체 보기 →</span>
+      </a>
+    )}
 
     <TableOfContents headings={headings} />
 

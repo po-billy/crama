@@ -159,6 +159,32 @@
 .cta .cta__btn:hover { filter: brightness(0.93); color: #fff !important; }
 .cta__disclosure { margin: 0.8rem 0 0; color: var(--muted); font-size: 0.78rem; line-height: 1.5; }
 
+/* ---------- 필러(가이드) 링크 — 글↔허브 양방향 ---------- */
+.guide-link {
+  display: flex; align-items: center; gap: 0.7rem 0.9rem; flex-wrap: wrap;
+  margin: 0 auto 1.8rem; padding: 0.85rem 1.1rem;
+  border: 1px solid var(--line); border-left: 3px solid var(--accent);
+  border-radius: var(--radius); background: var(--paper-2); font-size: 0.95rem;
+}
+.guide-link__text { color: var(--ink-soft); }
+.guide-link__text strong { color: var(--ink); }
+.guide-link__cta { color: var(--accent); font-weight: 600; margin-left: auto; white-space: nowrap; }
+
+.pillar-banner {
+  display: flex; align-items: center; gap: 0.7rem 0.9rem; flex-wrap: wrap;
+  margin: 0 0 2rem; padding: 1rem 1.3rem;
+  border: 1px solid var(--line); border-left: 3px solid var(--accent);
+  border-radius: var(--radius); background: var(--paper-2);
+}
+.pillar-banner__text { color: var(--ink-soft); font-size: 0.98rem; }
+.pillar-banner__text strong { color: var(--ink); }
+.pillar-banner__cta { color: var(--accent); font-weight: 600; margin-left: auto; white-space: nowrap; }
+.pillar-banner:hover .pillar-banner__cta, .guide-link:hover .guide-link__cta { text-decoration: underline; }
+.guide-link__badge, .pillar-banner__badge {
+  font-size: 0.66rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  color: #fff; background: var(--accent); border-radius: 999px; padding: 0.18rem 0.6rem; flex: none;
+}
+
 /* ---------- 용어 사전 ---------- */
 .glossary-jump { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 1.5rem; }
 .glossary-jump__link {

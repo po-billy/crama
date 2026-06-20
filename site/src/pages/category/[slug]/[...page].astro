@@ -4,7 +4,7 @@ import type { GetStaticPaths } from 'astro';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import PostCard from '../../../components/PostCard.astro';
 import Pagination from '../../../components/Pagination.astro';
-import { CATEGORIES, type CategorySlug } from '../../../consts';
+import { CATEGORIES, PILLARS, type CategorySlug } from '../../../consts';
 
 export const getStaticPaths = (async ({ paginate }) => {
   const all = (await getCollection('blog')).filter((p) => !p.data.draft);
@@ -28,6 +28,14 @@ const titleSuffix = page.currentPage > 1 ? ` (${page.currentPage}페이지)` : '
       <h1>{cat.name}</h1>
       <p>{cat.description}</p>
     </header>
+
+    {page.currentPage === 1 && PILLARS[slug] && (
+      <a class="pillar-banner" href={`/blog/${PILLARS[slug]}/`}>
+        <span class="pillar-banner__badge">가이드</span>
+        <span class="pillar-banner__text">처음이세요? <strong>{cat.name} 완벽 가이드</strong>로 한 번에 시작하세요</span>
+        <span class="pillar-banner__cta">가이드 보기 →</span>
+      </a>
+    )}
 
     {page.data.length === 0 ? (
       <p style="color:var(--muted);">아직 발행된 글이 없습니다. 곧 채워집니다.</p>

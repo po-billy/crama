@@ -1,7 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import PostLayout from '../../layouts/PostLayout.astro';
-import type { CategorySlug } from '../../consts';
+import { PILLARS, type CategorySlug } from '../../consts';
 
 export async function getStaticPaths() {
   const posts = (await getCollection('blog')).filter((p) => !p.data.draft);
@@ -31,6 +31,11 @@ const related = all
     category: p.data.category as CategorySlug,
     heroImage: p.data.heroImage,
   }));
+
+// 이 글이 속한 필러(허브) 가이드 — 자기 자신이 아니면 백링크 제공(양방향 링크)
+const pillarSlug = PILLARS[post.data.category];
+const pillarPost = pillarSlug && pillarSlug !== post.id ? all.find((p) => p.id === pillarSlug) : null;
+const guide = pillarPost ? { title: pillarPost.data.title, href: `/blog/${pillarPost.id}/` } : undefined;
 ---
 <PostLayout
   title={post.data.title}
@@ -45,6 +50,7 @@ const related = all
   tags={post.data.tags}
   headings={headings}
   related={related}
+  guide={guide}
 >
   <Content />
 </PostLayout>

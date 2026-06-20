@@ -42,13 +42,19 @@ export const CATEGORIES: Record<
 // 홈 '주목할 아티클' 랭킹 — 에디터 큐레이션(고가치·수익 글을 상단 노출). slug 순서 = 노출 순서.
 export const EDITOR_PICKS = [
   'stock-investing-complete-guide',
+  'ai-complete-guide',
+  'income-complete-guide',
   'spacex-stock-buying-guide',
-  'ai-trends-2026',
   'how-to-choose-brokerage',
-  'side-hustle-for-office-workers',
-  'chatgpt-free-vs-paid',
-  'credit-vs-check-card',
+  'ai-trends-2026',
 ] as const;
+
+// 카테고리별 필러(허브) 가이드 — 글↔허브 양방향 링크 및 카테고리 상단 노출에 사용
+export const PILLARS: Partial<Record<CategorySlug, string>> = {
+  money: 'stock-investing-complete-guide',
+  ai: 'ai-complete-guide',
+  income: 'income-complete-guide',
+};
 
 // 헤더 내비게이션
 export const NAV = [

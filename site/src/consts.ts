@@ -40,13 +40,14 @@ export const CATEGORIES: Record<
 };
 
 // 홈 '주목할 아티클' 랭킹 — 에디터 큐레이션(고가치·수익 글을 상단 노출). slug 순서 = 노출 순서.
+// 주목할 아티클 랭킹 — 허브(필러)는 제외, 실제 개별 글만
 export const EDITOR_PICKS = [
-  'stock-investing-complete-guide',
-  'ai-complete-guide',
-  'income-complete-guide',
   'spacex-stock-buying-guide',
-  'how-to-choose-brokerage',
   'ai-trends-2026',
+  'how-to-choose-brokerage',
+  'credit-vs-check-card',
+  'side-hustle-for-office-workers',
+  'chatgpt-free-vs-paid',
 ] as const;
 
 // 카테고리별 필러(허브) 가이드 — 글↔허브 양방향 링크 및 카테고리 상단 노출에 사용

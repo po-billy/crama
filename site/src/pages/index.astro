@@ -4,7 +4,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import PostCard from '../components/PostCard.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import AdSlot from '../components/AdSlot.astro';
-import { SITE, CATEGORIES, EDITOR_PICKS } from '../consts';
+import { SITE, CATEGORIES, EDITOR_PICKS, PILLARS } from '../consts';
 
 const posts = (await getCollection('blog'))
   .filter((p) => !p.data.draft)
@@ -19,11 +19,21 @@ const toCard = (p: (typeof posts)[number]) => ({
   heroImage: p.data.heroImage,
 });
 
-// 에디터 큐레이션 랭킹(없으면 최신으로 채움)
+// 허브(필러) 가이드 — 별도 섹션으로 분리, 랭킹/최신에서는 제외
+const pillarSlugs = Object.values(PILLARS);
+const guidePosts = pillarSlugs
+  .map((slug) => posts.find((p) => p.id === slug))
+  .filter((p): p is (typeof posts)[number] => Boolean(p))
+  .map((p) => ({ title: p.data.title, href: `/blog/${p.id}/`, img: p.data.heroImage, cat: CATEGORIES[p.data.category].name }));
+
+// 에디터 큐레이션 랭킹(없으면 최신으로 채움) — 허브는 제외
 const picksFromList = EDITOR_PICKS
   .map((slug) => posts.find((p) => p.id === slug))
   .filter((p): p is (typeof posts)[number] => Boolean(p));
-const picks = [...picksFromList, ...posts.filter((p) => !picksFromList.includes(p))].slice(0, 6);
+const picks = [
+  ...picksFromList,
+  ...posts.filter((p) => !picksFromList.includes(p) && !pillarSlugs.includes(p.id)),
+].slice(0, 6);
 const ranking = picks;
 
 // 좌측 콘텐츠 로테이터 — 가이드/진단/도구/사전이 롤링(슬라이드는 추가만 하면 됨)
@@ -34,7 +44,7 @@ const slides = [
   { badge: '사전', title: '금융·AI 용어 사전', desc: '모르는 용어를 빠르게 찾고 관련 글로 이동.', href: '/glossary/', cta: '용어 보기', img: '/img/generated/rotator-glossary-hero.webp' },
 ];
 
-const latest = posts.slice(0, 6);
+const latest = posts.filter((p) => !pillarSlugs.includes(p.id)).slice(0, 6);
 const byCategory = (slug: 'money' | 'ai' | 'income') =>
   posts.filter((p) => p.data.category === slug).slice(0, 3);
 const catCount = (slug: 'money' | 'ai' | 'income') =>
@@ -139,6 +149,25 @@ const catCount = (slug: 'money' | 'ai' | 'income') =>
         start();
       })();
     </script>
+
+    {guidePosts.length > 0 && (
+      <section class="guides">
+        <div class="section-head">
+          <h2>주제별 완벽 가이드</h2>
+          <span class="guides__hint">처음이라면 여기서</span>
+        </div>
+        <div class="guides__grid">
+          {guidePosts.map((g) => (
+            <a class="guide-card" href={g.href}>
+              {g.img && <img class="guide-card__bg" src={g.img} alt="" loading="lazy" />}
+              <span class="guide-card__badge">{g.cat} 가이드</span>
+              <h3 class="guide-card__title">{g.title}</h3>
+              <span class="guide-card__cta">단계별로 시작하기 →</span>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
 
     <section>
       <div class="section-head">

@@ -1,0 +1,43 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="72의 법칙 계산기" description="연 수익률을 입력하면 원금이 2배가 되기까지 걸리는 기간을, 목표 기간을 입력하면 필요한 수익률을 72의 법칙으로 계산합니다.">
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">계산기</span>
+      <h1>72의 법칙 계산기</h1>
+      <p>복리로 원금이 2배가 되는 데 걸리는 시간을 간단히 가늠해 보세요.</p>
+    </header>
+
+    <div class="calc">
+      <div class="calc__inputs">
+        <div class="calc__field"><label for="r-rate">연 수익률 (%)</label><input id="r-rate" type="number" value="6" step="0.1" min="0" /></div>
+        <div class="calc__field"><label for="r-years">또는, 목표 기간 (년)</label><input id="r-years" type="number" value="" step="1" min="0" placeholder="기간으로 역산하려면 입력" /></div>
+      </div>
+      <div class="calc__result">
+        <div class="calc__result-label">원금이 2배가 되는 기간</div>
+        <div class="calc__result-main" id="r-double">-</div>
+        <div class="calc__row"><span>4배가 되는 기간</span><strong id="r-quad">-</strong></div>
+        <div class="calc__row"><span>그 기간에 필요한 수익률</span><strong id="r-needed">-</strong></div>
+      </div>
+    </div>
+
+    <p class="calc__note measure">* 72의 법칙은 '72 ÷ 연 수익률 ≈ 2배가 되는 햇수'로 빠르게 어림하는 방법입니다. 실제 복리 계산과는 약간의 오차가 있으며, 정밀한 계산은 <a href="/tools/compound-calculator/">복리 계산기</a>를 이용하세요. 복리의 원리는 <a href="/blog/compound-interest-power/">복리의 힘</a>에서 다룹니다.</p>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const yrs = (n) => (isFinite(n) && n > 0 ? n.toFixed(1) + '년' : '-');
+      const calc = () => {
+        const rate = +$('r-rate').value || 0;
+        const years = +$('r-years').value || 0;
+        $('r-double').textContent = rate > 0 ? yrs(72 / rate) : '-';
+        $('r-quad').textContent = rate > 0 ? yrs((72 / rate) * 2) : '-';
+        $('r-needed').textContent = years > 0 ? (72 / years).toFixed(1) + '%' : '-';
+      };
+      ['r-rate', 'r-years'].forEach((id) => $(id).addEventListener('input', calc));
+      calc();
+    })();
+  </script>
+</BaseLayout>

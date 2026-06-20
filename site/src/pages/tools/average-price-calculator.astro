@@ -1,0 +1,50 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="주식 평단가 계산기" description="보유 수량·평균 단가에 추가 매수(물타기)를 더하면 새로운 평균 단가와 총 수량·투자금을 계산해 드립니다.">
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">계산기</span>
+      <h1>주식 평단가 계산기</h1>
+      <p>추가 매수 후 평균 단가가 어떻게 바뀌는지 즉시 확인하세요.</p>
+    </header>
+
+    <div class="calc">
+      <div class="calc__inputs">
+        <div class="calc__field"><label for="a-qty1">보유 수량 (주)</label><input id="a-qty1" type="number" inputmode="numeric" value="10" min="0" /></div>
+        <div class="calc__field"><label for="a-price1">평균 단가 (원)</label><input id="a-price1" type="number" inputmode="numeric" value="70000" min="0" /></div>
+        <div class="calc__field"><label for="a-qty2">추가 매수 수량 (주)</label><input id="a-qty2" type="number" inputmode="numeric" value="10" min="0" /></div>
+        <div class="calc__field"><label for="a-price2">추가 매수 단가 (원)</label><input id="a-price2" type="number" inputmode="numeric" value="50000" min="0" /></div>
+      </div>
+      <div class="calc__result">
+        <div class="calc__result-label">새 평균 단가</div>
+        <div class="calc__result-main" id="a-avg">-</div>
+        <div class="calc__row"><span>총 보유 수량</span><strong id="a-totalqty">-</strong></div>
+        <div class="calc__row"><span>총 투자 금액</span><strong id="a-totalcost">-</strong></div>
+      </div>
+    </div>
+
+    <p class="calc__note measure">* 수수료·세금·환율은 반영하지 않은 단순 계산입니다. 추가 매수는 평균 단가를 낮추지만, 하락하는 종목에 무리하게 물타기하는 것은 위험할 수 있습니다. <a href="/blog/investor-psychology-guide/">투자 심리</a>도 함께 참고하세요.</p>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const won = (n) => Math.round(n).toLocaleString('ko-KR') + '원';
+      const calc = () => {
+        const q1 = +$('a-qty1').value || 0;
+        const p1 = +$('a-price1').value || 0;
+        const q2 = +$('a-qty2').value || 0;
+        const p2 = +$('a-price2').value || 0;
+        const totalQty = q1 + q2;
+        const totalCost = q1 * p1 + q2 * p2;
+        const avg = totalQty > 0 ? totalCost / totalQty : 0;
+        $('a-avg').textContent = won(avg);
+        $('a-totalqty').textContent = totalQty.toLocaleString('ko-KR') + '주';
+        $('a-totalcost').textContent = won(totalCost);
+      };
+      ['a-qty1', 'a-price1', 'a-qty2', 'a-price2'].forEach((id) => $(id).addEventListener('input', calc));
+      calc();
+    })();
+  </script>
+</BaseLayout>

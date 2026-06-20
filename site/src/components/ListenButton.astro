@@ -39,6 +39,21 @@
   </div>
 </div>
 
+<!-- 청취 중 어디서나 조작하는 하단 고정 미니 컨트롤 -->
+<div class="aminibar" data-mini hidden>
+  <button class="aminibar__btn aminibar__btn--play" type="button" data-mini-play aria-label="재생/일시정지">
+    <span data-mini-icon aria-hidden="true">❚❚</span>
+  </button>
+  <div class="aminibar__txt">
+    <strong data-mini-status>재생 중</strong>
+    <span data-mini-time>0:00 / 0:00</span>
+  </div>
+  <button class="aminibar__follow" type="button" data-follow aria-pressed="true" title="읽는 위치로 따라가기">
+    <span aria-hidden="true">⇩</span> 따라가기
+  </button>
+  <button class="aminibar__btn aminibar__btn--stop" type="button" data-mini-stop aria-label="정지">■</button>
+</div>
+
 <style>
   .aplayer {
     max-width: var(--measure); margin: 1.8rem auto 0;
@@ -115,6 +130,43 @@
     .aplayer__progress { grid-column: 1 / -1; }
     .aplayer__voice select { max-width: 7.5rem; }
   }
+
+  /* ----- 하단 고정 미니 컨트롤 ----- */
+  .aminibar {
+    position: fixed; left: 50%; bottom: 1.1rem; transform: translateX(-50%);
+    z-index: 80; display: flex; align-items: center; gap: 0.7rem;
+    padding: 0.5rem 0.6rem 0.5rem 0.55rem; border-radius: 999px;
+    background: var(--ink); color: var(--paper);
+    box-shadow: 0 8px 24px -8px rgba(0,0,0,0.45);
+    max-width: calc(100vw - 1.5rem);
+  }
+  .aminibar[hidden] { display: none; }
+  .aminibar__btn {
+    border: none; cursor: pointer; border-radius: 999px;
+    width: 2.4rem; height: 2.4rem; display: grid; place-items: center; flex: none;
+    font-size: 0.85rem; line-height: 1;
+  }
+  .aminibar__btn--play { background: var(--accent); color: #fff; font-size: 0.8rem; }
+  .aminibar__btn--stop { background: transparent; color: var(--paper); border: 1px solid rgba(255,255,255,0.35); font-size: 0.7rem; }
+  .aminibar__btn--stop:hover { border-color: #fff; }
+  .aminibar__txt { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
+  .aminibar__txt strong { font-size: 0.8rem; font-weight: 700; }
+  .aminibar__txt span { font-size: 0.72rem; opacity: 0.75; font-variant-numeric: tabular-nums; }
+  .aminibar__follow {
+    border: 1px solid rgba(255,255,255,0.35); background: transparent; color: var(--paper);
+    border-radius: 999px; padding: 0.35rem 0.7rem; font-size: 0.76rem; font-weight: 600; cursor: pointer;
+    white-space: nowrap; flex: none;
+  }
+  .aminibar__follow[aria-pressed="true"] { background: rgba(255,255,255,0.16); }
+  .aminibar__follow[aria-pressed="false"] { opacity: 0.6; }
+  @media (max-width: 600px) {
+    .aminibar__txt { display: none; } /* 좁은 화면: 버튼만 */
+    .aminibar { bottom: 0.8rem; gap: 0.5rem; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .aminibar { animation: amini-in .2s ease; }
+  }
+  @keyframes amini-in { from { opacity: 0; transform: translate(-50%, 8px); } to { opacity: 1; transform: translate(-50%, 0); } }
 </style>
 
 <script is:inline>
@@ -141,6 +193,14 @@
     const elapsedEl = root.querySelector('[data-elapsed]');
     const totalEl = root.querySelector('[data-total]');
     const statusEl = root.querySelector('[data-status]');
+
+    const mini = document.querySelector('[data-mini]');
+    const miniPlay = mini.querySelector('[data-mini-play]');
+    const miniIcon = mini.querySelector('[data-mini-icon]');
+    const miniStop = mini.querySelector('[data-mini-stop]');
+    const miniStatus = mini.querySelector('[data-mini-status]');
+    const miniTime = mini.querySelector('[data-mini-time]');
+    const followBtn = mini.querySelector('[data-follow]');
 
     const CPS = 5.2; // 한국어 TTS 대략 초당 글자수(1배속) — 시간 추정용
     const SKIP_SEC = 15;
@@ -185,6 +245,8 @@
 
     let idx = 0;
     let state = 'idle'; // idle | playing | paused
+    let epoch = 0;      // 발화 세대 — 취소된 이전 발화의 콜백을 무시하는 토큰
+    let followEnabled = true; // 자동 스크롤(따라가기) on/off
 
     function fmt(sec) {
       sec = Math.max(0, Math.round(sec));
@@ -202,12 +264,14 @@
       bar.setAttribute('aria-valuenow', String(pct));
       elapsedEl.textContent = fmt(totalSec() * f);
       totalEl.textContent = fmt(totalSec());
+      miniTime.textContent = fmt(totalSec() * f) + ' / ' + fmt(totalSec());
     }
     function setStatus(t) { statusEl.textContent = t; }
 
     // ----- 읽는 위치 하이라이트 + 자동 스크롤 -----
     let curEl = null;
     function scrollIfNeeded(el) {
+      if (!followEnabled) return; // 따라가기 꺼져 있으면 스크롤하지 않음
       const r = el.getBoundingClientRect();
       const top = 72; // sticky 헤더 높이
       if (r.top < top || r.bottom > window.innerHeight - 24) {
@@ -251,31 +315,42 @@
       state = next;
       const playing = state === 'playing';
       icon.textContent = playing ? '❚❚' : '▶';
+      miniIcon.textContent = playing ? '❚❚' : '▶';
       playBtn.setAttribute('aria-label', playing ? '일시정지' : '재생');
-      if (state === 'playing') setStatus('재생 중…');
-      else if (state === 'paused') setStatus('일시정지');
-      else setStatus('화면을 끄면 멈춰요');
+      mini.hidden = state === 'idle';
+      if (state === 'playing') { setStatus('재생 중…'); miniStatus.textContent = '재생 중'; }
+      else if (state === 'paused') { setStatus('일시정지'); miniStatus.textContent = '일시정지'; }
+      else { setStatus('화면을 끄면 멈춰요'); }
     }
 
     function speakFrom(i) {
       if (i >= chunks.length) { stop(true); return; }
       idx = i; updateUI(); highlight(chunks[i].el);
+      const myEpoch = ++epoch; // 이 발화의 세대
       const u = new SpeechSynthesisUtterance(chunks[i].text);
       u.lang = 'ko-KR';
       const v = pickVoice(); if (v) u.voice = v;
       u.rate = rate;
-      u.onend = () => { if (state === 'playing') speakFrom(idx + 1); };
-      u.onerror = () => { if (state === 'playing') speakFrom(idx + 1); };
+      // 취소된(구세대) 발화의 콜백은 무시 → 음성/속도/탐색 변경이 정확히 적용됨
+      u.onend = () => { if (myEpoch === epoch && state === 'playing') speakFrom(idx + 1); };
+      u.onerror = (e) => {
+        if (myEpoch !== epoch) return;                       // 우리가 취소한 발화
+        if (e && (e.error === 'interrupted' || e.error === 'canceled')) return;
+        if (state === 'playing') speakFrom(idx + 1);
+      };
       if (synth.paused) synth.resume();
       synth.speak(u);
     }
 
-    function start() {
-      if (!chunks.length) return;
+    // 안전 재시작: 이전 발화 취소 후 한 틱 뒤에 새로 말함(같은 틱 cancel→speak 무음 버그 회피)
+    function playFrom(i) {
+      idx = Math.max(0, Math.min(chunks.length - 1, i));
       setState('playing');
-      if (synth.speaking || synth.pending) { synth.cancel(); setTimeout(() => { if (state === 'playing') speakFrom(idx); }, 60); }
-      else speakFrom(idx);
+      synth.cancel();
+      setTimeout(() => { if (state === 'playing') speakFrom(idx); }, 80);
     }
+
+    function start() { if (chunks.length) playFrom(idx); }
     function stop(reachedEnd) {
       synth.cancel();
       idx = reachedEnd ? 0 : idx;
@@ -286,9 +361,9 @@
 
     // 위치 이동(탐색/건너뛰기). 재생 중이면 새 위치부터 이어 재생.
     function goTo(i) {
-      idx = Math.max(0, Math.min(chunks.length - 1, i));
-      updateUI();
-      if (state !== 'idle') { synth.cancel(); setState('playing'); speakFrom(idx); }
+      i = Math.max(0, Math.min(chunks.length - 1, i));
+      if (state !== 'idle') { playFrom(i); }
+      else { idx = i; updateUI(); }
     }
     function chunkAtFraction(f) {
       const target = f * totalChars;
@@ -304,10 +379,18 @@
     setInterval(() => { if (state === 'playing' && synth.paused) synth.resume(); }, 5000);
 
     // ----- 이벤트 -----
-    playBtn.addEventListener('click', () => {
+    function togglePlay() {
       if (state === 'idle') start();
       else if (state === 'playing') { synth.pause(); setState('paused'); }
       else { synth.resume(); setState('playing'); }
+    }
+    playBtn.addEventListener('click', togglePlay);
+    miniPlay.addEventListener('click', togglePlay);
+    miniStop.addEventListener('click', () => stop(true));
+    followBtn.addEventListener('click', () => {
+      followEnabled = !followEnabled;
+      followBtn.setAttribute('aria-pressed', String(followEnabled));
+      if (followEnabled && curEl) scrollIfNeeded(curEl); // 다시 켜면 현재 위치로 복귀
     });
     backBtn.addEventListener('click', () => skipBySeconds(-SKIP_SEC));
     fwdBtn.addEventListener('click', () => skipBySeconds(SKIP_SEC));
@@ -320,13 +403,13 @@
       renderRate();
       try { localStorage.setItem(RATE_KEY, String(rate)); } catch (e) {}
       updateUI();
-      if (state === 'playing') { synth.cancel(); speakFrom(idx); }
+      if (state === 'playing') playFrom(idx);
     });
 
     voiceSel.addEventListener('change', () => {
       selectedVoiceName = voiceSel.value;
       try { localStorage.setItem(VOICE_KEY, selectedVoiceName); } catch (e) {}
-      if (state === 'playing') { synth.cancel(); speakFrom(idx); }
+      if (state === 'playing') playFrom(idx);
     });
 
     // 진행바 탐색(클릭/드래그)

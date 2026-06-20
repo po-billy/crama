@@ -1,0 +1,23 @@
+---
+// 제휴/행동유도(CTA) 박스. 제휴 가입 후 href를 제휴 링크로 바꾸고 sponsored={true}로 설정하면 됩니다.
+// 그 전까지는 내부 유용한 페이지(계산기·관련 글)로 연결해 독자에게 가치를 줍니다.
+interface Props {
+  href: string;
+  label: string;
+  note?: string;
+  sponsored?: boolean; // 제휴 링크일 때 true → rel=sponsored + 고지 문구
+}
+const { href, label, note, sponsored = false } = Astro.props;
+const external = sponsored || href.startsWith('http');
+---
+<aside class="cta">
+  {note && <p class="cta__note">{note}</p>}
+  <a
+    class="cta__btn"
+    href={href}
+    {...(external ? { rel: 'sponsored nofollow noopener', target: '_blank' } : {})}
+  >{label} →</a>
+  {sponsored && (
+    <p class="cta__disclosure">제휴(광고) 링크입니다. 가입·구매 시 본 사이트가 소정의 수수료를 받을 수 있으며, 추가 비용은 없습니다.</p>
+  )}
+</aside>

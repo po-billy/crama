@@ -24,16 +24,15 @@ const picksFromList = EDITOR_PICKS
   .map((slug) => posts.find((p) => p.id === slug))
   .filter((p): p is (typeof posts)[number] => Boolean(p));
 const picks = [...picksFromList, ...posts.filter((p) => !picksFromList.includes(p))].slice(0, 6);
-const lead = picks[0];
-const ranking = picks.slice(1, 6);
+const ranking = picks;
 
 const homeTools = [
-  { href: '/tools/compound-calculator/', label: '복리 계산기' },
-  { href: '/tools/average-price-calculator/', label: '평단가 계산기' },
-  { href: '/tools/loan-calculator/', label: '대출 이자 계산기' },
-  { href: '/tools/goal-calculator/', label: '목표금액 계산기' },
-  { href: '/tools/pension-tax-calculator/', label: '연금 세액공제' },
-  { href: '/tools/rule-of-72-calculator/', label: '72의 법칙' },
+  { href: '/tools/compound-calculator/', label: '복리 계산기', desc: '목돈 불어나는 속도' },
+  { href: '/tools/average-price-calculator/', label: '주식 평단가 계산기', desc: '추가 매수 후 평단' },
+  { href: '/tools/loan-calculator/', label: '대출 이자 계산기', desc: '월 상환액·총 이자' },
+  { href: '/tools/goal-calculator/', label: '목표금액 계산기', desc: '매달 얼마 모을까' },
+  { href: '/tools/pension-tax-calculator/', label: '연금 세액공제', desc: '예상 환급액' },
+  { href: '/tools/rule-of-72-calculator/', label: '72의 법칙', desc: '2배 되는 기간' },
 ];
 
 const latest = posts.slice(0, 6);
@@ -47,24 +46,26 @@ const byCategory = (slug: 'money' | 'ai' | 'income') =>
     </header>
 
     <section class="home-hero">
-      {lead && (
-        <a class="lead-card" href={`/blog/${lead.id}/`}>
-          <div class="lead-card__media">
-            {lead.data.heroImage && <img src={lead.data.heroImage} alt="" loading="eager" />}
-          </div>
-          <span class="eyebrow">{CATEGORIES[lead.data.category].name}</span>
-          <h2 class="lead-card__title">{lead.data.title}</h2>
-          <p class="lead-card__excerpt">{lead.data.description}</p>
-          <div class="card__meta"><FormattedDate date={lead.data.pubDate} /></div>
-        </a>
-      )}
+      <aside class="tool-panel">
+        <div class="side-head"><h2>바로 쓰는 계산기</h2><a href="/tools/">전체 →</a></div>
+        <ul class="tool-panel__list">
+          {homeTools.map((t) => (
+            <li>
+              <a class="tp-row" href={t.href}>
+                <span class="tp-row__label">{t.label}</span>
+                <span class="tp-row__desc">{t.desc}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </aside>
       <div class="home-hero__side">
         <div class="side-head"><h2>주목할 아티클</h2></div>
         <ol class="ranked-list">
           {ranking.map((p, i) => (
             <li>
               <a class="ranked" href={`/blog/${p.id}/`}>
-                <span class="ranked__num">{i + 2}</span>
+                <span class="ranked__num">{i + 1}</span>
                 {p.data.heroImage && (
                   <div class="ranked__thumb"><img src={p.data.heroImage} alt="" loading="lazy" /></div>
                 )}
@@ -76,16 +77,6 @@ const byCategory = (slug: 'money' | 'ai' | 'income') =>
             </li>
           ))}
         </ol>
-      </div>
-    </section>
-
-    <section class="tool-strip">
-      <div class="section-head">
-        <h2>바로 쓰는 계산기</h2>
-        <a href="/tools/">전체 도구 →</a>
-      </div>
-      <div class="tool-chips">
-        {homeTools.map((t) => <a class="tool-chip" href={t.href}>{t.label}</a>)}
       </div>
     </section>
 

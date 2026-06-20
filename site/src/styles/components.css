@@ -222,25 +222,27 @@
 }
 .home-masthead h1 em { color: var(--accent); font-style: italic; }
 
-/* ---------- 홈 히어로(2단: 대표글 + 랭킹) ---------- */
-.home-hero { display: grid; grid-template-columns: 1.25fr 1fr; gap: 2.5rem; align-items: start; margin-top: 0.5rem; }
+/* ---------- 홈 히어로(2단: 계산기 패널 + 랭킹) ---------- */
+.home-hero { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: start; margin-top: 0.8rem; }
 @media (max-width: 820px) { .home-hero { grid-template-columns: 1fr; gap: 2rem; } }
 
-/* 좌측 — 큰 대표 글 */
-.lead-card { display: block; }
-.lead-card__media {
-  aspect-ratio: 16 / 10; border-radius: var(--radius); overflow: hidden;
-  background: var(--paper-2); border: 1px solid var(--line); margin-bottom: 1rem;
+/* 컬럼 헤더(좌우 공용) */
+.side-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; border-bottom: 2px solid var(--ink); padding-bottom: 0.7rem; margin-bottom: 0.3rem; }
+.side-head h2 { font-size: 1.2rem; margin: 0; }
+.side-head a { font-size: 0.85rem; color: var(--muted); }
+.side-head a:hover { color: var(--accent); }
+
+/* 좌측 — 바로 쓰는 계산기 패널 */
+.tool-panel__list { list-style: none; margin: 0; padding: 0; }
+.tp-row {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+  padding: 1.02rem 0; border-bottom: 1px solid var(--line);
 }
-.lead-card__media img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s ease; }
-.lead-card:hover .lead-card__media img { transform: scale(1.03); }
-.lead-card__title { font-size: clamp(1.5rem, 3vw, 2.1rem); line-height: 1.18; margin: 0.4rem 0; }
-.lead-card:hover .lead-card__title { color: var(--accent); }
-.lead-card__excerpt { color: var(--ink-soft); font-size: 1.02rem; line-height: 1.6; }
+.tp-row__label { font-family: var(--font-serif); font-weight: 600; font-size: 1.05rem; }
+.tp-row:hover .tp-row__label { color: var(--accent); }
+.tp-row__desc { color: var(--muted); font-size: 0.84rem; text-align: right; flex: none; }
 
 /* 우측 — 압축 랭킹 */
-.side-head { border-bottom: 2px solid var(--ink); padding-bottom: 0.7rem; margin-bottom: 0.3rem; }
-.side-head h2 { font-size: 1.2rem; margin: 0; }
 .ranked-list { list-style: none; margin: 0; padding: 0; }
 .ranked {
   display: grid; grid-template-columns: auto auto 1fr; align-items: center; gap: 0.8rem;
@@ -256,15 +258,6 @@
 .ranked__title { font-family: var(--font-serif); font-weight: 600; font-size: 0.98rem; line-height: 1.32; margin: 0; }
 .ranked:hover .ranked__title { color: var(--accent); }
 .ranked__meta { color: var(--muted); font-size: 0.78rem; margin-top: 0.2rem; }
-
-/* 계산기 칩 스트립 */
-.tool-chips { display: flex; flex-wrap: wrap; gap: 0.6rem; }
-.tool-chip {
-  display: inline-flex; align-items: center; padding: 0.55rem 1rem;
-  border: 1px solid var(--line); border-radius: 999px;
-  font-size: 0.92rem; color: var(--ink-soft); background: var(--paper);
-}
-.tool-chip:hover { border-color: var(--accent); color: var(--accent); }
 
 /* ---------- 연락처 폼 ---------- */
 .contact-form { display: grid; gap: 1rem; margin-top: 1.5rem; }

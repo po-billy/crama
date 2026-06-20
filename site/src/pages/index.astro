@@ -2,8 +2,9 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PostCard from '../components/PostCard.astro';
+import FormattedDate from '../components/FormattedDate.astro';
 import AdSlot from '../components/AdSlot.astro';
-import { SITE, CATEGORIES } from '../consts';
+import { SITE, CATEGORIES, EDITOR_PICKS } from '../consts';
 
 const posts = (await getCollection('blog'))
   .filter((p) => !p.data.draft)
@@ -18,23 +19,45 @@ const toCard = (p: (typeof posts)[number]) => ({
   heroImage: p.data.heroImage,
 });
 
-const [featured, ...rest] = posts;
-const latest = rest.slice(0, 6);
+// 에디터 큐레이션 랭킹(없으면 최신으로 채움)
+const picksFromList = EDITOR_PICKS
+  .map((slug) => posts.find((p) => p.id === slug))
+  .filter((p): p is (typeof posts)[number] => Boolean(p));
+const picks = [...picksFromList, ...posts.filter((p) => !picksFromList.includes(p))].slice(0, 6);
+
+const latest = posts.slice(0, 6);
 const byCategory = (slug: 'money' | 'ai' | 'income') =>
   posts.filter((p) => p.data.category === slug).slice(0, 3);
 ---
 <BaseLayout title={SITE.title} description={SITE.description}>
   <div class="wrap">
     <header class="home-masthead">
-      <h1>주식·재테크와 AI 트렌드,<br /><em>깊이 있게 읽다</em></h1>
-      <p>주식·재테크와 AI 트렌드를 깊이 있게 읽는 인사이트 매거진.<br />매일 업데이트되는 원본 분석과 가이드.</p>
+      <h1>주식·재테크와 AI 트렌드, <em>깊이 있게.</em></h1>
     </header>
 
-    {featured && (
-      <section>
-        <PostCard {...toCard(featured)} feature />
-      </section>
-    )}
+    <section>
+      <div class="section-head">
+        <h2>주목할 아티클</h2>
+        <a href="/about/">Crama 소개</a>
+      </div>
+      <ol class="ranked-list">
+        {picks.map((p, i) => (
+          <li>
+            <a class="ranked" href={`/blog/${p.id}/`}>
+              <span class="ranked__num">{i + 1}</span>
+              <div class="ranked__body">
+                <span class="eyebrow">{CATEGORIES[p.data.category].name}</span>
+                <h3 class="ranked__title">{p.data.title}</h3>
+                <div class="ranked__meta"><FormattedDate date={p.data.pubDate} /></div>
+              </div>
+              {p.data.heroImage && (
+                <div class="ranked__thumb"><img src={p.data.heroImage} alt="" loading="lazy" /></div>
+              )}
+            </a>
+          </li>
+        ))}
+      </ol>
+    </section>
 
     <section>
       <div class="section-head">

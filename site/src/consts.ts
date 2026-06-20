@@ -39,6 +39,16 @@ export const CATEGORIES: Record<
   },
 };
 
+// 홈 '주목할 아티클' 랭킹 — 에디터 큐레이션(고가치·수익 글을 상단 노출). slug 순서 = 노출 순서.
+export const EDITOR_PICKS = [
+  'spacex-stock-buying-guide',
+  'ai-trends-2026',
+  'how-to-choose-brokerage',
+  'side-hustle-for-office-workers',
+  'chatgpt-free-vs-paid',
+  'credit-vs-check-card',
+] as const;
+
 // 헤더 내비게이션
 export const NAV = [
   { label: '주식·재테크', href: '/category/money/' },

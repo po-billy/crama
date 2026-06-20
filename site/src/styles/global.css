@@ -331,10 +331,14 @@ hr {
   .nav::-webkit-scrollbar { display: none; }
   .nav > * { flex: 0 0 auto; white-space: nowrap; } /* 항목이 줄지 않고 가로로 스크롤 */
 
-  /* 컴팩트(스크롤) 시: 모바일에서만 브랜드를 숨기고 메뉴바만 남긴다 */
+  /* 컴팩트(스크롤) 시: 브랜드 숨기고 메뉴 + 검색·테마를 한 줄로 합침 */
   .site-header.is-compact .brand { display: none; }
-  .site-header.is-compact .nav { border-top: none; padding-top: 0; }
-  .site-header.is-compact .site-header__inner { justify-content: flex-end; padding-block: 0.45rem; }
+  .site-header.is-compact .site-header__inner { flex-wrap: nowrap; gap: 0.8rem; padding-block: 0.45rem; }
+  .site-header.is-compact .nav {
+    order: 2; width: auto; flex: 1 1 auto; min-width: 0;
+    border-top: none; padding-top: 0;
+  }
+  .site-header.is-compact .header-actions { order: 3; flex: none; margin-left: 0; }
 
   .home-masthead { padding: 1.2rem 0 0.4rem; }
   .home-masthead h1 { font-size: clamp(1.3rem, 6vw, 1.7rem); }

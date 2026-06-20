@@ -56,45 +56,27 @@ const catCount = (slug: 'money' | 'ai' | 'income') =>
       <h1>주식·재테크와 AI 트렌드, <em>깊이 있게.</em></h1>
     </header>
 
-    <section class="home-hero">
-      <div class="home-hero__main">
-      <aside class="rotator" aria-label="추천 콘텐츠">
-        <div class="rotator__viewport">
-          {slides.map((s, i) => (
-            <a class={i === 0 ? 'rslide is-active' : 'rslide'} href={s.href} data-slide={i}>
-              <img class="rslide__bg" src={s.img} alt="" loading={i === 0 ? 'eager' : 'lazy'} />
-              <span class="rslide__badge">{s.badge}</span>
-              <h2 class="rslide__title">{s.title}</h2>
-              <p class="rslide__desc">{s.desc}</p>
-              <span class="rslide__cta">{s.cta} →</span>
-            </a>
-          ))}
-        </div>
-        <div class="rotator__dots">
-          {slides.map((_, i) => (
-            <button class="rotator__dot" type="button" data-dot={i} aria-label={`${i + 1}번 콘텐츠`} aria-current={i === 0 ? 'true' : 'false'}></button>
-          ))}
-        </div>
-      </aside>
-
-      <section class="home-cats" aria-label="카테고리">
-        <div class="side-head"><h2>카테고리</h2><a href="/glossary/">용어사전 →</a></div>
-        <ul class="home-cats__list">
-          {(['money', 'ai', 'income'] as const).map((slug) => (
-            <li>
-              <a class="home-cat" href={`/category/${slug}/`}>
-                <span class="home-cat__info">
-                  <span class="home-cat__name">{CATEGORIES[slug].name}</span>
-                  <span class="home-cat__tag">{CATEGORIES[slug].tagline}</span>
-                </span>
-                <span class="home-cat__count">{catCount(slug)}편</span>
-              </a>
-            </li>
-          ))}
-        </ul>
-      </section>
+    <section class="rotator rotator--banner" aria-label="추천 콘텐츠">
+      <div class="rotator__viewport">
+        {slides.map((s, i) => (
+          <a class={i === 0 ? 'rslide is-active' : 'rslide'} href={s.href} data-slide={i}>
+            <img class="rslide__bg" src={s.img} alt="" loading={i === 0 ? 'eager' : 'lazy'} />
+            <span class="rslide__badge">{s.badge}</span>
+            <h2 class="rslide__title">{s.title}</h2>
+            <p class="rslide__desc">{s.desc}</p>
+            <span class="rslide__cta">{s.cta} →</span>
+          </a>
+        ))}
+        <div class="rotator__counter"><span id="rot-cur">1</span> / {slides.length}</div>
       </div>
+      <div class="rotator__dots">
+        {slides.map((_, i) => (
+          <button class="rotator__dot" type="button" data-dot={i} aria-label={`${i + 1}번 콘텐츠`} aria-current={i === 0 ? 'true' : 'false'}></button>
+        ))}
+      </div>
+    </section>
 
+    <section class="home-hero">
       <div class="home-hero__side">
         <div class="side-head"><h2>주목할 아티클</h2></div>
         <ol class="ranked-list">
@@ -114,6 +96,23 @@ const catCount = (slug: 'money' | 'ai' | 'income') =>
           ))}
         </ol>
       </div>
+
+      <aside class="home-cats" aria-label="카테고리">
+        <div class="side-head"><h2>카테고리</h2><a href="/glossary/">용어사전 →</a></div>
+        <ul class="home-cats__list">
+          {(['money', 'ai', 'income'] as const).map((slug) => (
+            <li>
+              <a class="home-cat" href={`/category/${slug}/`}>
+                <span class="home-cat__info">
+                  <span class="home-cat__name">{CATEGORIES[slug].name}</span>
+                  <span class="home-cat__tag">{CATEGORIES[slug].tagline}</span>
+                </span>
+                <span class="home-cat__count">{catCount(slug)}편</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </aside>
     </section>
 
     <script is:inline>
@@ -139,6 +138,8 @@ const catCount = (slug: 'money' | 'ai' | 'income') =>
             });
           }, 720);
           dots.forEach((d, i) => d.setAttribute('aria-current', i === next ? 'true' : 'false'));
+          const counter = document.getElementById('rot-cur');
+          if (counter) counter.textContent = String(next + 1);
           cur = next;
         };
         const start = () => { timer = setInterval(() => show(cur + 1), 5000); };

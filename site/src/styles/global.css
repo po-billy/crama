@@ -285,9 +285,9 @@ hr {
 .site-footer a:hover { color: var(--accent); }
 
 /* ---------- 페이지 히어로(카테고리/소개) ---------- */
-.page-hero { padding: 3rem 0 2rem; border-bottom: 1px solid var(--line); margin-bottom: 2.5rem; }
-.page-hero h1 { font-size: clamp(2.2rem, 5vw, 3.4rem); }
-.page-hero p { color: var(--muted); font-size: 1.1rem; max-width: 40rem; }
+.page-hero { padding: 1.8rem 0 1.3rem; border-bottom: 1px solid var(--line); margin-bottom: 2rem; }
+.page-hero h1 { font-size: clamp(1.7rem, 4vw, 2.4rem); }
+.page-hero p { color: var(--muted); font-size: 1.02rem; max-width: 40rem; margin-top: 0.5rem; }
 
 /* 접근성 — 오프스크린 숨김은 가로 오버플로우를 만들지 않는 clip 방식 사용 */
 .skip-link {
@@ -305,20 +305,25 @@ hr {
   .site-header__inner { flex-wrap: wrap; gap: 0.3rem 1rem; padding-block: 0.7rem; }
   .brand { font-size: 1.35rem; }
   .brand small { display: none; }
+  /* 메뉴가 많아져도 안 깨지게 — 한 줄 가로 스크롤 스트립 */
   .nav {
     width: 100%; gap: 1.15rem; font-size: 0.92rem;
     justify-content: flex-start; align-items: center;
     padding-top: 0.55rem; border-top: 1px solid var(--line);
+    flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
   }
-  .nav .search-link { margin-left: auto; } /* 검색·토글을 오른쪽 끝으로 */
+  .nav::-webkit-scrollbar { display: none; }
+  .nav > * { flex: 0 0 auto; white-space: nowrap; } /* 항목이 줄지 않고 가로로 스크롤 */
+  .nav .search-link { margin-left: 0; }
 
   /* 컴팩트(스크롤) 시: 모바일에서만 브랜드를 숨기고 메뉴바만 남긴다 */
   .site-header.is-compact .brand { display: none; }
   .site-header.is-compact .nav { border-top: none; padding-top: 0; }
   .site-header.is-compact .site-header__inner { justify-content: flex-end; padding-block: 0.45rem; }
 
-  .home-masthead { padding: 2rem 0 1.8rem; }
-  .home-masthead h1 { font-size: clamp(1.85rem, 7vw, 2.4rem); }
+  .home-masthead { padding: 1.2rem 0 0.4rem; }
+  .home-masthead h1 { font-size: clamp(1.3rem, 6vw, 1.7rem); }
 
   /* 본문 표: 좁은 화면에서 가로 스크롤 허용 */
   .prose table { display: block; overflow-x: auto; }

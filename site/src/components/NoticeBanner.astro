@@ -4,7 +4,9 @@ import { NOTICE } from '../consts';
 ---
 {NOTICE.enabled && (
   <div class="notice-banner" id="notice-banner" data-key={NOTICE.key} hidden>
-    <a class="notice-banner__text" href={NOTICE.href}>{NOTICE.text}</a>
+    <div class="notice-banner__viewport">
+      <a class="notice-banner__text" href={NOTICE.href}>{NOTICE.text}</a>
+    </div>
     <button class="notice-banner__close" id="notice-close" aria-label="공지 닫기">×</button>
   </div>
 )}

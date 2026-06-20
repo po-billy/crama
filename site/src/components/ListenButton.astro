@@ -29,6 +29,7 @@
     padding: 0.6rem 0.8rem; border: 1px solid var(--line); border-radius: var(--radius);
     background: var(--paper-2, var(--paper));
   }
+  .listen[hidden] { display: none; }
   .listen__btn {
     display: inline-flex; align-items: center; gap: 0.5rem;
     border: none; cursor: pointer; border-radius: 999px;
@@ -57,7 +58,7 @@
 </style>
 
 <script is:inline>
-  (() => {
+  function initListen() {
     const root = document.querySelector('[data-listen]');
     if (!root) return;
     const synth = window.speechSynthesis;
@@ -128,21 +129,34 @@
       u.rate = parseFloat(rateSel.value) || 1;
       u.onend = () => { if (state === 'playing') speakFrom(idx + 1); };
       u.onerror = () => { if (state === 'playing') speakFrom(idx + 1); };
+      // Chrome은 일시정지 상태가 남아있으면 speak가 무음이 됨 → 먼저 resume
+      if (synth.paused) synth.resume();
       synth.speak(u);
     }
 
     function start() {
-      synth.cancel();
       chunks = buildChunks();
       if (!chunks.length) return;
       setState('playing');
-      speakFrom(0);
+      // cancel() 직후 같은 틱에 speak하면 일부 브라우저가 무음 → 한 틱 뒤 시작
+      if (synth.speaking || synth.pending) {
+        synth.cancel();
+        setTimeout(() => { if (state === 'playing') speakFrom(0); }, 60);
+      } else {
+        speakFrom(0);
+      }
     }
     function stop() {
       synth.cancel();
       idx = 0;
       setState('idle');
     }
+
+    // Chrome 장시간 재생 시 합성이 멈추는 버그 방지: 재생 중 주기적으로 깨움
+    setInterval(() => {
+      if (state === 'playing' && !synth.speaking && !synth.pending) return;
+      if (state === 'playing' && synth.paused) synth.resume();
+    }, 5000);
 
     playBtn.addEventListener('click', () => {
       if (state === 'idle') { start(); }
@@ -164,5 +178,12 @@
     if (synth.getVoices().length === 0) {
       synth.addEventListener?.('voiceschanged', () => {}, { once: true });
     }
-  })();
+  }
+
+  // 본문(.prose)은 이 스크립트보다 아래에 있으므로 DOM 준비 후 초기화
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initListen, { once: true });
+  } else {
+    initListen();
+  }
 </script>

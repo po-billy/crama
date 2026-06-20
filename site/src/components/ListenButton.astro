@@ -9,6 +9,10 @@
     <span class="listen__label">본문 듣기</span>
   </button>
   <button class="listen__stop" type="button" data-stop aria-label="정지" hidden>■</button>
+  <label class="listen__voice" hidden>
+    <span class="visually-hidden">음성 선택</span>
+    <select data-voice aria-label="음성 선택"></select>
+  </label>
   <label class="listen__rate">
     <span class="visually-hidden">재생 속도</span>
     <select data-rate aria-label="재생 속도">
@@ -44,10 +48,12 @@
     font-size: 0.7rem; line-height: 1; display: grid; place-items: center;
   }
   .listen__stop:hover { border-color: var(--accent); color: var(--accent); }
-  .listen__rate select {
+  .listen__rate select, .listen__voice select {
     border: 1px solid var(--line); border-radius: var(--radius);
     background: var(--paper); color: var(--ink); padding: 0.35rem 0.5rem; font-size: 0.9rem; cursor: pointer;
   }
+  .listen__voice select { max-width: 11rem; }
+  .listen__voice[hidden] { display: none; }
   .listen__hint { font-size: 0.82rem; color: var(--muted); margin-left: auto; }
   .visually-hidden {
     position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
@@ -72,8 +78,32 @@
     const playBtn = root.querySelector('[data-play]');
     const stopBtn = root.querySelector('[data-stop]');
     const rateSel = root.querySelector('[data-rate]');
+    const voiceSel = root.querySelector('[data-voice]');
+    const voiceWrap = root.querySelector('.listen__voice');
     const icon = root.querySelector('.listen__icon');
     const label = root.querySelector('.listen__label');
+
+    const VOICE_KEY = 'crama:tts:voice';
+    let selectedVoiceName = '';
+    try { selectedVoiceName = localStorage.getItem(VOICE_KEY) || ''; } catch (e) {}
+
+    // 기기에 설치된 음성 목록 채우기(한국어 우선, 없으면 전체). 2개 이상일 때만 노출.
+    function populateVoices() {
+      const all = synth.getVoices() || [];
+      if (!all.length) return; // 아직 로드 전
+      const ko = all.filter((v) => (v.lang || '').toLowerCase().startsWith('ko') || /korean|한국/i.test(v.name));
+      const list = ko.length ? ko : all;
+      voiceWrap.hidden = list.length <= 1;
+      if (!list.some((v) => v.name === selectedVoiceName)) selectedVoiceName = list[0] ? list[0].name : '';
+      voiceSel.innerHTML = '';
+      list.forEach((v) => {
+        const o = document.createElement('option');
+        o.value = v.name;
+        o.textContent = v.name.replace(/^(Google|Microsoft)\s*/i, '');
+        if (v.name === selectedVoiceName) o.selected = true;
+        voiceSel.appendChild(o);
+      });
+    }
 
     // 본문 텍스트 → 문장 청크. 제목도 맨 앞에 포함.
     function buildChunks() {
@@ -106,6 +136,10 @@
 
     function pickVoice() {
       const voices = synth.getVoices() || [];
+      if (selectedVoiceName) {
+        const m = voices.find((v) => v.name === selectedVoiceName);
+        if (m) return m;
+      }
       return voices.find((v) => v.lang && v.lang.toLowerCase().startsWith('ko'))
           || voices.find((v) => /korean/i.test(v.name))
           || null;
@@ -170,14 +204,20 @@
       if (state === 'playing') { synth.cancel(); speakFrom(idx); }
     });
 
+    // 음성 변경 → 저장하고, 재생 중이면 현재 문장부터 새 목소리로 재시작
+    voiceSel.addEventListener('change', () => {
+      selectedVoiceName = voiceSel.value;
+      try { localStorage.setItem(VOICE_KEY, selectedVoiceName); } catch (e) {}
+      if (state === 'playing') { synth.cancel(); speakFrom(idx); }
+    });
+
     // 페이지 이탈 시 음성 정지(다른 글로 이동/뒤로가기)
     window.addEventListener('pagehide', () => synth.cancel());
     window.addEventListener('beforeunload', () => synth.cancel());
 
-    // 일부 브라우저는 voices가 비동기 로드 — 미리 깨워둠
-    if (synth.getVoices().length === 0) {
-      synth.addEventListener?.('voiceschanged', () => {}, { once: true });
-    }
+    // voices는 비동기 로드될 수 있음 — 즉시 + 로드 완료 시 목록 갱신
+    populateVoices();
+    synth.addEventListener?.('voiceschanged', populateVoices);
   }
 
   // 본문(.prose)은 이 스크립트보다 아래에 있으므로 DOM 준비 후 초기화

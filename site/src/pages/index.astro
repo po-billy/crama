@@ -111,11 +111,24 @@ const catCount = (slug: 'money' | 'ai' | 'income') =>
         if (!root) return;
         const slides = Array.from(root.querySelectorAll('.rslide'));
         const dots = Array.from(root.querySelectorAll('.rotator__dot'));
-        let cur = 0, timer;
+        let cur = 0, timer, fadeTimer;
         const show = (n) => {
-          cur = (n + slides.length) % slides.length;
-          slides.forEach((s, i) => s.classList.toggle('is-active', i === cur));
-          dots.forEach((d, i) => d.setAttribute('aria-current', i === cur ? 'true' : 'false'));
+          const next = (n + slides.length) % slides.length;
+          if (next === cur) return;
+          const inEl = slides[next], outEl = slides[cur];
+          clearTimeout(fadeTimer);
+          // 들어오는 슬라이드를 위에 올려 페이드인, 나가는 슬라이드는 덮일 때까지 불투명 유지
+          inEl.style.zIndex = '3';
+          outEl.style.zIndex = '2';
+          inEl.classList.add('is-active');
+          fadeTimer = setTimeout(() => {
+            slides.forEach((s, i) => {
+              if (i !== next) s.classList.remove('is-active');
+              s.style.zIndex = '';
+            });
+          }, 720);
+          dots.forEach((d, i) => d.setAttribute('aria-current', i === next ? 'true' : 'false'));
+          cur = next;
         };
         const start = () => { timer = setInterval(() => show(cur + 1), 5000); };
         const stop = () => clearInterval(timer);

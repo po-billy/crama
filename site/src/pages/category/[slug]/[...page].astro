@@ -1,0 +1,51 @@
+---
+import { getCollection } from 'astro:content';
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import PostCard from '../../../components/PostCard.astro';
+import Pagination from '../../../components/Pagination.astro';
+import { CATEGORIES, type CategorySlug } from '../../../consts';
+
+export const getStaticPaths = (async ({ paginate }) => {
+  const all = (await getCollection('blog')).filter((p) => !p.data.draft);
+  return (Object.keys(CATEGORIES) as CategorySlug[]).flatMap((slug) => {
+    const posts = all
+      .filter((p) => p.data.category === slug)
+      .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+    return paginate(posts, { params: { slug }, pageSize: 12 });
+  });
+}) satisfies GetStaticPaths;
+
+const { slug } = Astro.params as { slug: CategorySlug };
+const { page } = Astro.props;
+const cat = CATEGORIES[slug];
+const titleSuffix = page.currentPage > 1 ? ` (${page.currentPage}페이지)` : '';
+---
+<BaseLayout title={`${cat.name} — ${cat.tagline}${titleSuffix}`} description={cat.description}>
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">{cat.tagline}</span>
+      <h1>{cat.name}</h1>
+      <p>{cat.description}</p>
+    </header>
+
+    {page.data.length === 0 ? (
+      <p style="color:var(--muted);">아직 발행된 글이 없습니다. 곧 채워집니다.</p>
+    ) : (
+      <div class="card-grid">
+        {page.data.map((p) => (
+          <PostCard
+            href={`/blog/${p.id}/`}
+            title={p.data.title}
+            description={p.data.description}
+            pubDate={p.data.pubDate}
+            category={p.data.category}
+            heroImage={p.data.heroImage}
+          />
+        ))}
+      </div>
+    )}
+
+    <Pagination currentPage={page.currentPage} lastPage={page.lastPage} base={`/category/${slug}`} />
+  </div>
+</BaseLayout>

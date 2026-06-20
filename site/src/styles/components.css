@@ -141,6 +141,20 @@
 .search-empty { color: var(--muted); padding: 2rem 0; }
 .nav .search-link { font-size: 1.25rem; }
 
+/* ---------- 페이지네이션 ---------- */
+.pagination { display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin: 3.5rem 0 1rem; flex-wrap: wrap; }
+.pagination__list { display: flex; align-items: center; gap: 0.3rem; list-style: none; margin: 0; padding: 0; }
+.pagination__num, .pagination__nav {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 2.4rem; height: 2.4rem; padding: 0 0.75rem;
+  border: 1px solid var(--line); border-radius: var(--radius);
+  color: var(--ink-soft); font-size: 0.92rem; text-decoration: none;
+  font-variant-numeric: tabular-nums;
+}
+.pagination__num:hover, .pagination__nav:hover { border-color: var(--accent); color: var(--accent); }
+.pagination__num.is-current { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+.pagination__gap { color: var(--muted); padding: 0 0.2rem; align-self: flex-end; }
+
 /* ---------- 계산기(도구) ---------- */
 .calc { display: grid; gap: 1.5rem 2rem; grid-template-columns: 1fr 1fr; align-items: start; max-width: 54rem; margin: 2rem auto 0; }
 .calc__inputs { display: grid; gap: 1rem; }

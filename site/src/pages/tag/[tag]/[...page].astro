@@ -1,0 +1,44 @@
+---
+import { getCollection } from 'astro:content';
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import PostCard from '../../../components/PostCard.astro';
+import Pagination from '../../../components/Pagination.astro';
+
+export const getStaticPaths = (async ({ paginate }) => {
+  const posts = (await getCollection('blog')).filter((p) => !p.data.draft);
+  const tags = [...new Set(posts.flatMap((p) => p.data.tags))];
+  return tags.flatMap((tag) => {
+    const tagged = posts
+      .filter((p) => p.data.tags.includes(tag))
+      .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+    return paginate(tagged, { params: { tag }, props: { tag, total: tagged.length }, pageSize: 12 });
+  });
+}) satisfies GetStaticPaths;
+
+const { tag } = Astro.params as { tag: string };
+const { page, total } = Astro.props;
+const titleSuffix = page.currentPage > 1 ? ` (${page.currentPage}페이지)` : '';
+---
+<BaseLayout title={`#${tag} 글 모음${titleSuffix}`} description={`'${tag}' 태그가 달린 글 ${total}개 — Crama`}>
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">Tag</span>
+      <h1>#{tag}</h1>
+      <p>{total}개의 글</p>
+    </header>
+    <div class="card-grid">
+      {page.data.map((p) => (
+        <PostCard
+          href={`/blog/${p.id}/`}
+          title={p.data.title}
+          description={p.data.description}
+          pubDate={p.data.pubDate}
+          category={p.data.category}
+          heroImage={p.data.heroImage}
+        />
+      ))}
+    </div>
+    <Pagination currentPage={page.currentPage} lastPage={page.lastPage} base={`/tag/${encodeURIComponent(tag)}`} />
+  </div>
+</BaseLayout>

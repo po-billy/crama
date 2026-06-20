@@ -1,0 +1,49 @@
+---
+interface Props {
+  currentPage: number;
+  lastPage: number;
+  base: string; // 끝에 슬래시 없는 경로, 예: "/category/money"
+}
+const { currentPage, lastPage, base } = Astro.props;
+const href = (n: number) => (n <= 1 ? `${base}/` : `${base}/${n}/`);
+
+// 현재 페이지 주변 + 처음/끝만 노출하는 윈도우
+const win = 2;
+const shown: number[] = [];
+for (let i = 1; i <= lastPage; i++) {
+  if (i === 1 || i === lastPage || (i >= currentPage - win && i <= currentPage + win)) shown.push(i);
+}
+type Item = { gap: true } | { gap: false; n: number };
+const items: Item[] = [];
+let prev = 0;
+for (const n of shown) {
+  if (prev && n - prev > 1) items.push({ gap: true });
+  items.push({ gap: false, n });
+  prev = n;
+}
+---
+{lastPage > 1 && (
+  <nav class="pagination" aria-label="페이지 이동">
+    {currentPage > 1 && (
+      <a class="pagination__nav" href={href(currentPage - 1)} rel="prev">‹ 이전</a>
+    )}
+    <ul class="pagination__list">
+      {items.map((it) =>
+        it.gap ? (
+          <li class="pagination__gap" aria-hidden="true">…</li>
+        ) : (
+          <li>
+            {it.n === currentPage ? (
+              <span class="pagination__num is-current" aria-current="page">{it.n}</span>
+            ) : (
+              <a class="pagination__num" href={href(it.n)}>{it.n}</a>
+            )}
+          </li>
+        )
+      )}
+    </ul>
+    {currentPage < lastPage && (
+      <a class="pagination__nav" href={href(currentPage + 1)} rel="next">다음 ›</a>
+    )}
+  </nav>
+)}

@@ -213,6 +213,15 @@ hr {
 /* ---------- 본문(아티클) 타이포 ---------- */
 .prose { font-size: 1.12rem; line-height: 1.8; color: var(--ink-soft); }
 .prose > * + * { margin-top: 1.35rem; }
+
+/* 본문 듣기(TTS) — 현재 읽는 블록 강조 (레이아웃 영향 없는 box-shadow 방식) */
+.tts-reading {
+  background: var(--accent-soft);
+  box-shadow: 0 0 0 6px var(--accent-soft);
+  border-radius: 4px;
+  transition: background .25s ease, box-shadow .25s ease;
+  scroll-margin-top: 6rem;
+}
 .prose h2 { font-size: 1.7rem; margin-top: 2.6rem; }
 .prose h3 { font-size: 1.32rem; margin-top: 2rem; }
 .prose a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }

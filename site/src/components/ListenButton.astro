@@ -152,32 +152,36 @@
     try { rate = parseFloat(localStorage.getItem(RATE_KEY)) || 1; } catch (e) {}
     try { selectedVoiceName = localStorage.getItem(VOICE_KEY) || ''; } catch (e) {}
 
-    // ----- 본문 → 문장 청크 + 누적 글자수(진행/시간 계산용) -----
-    function buildChunks() {
-      const titleEl = document.querySelector('.article-head h1');
-      const title = titleEl ? titleEl.textContent.trim() : '';
-      const raw = prose.innerText || prose.textContent || '';
-      const text = (title ? title + '. ' : '') + raw;
-      const sentences = text.replace(/\s+/g, ' ').match(/[^.!?。…\n]+[.!?。…]?/g) || [];
-      const out = [];
+    // ----- 본문 → (문장 청크 + 원본 요소) 매핑. 읽는 위치 하이라이트/스크롤용 -----
+    function pushSentences(out, text, el) {
+      const sentences = text.replace(/\s+/g, ' ').match(/[^.!?。…\n]+[.!?。…]?/g) || [text];
       for (let s of sentences) {
-        s = s.trim();
-        if (!s) continue;
-        if (s.length <= 180) { out.push(s); continue; }
+        s = s.trim(); if (!s) continue;
+        if (s.length <= 180) { out.push({ text: s, el }); continue; }
         let buf = '';
         for (const part of s.split(/(?<=[,;:、])\s*/)) {
-          if ((buf + part).length > 180) { if (buf) out.push(buf.trim()); buf = part; }
+          if ((buf + part).length > 180) { if (buf) out.push({ text: buf.trim(), el }); buf = part; }
           else buf += part;
         }
-        if (buf.trim()) out.push(buf.trim());
+        if (buf.trim()) out.push({ text: buf.trim(), el });
       }
+    }
+    function buildChunks() {
+      const out = [];
+      const titleEl = document.querySelector('.article-head h1');
+      if (titleEl) pushSentences(out, titleEl.textContent.trim(), titleEl);
+      // 본문의 '말단 텍스트 블록'만 순서대로(중첩 중복 방지·숨김 제외)
+      const BLOCK_SEL = 'p, li, h2, h3, h4, blockquote, summary, figcaption';
+      Array.from(prose.querySelectorAll(BLOCK_SEL))
+        .filter((el) => !el.querySelector(BLOCK_SEL) && el.offsetParent !== null && el.textContent.trim())
+        .forEach((el) => pushSentences(out, el.innerText.trim(), el));
       return out;
     }
 
     const chunks = buildChunks();
     const cum = [];           // cum[i] = i 이전까지 누적 글자수
     let totalChars = 0;
-    for (let i = 0; i < chunks.length; i++) { cum[i] = totalChars; totalChars += chunks[i].length; }
+    for (let i = 0; i < chunks.length; i++) { cum[i] = totalChars; totalChars += chunks[i].text.length; }
 
     let idx = 0;
     let state = 'idle'; // idle | playing | paused
@@ -200,6 +204,24 @@
       totalEl.textContent = fmt(totalSec());
     }
     function setStatus(t) { statusEl.textContent = t; }
+
+    // ----- 읽는 위치 하이라이트 + 자동 스크롤 -----
+    let curEl = null;
+    function scrollIfNeeded(el) {
+      const r = el.getBoundingClientRect();
+      const top = 72; // sticky 헤더 높이
+      if (r.top < top || r.bottom > window.innerHeight - 24) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+    function highlight(el) {
+      if (el === curEl) return;
+      if (curEl) curEl.classList.remove('tts-reading');
+      curEl = el || null;
+      // 제목(본문 밖)에선 스크롤하지 않음 — 재생 시작 시 위로 튀는 것 방지
+      if (curEl) { curEl.classList.add('tts-reading'); if (prose.contains(curEl)) scrollIfNeeded(curEl); }
+    }
+    function clearHighlight() { if (curEl) curEl.classList.remove('tts-reading'); curEl = null; }
 
     function pickVoice() {
       const voices = synth.getVoices() || [];
@@ -237,8 +259,8 @@
 
     function speakFrom(i) {
       if (i >= chunks.length) { stop(true); return; }
-      idx = i; updateUI();
-      const u = new SpeechSynthesisUtterance(chunks[i]);
+      idx = i; updateUI(); highlight(chunks[i].el);
+      const u = new SpeechSynthesisUtterance(chunks[i].text);
       u.lang = 'ko-KR';
       const v = pickVoice(); if (v) u.voice = v;
       u.rate = rate;
@@ -258,6 +280,7 @@
       synth.cancel();
       idx = reachedEnd ? 0 : idx;
       setState('idle');
+      clearHighlight();
       if (reachedEnd) { updateUI(); }
     }
 

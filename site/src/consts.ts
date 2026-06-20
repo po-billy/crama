@@ -10,7 +10,7 @@ export const SITE = {
   tagline: '트렌드를 읽다',
 } as const;
 
-export type CategorySlug = 'money' | 'ai';
+export type CategorySlug = 'money' | 'ai' | 'income';
 
 export const CATEGORIES: Record<
   CategorySlug,
@@ -30,12 +30,20 @@ export const CATEGORIES: Record<
     description:
       '새 모델과 도구, 업무 자동화와 프롬프트, AI로 돈 버는 법까지 — 흐름을 놓치지 않는 안내서.',
   },
+  income: {
+    name: '부업·지원금',
+    slug: 'income',
+    tagline: '버는 힘을 키우다',
+    description:
+      '직장인 부업과 N잡, 정부지원금·정책까지 — 월급 밖에서 ‘부’를 키우는 실전 정보.',
+  },
 };
 
 // 헤더 내비게이션
 export const NAV = [
   { label: '주식·재테크', href: '/category/money/' },
   { label: 'AI 트렌드', href: '/category/ai/' },
+  { label: '부업·지원금', href: '/category/income/' },
   { label: '계산기', href: '/tools/' },
   { label: '소개', href: '/about/' },
 ] as const;

@@ -20,7 +20,7 @@ const toCard = (p: (typeof posts)[number]) => ({
 
 const [featured, ...rest] = posts;
 const latest = rest.slice(0, 6);
-const byCategory = (slug: 'money' | 'ai') =>
+const byCategory = (slug: 'money' | 'ai' | 'income') =>
   posts.filter((p) => p.data.category === slug).slice(0, 3);
 ---
 <BaseLayout title={SITE.title} description={SITE.description}>
@@ -48,7 +48,7 @@ const byCategory = (slug: 'money' | 'ai') =>
 
     <AdSlot slot="home-mid" />
 
-    {(['money', 'ai'] as const).map((slug) => (
+    {(['money', 'ai', 'income'] as const).map((slug) => (
       <section>
         <div class="section-head">
           <h2>{CATEGORIES[slug].name}</h2>

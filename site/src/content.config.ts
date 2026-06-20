@@ -9,7 +9,7 @@ const blog = defineCollection({
     description: z.string(),
     pubDate: z.coerce.date(),
     updatedDate: z.coerce.date().optional(),
-    category: z.enum(['money', 'ai']),
+    category: z.enum(['money', 'ai', 'income']),
     tags: z.array(z.string()).default([]),
     lang: z.enum(['ko', 'en']).default('ko'),
     heroImage: z.string().optional(),

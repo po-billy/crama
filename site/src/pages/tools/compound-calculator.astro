@@ -1,0 +1,49 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="복리 계산기" description="초기 투자금, 매월 적립금, 연 수익률, 기간을 입력하면 복리로 불어나는 최종 금액과 수익을 계산해 드립니다.">
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">계산기</span>
+      <h1>복리 계산기</h1>
+      <p>적립식 투자가 복리로 얼마나 불어나는지 즉시 계산해 보세요.</p>
+    </header>
+
+    <div class="calc">
+      <div class="calc__inputs">
+        <div class="calc__field"><label for="c-principal">초기 투자금 (원)</label><input id="c-principal" type="number" inputmode="numeric" value="1000000" min="0" /></div>
+        <div class="calc__field"><label for="c-monthly">매월 적립금 (원)</label><input id="c-monthly" type="number" inputmode="numeric" value="300000" min="0" /></div>
+        <div class="calc__field"><label for="c-rate">연 수익률 (%)</label><input id="c-rate" type="number" value="7" step="0.1" /></div>
+        <div class="calc__field"><label for="c-years">투자 기간 (년)</label><input id="c-years" type="number" value="20" min="1" /></div>
+      </div>
+      <div class="calc__result">
+        <div class="calc__result-label">예상 최종 금액</div>
+        <div class="calc__result-main" id="c-total">-</div>
+        <div class="calc__row"><span>총 납입 원금</span><strong id="c-contributed">-</strong></div>
+        <div class="calc__row"><span>투자 수익</span><strong id="c-interest">-</strong></div>
+      </div>
+    </div>
+
+    <p class="calc__note measure">* 매월 적립·월 복리를 가정한 단순 계산이며 세금·수수료·물가는 반영하지 않았습니다. 실제 결과는 다를 수 있으며 정보 제공 목적입니다. 복리의 원리는 <a href="/blog/compound-interest-power/">복리의 힘</a>에서 다룹니다.</p>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const fmt = (n) => Math.round(n).toLocaleString('ko-KR') + '원';
+      const calc = () => {
+        const P = +$('c-principal').value || 0;
+        const M = +$('c-monthly').value || 0;
+        const r = (+$('c-rate').value || 0) / 100 / 12;
+        const n = (+$('c-years').value || 0) * 12;
+        const fv = r === 0 ? P + M * n : P * Math.pow(1 + r, n) + M * ((Math.pow(1 + r, n) - 1) / r);
+        const contributed = P + M * n;
+        $('c-total').textContent = fmt(fv);
+        $('c-contributed').textContent = fmt(contributed);
+        $('c-interest').textContent = fmt(fv - contributed);
+      };
+      ['c-principal', 'c-monthly', 'c-rate', 'c-years'].forEach((id) => $(id).addEventListener('input', calc));
+      calc();
+    })();
+  </script>
+</BaseLayout>

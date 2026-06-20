@@ -1,0 +1,48 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="대출 이자 계산기" description="대출 금액, 연 금리, 기간을 입력하면 매월 상환액과 총 이자(원리금균등 상환)를 계산해 드립니다.">
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">계산기</span>
+      <h1>대출 이자 계산기</h1>
+      <p>원리금균등 상환 기준으로 매월 갚을 금액과 총 이자를 즉시 계산해 보세요.</p>
+    </header>
+
+    <div class="calc">
+      <div class="calc__inputs">
+        <div class="calc__field"><label for="l-amount">대출 금액 (원)</label><input id="l-amount" type="number" inputmode="numeric" value="100000000" min="0" /></div>
+        <div class="calc__field"><label for="l-rate">연 금리 (%)</label><input id="l-rate" type="number" value="4.5" step="0.1" /></div>
+        <div class="calc__field"><label for="l-years">상환 기간 (년)</label><input id="l-years" type="number" value="30" min="1" /></div>
+      </div>
+      <div class="calc__result">
+        <div class="calc__result-label">매월 상환액</div>
+        <div class="calc__result-main" id="l-monthly">-</div>
+        <div class="calc__row"><span>총 상환액</span><strong id="l-total">-</strong></div>
+        <div class="calc__row"><span>총 이자</span><strong id="l-interest">-</strong></div>
+      </div>
+    </div>
+
+    <p class="calc__note measure">* 원리금균등 상환 기준의 단순 계산이며, 중도상환수수료·우대금리 등은 반영하지 않았습니다. 실제 조건은 금융사마다 다를 수 있습니다. 대출의 기본은 <a href="/blog/loan-basics-guide/">대출 기초 정리</a>를 참고하세요.</p>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const fmt = (n) => Math.round(n).toLocaleString('ko-KR') + '원';
+      const calc = () => {
+        const A = +$('l-amount').value || 0;
+        const r = (+$('l-rate').value || 0) / 100 / 12;
+        const n = (+$('l-years').value || 0) * 12;
+        if (n === 0) return;
+        const monthly = r === 0 ? A / n : A * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+        const total = monthly * n;
+        $('l-monthly').textContent = fmt(monthly);
+        $('l-total').textContent = fmt(total);
+        $('l-interest').textContent = fmt(total - A);
+      };
+      ['l-amount', 'l-rate', 'l-years'].forEach((id) => $(id).addEventListener('input', calc));
+      calc();
+    })();
+  </script>
+</BaseLayout>

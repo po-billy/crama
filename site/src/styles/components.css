@@ -141,6 +141,34 @@
 .search-empty { color: var(--muted); padding: 2rem 0; }
 .nav .search-link { font-size: 1.25rem; }
 
+/* ---------- 계산기(도구) ---------- */
+.calc { display: grid; gap: 1.5rem 2rem; grid-template-columns: 1fr 1fr; align-items: start; max-width: 54rem; margin: 2rem auto 0; }
+.calc__inputs { display: grid; gap: 1rem; }
+.calc__field { display: grid; gap: 0.35rem; }
+.calc__field label { font-size: 0.88rem; font-weight: 600; color: var(--ink-soft); }
+.calc__field input {
+  font: inherit; padding: 0.7rem 0.9rem; border: 1px solid var(--line);
+  border-radius: var(--radius); background: var(--paper); color: var(--ink);
+  font-variant-numeric: tabular-nums; width: 100%;
+}
+.calc__field input:focus { outline: none; border-color: var(--accent); }
+.calc__result {
+  background: var(--paper-2); border: 1px solid var(--line); border-top: 3px solid var(--accent);
+  border-radius: var(--radius); padding: 1.5rem; position: sticky; top: 5rem;
+}
+.calc__result-label { font-size: 0.82rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.calc__result-main { font-family: var(--font-serif); font-size: clamp(1.7rem, 5vw, 2.4rem); color: var(--accent); font-weight: 600; margin: 0.3rem 0 1rem; font-variant-numeric: tabular-nums; }
+.calc__row { display: flex; justify-content: space-between; gap: 1rem; padding: 0.6rem 0; border-top: 1px solid var(--line); font-size: 0.95rem; color: var(--ink-soft); }
+.calc__row strong { color: var(--ink); font-variant-numeric: tabular-nums; }
+.calc__note { font-size: 0.82rem; color: var(--muted); margin: 2.5rem auto 0; }
+.tool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr)); gap: 1.5rem; margin-top: 2rem; }
+.tool-card { display: block; border: 1px solid var(--line); border-radius: var(--radius); padding: 1.4rem 1.5rem; background: var(--paper); }
+.tool-card:hover { border-color: var(--accent); }
+.tool-card h2 { font-size: 1.3rem; margin: 0 0 0.4rem; }
+.tool-card:hover h2 { color: var(--accent); }
+.tool-card p { color: var(--muted); font-size: 0.93rem; margin: 0; line-height: 1.55; }
+@media (max-width: 720px) { .calc { grid-template-columns: 1fr; } .calc__result { position: static; } }
+
 /* ---------- 홈 마스트헤드(H1) ---------- */
 .home-masthead { padding: 3rem 0 2.5rem; max-width: 52rem; }
 .home-masthead h1 {

@@ -1,0 +1,67 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="적금·예금 계산기" description="매월 적립액(또는 예치금)과 금리, 기간을 입력하면 만기 수령액과 세전 이자를 계산해 드립니다.">
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">계산기</span>
+      <h1>적금·예금 계산기</h1>
+      <p>적금(매월 적립) 또는 예금(한 번에 예치)의 만기 금액을 즉시 계산해 보세요.</p>
+    </header>
+
+    <div class="calc">
+      <div class="calc__inputs">
+        <div class="calc__field">
+          <label for="s-type">유형</label>
+          <select id="s-type" style="font:inherit;padding:0.7rem 0.9rem;border:1px solid var(--line);border-radius:var(--radius);background:var(--paper);color:var(--ink);">
+            <option value="installment">적금 (매월 적립)</option>
+            <option value="deposit">예금 (한 번에 예치)</option>
+          </select>
+        </div>
+        <div class="calc__field" id="s-amount-field"><label for="s-amount" id="s-amount-label">매월 적립액 (원)</label><input id="s-amount" type="number" inputmode="numeric" value="300000" min="0" /></div>
+        <div class="calc__field"><label for="s-rate">연 금리 (%)</label><input id="s-rate" type="number" value="3.5" step="0.1" /></div>
+        <div class="calc__field"><label for="s-months">기간 (개월)</label><input id="s-months" type="number" value="12" min="1" /></div>
+      </div>
+      <div class="calc__result">
+        <div class="calc__result-label">세전 만기 수령액</div>
+        <div class="calc__result-main" id="s-total">-</div>
+        <div class="calc__row"><span>납입(예치) 원금</span><strong id="s-principal">-</strong></div>
+        <div class="calc__row"><span>세전 이자</span><strong id="s-interest">-</strong></div>
+      </div>
+    </div>
+
+    <p class="calc__note measure">* 단리(연 금리, 적금은 월별 잔액에 비례) 기준의 단순 계산이며, 이자소득세(15.4%)는 반영하지 않은 세전 금액입니다. 실제 상품마다 이자 계산 방식이 다를 수 있습니다. 예·적금 비교는 <a href="/blog/savings-account-comparison/">예·적금·파킹통장 비교</a>를 참고하세요.</p>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const fmt = (n) => Math.round(n).toLocaleString('ko-KR') + '원';
+      const calc = () => {
+        const type = $('s-type').value;
+        const amt = +$('s-amount').value || 0;
+        const rate = (+$('s-rate').value || 0) / 100;
+        const months = +$('s-months').value || 0;
+        let principal, interest;
+        if (type === 'installment') {
+          principal = amt * months;
+          // 적금 단리: 월별 적립액이 남은 개월수만큼 이자 → sum(k=1..m) amt*rate*(k/12)
+          interest = amt * rate * (months * (months + 1) / 2) / 12;
+        } else {
+          principal = amt;
+          interest = amt * rate * (months / 12);
+        }
+        $('s-total').textContent = fmt(principal + interest);
+        $('s-principal').textContent = fmt(principal);
+        $('s-interest').textContent = fmt(interest);
+      };
+      const onType = () => {
+        $('s-amount-label').textContent = $('s-type').value === 'installment' ? '매월 적립액 (원)' : '예치 금액 (원)';
+        calc();
+      };
+      $('s-type').addEventListener('change', onType);
+      ['s-amount', 's-rate', 's-months'].forEach((id) => $(id).addEventListener('input', calc));
+      calc();
+    })();
+  </script>
+</BaseLayout>

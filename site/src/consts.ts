@@ -36,6 +36,7 @@ export const CATEGORIES: Record<
 export const NAV = [
   { label: '주식·재테크', href: '/category/money/' },
   { label: 'AI 트렌드', href: '/category/ai/' },
+  { label: '계산기', href: '/tools/' },
   { label: '소개', href: '/about/' },
 ] as const;
 

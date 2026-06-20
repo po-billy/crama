@@ -1,0 +1,149 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const questions = [
+  { text: '투자에서 가장 중요하게 생각하는 것은?', options: [
+    { label: '원금을 잃지 않는 것', score: 1 },
+    { label: '안정 속에서 적당한 수익', score: 2 },
+    { label: '위험을 감수하더라도 높은 수익', score: 3 },
+  ] },
+  { text: '투자한 돈이 20% 떨어진다면?', options: [
+    { label: '불안해서 판다', score: 1 },
+    { label: '일단 지켜본다', score: 2 },
+    { label: '기회로 보고 더 산다', score: 3 },
+  ] },
+  { text: '이 돈을 묻어둘 수 있는 기간은?', options: [
+    { label: '1년 이내', score: 1 },
+    { label: '1~5년', score: 2 },
+    { label: '5년 이상', score: 3 },
+  ] },
+  { text: '투자 경험은?', options: [
+    { label: '거의 없다', score: 1 },
+    { label: '조금 있다', score: 2 },
+    { label: '많은 편이다', score: 3 },
+  ] },
+  { text: '전체 자산 중 투자에 쓸 여유자금 비중은?', options: [
+    { label: '적다', score: 1 },
+    { label: '보통이다', score: 2 },
+    { label: '많은 편이다', score: 3 },
+  ] },
+];
+
+const results = {
+  stable: {
+    name: '안정 추구형',
+    desc: '원금 보존을 가장 중시하는 성향입니다. 예금·채권·배당처럼 변동이 작고 꾸준한 자산이 잘 맞습니다.',
+    links: [
+      { label: '비상금 만들기', href: '/blog/emergency-fund-guide/' },
+      { label: '예·적금·파킹통장 비교', href: '/blog/savings-account-comparison/' },
+      { label: '채권 투자 기초', href: '/blog/bond-investment-basics/' },
+      { label: '배당 투자 기초', href: '/blog/money-dividend-basics/' },
+    ],
+  },
+  neutral: {
+    name: '안정+수익 균형형',
+    desc: '위험과 수익의 균형을 추구합니다. 한곳에 몰지 않는 분산 투자와 시장 전체를 담는 ETF가 잘 맞습니다.',
+    links: [
+      { label: '투자 포트폴리오 기초', href: '/blog/investment-portfolio-basics/' },
+      { label: 'ETF vs 펀드', href: '/blog/money-etf-vs-fund/' },
+      { label: 'S&P500 ETF 가이드', href: '/blog/money-sp500-etf-guide/' },
+      { label: '주식 투자 완벽 가이드', href: '/blog/stock-investing-complete-guide/' },
+    ],
+  },
+  aggressive: {
+    name: '적극 투자형',
+    desc: '높은 수익을 위해 변동성을 감수하는 성향입니다. 다만 분산과 심리 관리가 동반돼야 오래갑니다.',
+    links: [
+      { label: '가치투자 vs 성장투자', href: '/blog/value-vs-growth-investing/' },
+      { label: '미국주식 입문', href: '/blog/us-stock-investment-beginners-guide/' },
+      { label: '투자 심리 다스리기', href: '/blog/investor-psychology-guide/' },
+      { label: '주식 투자 완벽 가이드', href: '/blog/stock-investing-complete-guide/' },
+    ],
+  },
+};
+---
+<BaseLayout title="투자 성향 진단" description="5가지 질문으로 나의 투자 성향을 진단하고, 성향에 맞는 투자 방법과 추천 글을 받아보세요.">
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">진단</span>
+      <h1>투자 성향 진단</h1>
+      <p>5가지 질문으로 내 성향과 그에 맞는 투자법을 찾아보세요. (재미·정보 제공용 간이 진단입니다.)</p>
+    </header>
+
+    <form class="quiz measure" id="quiz">
+      {questions.map((q, qi) => (
+        <fieldset class="quiz__q">
+          <legend>{qi + 1}. {q.text}</legend>
+          {q.options.map((o) => (
+            <label class="quiz__opt">
+              <input type="radio" name={`q${qi}`} value={o.score} />
+              <span>{o.label}</span>
+            </label>
+          ))}
+        </fieldset>
+      ))}
+      <button class="quiz__submit" type="submit">결과 보기</button>
+      <p class="quiz__warn" id="quiz-warn" hidden>모든 질문에 답해 주세요.</p>
+    </form>
+
+    <div class="quiz__result measure" id="quiz-result" hidden></div>
+  </div>
+
+  <script is:inline define:vars={{ results }}>
+    (() => {
+      const form = document.getElementById('quiz');
+      const warn = document.getElementById('quiz-warn');
+      const out = document.getElementById('quiz-result');
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const data = new FormData(form);
+        let total = 0, answered = 0;
+        for (let i = 0; i < 5; i++) {
+          const v = data.get('q' + i);
+          if (v) { total += +v; answered++; }
+        }
+        if (answered < 5) { warn.hidden = false; return; }
+        warn.hidden = true;
+        const key = total <= 8 ? 'stable' : total <= 11 ? 'neutral' : 'aggressive';
+        const r = results[key];
+        out.innerHTML =
+          '<span class="eyebrow">진단 결과</span>' +
+          '<h2>' + r.name + '</h2>' +
+          '<p>' + r.desc + '</p>' +
+          '<p class="quiz__rec-title"><strong>이런 글을 추천해요</strong></p>' +
+          '<ul class="quiz__rec">' + r.links.map((l) => '<li><a href="' + l.href + '">' + l.label + ' →</a></li>').join('') + '</ul>' +
+          '<button type="button" class="quiz__again" id="quiz-again">다시 진단하기</button>';
+        out.hidden = false;
+        out.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        document.getElementById('quiz-again').addEventListener('click', () => {
+          form.reset();
+          out.hidden = true;
+          form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      });
+    })();
+  </script>
+
+  <style>
+    .quiz__q { border: 1px solid var(--line); border-radius: var(--radius); padding: 1.1rem 1.3rem; margin: 0 0 1.1rem; }
+    .quiz__q legend { font-family: var(--font-serif); font-weight: 600; font-size: 1.08rem; padding: 0 0.4rem; }
+    .quiz__opt { display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 0; cursor: pointer; }
+    .quiz__opt input { width: 1.1rem; height: 1.1rem; accent-color: var(--accent); flex: none; }
+    .quiz__submit, .quiz__again {
+      font: inherit; font-weight: 600; cursor: pointer; border: none;
+      background: var(--accent); color: #fff; padding: 0.8rem 1.6rem; border-radius: var(--radius);
+    }
+    .quiz__submit:hover, .quiz__again:hover { filter: brightness(0.93); }
+    .quiz__warn { color: var(--accent); font-size: 0.9rem; margin-top: 0.8rem; }
+    .quiz__result {
+      margin-top: 2rem; border: 1px solid var(--line); border-top: 3px solid var(--accent);
+      border-radius: var(--radius); background: var(--paper-2); padding: 1.6rem;
+    }
+    .quiz__result h2 { font-size: 1.6rem; margin: 0.3rem 0 0.5rem; }
+    .quiz__result p { color: var(--ink-soft); line-height: 1.6; }
+    .quiz__rec-title { margin-top: 1rem; }
+    .quiz__rec { list-style: none; padding: 0; margin: 0.5rem 0 1.3rem; }
+    .quiz__rec li { padding: 0.4rem 0; border-bottom: 1px solid var(--line); }
+    .quiz__rec a { color: var(--accent); font-weight: 600; }
+  </style>
+</BaseLayout>

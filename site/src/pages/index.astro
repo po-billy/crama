@@ -26,53 +26,12 @@ const picksFromList = EDITOR_PICKS
 const picks = [...picksFromList, ...posts.filter((p) => !picksFromList.includes(p))].slice(0, 6);
 const ranking = picks;
 
-// 머니 로드맵 — 부의 축적 5단계(클릭 시 다음 할 일 + 관련 글/도구 안내)
-const stages = [
-  {
-    name: '빚 정리',
-    desc: '고금리 빚이 있으면 어떤 투자보다 먼저 줄이는 게 이득입니다.',
-    todo: '대출 구조를 파악하고 상환 계획 세우기',
-    links: [
-      { label: '대출 기초 정리', href: '/blog/loan-basics-guide/' },
-      { label: '신용점수 올리는 법', href: '/blog/credit-score-guide/' },
-    ],
-  },
-  {
-    name: '비상금 만들기',
-    desc: '위기에 흔들리지 않도록 생활 안전망부터 확보합니다.',
-    todo: '3~6개월 생활비를 파킹통장에 모으기',
-    links: [
-      { label: '비상금 가이드', href: '/blog/emergency-fund-guide/' },
-      { label: '예·적금·파킹통장 비교', href: '/blog/savings-account-comparison/' },
-    ],
-  },
-  {
-    name: '종잣돈 모으기',
-    desc: '투자에 굴릴 씨앗을 모으는 단계입니다.',
-    todo: '선저축·자동이체로 목표액 모으기',
-    links: [
-      { label: '종잣돈 모으는 법', href: '/blog/seed-money-guide/' },
-      { label: '목표금액 계산기', href: '/tools/goal-calculator/' },
-    ],
-  },
-  {
-    name: '투자 시작',
-    desc: '분산과 장기 원칙으로 첫 투자를 시작합니다.',
-    todo: '증권사 고르고 분산 포트폴리오 짜기',
-    links: [
-      { label: '증권사 고르는 법', href: '/blog/how-to-choose-brokerage/' },
-      { label: '포트폴리오 기초', href: '/blog/investment-portfolio-basics/' },
-    ],
-  },
-  {
-    name: '자산 불리기',
-    desc: '복리와 추가 수입으로 자산 증식을 가속합니다.',
-    todo: '복리로 굴리고 부수입 더하기',
-    links: [
-      { label: '복리의 힘', href: '/blog/compound-interest-power/' },
-      { label: '부업·지원금', href: '/category/income/' },
-    ],
-  },
+// 좌측 콘텐츠 로테이터 — 가이드/진단/도구/사전이 롤링(슬라이드는 추가만 하면 됨)
+const slides = [
+  { badge: '가이드', title: '주식 투자 완벽 가이드', desc: '기본기·계좌·종목·운용까지, 처음이라면 여기서 시작하세요.', href: '/blog/stock-investing-complete-guide/', cta: '가이드 보기' },
+  { badge: '진단', title: '투자 성향 진단', desc: '5가지 질문으로 내 성향과 그에 맞는 투자법을 찾아보세요.', href: '/quiz/investor-type/', cta: '진단 시작' },
+  { badge: '도구', title: '바로 쓰는 금융 계산기', desc: '복리·평단가·대출 등 7종, 입력하면 즉시 계산.', href: '/tools/', cta: '계산기 열기' },
+  { badge: '사전', title: '금융·AI 용어 사전', desc: '모르는 용어를 빠르게 찾고 관련 글로 이동.', href: '/glossary/', cta: '용어 보기' },
 ];
 
 const latest = posts.slice(0, 6);
@@ -86,25 +45,20 @@ const byCategory = (slug: 'money' | 'ai' | 'income') =>
     </header>
 
     <section class="home-hero">
-      <aside class="roadmap">
-        <div class="side-head"><h2>머니 로드맵</h2><span class="roadmap__hint">나는 지금 어디?</span></div>
-        <div class="roadmap__steps" role="tablist" aria-label="부의 축적 단계">
-          {stages.map((s, i) => (
-            <button class="roadmap__step" type="button" role="tab" data-step={i} aria-selected={i === 0 ? 'true' : 'false'}>
-              <span class="roadmap__step-num">{i + 1}</span>{s.name}
-            </button>
+      <aside class="rotator" aria-label="추천 콘텐츠">
+        <div class="rotator__viewport">
+          {slides.map((s, i) => (
+            <a class={i === 0 ? 'rslide is-active' : 'rslide'} href={s.href} data-slide={i}>
+              <span class="rslide__badge">{s.badge}</span>
+              <h2 class="rslide__title">{s.title}</h2>
+              <p class="rslide__desc">{s.desc}</p>
+              <span class="rslide__cta">{s.cta} →</span>
+            </a>
           ))}
         </div>
-        <div class="roadmap__detail">
-          {stages.map((s, i) => (
-            <div class="roadmap__panel" data-panel={i} hidden={i !== 0}>
-              <h3>{i + 1}. {s.name}</h3>
-              <p>{s.desc}</p>
-              <p class="roadmap__todo"><strong>다음 할 일</strong> · {s.todo}</p>
-              <div class="roadmap__links">
-                {s.links.map((l) => <a href={l.href}>{l.label} →</a>)}
-              </div>
-            </div>
+        <div class="rotator__dots">
+          {slides.map((_, i) => (
+            <button class="rotator__dot" type="button" data-dot={i} aria-label={`${i + 1}번 콘텐츠`} aria-current={i === 0 ? 'true' : 'false'}></button>
           ))}
         </div>
       </aside>
@@ -131,15 +85,22 @@ const byCategory = (slug: 'money' | 'ai' | 'income') =>
 
     <script is:inline>
       (() => {
-        const steps = Array.from(document.querySelectorAll('.roadmap__step'));
-        const panels = Array.from(document.querySelectorAll('.roadmap__panel'));
-        steps.forEach((btn) => {
-          btn.addEventListener('click', () => {
-            const i = btn.dataset.step;
-            steps.forEach((s) => s.setAttribute('aria-selected', s === btn ? 'true' : 'false'));
-            panels.forEach((p) => { p.hidden = p.dataset.panel !== i; });
-          });
-        });
+        const root = document.querySelector('.rotator');
+        if (!root) return;
+        const slides = Array.from(root.querySelectorAll('.rslide'));
+        const dots = Array.from(root.querySelectorAll('.rotator__dot'));
+        let cur = 0, timer;
+        const show = (n) => {
+          cur = (n + slides.length) % slides.length;
+          slides.forEach((s, i) => s.classList.toggle('is-active', i === cur));
+          dots.forEach((d, i) => d.setAttribute('aria-current', i === cur ? 'true' : 'false'));
+        };
+        const start = () => { timer = setInterval(() => show(cur + 1), 5000); };
+        const stop = () => clearInterval(timer);
+        dots.forEach((d, i) => d.addEventListener('click', () => { show(i); stop(); start(); }));
+        root.addEventListener('mouseenter', stop);
+        root.addEventListener('mouseleave', start);
+        start();
       })();
     </script>
 

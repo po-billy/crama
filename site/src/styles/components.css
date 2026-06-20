@@ -234,24 +234,25 @@
 .side-head a { font-size: 0.85rem; color: var(--muted); }
 .side-head a:hover { color: var(--accent); }
 
-/* 좌측 — 머니 로드맵(인터랙티브) */
-.roadmap__hint { font-size: 0.85rem; color: var(--muted); }
-.roadmap__steps { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.9rem 0 1.2rem; }
-.roadmap__step {
-  display: inline-flex; align-items: center; gap: 0.4rem;
-  padding: 0.45rem 0.85rem; border: 1px solid var(--line); border-radius: 999px;
-  background: var(--paper); color: var(--ink-soft); cursor: pointer;
-  font: inherit; font-size: 0.9rem; line-height: 1;
+/* 좌측 — 콘텐츠 로테이터(롤링: 가이드/진단/도구/사전) */
+.rotator__viewport {
+  position: relative; border: 1px solid var(--line); border-left: 3px solid var(--accent);
+  border-radius: var(--radius); background: var(--paper-2);
 }
-.roadmap__step:hover { border-color: var(--accent); color: var(--accent); }
-.roadmap__step[aria-selected='true'] { background: var(--accent); border-color: var(--accent); color: #fff; }
-.roadmap__step-num { font-family: var(--font-serif); font-weight: 600; }
-.roadmap__panel h3 { font-size: 1.3rem; margin: 0 0 0.4rem; }
-.roadmap__panel p { color: var(--ink-soft); margin: 0 0 0.6rem; line-height: 1.6; }
-.roadmap__todo { font-size: 0.96rem; }
-.roadmap__todo strong { color: var(--accent); }
-.roadmap__links { display: flex; flex-wrap: wrap; gap: 0.5rem 1.4rem; margin-top: 0.9rem; }
-.roadmap__links a { color: var(--accent); font-weight: 600; font-size: 0.92rem; }
+.rslide { display: none; flex-direction: column; gap: 0.5rem; padding: 1.6rem; min-height: 200px; justify-content: center; }
+.rslide.is-active { display: flex; animation: rslideIn .4s ease; }
+@keyframes rslideIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.rslide__badge {
+  align-self: flex-start; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em;
+  color: var(--accent); border: 1px solid var(--accent); border-radius: 999px; padding: 0.15rem 0.65rem;
+}
+.rslide__title { font-size: clamp(1.4rem, 2.8vw, 1.9rem); line-height: 1.2; margin: 0.5rem 0 0; }
+.rotator a.rslide:hover .rslide__title { color: var(--accent); }
+.rslide__desc { color: var(--ink-soft); font-size: 0.98rem; line-height: 1.55; margin: 0; }
+.rslide__cta { color: var(--accent); font-weight: 600; font-size: 0.92rem; margin-top: 0.4rem; }
+.rotator__dots { display: flex; gap: 0.45rem; justify-content: center; margin-top: 0.9rem; }
+.rotator__dot { width: 8px; height: 8px; border-radius: 999px; border: none; background: var(--line); cursor: pointer; padding: 0; transition: width .2s, background .2s; }
+.rotator__dot[aria-current='true'] { background: var(--accent); width: 22px; }
 
 /* 우측 — 압축 랭킹 */
 .ranked-list { list-style: none; margin: 0; padding: 0; }

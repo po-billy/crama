@@ -51,7 +51,8 @@ const catCount = (slug: 'money' | 'ai' | 'income') =>
       <aside class="rotator" aria-label="추천 콘텐츠">
         <div class="rotator__viewport">
           {slides.map((s, i) => (
-            <a class={i === 0 ? 'rslide is-active' : 'rslide'} href={s.href} data-slide={i} style={`--slide-bg: url('${s.img}')`}>
+            <a class={i === 0 ? 'rslide is-active' : 'rslide'} href={s.href} data-slide={i}>
+              <img class="rslide__bg" src={s.img} alt="" loading={i === 0 ? 'eager' : 'lazy'} />
               <span class="rslide__badge">{s.badge}</span>
               <h2 class="rslide__title">{s.title}</h2>
               <p class="rslide__desc">{s.desc}</p>

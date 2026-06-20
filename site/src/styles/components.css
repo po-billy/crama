@@ -232,15 +232,24 @@
 .side-head a { font-size: 0.85rem; color: var(--muted); }
 .side-head a:hover { color: var(--accent); }
 
-/* 좌측 — 바로 쓰는 계산기 패널 */
-.tool-panel__list { list-style: none; margin: 0; padding: 0; }
-.tp-row {
-  display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
-  padding: 1.02rem 0; border-bottom: 1px solid var(--line);
+/* 좌측 — 머니 로드맵(인터랙티브) */
+.roadmap__hint { font-size: 0.85rem; color: var(--muted); }
+.roadmap__steps { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.9rem 0 1.2rem; }
+.roadmap__step {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.45rem 0.85rem; border: 1px solid var(--line); border-radius: 999px;
+  background: var(--paper); color: var(--ink-soft); cursor: pointer;
+  font: inherit; font-size: 0.9rem; line-height: 1;
 }
-.tp-row__label { font-family: var(--font-serif); font-weight: 600; font-size: 1.05rem; }
-.tp-row:hover .tp-row__label { color: var(--accent); }
-.tp-row__desc { color: var(--muted); font-size: 0.84rem; text-align: right; flex: none; }
+.roadmap__step:hover { border-color: var(--accent); color: var(--accent); }
+.roadmap__step[aria-selected='true'] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.roadmap__step-num { font-family: var(--font-serif); font-weight: 600; }
+.roadmap__panel h3 { font-size: 1.3rem; margin: 0 0 0.4rem; }
+.roadmap__panel p { color: var(--ink-soft); margin: 0 0 0.6rem; line-height: 1.6; }
+.roadmap__todo { font-size: 0.96rem; }
+.roadmap__todo strong { color: var(--accent); }
+.roadmap__links { display: flex; flex-wrap: wrap; gap: 0.5rem 1.4rem; margin-top: 0.9rem; }
+.roadmap__links a { color: var(--accent); font-weight: 600; font-size: 0.92rem; }
 
 /* 우측 — 압축 랭킹 */
 .ranked-list { list-style: none; margin: 0; padding: 0; }

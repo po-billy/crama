@@ -41,6 +41,7 @@ export const CATEGORIES: Record<
 
 // 홈 '주목할 아티클' 랭킹 — 에디터 큐레이션(고가치·수익 글을 상단 노출). slug 순서 = 노출 순서.
 export const EDITOR_PICKS = [
+  'stock-investing-complete-guide',
   'spacex-stock-buying-guide',
   'ai-trends-2026',
   'how-to-choose-brokerage',

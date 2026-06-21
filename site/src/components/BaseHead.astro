@@ -24,6 +24,34 @@ const {
 const canonical = new URL(Astro.url.pathname, Astro.site ?? SITE.url).href;
 const ogImage = new URL(image, Astro.site ?? SITE.url).href;
 const fullTitle = title === SITE.title ? title : `${title} · ${SITE.name}`;
+
+// 사이트 레벨 구조화 데이터(브랜드 인식 + 사이트링크 검색창)
+const siteJsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': `${SITE.url}/#organization`,
+      name: SITE.name,
+      url: SITE.url,
+      logo: new URL('/icon-512.png', SITE.url).href,
+      description: SITE.description,
+    },
+    {
+      '@type': 'WebSite',
+      '@id': `${SITE.url}/#website`,
+      name: SITE.name,
+      url: SITE.url,
+      inLanguage: 'ko-KR',
+      publisher: { '@id': `${SITE.url}/#organization` },
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: { '@type': 'EntryPoint', urlTemplate: `${SITE.url}/search?q={search_term_string}` },
+        'query-input': 'required name=search_term_string',
+      },
+    },
+  ],
+};
 ---
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -32,6 +60,8 @@ const fullTitle = title === SITE.title ? title : `${title} · ${SITE.name}`;
 <link rel="icon" href="/favicon-96.png" sizes="96x96" type="image/png" />
 <link rel="icon" href="/icon-192.png" sizes="192x192" type="image/png" />
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
+<meta name="theme-color" content="#b04a2f" />
 <link rel="sitemap" href="/sitemap-index.xml" />
 <link rel="alternate" type="application/rss+xml" title={SITE.name} href="/rss.xml" />
 <link rel="canonical" href={canonical} />
@@ -81,4 +111,5 @@ const fullTitle = title === SITE.title ? title : `${title} · ${SITE.name}`;
   })();
 </script>
 
+<script type="application/ld+json" set:html={JSON.stringify(siteJsonLd)} />
 {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}

@@ -12,6 +12,7 @@ export const money: Term[] = [
   { term: '나스닥 / S&P500', def: '나스닥은 미국 기술주 중심 시장, S&P500은 미국 대표 500개 기업을 묶은 지수다.', href: '/blog/money-sp500-etf-guide/', hrefLabel: 'S&P500 ETF' },
   { term: '가치주 / 성장주', def: '가치주는 실제 가치보다 싸게 거래되는 주식, 성장주는 빠른 성장을 기대하는 주식이다.', href: '/blog/value-vs-growth-investing/', hrefLabel: '가치 vs 성장' },
   { term: '분산투자', def: '한 자산에 몰지 않고 여러 자산에 나눠 담아 위험을 줄이는 투자 원칙.', href: '/blog/investment-portfolio-basics/', hrefLabel: '포트폴리오 기초' },
+  { term: '적립식 투자', def: '매달 같은 금액을 꾸준히 나눠 사 모으는 방식. 비쌀 땐 적게, 쌀 땐 많이 사게 되어 타이밍 부담을 줄인다.', href: '/blog/first-year-investing-story/', hrefLabel: '1년 투자 이야기' },
   { term: '포트폴리오', def: '내가 보유한 자산들의 조합. 주식·채권·현금 등의 비중을 어떻게 구성하느냐가 핵심이다.', href: '/blog/investment-portfolio-basics/', hrefLabel: '포트폴리오 기초' },
   { term: '리밸런싱', def: '시간이 지나 틀어진 자산 비중을 원래 목표 비중으로 다시 맞추는 것.' },
   { term: '복리 / 단리', def: '단리는 원금에만, 복리는 원금+이자에 다시 이자가 붙는 방식. 장기로 갈수록 복리의 힘이 커진다.', href: '/blog/compound-interest-power/', hrefLabel: '복리의 힘' },

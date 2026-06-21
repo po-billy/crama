@@ -1,0 +1,16 @@
+{
+  "name": "Crama — 트렌드를 읽다",
+  "short_name": "Crama",
+  "description": "주식·재테크와 AI 트렌드를 깊이 있게 읽는 인사이트 매거진.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fbfaf8",
+  "theme_color": "#b04a2f",
+  "lang": "ko-KR",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

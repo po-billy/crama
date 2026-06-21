@@ -48,8 +48,8 @@
     <strong data-mini-status>재생 중</strong>
     <span data-mini-time>0:00 / 0:00</span>
   </div>
-  <button class="aminibar__follow" type="button" data-follow aria-pressed="true" title="읽는 위치로 따라가기">
-    <span aria-hidden="true">⇩</span> 따라가기
+  <button class="aminibar__follow" type="button" data-follow aria-pressed="true" title="읽는 위치로 자동 스크롤">
+    <span class="aminibar__dot" aria-hidden="true"></span><span data-follow-label>따라가기 켜짐</span>
   </button>
   <button class="aminibar__btn aminibar__btn--stop" type="button" data-mini-stop aria-label="정지">■</button>
 </div>
@@ -153,12 +153,19 @@
   .aminibar__txt strong { font-size: 0.8rem; font-weight: 700; }
   .aminibar__txt span { font-size: 0.72rem; opacity: 0.75; font-variant-numeric: tabular-nums; }
   .aminibar__follow {
-    border: 1px solid rgba(255,255,255,0.35); background: transparent; color: var(--paper);
-    border-radius: 999px; padding: 0.35rem 0.7rem; font-size: 0.76rem; font-weight: 600; cursor: pointer;
-    white-space: nowrap; flex: none;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    border: 1px solid rgba(255,255,255,0.3); background: transparent;
+    border-radius: 999px; padding: 0.35rem 0.75rem; font-size: 0.76rem; font-weight: 700; cursor: pointer;
+    white-space: nowrap; flex: none; transition: background .15s, color .15s, border-color .15s;
   }
-  .aminibar__follow[aria-pressed="true"] { background: rgba(255,255,255,0.16); }
-  .aminibar__follow[aria-pressed="false"] { opacity: 0.6; }
+  .aminibar__dot { width: 0.5rem; height: 0.5rem; border-radius: 999px; flex: none; }
+  /* 켜짐: 액센트 채움 + 점등 */
+  .aminibar__follow[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .aminibar__follow[aria-pressed="true"] .aminibar__dot { background: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,0.25); }
+  /* 꺼짐: 흐릿 + 취소선으로 비활성 명확화 */
+  .aminibar__follow[aria-pressed="false"] { background: transparent; border-color: rgba(255,255,255,0.22); color: rgba(255,255,255,0.55); }
+  .aminibar__follow[aria-pressed="false"] .aminibar__dot { background: rgba(255,255,255,0.35); }
+  .aminibar__follow[aria-pressed="false"] [data-follow-label] { text-decoration: line-through; }
   @media (max-width: 600px) {
     .aminibar__txt { display: none; } /* 좁은 화면: 버튼만 */
     .aminibar { bottom: 0.8rem; gap: 0.5rem; }
@@ -201,6 +208,7 @@
     const miniStatus = mini.querySelector('[data-mini-status]');
     const miniTime = mini.querySelector('[data-mini-time]');
     const followBtn = mini.querySelector('[data-follow]');
+    const followLabel = mini.querySelector('[data-follow-label]');
 
     const CPS = 5.2; // 한국어 TTS 대략 초당 글자수(1배속) — 시간 추정용
     const SKIP_SEC = 15;
@@ -255,17 +263,35 @@
       return m + ':' + String(s).padStart(2, '0');
     }
     function totalSec() { return totalChars / (CPS * rate); }
-    function fraction() { return totalChars ? (cum[idx] || 0) / totalChars : 0; }
+    function chunkLen(i) { return (i >= 0 && i < chunks.length) ? chunks[i].text.length : 0; }
+
+    // 시간/진행바를 '문단 점프'가 아니라 '부드럽게 흐르게' 보간하기 위한 타이밍
+    let chunkStart = 0;   // 현재 청크 시작 시각(performance.now)
+    let chunkDurMs = 1;   // 현재 청크 추정 길이(ms)
+    let frozenFrac = 0;   // 일시정지/정지 시 고정할 청크 내 진행 비율
+    function setChunkTiming(i) {
+      chunkStart = performance.now();
+      chunkDurMs = Math.max(300, (chunkLen(i) / (CPS * rate)) * 1000);
+      frozenFrac = 0;
+    }
+    function livePos() {
+      if (!chunks.length) return 0;
+      const frac = state === 'playing'
+        ? Math.min(0.985, (performance.now() - chunkStart) / chunkDurMs)
+        : frozenFrac;
+      return (cum[idx] || 0) + frac * chunkLen(idx);
+    }
 
     function updateUI() {
-      const f = fraction();
-      const pct = Math.round(f * 100);
+      const f = totalChars ? Math.min(1, livePos() / totalChars) : 0;
+      const pct = (f * 100).toFixed(2);
       fill.style.width = pct + '%';
       knob.style.left = pct + '%';
-      bar.setAttribute('aria-valuenow', String(pct));
-      elapsedEl.textContent = fmt(totalSec() * f);
+      bar.setAttribute('aria-valuenow', String(Math.round(f * 100)));
+      const t = totalSec() * f;
+      elapsedEl.textContent = fmt(t);
       totalEl.textContent = fmt(totalSec());
-      miniTime.textContent = fmt(totalSec() * f) + ' / ' + fmt(totalSec());
+      miniTime.textContent = fmt(t) + ' / ' + fmt(totalSec());
     }
     function setStatus(t) { statusEl.textContent = t; }
 
@@ -326,7 +352,7 @@
 
     function speakFrom(i) {
       if (i >= chunks.length) { stop(true); return; }
-      idx = i; updateUI(); highlight(chunks[i].el);
+      idx = i; setChunkTiming(i); updateUI(); highlight(chunks[i].el);
       const myEpoch = ++epoch; // 이 발화의 세대
       const u = new SpeechSynthesisUtterance(chunks[i].text);
       u.lang = 'ko-KR';
@@ -370,6 +396,7 @@
     function stop(reachedEnd) {
       synth.cancel();
       idx = reachedEnd ? 0 : idx;
+      frozenFrac = 0;
       setState('idle');
       clearHighlight();
       if (reachedEnd) { updateUI(); }
@@ -394,18 +421,33 @@
     // Chrome/Safari 장시간 재생 멈춤 방지 — 재생 중이면 주기적으로 깨움
     setInterval(() => { if (state === 'playing') { try { synth.resume(); } catch (e) {} } }, 5000);
 
+    // 진행바·시간을 부드럽게 갱신(재생 중 보간)
+    setInterval(() => { if (state === 'playing') updateUI(); }, 120);
+
     // ----- 이벤트 -----
     function togglePlay() {
       if (state === 'idle') start();
-      else if (state === 'playing') { synth.pause(); setState('paused'); }
-      else { synth.resume(); setState('playing'); }
+      else if (state === 'playing') {
+        frozenFrac = Math.min(0.985, (performance.now() - chunkStart) / chunkDurMs); // 멈춘 지점 고정
+        synth.pause(); setState('paused'); updateUI();
+      } else {
+        chunkStart = performance.now() - frozenFrac * chunkDurMs; // 멈춘 지점부터 이어서
+        synth.resume(); setState('playing');
+      }
     }
     playBtn.addEventListener('click', togglePlay);
     miniPlay.addEventListener('click', togglePlay);
     miniStop.addEventListener('click', () => stop(true));
+
+    function renderFollow() {
+      followBtn.setAttribute('aria-pressed', String(followEnabled));
+      followLabel.textContent = followEnabled ? '따라가기 켜짐' : '따라가기 꺼짐';
+      followBtn.title = followEnabled ? '읽는 위치로 자동 스크롤 (켜짐)' : '자동 스크롤 꺼짐 — 화면이 안 움직여요';
+    }
+    renderFollow();
     followBtn.addEventListener('click', () => {
       followEnabled = !followEnabled;
-      followBtn.setAttribute('aria-pressed', String(followEnabled));
+      renderFollow();
       if (followEnabled && curEl) scrollIfNeeded(curEl); // 다시 켜면 현재 위치로 복귀
     });
     backBtn.addEventListener('click', () => skipBySeconds(-SKIP_SEC));

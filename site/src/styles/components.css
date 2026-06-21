@@ -335,6 +335,20 @@
 
 /* 가이드(허브) 모음 — 별도 느낌의 카드 */
 .guides__hint { font-size: 0.85rem; color: var(--muted); }
+/* 가이드 슬라이더 뷰포트 + 화살표(PC 수동 넘김) */
+.guides__viewport { position: relative; }
+.guides__arrow {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 5;
+  width: 2.5rem; height: 2.5rem; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--paper); color: var(--ink);
+  cursor: pointer; display: grid; place-items: center; font-size: 1.4rem; line-height: 1;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.14);
+}
+.guides__arrow:hover { border-color: var(--accent); color: var(--accent); }
+.guides__arrow--prev { left: -0.7rem; }
+.guides__arrow--next { right: -0.7rem; }
+@media (max-width: 720px) { .guides__arrow { display: none; } }
+
 /* 가이드: PC·모바일 모두 1열 가로 슬라이드(스크롤 스냅) */
 .guides__grid {
   display: flex; gap: 1.2rem; overflow-x: auto; scroll-snap-type: x mandatory;

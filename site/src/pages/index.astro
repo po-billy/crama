@@ -139,18 +139,47 @@ const byCategory = (slug: 'money' | 'ai' | 'income') =>
       <section class="guides">
         <div class="section-head">
           <h2>주제별 완벽 가이드</h2>
-          <a class="guides__hint" href="/guides/">처음이라면 여기서 · 전체 보기 →</a>
+          <a class="guides__hint" href="/guides/">전체 보기 →</a>
         </div>
-        <div class="guides__grid" data-guides>
-          {guidePosts.map((g) => (
-            <a class="guide-card" href={g.href}>
-              {g.img && <img class="guide-card__bg" src={g.img} alt="" loading="lazy" />}
-              <span class="guide-card__badge">{g.cat} 가이드</span>
-              <h3 class="guide-card__title">{g.title}</h3>
-              <span class="guide-card__cta">단계별로 시작하기 →</span>
-            </a>
-          ))}
+        <div class="guides__viewport">
+          <button class="guides__arrow guides__arrow--prev" type="button" data-guides-prev aria-label="이전 가이드">‹</button>
+          <div class="guides__grid" data-guides>
+            {guidePosts.map((g) => (
+              <a class="guide-card" href={g.href}>
+                {g.img && <img class="guide-card__bg" src={g.img} alt="" loading="lazy" />}
+                <span class="guide-card__badge">{g.cat} 가이드</span>
+                <h3 class="guide-card__title">{g.title}</h3>
+                <span class="guide-card__cta">단계별로 시작하기 →</span>
+              </a>
+            ))}
+          </div>
+          <button class="guides__arrow guides__arrow--next" type="button" data-guides-next aria-label="다음 가이드">›</button>
         </div>
+        <script is:inline>
+          (() => {
+            const grid = document.querySelector('[data-guides]');
+            if (!grid) return;
+            const prev = document.querySelector('[data-guides-prev]');
+            const next = document.querySelector('[data-guides-next]');
+            const stepW = () => {
+              const card = grid.querySelector('.guide-card');
+              return card ? card.getBoundingClientRect().width + 20 : 320;
+            };
+            const atEnd = () => grid.scrollLeft + grid.clientWidth >= grid.scrollWidth - 8;
+            prev && prev.addEventListener('click', () => grid.scrollBy({ left: -stepW(), behavior: 'smooth' }));
+            next && next.addEventListener('click', () => grid.scrollBy({ left: stepW(), behavior: 'smooth' }));
+            let timer;
+            const start = () => { timer = setInterval(() => {
+              if (atEnd()) grid.scrollTo({ left: 0, behavior: 'smooth' });
+              else grid.scrollBy({ left: stepW(), behavior: 'smooth' });
+            }, 4500); };
+            const stop = () => clearInterval(timer);
+            grid.addEventListener('mouseenter', stop);
+            grid.addEventListener('mouseleave', start);
+            grid.addEventListener('pointerdown', stop);
+            start();
+          })();
+        </script>
       </section>
     )}
 

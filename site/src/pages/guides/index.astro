@@ -1,0 +1,34 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import { PILLARS, GUIDE_EXTRA, CATEGORIES, type CategorySlug } from '../../consts';
+
+const all = (await getCollection('blog')).filter((p) => !p.data.draft);
+const slugs = [...new Set([...Object.values(PILLARS), ...GUIDE_EXTRA])];
+const guides = slugs
+  .map((slug) => all.find((p) => p.id === slug))
+  .filter((p): p is (typeof all)[number] => Boolean(p));
+---
+<BaseLayout title="주제별 완벽 가이드" description="주식·재테크, AI, 부업까지 — 주제별로 처음부터 끝까지 단계별로 따라가는 완벽 가이드 모음.">
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">Guides</span>
+      <h1>주제별 완벽 가이드</h1>
+      <p>처음이라면 여기서 — 주제별로 기본기부터 실전까지 순서대로 따라갈 수 있게 모았습니다.</p>
+    </header>
+
+    <div class="card-grid">
+      {guides.map((p) => (
+        <PostCard
+          href={`/blog/${p.id}/`}
+          title={p.data.title}
+          description={p.data.description}
+          pubDate={p.data.pubDate}
+          category={p.data.category as CategorySlug}
+          heroImage={p.data.heroImage}
+        />
+      ))}
+    </div>
+  </div>
+</BaseLayout>

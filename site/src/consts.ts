@@ -57,6 +57,16 @@ export const PILLARS: Partial<Record<CategorySlug, string>> = {
   income: 'income-complete-guide',
 };
 
+// 가이드 섹션/목록에 함께 노출할 입문·완벽 가이드(필러 외, 순서 = 노출 순서)
+export const GUIDE_EXTRA = [
+  'us-stock-investment-beginners-guide',
+  'personal-finance-beginners-guide',
+  'isa-account-guide-2026',
+  'free-ai-tools-guide',
+  'ai-prompt-basics',
+  'domestic-stock-beginners-guide',
+] as const;
+
 // 헤더 내비게이션
 export const NAV = [
   { label: '주식·재테크', href: '/category/money/' },

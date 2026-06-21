@@ -335,16 +335,15 @@
 
 /* 가이드(허브) 모음 — 별도 느낌의 카드 */
 .guides__hint { font-size: 0.85rem; color: var(--muted); }
-.guides__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; }
+/* 가이드: PC·모바일 모두 1열 가로 슬라이드(스크롤 스냅) */
+.guides__grid {
+  display: flex; gap: 1.2rem; overflow-x: auto; scroll-snap-type: x mandatory;
+  padding-bottom: 0.5rem; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.guides__grid::-webkit-scrollbar { display: none; }
+.guides__grid > .guide-card { flex: 0 0 300px; scroll-snap-align: start; }
 @media (max-width: 720px) {
-  /* 모바일: 가로 스와이프 슬라이드(스크롤 스냅) */
-  .guides__grid {
-    display: flex; grid-template-columns: none;
-    overflow-x: auto; scroll-snap-type: x mandatory;
-    gap: 0.9rem; padding-bottom: 0.4rem; margin-inline: -1.5rem; padding-inline: 1.5rem;
-    -webkit-overflow-scrolling: touch; scrollbar-width: none;
-  }
-  .guides__grid::-webkit-scrollbar { display: none; }
+  .guides__grid { gap: 0.9rem; margin-inline: -1.5rem; padding-inline: 1.5rem; }
   .guides__grid > .guide-card { flex: 0 0 82%; scroll-snap-align: center; min-height: 210px; }
 }
 .guide-card {

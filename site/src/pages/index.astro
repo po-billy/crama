@@ -4,7 +4,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import PostCard from '../components/PostCard.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import AdSlot from '../components/AdSlot.astro';
-import { SITE, CATEGORIES, EDITOR_PICKS, PILLARS } from '../consts';
+import { SITE, CATEGORIES, EDITOR_PICKS, PILLARS, GUIDE_EXTRA } from '../consts';
 
 const posts = (await getCollection('blog'))
   .filter((p) => !p.data.draft)
@@ -21,15 +21,7 @@ const toCard = (p: (typeof posts)[number]) => ({
 
 // 허브(필러) + 입문 가이드 — 별도 섹션으로 분리, 랭킹/최신에서는 제외
 const pillarSlugs = Object.values(PILLARS);
-// 가이드 섹션에 함께 노출할 입문/완벽 가이드(있는 것만, 순서 = 노출 순서)
-const GUIDE_EXTRA = [
-  'us-stock-investment-beginners-guide',
-  'personal-finance-beginners-guide',
-  'isa-account-guide-2026',
-  'free-ai-tools-guide',
-  'ai-prompt-basics',
-  'domestic-stock-beginners-guide',
-];
+// 가이드 섹션 노출 목록(필러 + 입문 가이드) — 목록 페이지와 공유(consts)
 const guideSlugs = [...new Set([...pillarSlugs, ...GUIDE_EXTRA])];
 const guidePosts = guideSlugs
   .map((slug) => posts.find((p) => p.id === slug))
@@ -147,7 +139,7 @@ const byCategory = (slug: 'money' | 'ai' | 'income') =>
       <section class="guides">
         <div class="section-head">
           <h2>주제별 완벽 가이드</h2>
-          <span class="guides__hint">처음이라면 여기서</span>
+          <a class="guides__hint" href="/guides/">처음이라면 여기서 · 전체 보기 →</a>
         </div>
         <div class="guides__grid" data-guides>
           {guidePosts.map((g) => (

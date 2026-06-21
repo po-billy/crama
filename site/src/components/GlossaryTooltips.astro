@@ -1,0 +1,164 @@
+---
+// 본문 용어 툴팁 — .prose 안에서 사전 용어의 '첫 등장'에 점선 밑줄을 달고,
+// 탭/클릭하면 쉬운 한 줄 풀이를 팝업으로 보여 준다. 데이터는 /glossary와 공유.
+import { allTerms } from '../data/glossary';
+
+// 클라이언트로 넘길 최소 데이터(용어·풀이·관련 글)
+const data = allTerms.map((t) => ({ term: t.term, def: t.def, href: t.href ?? null, hrefLabel: t.hrefLabel ?? null }));
+---
+<script type="application/json" data-gloss-data set:html={JSON.stringify(data)}></script>
+
+<style is:global>
+  .gloss {
+    font: inherit; color: inherit; background: none; border: none; padding: 0; margin: 0;
+    cursor: help; text-decoration: underline dotted; text-underline-offset: 3px;
+    text-decoration-color: var(--accent); text-decoration-thickness: 1.5px;
+  }
+  .gloss:hover { color: var(--accent); }
+  .gloss-pop {
+    position: absolute; z-index: 90; max-width: min(20rem, calc(100vw - 2rem));
+    background: var(--ink); color: var(--paper);
+    border-radius: 10px; padding: 0.7rem 0.85rem; font-size: 0.9rem; line-height: 1.55;
+    box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5); opacity: 0; transform: translateY(4px);
+    transition: opacity .14s ease, transform .14s ease; pointer-events: none;
+  }
+  .gloss-pop.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .gloss-pop__term { display: block; font-weight: 700; margin-bottom: 0.2rem; }
+  .gloss-pop__link { display: inline-block; margin-top: 0.45rem; color: var(--accent-soft); font-weight: 600; }
+  .gloss-pop__link:hover { color: #fff; text-decoration: underline; }
+  .gloss-pop__arrow { position: absolute; width: 10px; height: 10px; background: var(--ink); transform: rotate(45deg); }
+</style>
+
+<script is:inline>
+  (function () {
+    function init() {
+      const dataEl = document.querySelector('[data-gloss-data]');
+      const prose = document.querySelector('.prose');
+      if (!dataEl || !prose) return;
+
+      let terms;
+      try { terms = JSON.parse(dataEl.textContent || '[]'); } catch (e) { return; }
+      if (!terms.length) return;
+
+      const HANGUL_OR_WORD = /[0-9A-Za-z가-힣]/;
+
+      // 표시용 용어 → 매칭 별칭(괄호·슬래시 분해). 긴 별칭 우선.
+      const entries = [];
+      terms.forEach((t) => {
+        const aliases = [];
+        String(t.term).split('/').forEach((seg) => {
+          seg = seg.trim();
+          const m = seg.match(/^(.+?)\s*\((.+)\)\s*$/);
+          if (m) { aliases.push(m[1].trim()); aliases.push(m[2].trim()); }
+          else if (seg) aliases.push(seg);
+        });
+        aliases.filter((a) => a && a.length >= 2).forEach((a) => entries.push({ alias: a, t }));
+      });
+      entries.sort((a, b) => b.alias.length - a.alias.length);
+
+      const usedTerms = new Set();   // 같은 용어는 글 전체에서 첫 1회만
+      const SKIP = new Set(['A', 'BUTTON', 'CODE', 'PRE', 'H1', 'H2', 'H3', 'H4', 'SUMMARY', 'SCRIPT', 'STYLE']);
+
+      function eligible(node) {
+        for (let el = node.parentElement; el && el !== prose; el = el.parentElement) {
+          if (SKIP.has(el.tagName)) return false;
+          if (el.classList && el.classList.contains('gloss')) return false;
+        }
+        return true;
+      }
+
+      // 텍스트 노드 수집(라이브 변경 영향 없게 먼저 스냅샷)
+      const walker = document.createTreeWalker(prose, NodeFilter.SHOW_TEXT, null);
+      const nodes = [];
+      let n;
+      while ((n = walker.nextNode())) { if (n.nodeValue && n.nodeValue.trim() && eligible(n)) nodes.push(n); }
+
+      nodes.forEach((node) => {
+        let text = node.nodeValue;
+        // 이 노드에서 매칭할 (위치, 별칭, 용어) 후보를 앞에서부터 차례로 찾음
+        for (let guard = 0; guard < 12; guard++) {
+          let best = null;
+          for (const e of entries) {
+            if (usedTerms.has(e.t.term)) continue;
+            const i = text.indexOf(e.alias);
+            if (i < 0) continue;
+            const before = i > 0 ? text[i - 1] : '';
+            // 앞 글자가 한글/영숫자면 더 큰 단어의 일부 → 건너뜀(예: 고'금리')
+            if (before && HANGUL_OR_WORD.test(before)) continue;
+            if (!best || i < best.i || (i === best.i && e.alias.length > best.alias.length)) {
+              best = { i, alias: e.alias, t: e.t };
+            }
+          }
+          if (!best) break;
+          usedTerms.add(best.t.term);
+          // 노드를 [앞][용어버튼][뒤]로 분할
+          const after = node.splitText(best.i);
+          after.nodeValue = after.nodeValue.slice(best.alias.length);
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'gloss';
+          btn.textContent = best.alias;
+          btn.setAttribute('data-term', best.t.term);
+          btn.setAttribute('data-def', best.t.def);
+          if (best.t.href) { btn.setAttribute('data-href', best.t.href); btn.setAttribute('data-href-label', best.t.hrefLabel || '자세히'); }
+          node.parentNode.insertBefore(btn, after);
+          // 다음 루프는 '뒤' 노드를 대상으로 계속
+          node = after;
+          text = node.nodeValue;
+        }
+      });
+
+      // ----- 팝업 -----
+      const pop = document.createElement('div');
+      pop.className = 'gloss-pop';
+      pop.setAttribute('role', 'tooltip');
+      const arrow = document.createElement('span');
+      arrow.className = 'gloss-pop__arrow';
+      document.body.appendChild(pop);
+      let openBtn = null;
+
+      function hide() { pop.classList.remove('show'); openBtn = null; }
+
+      function show(btn) {
+        openBtn = btn;
+        const term = btn.getAttribute('data-term');
+        const def = btn.getAttribute('data-def');
+        const href = btn.getAttribute('data-href');
+        const hrefLabel = btn.getAttribute('data-href-label');
+        pop.innerHTML = '';
+        pop.appendChild(arrow);
+        const t = document.createElement('strong'); t.className = 'gloss-pop__term'; t.textContent = term;
+        const d = document.createElement('span'); d.textContent = def;
+        pop.appendChild(t); pop.appendChild(d);
+        if (href) { const a = document.createElement('a'); a.className = 'gloss-pop__link'; a.href = href; a.textContent = '→ ' + hrefLabel; pop.appendChild(a); }
+        pop.classList.add('show');
+        // 위치 계산(버튼 위쪽, 넘치면 아래쪽)
+        const r = btn.getBoundingClientRect();
+        const pr = pop.getBoundingClientRect();
+        const sx = window.scrollX, sy = window.scrollY;
+        let left = sx + r.left + r.width / 2 - pr.width / 2;
+        left = Math.max(sx + 8, Math.min(left, sx + document.documentElement.clientWidth - pr.width - 8));
+        let top = sy + r.top - pr.height - 10; let below = false;
+        if (r.top - pr.height - 10 < 0) { top = sy + r.bottom + 10; below = true; }
+        pop.style.left = left + 'px';
+        pop.style.top = top + 'px';
+        const ax = sx + r.left + r.width / 2 - left - 5;
+        arrow.style.left = Math.max(8, Math.min(ax, pr.width - 18)) + 'px';
+        arrow.style.top = below ? '-5px' : (pr.height - 5) + 'px';
+      }
+
+      prose.addEventListener('click', (e) => {
+        const btn = e.target.closest('.gloss');
+        if (btn) { e.preventDefault(); (openBtn === btn) ? hide() : show(btn); }
+      });
+      // 데스크톱: 마우스 오버로도 표시
+      prose.addEventListener('mouseover', (e) => { const btn = e.target.closest('.gloss'); if (btn) show(btn); });
+      prose.addEventListener('mouseout', (e) => { const btn = e.target.closest('.gloss'); if (btn && openBtn === btn) hide(); });
+      document.addEventListener('click', (e) => { if (openBtn && !e.target.closest('.gloss') && !e.target.closest('.gloss-pop')) hide(); });
+      window.addEventListener('scroll', () => { if (openBtn) hide(); }, { passive: true });
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
+    else init();
+  })();
+</script>

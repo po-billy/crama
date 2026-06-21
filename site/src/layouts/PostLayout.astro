@@ -10,6 +10,7 @@ import ReadingProgress from '../components/ReadingProgress.astro';
 import ShareButtons from '../components/ShareButtons.astro';
 import FloatingShare from '../components/FloatingShare.astro';
 import ListenButton from '../components/ListenButton.astro';
+import GlossaryTooltips from '../components/GlossaryTooltips.astro';
 import TagList from '../components/TagList.astro';
 import AuthorBox from '../components/AuthorBox.astro';
 import { SITE, CATEGORIES, type CategorySlug } from '../consts';
@@ -103,6 +104,8 @@ const jsonLd = {
     <div class:list={['prose', 'measure', { 'is-premium': premium }]}>
       <slot />
     </div>
+
+    {!premium && <GlossaryTooltips />}
 
     {!premium && (
       <div class="measure article-footer">

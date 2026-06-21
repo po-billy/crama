@@ -19,9 +19,19 @@ const toCard = (p: (typeof posts)[number]) => ({
   heroImage: p.data.heroImage,
 });
 
-// 허브(필러) 가이드 — 별도 섹션으로 분리, 랭킹/최신에서는 제외
+// 허브(필러) + 입문 가이드 — 별도 섹션으로 분리, 랭킹/최신에서는 제외
 const pillarSlugs = Object.values(PILLARS);
-const guidePosts = pillarSlugs
+// 가이드 섹션에 함께 노출할 입문/완벽 가이드(있는 것만, 순서 = 노출 순서)
+const GUIDE_EXTRA = [
+  'us-stock-investment-beginners-guide',
+  'personal-finance-beginners-guide',
+  'isa-account-guide-2026',
+  'free-ai-tools-guide',
+  'ai-prompt-basics',
+  'domestic-stock-beginners-guide',
+];
+const guideSlugs = [...new Set([...pillarSlugs, ...GUIDE_EXTRA])];
+const guidePosts = guideSlugs
   .map((slug) => posts.find((p) => p.id === slug))
   .filter((p): p is (typeof posts)[number] => Boolean(p))
   .map((p) => ({ title: p.data.title, href: `/blog/${p.id}/`, img: p.data.heroImage, cat: CATEGORIES[p.data.category].name }));
@@ -32,7 +42,7 @@ const picksFromList = EDITOR_PICKS
   .filter((p): p is (typeof posts)[number] => Boolean(p));
 const picks = [
   ...picksFromList,
-  ...posts.filter((p) => !picksFromList.includes(p) && !pillarSlugs.includes(p.id)),
+  ...posts.filter((p) => !picksFromList.includes(p) && !guideSlugs.includes(p.id)),
 ].slice(0, 6);
 const ranking = picks;
 
@@ -44,7 +54,7 @@ const slides = [
   { badge: '사전', title: '금융·AI 용어 사전', desc: '모르는 용어를 빠르게 찾고 관련 글로 이동.', href: '/glossary/', cta: '용어 보기', img: '/img/generated/rotator-glossary-hero.webp' },
 ];
 
-const latest = posts.filter((p) => !pillarSlugs.includes(p.id)).slice(0, 6);
+const latest = posts.filter((p) => !guideSlugs.includes(p.id)).slice(0, 6);
 const byCategory = (slug: 'money' | 'ai' | 'income') =>
   posts.filter((p) => p.data.category === slug).slice(0, 3);
 ---
@@ -139,7 +149,7 @@ const byCategory = (slug: 'money' | 'ai' | 'income') =>
           <h2>주제별 완벽 가이드</h2>
           <span class="guides__hint">처음이라면 여기서</span>
         </div>
-        <div class="guides__grid">
+        <div class="guides__grid" data-guides>
           {guidePosts.map((g) => (
             <a class="guide-card" href={g.href}>
               {g.img && <img class="guide-card__bg" src={g.img} alt="" loading="lazy" />}
@@ -177,3 +187,40 @@ const byCategory = (slug: 'money' | 'ai' | 'income') =>
     ))}
   </div>
 </BaseLayout>
+
+<script>
+  // 가이드 섹션 모바일 자동 슬라이드(보일 때만, 사용자 조작 시 일시정지, 모션 최소화 시 끔)
+  const grid = document.querySelector('[data-guides]');
+  const mq = window.matchMedia('(max-width: 720px)');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  if (grid && grid.children.length > 1) {
+    let timer: ReturnType<typeof setInterval> | null = null;
+    let paused = false, visible = false;
+    let resumeT: ReturnType<typeof setTimeout> | null = null;
+    const cards = () => Array.from(grid.children) as HTMLElement[];
+    const centerOf = (card: HTMLElement) =>
+      card.offsetLeft - ((grid as HTMLElement).clientWidth - card.clientWidth) / 2;
+    function currentIndex() {
+      const c = cards(); const sl = grid!.scrollLeft;
+      let best = 0, bd = Infinity;
+      c.forEach((card, i) => { const d = Math.abs(centerOf(card) - sl); if (d < bd) { bd = d; best = i; } });
+      return best;
+    }
+    function go(i: number) {
+      const c = cards(); const card = c[(i + c.length) % c.length];
+      grid!.scrollTo({ left: centerOf(card), behavior: 'smooth' });
+    }
+    function step() { if (!paused && visible) go(currentIndex() + 1); }
+    function start() { if (!timer && mq.matches && !reduce.matches) timer = setInterval(step, 3800); }
+    function stop() { if (timer) { clearInterval(timer); timer = null; } }
+    (['touchstart', 'pointerdown', 'wheel', 'keydown'] as const).forEach((ev) =>
+      grid.addEventListener(ev, () => {
+        paused = true;
+        if (resumeT) clearTimeout(resumeT);
+        resumeT = setTimeout(() => { paused = false; }, 6000);
+      }, { passive: true }));
+    new IntersectionObserver((es) => { visible = es[0].isIntersecting; }, { threshold: 0.3 }).observe(grid);
+    mq.addEventListener?.('change', () => { stop(); start(); });
+    start();
+  }
+</script>

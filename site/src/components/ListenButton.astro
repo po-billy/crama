@@ -125,10 +125,14 @@
   .aplayer__hint { color: var(--muted); font-variant-numeric: normal; }
 
   @media (max-width: 600px) {
+    /* 상단: 브랜드 한 줄, 음성·속도는 아랫줄 전체 폭으로 분리(눌림 방지) */
+    .aplayer__top { flex-wrap: wrap; }
+    .aplayer__opts { width: 100%; justify-content: space-between; gap: 0.5rem; }
+    .aplayer__voice { flex: 1; min-width: 0; }
+    .aplayer__voice select { max-width: none; width: 100%; }
     /* 컨트롤 한 줄, 진행바는 아랫줄 전체 폭 */
     .aplayer__main { grid-template-columns: auto auto auto; justify-content: start; gap: 0.6rem; }
     .aplayer__progress { grid-column: 1 / -1; }
-    .aplayer__voice select { max-width: 7.5rem; }
   }
 
   /* ----- 하단 고정 미니 컨트롤 ----- */

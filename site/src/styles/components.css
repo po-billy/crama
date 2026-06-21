@@ -583,4 +583,8 @@
 .subscribe__status.is-err { color: var(--accent); }
 @media (max-width: 640px) {
   .subscribe { grid-template-columns: 1fr; }
+  /* 좁은 화면: 입력칸 + 구독 버튼을 세로로(버튼 삐져나감 방지) */
+  .subscribe__row { flex-wrap: wrap; }
+  .subscribe__row input[type='email'] { flex: 1 1 100%; }
+  .subscribe__row .btn { width: 100%; text-align: center; }
 }

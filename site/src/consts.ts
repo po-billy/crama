@@ -1,9 +1,9 @@
 // 사이트 전역 상수 — 브랜드/SEO 기본값
 export const SITE = {
   name: 'Crama',
-  title: 'Crama — 트렌드를 읽다',
+  title: 'Crama(크라마) — 트렌드를 읽다',
   description:
-    '주식·재테크와 AI 트렌드를 깊이 있게 읽는 인사이트 매거진. 매일 업데이트되는 원본 분석과 가이드.',
+    '주식·재테크와 AI 트렌드를 깊이 있게 읽는 인사이트 매거진 크라마(Crama). 매일 업데이트되는 원본 분석과 가이드.',
   url: 'https://crama.app',
   author: 'Crama 편집부',
   locale: 'ko_KR',

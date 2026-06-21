@@ -71,6 +71,8 @@ export const money: Term[] = [
   { term: '비상금', def: '갑작스러운 위기에 대비해 따로 둔, 즉시 쓸 수 있는 돈. 보통 3~6개월 생활비.', href: '/blog/emergency-fund-guide/', hrefLabel: '비상금 가이드' },
   { term: '손익분기점 (BEP)', def: '이익도 손해도 아닌, 본전이 되는 지점. 투자에서는 매수 평단가가 기준이 된다.' },
   { term: '골든크로스 / 데드크로스', def: '단기 이동평균선이 장기선을 위로 뚫으면 골든크로스, 아래로 뚫으면 데드크로스로 해석한다.', href: '/blog/stock-chart-basics/', hrefLabel: '차트 보는 법' },
+  { term: '추격매수', def: '이미 많이 오른 자산을 뒤늦게 따라 사는 것. 고점에서 사기 쉬워 위험이 크다.', href: '/blog/chasing-returns-fomo/', hrefLabel: '추격매수의 심리' },
+  { term: '리볼빙', def: '이번 달 카드값 일부만 갚고 나머지를 다음 달로 넘기는 것. 넘긴 금액에 높은 이자가 붙는다.', href: '/blog/minimum-payment-trap/', hrefLabel: '최소결제의 함정' },
 ];
 
 export const ai: Term[] = [

@@ -41,13 +41,17 @@
 
 <!-- 청취 중 어디서나 조작하는 하단 고정 미니 컨트롤 -->
 <div class="aminibar" data-mini hidden>
+  <button class="aminibar__btn aminibar__btn--skip" type="button" data-mini-back aria-label="15초 뒤로"><span aria-hidden="true">«</span><small>15</small></button>
   <button class="aminibar__btn aminibar__btn--play" type="button" data-mini-play aria-label="재생/일시정지">
     <span data-mini-icon aria-hidden="true">❚❚</span>
   </button>
+  <button class="aminibar__btn aminibar__btn--skip" type="button" data-mini-fwd aria-label="15초 앞으로"><small>15</small><span aria-hidden="true">»</span></button>
   <div class="aminibar__txt">
     <strong data-mini-status>재생 중</strong>
     <span data-mini-time>0:00 / 0:00</span>
   </div>
+  <button class="aminibar__chip" type="button" data-mini-rate aria-label="재생 속도">1.0×</button>
+  <button class="aminibar__btn aminibar__btn--voice" type="button" data-mini-voice aria-label="음성 변경" title="음성 변경" hidden><span aria-hidden="true">🔊</span></button>
   <button class="aminibar__follow" type="button" data-follow aria-pressed="true" title="읽는 위치로 자동 스크롤">
     <span class="aminibar__dot" aria-hidden="true"></span><span data-follow-label>따라가기 켜짐</span>
   </button>
@@ -154,6 +158,19 @@
   .aminibar__btn--play { background: var(--accent); color: #fff; font-size: 0.8rem; }
   .aminibar__btn--stop { background: transparent; color: var(--paper); border: 1px solid rgba(255,255,255,0.35); font-size: 0.7rem; }
   .aminibar__btn--stop:hover { border-color: #fff; }
+  .aminibar__btn--skip {
+    width: auto; padding: 0 0.6rem; background: transparent; color: var(--paper);
+    border: 1px solid rgba(255,255,255,0.32); gap: 1px; font-size: 0.82rem;
+  }
+  .aminibar__btn--skip small { font-size: 0.56rem; font-weight: 700; }
+  .aminibar__btn--voice { background: transparent; color: var(--paper); border: 1px solid rgba(255,255,255,0.32); font-size: 0.95rem; }
+  .aminibar__btn--skip:hover, .aminibar__btn--voice:hover { border-color: #fff; }
+  .aminibar__chip {
+    border: 1px solid rgba(255,255,255,0.32); background: transparent; color: var(--paper);
+    border-radius: 999px; height: 2.4rem; min-width: 2.9rem; padding: 0 0.6rem; flex: none;
+    font-size: 0.76rem; font-weight: 700; cursor: pointer; font-variant-numeric: tabular-nums;
+  }
+  .aminibar__chip:hover { border-color: #fff; }
   .aminibar__txt { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
   .aminibar__txt strong { font-size: 0.8rem; font-weight: 700; }
   .aminibar__txt span { font-size: 0.72rem; opacity: 0.75; font-variant-numeric: tabular-nums; }
@@ -173,7 +190,9 @@
   .aminibar__follow[aria-pressed="false"] [data-follow-label] { text-decoration: line-through; }
   @media (max-width: 600px) {
     .aminibar__txt { display: none; } /* 좁은 화면: 버튼만 */
-    .aminibar { bottom: 0.8rem; gap: 0.5rem; }
+    .aminibar__follow [data-follow-label] { display: none; } /* 따라가기는 점만 */
+    .aminibar__follow { padding: 0.4rem; }
+    .aminibar { bottom: 0.8rem; gap: 0.38rem; padding: 0.45rem; }
   }
   @media (prefers-reduced-motion: no-preference) {
     .aminibar { animation: amini-in .2s ease; }
@@ -214,6 +233,10 @@
     const miniTime = mini.querySelector('[data-mini-time]');
     const followBtn = mini.querySelector('[data-follow]');
     const followLabel = mini.querySelector('[data-follow-label]');
+    const miniBack = mini.querySelector('[data-mini-back]');
+    const miniFwd = mini.querySelector('[data-mini-fwd]');
+    const miniRate = mini.querySelector('[data-mini-rate]');
+    const miniVoice = mini.querySelector('[data-mini-voice]');
 
     const CPS = 5.2; // 한국어 TTS 대략 초당 글자수(1배속) — 시간 추정용
     const SKIP_SEC = 15;
@@ -341,6 +364,11 @@
         if (v.name === selectedVoiceName) o.selected = true;
         voiceSel.appendChild(o);
       });
+      if (miniVoice) {
+        miniVoice.hidden = list.length <= 1;
+        const curV = list.find((v) => v.name === selectedVoiceName);
+        if (curV) miniVoice.title = '음성: ' + curV.name.replace(/^(Google|Microsoft)\s*/i, '');
+      }
     }
 
     function setState(next) {
@@ -458,22 +486,40 @@
     backBtn.addEventListener('click', () => skipBySeconds(-SKIP_SEC));
     fwdBtn.addEventListener('click', () => skipBySeconds(SKIP_SEC));
 
-    function renderRate() { rateBtn.textContent = (Number.isInteger(rate) ? rate.toFixed(1) : String(rate)) + '×'; }
-    renderRate();
-    rateBtn.addEventListener('click', () => {
+    function renderRate() {
+      const t = (Number.isInteger(rate) ? rate.toFixed(1) : String(rate)) + '×';
+      rateBtn.textContent = t; if (miniRate) miniRate.textContent = t;
+    }
+    function cycleRate() {
       const cur = RATES.indexOf(rate);
       rate = RATES[(cur + 1) % RATES.length];
       renderRate();
       try { localStorage.setItem(RATE_KEY, String(rate)); } catch (e) {}
       updateUI();
       if (state === 'playing') playFrom(idx);
-    });
+    }
+    renderRate();
+    rateBtn.addEventListener('click', cycleRate);
+    miniRate && miniRate.addEventListener('click', cycleRate);
+    miniBack && miniBack.addEventListener('click', () => skipBySeconds(-SKIP_SEC));
+    miniFwd && miniFwd.addEventListener('click', () => skipBySeconds(SKIP_SEC));
 
-    voiceSel.addEventListener('change', () => {
-      selectedVoiceName = voiceSel.value;
+    function applyVoice() {
       try { localStorage.setItem(VOICE_KEY, selectedVoiceName); } catch (e) {}
       if (state === 'playing') playFrom(idx);
-    });
+    }
+    voiceSel.addEventListener('change', () => { selectedVoiceName = voiceSel.value; applyVoice(); });
+    function cycleVoice() {
+      const opts = Array.from(voiceSel.options);
+      if (opts.length <= 1) return;
+      let i = opts.findIndex((o) => o.value === selectedVoiceName);
+      i = (i + 1) % opts.length;
+      selectedVoiceName = opts[i].value;
+      voiceSel.value = selectedVoiceName;
+      if (miniVoice) miniVoice.title = '음성: ' + opts[i].textContent;
+      applyVoice();
+    }
+    miniVoice && miniVoice.addEventListener('click', cycleVoice);
 
     // 진행바 탐색(클릭/드래그)
     function seekFromEvent(clientX) {

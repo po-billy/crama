@@ -896,7 +896,7 @@ const ICON = {
     function setActive(on) { root.classList.toggle('is-active', on); mini.hidden = !on; try { document.body.classList.toggle('audio-active', on); } catch (e) {} }
     function renderIcons() { const p = !audio.paused; icon.innerHTML = p ? ICON_PAUSE : ICON_PLAY; if (miniIcon) miniIcon.innerHTML = p ? ICON_PAUSE : ICON_PLAY; if (playBtn) playBtn.setAttribute('aria-label', p ? '일시정지' : '재생'); }
 
-    let curEl = null;
+    let curEl = null, highlightOff = false;
     function scrollIfNeeded(el) { if (!followEnabled) return; const r = el.getBoundingClientRect(); if (r.top < 72 || r.bottom > window.innerHeight - 24) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
     function highlight(el) { if (el === curEl) return; if (curEl) curEl.classList.remove('tts-reading'); curEl = el || null; if (curEl) { curEl.classList.add('tts-reading'); if (prose.contains(curEl)) scrollIfNeeded(curEl); } }
     function idxAtMs(ms) { if (!timing) return -1; let i = 0; while (i < timing.length - 1 && (timing[i + 1].t ?? Infinity) <= ms) i++; return i; }
@@ -909,7 +909,7 @@ const ICON = {
       if (miniBar) miniBar.setAttribute('aria-valuenow', String(Math.round(f * 100)));
       elapsedEl.textContent = fmt(cur); totalEl.textContent = fmt(dur);
       if (miniTime) miniTime.textContent = fmt(cur) + ' / ' + fmt(dur);
-      if (timing && domChunks.length) { const i = idxAtMs(cur * 1000); if (i >= 0 && i < domChunks.length) highlight(domChunks[i].el); }
+      if (!highlightOff && timing && domChunks.length) { const i = idxAtMs(cur * 1000); if (i >= 0 && i < domChunks.length) highlight(domChunks[i].el); }
     }
     function setStatus() {
       const t = audio.paused ? (audio.currentTime > 0 ? '일시정지' : '잠금화면에서도 들을 수 있어요') : '재생 중…';
@@ -920,17 +920,43 @@ const ICON = {
     audio.addEventListener('loadedmetadata', () => { update(); if (ctaSub && audio.duration) ctaSub.textContent = '약 ' + Math.max(1, Math.round(audio.duration / 60)) + '분 · 잠금화면에서도 들을 수 있어요'; });
     audio.addEventListener('play', () => { renderIcons(); setActive(true); setStatus(); });
     audio.addEventListener('pause', () => { renderIcons(); setStatus(); });
-    audio.addEventListener('ended', () => {
-      renderIcons(); highlight(null);
-      if (autoNext && nextHref) { try { sessionStorage.setItem('crama:tts:continue', '1'); } catch (e) {} try { document.body.classList.remove('audio-active'); } catch (e) {} location.href = nextHref; return; }
-      audio.currentTime = 0; setActive(false); setStatus();
-    });
+    // 다음 글로 '같은 오디오 요소'에서 이어 재생(페이지 이동 없이 → iOS도 소리 끊김 없음, 잠금화면 지속)
+    let finishing = false;
+    function continueNext() {
+      const ns = (nextHref.match(/\/blog\/([^/]+)\/?(?:[?#].*)?$/) || [])[1];
+      if (!ns) { audio.currentTime = 0; setActive(false); setStatus(); return; }
+      const base = audioSrc.replace(/\/audio\/[^/]+$/, '');
+      highlightOff = true; highlight(null); timing = null; // 페이지는 그대로라 DOM 불일치 → 하이라이트 중단
+      audio.src = base + '/audio/' + ns + '.mp3';
+      const p = audio.play();
+      (p && p.then ? p : Promise.resolve()).then(() => toast('🎧 다음 글 이어 재생')).catch(() => {
+        try { sessionStorage.setItem('crama:tts:continue', '1'); } catch (e) {} location.href = nextHref; // 자동재생 막히면 이동 폴백
+      });
+      // 다음 글 제목(잠금화면) + 그다음 링크(체이닝) 갱신
+      fetch(nextHref).then((r) => r.text()).then((html) => {
+        const mt = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/);
+        if (mt && 'mediaSession' in navigator) { try { navigator.mediaSession.metadata = new MediaMetadata({ title: mt[1].replace(/<[^>]+>/g, '').trim(), artist: 'Crama 오디오', album: 'crama.app' }); } catch (e) {} }
+        const nh = html.match(/data-next-article="([^"]*)"/);
+        nextHref = nh ? nh[1] : '';
+      }).catch(() => {});
+    }
+    function finish() {
+      if (finishing) return; finishing = true; setTimeout(() => { finishing = false; }, 1200);
+      renderIcons();
+      if (autoNext && nextHref) { continueNext(); return; }
+      highlight(null); audio.currentTime = 0; setActive(false); setStatus();
+    }
+    audio.addEventListener('ended', finish);
 
     function togglePlay() { if (audio.paused) audio.play().catch(() => {}); else audio.pause(); }
     playBtn && playBtn.addEventListener('click', togglePlay);
     miniPlay && miniPlay.addEventListener('click', togglePlay);
     ctaBtn && ctaBtn.addEventListener('click', () => audio.play().catch(() => {}));
-    function skip(s) { audio.currentTime = Math.max(0, Math.min(audio.duration || 0, (audio.currentTime || 0) + s)); update(); }
+    function skip(s) {
+      const dur = audio.duration || 0, t = (audio.currentTime || 0) + s;
+      if (s > 0 && dur && t >= dur - 0.3) { finish(); return; } // 끝까지 밀면 즉시 종료 처리(ended 누락 방지)
+      audio.currentTime = Math.max(0, Math.min(dur, t)); update();
+    }
     [backBtn, miniBack].forEach((b) => b && b.addEventListener('click', () => skip(-SKIP_SEC)));
     [fwdBtn, miniFwd].forEach((b) => b && b.addEventListener('click', () => skip(SKIP_SEC)));
     miniStop && miniStop.addEventListener('click', () => { audio.pause(); audio.currentTime = 0; highlight(null); setActive(false); setStatus(); });
@@ -965,7 +991,7 @@ const ICON = {
         navigator.mediaSession.setActionHandler('pause', () => audio.pause());
         navigator.mediaSession.setActionHandler('seekbackward', () => skip(-SKIP_SEC));
         navigator.mediaSession.setActionHandler('seekforward', () => skip(SKIP_SEC));
-        try { navigator.mediaSession.setActionHandler('nexttrack', () => { if (nextHref) location.href = nextHref; }); } catch (e) {}
+        try { navigator.mediaSession.setActionHandler('nexttrack', () => { if (nextHref) finish(); }); } catch (e) {}
       } catch (e) {}
     }
 

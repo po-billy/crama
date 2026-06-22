@@ -348,3 +348,6 @@ hr {
   .prose table { display: block; overflow-x: auto; }
   .prose { font-size: 1.05rem; }
 }
+
+/* 모바일 더블탭 확대 방지(버튼 연타 시 확대 방지) — 핀치 줌은 유지 */
+button, a, summary, label, input, select, [role="slider"], [role="tab"] { touch-action: manipulation; }

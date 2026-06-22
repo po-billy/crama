@@ -588,3 +588,9 @@
   .subscribe__row input[type='email'] { flex: 1 1 100%; }
   .subscribe__row .btn { width: 100%; text-align: center; }
 }
+
+/* 오디오 미니바 재생 중: 모바일에서 하단 FAB(공유·맨위로) 숨겨 겹침 방지 */
+@media (max-width: 640px) {
+  body.audio-active .fshare,
+  body.audio-active .back-to-top { display: none !important; }
+}

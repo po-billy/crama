@@ -50,12 +50,13 @@
     <strong data-mini-status>재생 중</strong>
     <span data-mini-time>0:00 / 0:00</span>
   </div>
+  <span class="aminibar__sep" aria-hidden="true"></span>
   <button class="aminibar__chip" type="button" data-mini-rate aria-label="재생 속도">1.0×</button>
   <button class="aminibar__btn aminibar__btn--voice" type="button" data-mini-voice aria-label="음성 변경" title="음성 변경" hidden><span aria-hidden="true">🔊</span></button>
   <button class="aminibar__follow" type="button" data-follow aria-pressed="true" title="읽는 위치로 자동 스크롤">
-    <span class="aminibar__dot" aria-hidden="true"></span><span data-follow-label>따라가기 켜짐</span>
+    <span class="aminibar__dot" aria-hidden="true"></span><span class="aminibar__followlabel" data-follow-label>따라가기</span>
   </button>
-  <button class="aminibar__btn aminibar__btn--stop" type="button" data-mini-stop aria-label="정지">■</button>
+  <button class="aminibar__btn aminibar__btn--stop" type="button" data-mini-stop aria-label="닫기">✕</button>
 </div>
 
 <style>
@@ -140,59 +141,76 @@
     .aplayer__progress { grid-column: 1 / -1; }
   }
 
-  /* ----- 하단 고정 미니 컨트롤 ----- */
+  /* ----- 하단 고정 미니 컨트롤 (오디오) ----- */
   .aminibar {
     position: fixed; left: 50%; bottom: 1.1rem; transform: translateX(-50%);
-    z-index: 80; display: flex; align-items: center; gap: 0.7rem;
-    padding: 0.5rem 0.6rem 0.5rem 0.55rem; border-radius: 999px;
-    background: var(--ink); color: var(--paper);
-    box-shadow: 0 8px 24px -8px rgba(0,0,0,0.45);
-    max-width: calc(100vw - 1.5rem);
+    z-index: 80; display: flex; align-items: center; gap: 0.2rem;
+    padding: 0.4rem; border-radius: 999px;
+    background: var(--ink);
+    background: color-mix(in srgb, var(--ink) 92%, transparent);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    color: var(--paper);
+    box-shadow: 0 14px 36px -12px rgba(0,0,0,0.6);
+    max-width: calc(100vw - 1.2rem);
   }
   .aminibar[hidden] { display: none; }
+
+  /* 공통 아이콘 버튼 */
   .aminibar__btn {
-    border: none; cursor: pointer; border-radius: 999px;
-    width: 2.4rem; height: 2.4rem; display: grid; place-items: center; flex: none;
-    font-size: 0.85rem; line-height: 1;
+    border: none; background: transparent; color: var(--paper); cursor: pointer;
+    height: 2.5rem; min-width: 2.5rem; padding: 0 0.5rem; border-radius: 999px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 2px;
+    font-size: 0.9rem; line-height: 1; flex: none; transition: background .15s;
   }
-  .aminibar__btn--play { background: var(--accent); color: #fff; font-size: 0.8rem; }
-  .aminibar__btn--stop { background: transparent; color: var(--paper); border: 1px solid rgba(255,255,255,0.35); font-size: 0.7rem; }
-  .aminibar__btn--stop:hover { border-color: #fff; }
-  .aminibar__btn--skip {
-    width: auto; padding: 0 0.6rem; background: transparent; color: var(--paper);
-    border: 1px solid rgba(255,255,255,0.32); gap: 1px; font-size: 0.82rem;
+  .aminibar__btn:hover { background: rgba(255,255,255,0.14); }
+  .aminibar__btn--skip small { font-size: 0.6rem; font-weight: 700; opacity: 0.85; }
+  .aminibar__btn--voice { font-size: 1rem; }
+  .aminibar__btn--stop { font-size: 0.8rem; opacity: 0.65; }
+  .aminibar__btn--stop:hover { opacity: 1; }
+  /* 재생(강조) */
+  .aminibar__btn--play {
+    background: var(--accent); color: #fff; width: 2.8rem; height: 2.8rem; min-width: 2.8rem;
+    margin: 0 0.15rem; font-size: 0.85rem;
   }
-  .aminibar__btn--skip small { font-size: 0.56rem; font-weight: 700; }
-  .aminibar__btn--voice { background: transparent; color: var(--paper); border: 1px solid rgba(255,255,255,0.32); font-size: 0.95rem; }
-  .aminibar__btn--skip:hover, .aminibar__btn--voice:hover { border-color: #fff; }
+  .aminibar__btn--play:hover { background: var(--accent); filter: brightness(1.08); }
+
+  /* 정보(상태 + 시간) */
+  .aminibar__txt { display: flex; flex-direction: column; line-height: 1.15; padding: 0 0.55rem 0 0.45rem; min-width: 0; }
+  .aminibar__txt strong { font-size: 0.78rem; font-weight: 700; white-space: nowrap; }
+  .aminibar__txt span { font-size: 0.7rem; opacity: 0.7; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  /* 구분선 */
+  .aminibar__sep { width: 1px; height: 1.6rem; background: rgba(255,255,255,0.16); flex: none; margin: 0 0.15rem; }
+
+  /* 배속 칩 */
   .aminibar__chip {
-    border: 1px solid rgba(255,255,255,0.32); background: transparent; color: var(--paper);
-    border-radius: 999px; height: 2.4rem; min-width: 2.9rem; padding: 0 0.6rem; flex: none;
-    font-size: 0.76rem; font-weight: 700; cursor: pointer; font-variant-numeric: tabular-nums;
+    border: none; background: rgba(255,255,255,0.14); color: var(--paper);
+    height: 2.5rem; min-width: 3rem; padding: 0 0.7rem; border-radius: 999px; flex: none;
+    font-size: 0.78rem; font-weight: 700; cursor: pointer; font-variant-numeric: tabular-nums; transition: background .15s;
   }
-  .aminibar__chip:hover { border-color: #fff; }
-  .aminibar__txt { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
-  .aminibar__txt strong { font-size: 0.8rem; font-weight: 700; }
-  .aminibar__txt span { font-size: 0.72rem; opacity: 0.75; font-variant-numeric: tabular-nums; }
+  .aminibar__chip:hover { background: rgba(255,255,255,0.24); }
+
+  /* 따라가기 토글 */
   .aminibar__follow {
     display: inline-flex; align-items: center; gap: 0.4rem;
-    border: 1px solid rgba(255,255,255,0.3); background: transparent;
-    border-radius: 999px; padding: 0.35rem 0.75rem; font-size: 0.76rem; font-weight: 700; cursor: pointer;
-    white-space: nowrap; flex: none; transition: background .15s, color .15s, border-color .15s;
+    height: 2.5rem; padding: 0 0.85rem; border-radius: 999px; cursor: pointer; flex: none; border: none;
+    background: rgba(255,255,255,0.14); color: var(--paper);
+    font-size: 0.74rem; font-weight: 700; white-space: nowrap; transition: background .15s, opacity .15s;
   }
-  .aminibar__dot { width: 0.5rem; height: 0.5rem; border-radius: 999px; flex: none; }
-  /* 켜짐: 액센트 채움 + 점등 */
-  .aminibar__follow[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .aminibar__dot { width: 0.5rem; height: 0.5rem; border-radius: 999px; flex: none; background: rgba(255,255,255,0.55); }
+  .aminibar__follow[aria-pressed="true"] { background: var(--accent); color: #fff; }
   .aminibar__follow[aria-pressed="true"] .aminibar__dot { background: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,0.25); }
-  /* 꺼짐: 흐릿 + 취소선으로 비활성 명확화 */
-  .aminibar__follow[aria-pressed="false"] { background: transparent; border-color: rgba(255,255,255,0.22); color: rgba(255,255,255,0.55); }
-  .aminibar__follow[aria-pressed="false"] .aminibar__dot { background: rgba(255,255,255,0.35); }
-  .aminibar__follow[aria-pressed="false"] [data-follow-label] { text-decoration: line-through; }
-  @media (max-width: 600px) {
-    .aminibar__txt { display: none; } /* 좁은 화면: 버튼만 */
-    .aminibar__follow [data-follow-label] { display: none; } /* 따라가기는 점만 */
-    .aminibar__follow { padding: 0.4rem; }
-    .aminibar { bottom: 0.8rem; gap: 0.38rem; padding: 0.45rem; }
+  .aminibar__follow[aria-pressed="false"] { opacity: 0.55; }
+
+  /* 모바일: 정보·구분선·라벨 숨기고 컴팩트 */
+  @media (max-width: 640px) {
+    .aminibar { gap: 0.1rem; bottom: 0.8rem; padding: 0.32rem; }
+    .aminibar__txt, .aminibar__sep, .aminibar__followlabel { display: none; }
+    .aminibar__follow { padding: 0 0.55rem; }
+    .aminibar__btn { min-width: 2.4rem; height: 2.4rem; padding: 0 0.4rem; }
+    .aminibar__btn--play { width: 2.7rem; height: 2.7rem; min-width: 2.7rem; }
+    .aminibar__chip { min-width: 2.8rem; padding: 0 0.55rem; height: 2.4rem; }
+    .aminibar__follow { height: 2.4rem; }
   }
   @media (prefers-reduced-motion: no-preference) {
     .aminibar { animation: amini-in .2s ease; }
@@ -378,6 +396,7 @@
       miniIcon.textContent = playing ? '❚❚' : '▶';
       playBtn.setAttribute('aria-label', playing ? '일시정지' : '재생');
       mini.hidden = state === 'idle';
+      try { document.body.classList.toggle('audio-active', state !== 'idle'); } catch (e) {}
       if (state === 'playing') { setStatus('재생 중…'); miniStatus.textContent = '재생 중'; }
       else if (state === 'paused') { setStatus('일시정지'); miniStatus.textContent = '일시정지'; }
       else { setStatus('화면을 끄면 멈춰요'); }
@@ -474,7 +493,7 @@
 
     function renderFollow() {
       followBtn.setAttribute('aria-pressed', String(followEnabled));
-      followLabel.textContent = followEnabled ? '따라가기 켜짐' : '따라가기 꺼짐';
+      followLabel.textContent = '따라가기';
       followBtn.title = followEnabled ? '읽는 위치로 자동 스크롤 (켜짐)' : '자동 스크롤 꺼짐 — 화면이 안 움직여요';
     }
     renderFollow();

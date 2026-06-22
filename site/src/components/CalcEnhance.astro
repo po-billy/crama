@@ -1,0 +1,86 @@
+---
+// 계산기(/tools/) 초보자 보강 — 페이지별 수정 없이 전 계산기에 자동 적용
+//  ① '만원' 입력값을 읽기 쉬운 금액(억/만원)으로 즉시 환산해 표시
+//  ② 큰 결과 금액에 한글 단위 보조표기(예: 55,230,000원 ≈ 5,523만원)
+//  ③ 어려운 용어(원리금·전환율·양도차익 등)에 한 줄 설명 자동 추가
+---
+<script is:inline>
+  (() => {
+    if (!location.pathname.startsWith('/tools/')) return;
+
+    const TERMS = {
+      '원리금': '매달 갚는 원금과 이자를 합친 금액이에요.',
+      '전환율': '보증금을 월세로 바꿀 때 쓰는 비율. 보통 연 4~6%대예요.',
+      '공급가액': '부가세를 빼기 전, 물건·서비스의 순수 가격이에요.',
+      '양도차익': '판 가격에서 산 가격을 뺀 이익(매매 차익)이에요.',
+      'LTV': '집값 대비 빌릴 수 있는 비율(담보인정비율)이에요.',
+      'DSR': '연소득 대비 1년에 갚는 원리금 비율이에요.',
+      '평균임금': '퇴직 전 3개월간 받은 임금을 그 기간 일수로 나눈 하루치 기준이에요.',
+      '기본공제': '세금을 매기기 전에 먼저 빼 주는 금액이에요.',
+      '인출률': '모은 자산에서 매년 꺼내 쓰는 비율(예: 4%)이에요.',
+      '배당수익률': '투자금 대비 1년에 받는 배당의 비율이에요.',
+      '거래세': '주식을 팔 때 매도 금액에 붙는 세금이에요.',
+    };
+
+    const toKorWon = (won) => {
+      won = Math.round(won);
+      if (won < 10000) return '';
+      let parts = [];
+      const eok = Math.floor(won / 1e8); won %= 1e8;
+      const man = Math.floor(won / 1e4); const rest = won % 1e4;
+      if (eok) parts.push(eok.toLocaleString('ko-KR') + '억');
+      if (man) parts.push(man.toLocaleString('ko-KR') + '만');
+      if (rest) parts.push(rest.toLocaleString('ko-KR'));
+      return parts.join(' ') + '원';
+    };
+
+    // 입력 필드: 용어 설명 + 만원 환산 힌트
+    document.querySelectorAll('.calc__field').forEach((field) => {
+      const label = field.querySelector('label');
+      const input = field.querySelector('input[type="number"]');
+      if (!label) return;
+      const text = label.textContent || '';
+
+      for (const term in TERMS) {
+        if (text.includes(term)) {
+          const help = document.createElement('div');
+          help.className = 'calc__termhelp';
+          help.textContent = 'ⓘ ' + TERMS[term];
+          field.appendChild(help);
+          break;
+        }
+      }
+
+      if (input && /만원/.test(text)) {
+        const hint = document.createElement('div');
+        hint.className = 'calc__hint';
+        field.appendChild(hint);
+        const upd = () => {
+          const v = parseFloat(input.value);
+          hint.textContent = isFinite(v) && v > 0 ? '= ' + toKorWon(v * 10000) : '';
+        };
+        input.addEventListener('input', upd);
+        upd();
+      }
+    });
+
+    // 결과 큰 금액: 한글 단위 보조표기
+    document.querySelectorAll('.calc__result-main').forEach((main) => {
+      const readable = document.createElement('div');
+      readable.className = 'calc__readable';
+      main.insertAdjacentElement('afterend', readable);
+      const upd = () => {
+        const txt = (main.textContent || '').trim();
+        if (!/원/.test(txt)) { readable.textContent = ''; return; }
+        const isMan = /만원/.test(txt);
+        const m = txt.replace(/,/g, '').match(/-?\d+(\.\d+)?/);
+        if (!m) { readable.textContent = ''; return; }
+        const won = parseFloat(m[0]) * (isMan ? 10000 : 1);
+        const r = toKorWon(won);
+        readable.textContent = r && r !== txt ? '≈ ' + r : '';
+      };
+      new MutationObserver(upd).observe(main, { childList: true, characterData: true, subtree: true });
+      upd();
+    });
+  })();
+</script>

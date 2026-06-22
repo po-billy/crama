@@ -1,0 +1,332 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+// 단계형 성향 테스트 — 각 선택지가 캐릭터(key)에 점수를 더하고, 최다 득점 캐릭터가 결과.
+const questions = [
+  {
+    text: '월급날, 가장 먼저 드는 생각은?',
+    options: [
+      { label: '일단 일부는 딴 통장으로 옮겨 둬야지', tags: ['turtle', 'squirrel'] },
+      { label: '이번 달엔 뭘 좀 사 볼까', tags: ['cicada'] },
+      { label: '어디에 투자하면 좋을지부터 본다', tags: ['hawk', 'fox'] },
+      { label: '본업 말고 들어올 돈이 또 없나', tags: ['ant'] },
+    ],
+  },
+  {
+    text: '여윳돈 100만 원이 생긴다면?',
+    options: [
+      { label: '안전하게 예금·파킹통장에', tags: ['turtle'] },
+      { label: '매달 나눠서 꾸준히 적립', tags: ['squirrel'] },
+      { label: '오를 것 같은 곳에 과감히', tags: ['hawk'] },
+      { label: '갖고 싶던 걸 나에게 선물', tags: ['cicada'] },
+    ],
+  },
+  {
+    text: '투자한 게 20% 떨어졌다. 내 반응은?',
+    options: [
+      { label: '불안해서 일단 판다', tags: ['turtle'] },
+      { label: '계획대로 그냥 더 사 모은다', tags: ['squirrel'] },
+      { label: '기회다! 비중을 늘린다', tags: ['hawk'] },
+      { label: '왜 떨어졌는지 자료부터 뒤진다', tags: ['fox'] },
+    ],
+  },
+  {
+    text: '돈 정보, 주로 어떻게 얻나?',
+    options: [
+      { label: '검증된 기본부터 차근차근', tags: ['turtle', 'squirrel'] },
+      { label: '뉴스·지표·리포트를 직접 분석', tags: ['fox'] },
+      { label: '화제되는 종목·트렌드를 빠르게', tags: ['hawk'] },
+      { label: '돈 버는 부업·수익화 사례 위주', tags: ['ant'] },
+    ],
+  },
+  {
+    text: '나에게 "잘 쓴 돈"이란?',
+    options: [
+      { label: '미래의 불안을 줄여 주는 돈', tags: ['turtle'] },
+      { label: '시간이 지나 더 불어날 돈', tags: ['squirrel', 'hawk'] },
+      { label: '지금의 나를 행복하게 하는 돈', tags: ['cicada'] },
+      { label: '더 많이 벌 기회를 만드는 돈', tags: ['ant', 'fox'] },
+    ],
+  },
+  {
+    text: '5년 뒤, 바라는 내 모습은?',
+    options: [
+      { label: '흔들리지 않는 단단한 통장', tags: ['turtle'] },
+      { label: '꾸준히 굴러 커진 눈덩이', tags: ['squirrel'] },
+      { label: '과감한 베팅이 통한 한 방', tags: ['hawk'] },
+      { label: '여러 갈래로 들어오는 수입', tags: ['ant'] },
+    ],
+  },
+];
+
+const results = {
+  turtle: {
+    emoji: '🐢',
+    name: '든든한 거북이',
+    quote: '“천천히, 그러나 확실히.”',
+    desc: '무엇보다 원금과 안정을 중시하는 신중파입니다. 불안을 줄이는 토대를 먼저 다지는 게 잘 맞아요. 비상금과 안전자산으로 바닥을 단단히 깔아 두면, 그 위에서 마음 편히 한 걸음씩 나아갈 수 있습니다.',
+    links: [
+      { label: '세탁기가 멈춘 날, 비상금이 나를 구했다', href: '/blog/emergency-fund-story/' },
+      { label: '비상금 만들기 가이드', href: '/blog/emergency-fund-guide/' },
+      { label: '예·적금·파킹통장 비교', href: '/blog/savings-account-comparison/' },
+      { label: '통장 하나로 살다가, 넷으로 쪼갰다', href: '/blog/account-splitting-story/' },
+    ],
+  },
+  squirrel: {
+    emoji: '🐿️',
+    name: '꾸준한 다람쥐',
+    quote: '“매달 조금씩, 도토리를 모으듯.”',
+    desc: '타이밍을 좇기보다 습관으로 쌓아 가는 적립형입니다. 시간과 복리가 가장 큰 무기예요. 매달 같은 금액을 빠짐없이 넣는 단순함이, 길게 보면 가장 강력한 전략이 됩니다.',
+    links: [
+      { label: '지우의 1년 적립식 투자 이야기', href: '/blog/first-year-investing-story/' },
+      { label: '복리의 힘', href: '/blog/compound-interest-power/' },
+      { label: 'S&P500 ETF 가이드', href: '/blog/money-sp500-etf-guide/' },
+      { label: '첫 월급으로 무엇을 하셨나요', href: '/blog/first-salary-story/' },
+    ],
+  },
+  hawk: {
+    emoji: '🦅',
+    name: '모험가 매',
+    quote: '“위험 너머의 수익을 노린다.”',
+    desc: '높은 수익을 위해 변동성을 감수하는 적극파입니다. 추진력이 강점이지만, 분산과 심리 관리가 받쳐 줘야 오래갑니다. 남의 수익에 휘둘리지 않는 기준만 갖추면 더 단단해져요.',
+    links: [
+      { label: '친구가 두 배를 벌었다는 그날 밤', href: '/blog/chasing-returns-fomo/' },
+      { label: '투자 심리 다스리기', href: '/blog/investor-psychology-guide/' },
+      { label: '가치투자 vs 성장투자', href: '/blog/value-vs-growth-investing/' },
+      { label: '미국주식 입문', href: '/blog/us-stock-investment-beginners-guide/' },
+    ],
+  },
+  fox: {
+    emoji: '🦊',
+    name: '똑똑한 여우',
+    quote: '“남보다 한발 먼저 안다.”',
+    desc: '직접 분석하고 전략을 세우는 정보파입니다. 분산과 자산배분을 설계하는 데 강점이 있어요. 금리·환율 같은 큰 흐름까지 읽어 두면, 흔들리는 시장에서도 길을 잃지 않습니다.',
+    links: [
+      { label: '투자 포트폴리오 기초', href: '/blog/investment-portfolio-basics/' },
+      { label: 'ETF vs 펀드', href: '/blog/money-etf-vs-fund/' },
+      { label: '금리·환율의 영향', href: '/blog/interest-rate-exchange-basics/' },
+      { label: '주식 투자 완벽 가이드', href: '/blog/stock-investing-complete-guide/' },
+    ],
+  },
+  cicada: {
+    emoji: '🎍',
+    name: '즐기는 베짱이',
+    quote: '“지금의 행복도 중요해.”',
+    desc: '현재의 만족을 소중히 여기는 균형파입니다. 누리는 것도 삶의 일부죠. 다만 "먼저 떼고 남은 걸 쓰는" 순서 하나만 들이면, 행복과 저축을 둘 다 잡을 수 있습니다.',
+    links: [
+      { label: '월급은 올랐는데, 왜 통장은 그대로일까', href: '/blog/lifestyle-inflation-trap/' },
+      { label: '아침 커피를 끊으면 부자가 된다는 거짓말', href: '/blog/latte-factor-myth/' },
+      { label: '통장 하나로 살다가, 넷으로 쪼갰다', href: '/blog/account-splitting-story/' },
+      { label: '첫 월급으로 무엇을 하셨나요', href: '/blog/first-salary-story/' },
+    ],
+  },
+  ant: {
+    emoji: '🐜',
+    name: '부지런한 개미',
+    quote: '“버는 길을 여러 갈래로.”',
+    desc: '버는 힘을 키우는 데 관심이 많은 실행파입니다. 수입원을 늘리는 감각이 강점이에요. 한탕보다 오래가는 두 번째 수입을 설계하면, 월급 밖에서도 단단한 토대가 생깁니다.',
+    links: [
+      { label: '처음 벌어 본 만 원의 무게', href: '/blog/first-side-income-story/' },
+      { label: '퇴근 후의 나를 갈아 넣었다, 그리고 멈췄다', href: '/blog/side-hustle-burnout-story/' },
+      { label: '직장인 부업 시작하기', href: '/blog/side-hustle-for-office-workers/' },
+      { label: 'AI로 부업 시작하기', href: '/blog/ai-side-hustle-guide/' },
+    ],
+  },
+};
+
+const resultKeys = Object.keys(results);
+---
+<BaseLayout title="나의 머니 캐릭터 테스트" description="6가지 질문으로 나의 돈 성향을 캐릭터로 진단하고, 나에게 맞는 재테크 글을 추천받아 보세요. (재미·정보 제공용 간이 테스트)">
+  <div class="wrap mc">
+    <!-- 시작 화면 -->
+    <section class="mc-intro" id="mc-intro">
+      <span class="eyebrow">머니 캐릭터 테스트</span>
+      <h1>나와 비슷한<br />돈 캐릭터를 찾아볼까요?</h1>
+      <p class="mc-intro__lead">6가지 질문이면 충분해요. 내 돈 성향을 캐릭터로 알려주고, 딱 맞는 글까지 추천해 드려요.</p>
+      <div class="mc-intro__emojis" aria-hidden="true">🐢 🐿️ 🦅 🦊 🐜</div>
+      <button class="mc-btn mc-btn--lg" type="button" id="mc-start">지금 시작하기</button>
+      <p class="mc-note">재미·정보 제공용 간이 테스트입니다.</p>
+    </section>
+
+    <!-- 질문 화면 -->
+    <section class="mc-quiz" id="mc-quiz" hidden>
+      <div class="mc-top">
+        <button class="mc-back" type="button" id="mc-back" aria-label="이전 질문">‹</button>
+        <div class="mc-progress"><span class="mc-progress__bar" id="mc-bar"></span></div>
+      </div>
+      <p class="mc-step" id="mc-step"></p>
+      <h2 class="mc-question" id="mc-question"></h2>
+      <div class="mc-options" id="mc-options"></div>
+    </section>
+
+    <!-- 결과 화면 -->
+    <section class="mc-result" id="mc-result" hidden>
+      <div class="mc-card" id="mc-card">
+        <span class="mc-card__eyebrow">내 머니 캐릭터는</span>
+        <div class="mc-card__emoji" id="mc-emoji"></div>
+        <h2 class="mc-card__name" id="mc-name"></h2>
+        <p class="mc-card__quote" id="mc-quote"></p>
+        <p class="mc-card__desc" id="mc-desc"></p>
+      </div>
+      <p class="mc-rec-title"><strong>이런 글을 추천해요</strong></p>
+      <ul class="mc-rec" id="mc-rec"></ul>
+      <div class="mc-actions">
+        <button class="mc-btn" type="button" id="mc-share">결과 공유하기</button>
+        <button class="mc-btn mc-btn--ghost" type="button" id="mc-again">다시 테스트하기</button>
+      </div>
+    </section>
+  </div>
+
+  <script is:inline define:vars={{ questions, results, resultKeys }}>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const intro = $('mc-intro'), quiz = $('mc-quiz'), result = $('mc-result');
+      let step = 0;
+      const picks = new Array(questions.length).fill(null); // 각 문항에서 고른 tags
+
+      const show = (el) => { el.hidden = false; };
+      const hide = (el) => { el.hidden = true; };
+
+      function renderStep() {
+        const q = questions[step];
+        $('mc-bar').style.width = ((step) / questions.length * 100) + '%';
+        $('mc-step').textContent = (step + 1) + ' / ' + questions.length;
+        $('mc-question').textContent = q.text;
+        $('mc-back').style.visibility = step === 0 ? 'hidden' : 'visible';
+        const wrap = $('mc-options');
+        wrap.innerHTML = '';
+        q.options.forEach((o, i) => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'mc-opt' + (picks[step] === i ? ' is-sel' : '');
+          b.textContent = o.label;
+          b.addEventListener('click', () => {
+            picks[step] = i;
+            if (step < questions.length - 1) { step++; renderStep(); }
+            else finish();
+          });
+          wrap.appendChild(b);
+        });
+      }
+
+      function finish() {
+        $('mc-bar').style.width = '100%';
+        const tally = {};
+        resultKeys.forEach((k) => tally[k] = 0);
+        picks.forEach((pi, qi) => {
+          if (pi == null) return;
+          questions[qi].options[pi].tags.forEach((t) => { tally[t] = (tally[t] || 0) + 1; });
+        });
+        // 최다 득점(동점이면 resultKeys 순서가 빠른 쪽)
+        let best = resultKeys[0];
+        resultKeys.forEach((k) => { if (tally[k] > tally[best]) best = k; });
+        renderResult(best);
+        if (history.replaceState) history.replaceState(null, '', '#' + best);
+        else location.hash = best;
+      }
+
+      function renderResult(key) {
+        const r = results[key];
+        if (!r) return;
+        $('mc-emoji').textContent = r.emoji;
+        $('mc-name').textContent = r.name;
+        $('mc-quote').textContent = r.quote;
+        $('mc-desc').textContent = r.desc;
+        $('mc-rec').innerHTML = r.links
+          .map((l) => '<li><a href="' + l.href + '">' + l.label + ' →</a></li>').join('');
+        hide(intro); hide(quiz); show(result);
+        result.dataset.key = key;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      function startQuiz() {
+        step = 0; picks.fill(null);
+        hide(intro); hide(result); show(quiz);
+        renderStep();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      $('mc-start').addEventListener('click', startQuiz);
+      $('mc-again').addEventListener('click', () => {
+        if (history.replaceState) history.replaceState(null, '', location.pathname);
+        startQuiz();
+      });
+      $('mc-back').addEventListener('click', () => { if (step > 0) { step--; renderStep(); } });
+      $('mc-share').addEventListener('click', async () => {
+        const key = result.dataset.key;
+        const url = location.origin + location.pathname + '#' + key;
+        const text = '나의 머니 캐릭터는 "' + results[key].name + '"! 당신의 돈 캐릭터는?';
+        try {
+          if (navigator.share) { await navigator.share({ title: '나의 머니 캐릭터 테스트', text, url }); }
+          else { await navigator.clipboard.writeText(url); alert('결과 링크를 복사했어요!\n' + url); }
+        } catch (_) { /* 사용자가 취소 */ }
+      });
+
+      // 공유 링크로 들어오면(#key) 결과를 바로 보여준다
+      const h = (location.hash || '').replace('#', '');
+      if (results[h]) renderResult(h);
+    })();
+  </script>
+
+  <style>
+    .mc { max-width: 34rem; }
+    .mc-btn {
+      font: inherit; font-weight: 700; cursor: pointer; border: none; border-radius: 999px;
+      background: var(--ink); color: var(--paper); padding: 0.85rem 1.7rem; transition: filter .15s ease;
+    }
+    .mc-btn:hover { filter: brightness(1.15); }
+    .mc-btn--lg { width: 100%; padding: 1.05rem; font-size: 1.05rem; margin-top: 1.4rem; }
+    .mc-btn--ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+
+    /* 시작 */
+    .mc-intro { text-align: center; padding: 1.5rem 0 2rem; }
+    .mc-intro h1 { font-size: 1.9rem; line-height: 1.3; margin: 0.6rem 0 1rem; }
+    .mc-intro__lead { color: var(--muted); line-height: 1.65; }
+    .mc-intro__emojis { font-size: 2.2rem; letter-spacing: 0.3rem; margin: 1.8rem 0; }
+    .mc-note { color: var(--muted); font-size: 0.8rem; margin-top: 0.9rem; opacity: 0.8; }
+
+    /* 질문 */
+    .mc-top { display: flex; align-items: center; gap: 0.8rem; margin: 0.5rem 0 1.6rem; }
+    .mc-back {
+      font-size: 1.5rem; line-height: 1; background: none; border: none; cursor: pointer;
+      color: var(--ink); padding: 0 0.2rem; flex: none;
+    }
+    .mc-progress { flex: 1; height: 6px; background: var(--paper-2); border-radius: 999px; overflow: hidden; }
+    .mc-progress__bar { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 999px; transition: width .3s ease; }
+    .mc-step { color: var(--muted); font-size: 0.85rem; font-weight: 600; margin: 0 0 0.5rem; }
+    .mc-question { font-size: 1.45rem; line-height: 1.35; margin: 0 0 1.6rem; }
+    .mc-options { display: flex; flex-direction: column; gap: 0.7rem; }
+    .mc-opt {
+      font: inherit; text-align: left; cursor: pointer; color: var(--ink);
+      background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 1rem 1.2rem; transition: border-color .15s ease, background .15s ease, transform .05s ease;
+    }
+    .mc-opt:hover { border-color: var(--accent); background: var(--paper-2); }
+    .mc-opt:active { transform: scale(0.99); }
+    .mc-opt.is-sel { border-color: var(--accent); background: var(--paper-2); }
+
+    /* 결과 */
+    .mc-card {
+      text-align: center; border: 1px solid var(--line); border-radius: 1.2rem;
+      background: linear-gradient(180deg, var(--paper-2), var(--paper));
+      padding: 2.2rem 1.6rem; margin-bottom: 1.6rem;
+    }
+    .mc-card__eyebrow { font-family: var(--font-sans); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.1em; color: var(--accent); text-transform: uppercase; }
+    .mc-card__emoji { font-size: 4.5rem; line-height: 1; margin: 0.8rem 0 0.4rem; }
+    .mc-card__name { font-size: 2rem; margin: 0.2rem 0 0.6rem; }
+    .mc-card__quote { font-family: var(--font-serif); font-style: italic; font-size: 1.15rem; color: var(--ink); margin: 0 0 1rem; }
+    .mc-card__desc { color: var(--ink-soft); line-height: 1.7; text-align: left; }
+    .mc-rec-title { margin: 0 0 0.4rem; }
+    .mc-rec { list-style: none; padding: 0; margin: 0 0 1.6rem; }
+    .mc-rec li { padding: 0.55rem 0; border-bottom: 1px solid var(--line); }
+    .mc-rec a { color: var(--accent); font-weight: 600; }
+    .mc-actions { display: flex; gap: 0.7rem; flex-wrap: wrap; }
+    .mc-actions .mc-btn { flex: 1; min-width: 9rem; }
+
+    @media (max-width: 480px) {
+      .mc-intro h1 { font-size: 1.65rem; }
+      .mc-question { font-size: 1.3rem; }
+      .mc-card__name { font-size: 1.7rem; }
+    }
+  </style>
+</BaseLayout>

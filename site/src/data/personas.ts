@@ -1,6 +1,8 @@
 // 칼럼니스트 페르소나 — 칼럼(format: 'column') 글의 바이라인.
 // AuthorBox가 글의 author 이름으로 이 목록을 조회해 프로필을 렌더한다.
 // 정보성(가이드) 글은 'Crama 편집부'를 그대로 사용한다.
+import type { CategorySlug } from '../consts';
+
 export type Persona = {
   name: string;
   beat: string; // 담당 분야
@@ -48,6 +50,36 @@ export const PERSONAS: Record<string, Persona> = {
   },
 };
 
+// 카테고리별 기본 칼럼니스트 — 칼럼인데 작성자가 지정되지 않았거나
+// 알 수 없는 이름일 때 이 페르소나로 안전하게 대체한다(빈틈 방지).
+export const CATEGORY_DEFAULT_PERSONA: Record<CategorySlug, string> = {
+  money: '윤재호',
+  ai: '이도경',
+  income: '박서영',
+};
+
 export function getPersona(name?: string): Persona | undefined {
   return name ? PERSONAS[name] : undefined;
+}
+
+// 글의 실제 표시 작성자 이름을 결정한다.
+// - 정보성(가이드): 지정된 author(보통 'Crama 편집부')를 그대로 사용
+// - 칼럼: 지정된 author가 등록된 페르소나면 그대로, 아니면 카테고리 기본 칼럼니스트로 대체
+//   → 새 분야 글에서 배정을 깜빡해도 항상 일관된 칼럼니스트 바이라인이 보장된다.
+export function resolveAuthorName(
+  author: string | undefined,
+  category: CategorySlug,
+  isColumn: boolean,
+): string {
+  if (!isColumn) return author || 'Crama 편집부';
+  if (author && PERSONAS[author]) return author;
+  return CATEGORY_DEFAULT_PERSONA[category];
+}
+
+// 표시용 바이라인 — 칼럼니스트 페르소나는 'Crama 편집부 · 이름'으로,
+// 책임 주체(편집부)를 앞세워 신뢰(E-E-A-T)를 브랜드에 귀속시킨다.
+// 정보성 글(편집부 등)은 이름을 그대로 반환.
+export function bylineLabel(name?: string): string {
+  const p = getPersona(name);
+  return p ? `Crama 편집부 · ${p.name}` : (name ?? '');
 }

@@ -10,9 +10,19 @@ const ICON = {
   follow: `<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/></svg>`,
   close: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>`,
   next: `<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M5 5v14l9-7z"/><rect x="15.5" y="5" width="2.8" height="14" rx="0.8"/></svg>`,
+  chevUp: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg>`,
 };
 ---
 <div class="aplayer" data-listen hidden>
+  <button class="aplayer__cta" type="button" data-play-cta aria-label="오디오로 듣기">
+    <span class="aplayer__cta-ic" aria-hidden="true">🎧</span>
+    <span class="aplayer__cta-tx">
+      <strong>오디오로 듣기</strong>
+      <small data-cta-sub>AI 음성으로 이 글을 들어보세요</small>
+    </span>
+    <span class="aplayer__cta-play" aria-hidden="true" set:html={ICON.play}></span>
+  </button>
+
   <div class="aplayer__top">
     <span class="aplayer__brand"><span class="aplayer__brandicon" aria-hidden="true">🎧</span> 오디오로 듣기</span>
     <div class="aplayer__opts">
@@ -48,17 +58,39 @@ const ICON = {
   <div class="aminibar__track" data-mini-bar role="slider" aria-label="재생 위치" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
     <div class="aminibar__trackfill" data-mini-fill></div>
   </div>
-  <div class="aminibar__inner">
-    <div class="aminibar__grp">
-      <button class="aminibar__btn" type="button" data-mini-back aria-label="15초 뒤로"><span class="ic" aria-hidden="true" set:html={ICON.back}></span></button>
-      <button class="aminibar__btn aminibar__btn--play" type="button" data-mini-play aria-label="재생/일시정지"><span class="ic" data-mini-icon aria-hidden="true" set:html={ICON.play}></span></button>
-      <button class="aminibar__btn" type="button" data-mini-fwd aria-label="15초 앞으로"><span class="ic" aria-hidden="true" set:html={ICON.fwd}></span></button>
+
+  <!-- 모바일 전용: 위로 펼치는 상세 설정 패널 -->
+  <div class="aminibar__panel" data-mini-panel>
+    <div class="aprow">
+      <span class="aprow__label">재생 속도</span>
+      <button class="aprow__chip" type="button" data-panel-rate>1.0×</button>
     </div>
+    <div class="aprow" data-panel-voice-row hidden>
+      <span class="aprow__label">음성 모델</span>
+      <button class="aprow__chip" type="button" data-panel-voice>기본</button>
+    </div>
+    <div class="aprow">
+      <span class="aprow__label">따라가기<small>읽는 위치로 자동 스크롤</small></span>
+      <button class="aprow__sw" type="button" data-panel-follow aria-pressed="true" aria-label="따라가기 켜기/끄기"></button>
+    </div>
+    <div class="aprow">
+      <span class="aprow__label">이어 듣기<small>끝나면 다음 글을 이어서 재생</small></span>
+      <button class="aprow__sw" type="button" data-panel-autonext aria-pressed="false" aria-label="이어 듣기 켜기/끄기"></button>
+    </div>
+  </div>
+
+  <div class="aminibar__inner">
+    <button class="aminibar__btn aminibar__expand" type="button" data-mini-expand aria-expanded="false" aria-label="설정 펼치기"><span class="ic" aria-hidden="true" set:html={ICON.chevUp}></span></button>
     <div class="aminibar__txt">
       <strong data-mini-status>재생 중</strong>
       <span data-mini-time>0:00 / 0:00</span>
     </div>
-    <div class="aminibar__grp">
+    <div class="aminibar__transport">
+      <button class="aminibar__btn" type="button" data-mini-back aria-label="15초 뒤로"><span class="ic" aria-hidden="true" set:html={ICON.back}></span></button>
+      <button class="aminibar__btn aminibar__btn--play" type="button" data-mini-play aria-label="재생/일시정지"><span class="ic" data-mini-icon aria-hidden="true" set:html={ICON.play}></span></button>
+      <button class="aminibar__btn" type="button" data-mini-fwd aria-label="15초 앞으로"><span class="ic" aria-hidden="true" set:html={ICON.fwd}></span></button>
+    </div>
+    <div class="aminibar__trail">
       <button class="aminibar__chip" type="button" data-mini-rate aria-label="재생 속도">1.0×</button>
       <button class="aminibar__btn aminibar__btn--voice" type="button" data-mini-voice aria-label="음성 변경" title="음성 변경" hidden><span class="ic" aria-hidden="true" set:html={ICON.voice}></span></button>
       <button class="aminibar__follow" type="button" data-follow aria-pressed="true" aria-label="따라가기" title="읽는 위치로 자동 스크롤"><span class="ic" aria-hidden="true" set:html={ICON.follow}></span><span class="aminibar__followlabel" data-follow-label>따라가기</span></button>
@@ -78,6 +110,28 @@ const ICON = {
     box-shadow: 0 1px 2px rgba(0,0,0,0.04);
   }
   .aplayer[hidden] { display: none; }
+
+  /* 진입 유도 CTA(아직 재생 전) */
+  .aplayer__cta {
+    display: flex; align-items: center; gap: 0.85rem; width: 100%;
+    background: none; border: none; cursor: pointer; text-align: left; padding: 0.15rem 0.2rem; color: var(--ink);
+  }
+  .aplayer.is-active .aplayer__cta { display: none; }
+  .aplayer:not(.is-active) .aplayer__top,
+  .aplayer:not(.is-active) .aplayer__main { display: none; }
+  .aplayer__cta-ic {
+    font-size: 1.45rem; width: 2.9rem; height: 2.9rem; flex: none; border-radius: 12px;
+    background: var(--paper); border: 1px solid var(--line); display: grid; place-items: center;
+  }
+  .aplayer__cta-tx { display: flex; flex-direction: column; gap: 0.12rem; flex: 1; min-width: 0; }
+  .aplayer__cta-tx strong { font-size: 1.02rem; font-weight: 700; line-height: 1.2; }
+  .aplayer__cta-tx small { font-size: 0.83rem; color: var(--muted); }
+  .aplayer__cta-play {
+    width: 2.9rem; height: 2.9rem; flex: none; border-radius: 999px; background: var(--accent); color: #fff;
+    display: grid; place-items: center; box-shadow: 0 4px 12px -4px var(--accent); transition: filter .12s ease, transform .12s ease;
+  }
+  .aplayer__cta:hover .aplayer__cta-play { filter: brightness(1.06); }
+  .aplayer__cta:active .aplayer__cta-play { transform: scale(0.94); }
 
   .aplayer__top { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; margin-bottom: 0.85rem; }
   .aplayer__brand { font-size: 0.82rem; font-weight: 700; letter-spacing: 0.02em; color: var(--ink); display: inline-flex; align-items: center; gap: 0.35rem; }
@@ -178,7 +232,35 @@ const ICON = {
   .aminibar__trackfill { height: 100%; width: 0%; background: var(--accent); }
 
   .aminibar__inner { display: flex; align-items: center; gap: 0.5rem; }
-  .aminibar__grp { display: flex; align-items: center; gap: 0.25rem; flex: none; }
+  .aminibar__transport, .aminibar__trail { display: flex; align-items: center; gap: 0.25rem; flex: none; }
+  .aminibar__transport { order: 0; }
+  .aminibar__txt { order: 1; }
+  .aminibar__trail { order: 2; }
+  .aminibar__expand { order: -1; display: none; } /* 데스크톱: 숨김(모든 컨트롤 인라인 노출) */
+  .aminibar__expand .ic { transition: transform .2s ease; }
+  .aminibar.is-expanded .aminibar__expand .ic { transform: rotate(180deg); }
+
+  /* 상세 설정 패널(모바일에서 위로 펼침) */
+  .aminibar__panel { display: none; }
+  .aprow { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.65rem 0.2rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .aprow__label { font-size: 0.92rem; font-weight: 600; display: flex; flex-direction: column; gap: 0.1rem; }
+  .aprow__label small { font-size: 0.72rem; opacity: 0.6; font-weight: 400; }
+  .aprow__chip {
+    border: none; background: rgba(255,255,255,0.16); color: var(--paper);
+    border-radius: 999px; padding: 0.45rem 1.05rem; font-size: 0.85rem; font-weight: 700;
+    cursor: pointer; font-variant-numeric: tabular-nums; flex: none;
+  }
+  .aprow__chip:hover { background: rgba(255,255,255,0.26); }
+  .aprow__sw {
+    width: 3rem; height: 1.7rem; border-radius: 999px; border: none; flex: none; position: relative;
+    background: rgba(255,255,255,0.22); cursor: pointer; transition: background .15s ease;
+  }
+  .aprow__sw::after {
+    content: ''; position: absolute; top: 0.2rem; left: 0.2rem; width: 1.3rem; height: 1.3rem;
+    border-radius: 999px; background: #fff; transition: transform .18s ease;
+  }
+  .aprow__sw[aria-pressed="true"] { background: var(--accent); }
+  .aprow__sw[aria-pressed="true"]::after { transform: translateX(1.3rem); }
 
   /* 공통 아이콘 버튼 */
   .aminibar__btn {
@@ -234,7 +316,7 @@ const ICON = {
   .atoast[hidden] { display: none; }
   .atoast.is-show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-  /* 모바일: 풀폭 바텀바 + 정보/라벨 숨김 */
+  /* 모바일: 풀폭 바텀바 + 재생 컨트롤 가운데 + 설정은 펼침 패널로 */
   @media (max-width: 640px) {
     .aminibar {
       left: 0; right: 0; bottom: 0; transform: none; width: auto;
@@ -243,12 +325,28 @@ const ICON = {
       padding: 0.45rem 0 max(0.45rem, env(safe-area-inset-bottom));
     }
     .aminibar__track { border-radius: 0; }
-    .aminibar__inner { padding-inline: 0.8rem; justify-content: space-between; gap: 0.3rem; }
-    .aminibar__txt, .aminibar__followlabel { display: none; }
-    .aminibar__btn { min-width: 2.5rem; height: 2.5rem; padding: 0 0.4rem; }
-    .aminibar__btn--play { width: 2.9rem; height: 2.9rem; min-width: 2.9rem; }
-    .aminibar__chip { min-width: 2.8rem; padding: 0 0.6rem; height: 2.5rem; }
-    .aminibar__follow { height: 2.5rem; padding: 0 0.55rem; }
+    .aminibar__inner { padding-inline: 0.7rem; justify-content: space-between; gap: 0.3rem; }
+    .aminibar__txt { display: none; }
+    /* 펼침 버튼 노출, 재생 컨트롤 가운데, 닫기 우측 */
+    .aminibar__expand { display: inline-flex; order: 0; }
+    .aminibar__transport { order: 1; }
+    .aminibar__trail { order: 2; }
+    /* 인라인 상세설정은 숨기고 패널로 이동(닫기만 유지) */
+    .aminibar__trail .aminibar__chip,
+    .aminibar__trail .aminibar__btn--voice,
+    .aminibar__trail .aminibar__follow,
+    .aminibar__trail .aminibar__btn--toggle { display: none; }
+    .aminibar__btn { min-width: 2.6rem; height: 2.6rem; padding: 0 0.4rem; }
+    .aminibar__btn--play { width: 3rem; height: 3rem; min-width: 3rem; }
+
+    /* 설정 패널 펼침 */
+    .aminibar__panel {
+      display: block; max-height: 0; overflow: hidden;
+      padding: 0 0.6rem; transition: max-height .25s ease;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .aminibar.is-expanded .aminibar__panel { max-height: 18rem; }
+    .aprow:last-child { border-bottom: none; }
     .atoast { bottom: 4.8rem; }
   }
   @media (prefers-reduced-motion: no-preference) {
@@ -299,6 +397,13 @@ const ICON = {
     const miniFwd = mini.querySelector('[data-mini-fwd]');
     const miniRate = mini.querySelector('[data-mini-rate]');
     const miniVoice = mini.querySelector('[data-mini-voice]');
+    const miniExpand = mini.querySelector('[data-mini-expand]');
+    const panelRate = mini.querySelector('[data-panel-rate]');
+    const panelVoice = mini.querySelector('[data-panel-voice]');
+    const panelVoiceRow = mini.querySelector('[data-panel-voice-row]');
+    const panelFollow = mini.querySelector('[data-panel-follow]');
+    const panelAuto = mini.querySelector('[data-panel-autonext]');
+    const ctaBtn = root.querySelector('[data-play-cta]');
 
     const CPS = 5.2; // 한국어 TTS 대략 초당 글자수(1배속) — 시간 추정용
     const SKIP_SEC = 15;
@@ -449,11 +554,14 @@ const ICON = {
         if (v.name === selectedVoiceName) o.selected = true;
         voiceSel.appendChild(o);
       });
+      const curV = list.find((v) => v.name === selectedVoiceName);
+      const curLabel = curV ? curV.name.replace(/^(Google|Microsoft)\s*/i, '') : '기본';
       if (miniVoice) {
         miniVoice.hidden = list.length <= 1;
-        const curV = list.find((v) => v.name === selectedVoiceName);
-        if (curV) miniVoice.title = '음성: ' + curV.name.replace(/^(Google|Microsoft)\s*/i, '');
+        if (curV) miniVoice.title = '음성: ' + curLabel;
       }
+      if (panelVoiceRow) panelVoiceRow.hidden = list.length <= 1;
+      if (panelVoice) panelVoice.textContent = curLabel;
     }
 
     function setState(next) {
@@ -463,6 +571,7 @@ const ICON = {
       if (miniIcon) miniIcon.innerHTML = playing ? ICON_PAUSE : ICON_PLAY;
       playBtn.setAttribute('aria-label', playing ? '일시정지' : '재생');
       mini.hidden = state === 'idle';
+      root.classList.toggle('is-active', state !== 'idle');
       try { document.body.classList.toggle('audio-active', state !== 'idle'); } catch (e) {}
       if (state === 'playing') { setStatus('재생 중…'); miniStatus.textContent = '재생 중'; }
       else if (state === 'paused') { setStatus('일시정지'); miniStatus.textContent = '일시정지'; }
@@ -572,25 +681,35 @@ const ICON = {
     }
     playBtn.addEventListener('click', togglePlay);
     miniPlay.addEventListener('click', togglePlay);
+    ctaBtn && ctaBtn.addEventListener('click', togglePlay);
     miniStop.addEventListener('click', () => stop(true));
+    miniExpand && miniExpand.addEventListener('click', () => {
+      const open = mini.classList.toggle('is-expanded');
+      miniExpand.setAttribute('aria-expanded', String(open));
+    });
 
     function renderFollow() {
       followBtn.setAttribute('aria-pressed', String(followEnabled));
+      if (panelFollow) panelFollow.setAttribute('aria-pressed', String(followEnabled));
       followLabel.textContent = '따라가기';
       followBtn.title = followEnabled ? '읽는 위치로 자동 스크롤 (켜짐)' : '자동 스크롤 꺼짐 — 화면이 안 움직여요';
     }
     renderFollow();
-    followBtn.addEventListener('click', () => {
+    function toggleFollow() {
       followEnabled = !followEnabled;
       renderFollow();
+      toast(followEnabled ? '따라가기 켜짐' : '따라가기 꺼짐');
       if (followEnabled && curEl) scrollIfNeeded(curEl); // 다시 켜면 현재 위치로 복귀
-    });
+    }
+    followBtn.addEventListener('click', toggleFollow);
+    panelFollow && panelFollow.addEventListener('click', toggleFollow);
     backBtn.addEventListener('click', () => skipBySeconds(-SKIP_SEC));
     fwdBtn.addEventListener('click', () => skipBySeconds(SKIP_SEC));
 
     function renderRate() {
       const t = (Number.isInteger(rate) ? rate.toFixed(1) : String(rate)) + '×';
       rateBtn.textContent = t; if (miniRate) miniRate.textContent = t;
+      if (panelRate) panelRate.textContent = t;
     }
     function cycleRate() {
       const cur = RATES.indexOf(rate);
@@ -604,6 +723,7 @@ const ICON = {
     renderRate();
     rateBtn.addEventListener('click', cycleRate);
     miniRate && miniRate.addEventListener('click', cycleRate);
+    panelRate && panelRate.addEventListener('click', cycleRate);
     miniBack && miniBack.addEventListener('click', () => skipBySeconds(-SKIP_SEC));
     miniFwd && miniFwd.addEventListener('click', () => skipBySeconds(SKIP_SEC));
 
@@ -613,7 +733,9 @@ const ICON = {
     }
     voiceSel.addEventListener('change', () => {
       selectedVoiceName = voiceSel.value;
-      toast('음성: ' + (voiceSel.selectedOptions[0] ? voiceSel.selectedOptions[0].textContent : selectedVoiceName));
+      const label = voiceSel.selectedOptions[0] ? voiceSel.selectedOptions[0].textContent : selectedVoiceName;
+      if (panelVoice) panelVoice.textContent = label;
+      toast('음성: ' + label);
       applyVoice();
     });
     function cycleVoice() {
@@ -624,14 +746,17 @@ const ICON = {
       selectedVoiceName = opts[i].value;
       voiceSel.value = selectedVoiceName;
       if (miniVoice) miniVoice.title = '음성: ' + opts[i].textContent;
+      if (panelVoice) panelVoice.textContent = opts[i].textContent;
       toast('음성: ' + opts[i].textContent);
       applyVoice();
     }
     miniVoice && miniVoice.addEventListener('click', cycleVoice);
+    panelVoice && panelVoice.addEventListener('click', cycleVoice);
 
     function renderAuto() {
       if (autoBtn) autoBtn.setAttribute('aria-pressed', String(autoNext));
       if (miniAuto) miniAuto.setAttribute('aria-pressed', String(autoNext));
+      if (panelAuto) panelAuto.setAttribute('aria-pressed', String(autoNext));
     }
     renderAuto();
     function toggleAuto() {
@@ -641,6 +766,7 @@ const ICON = {
     }
     autoBtn && autoBtn.addEventListener('click', toggleAuto);
     miniAuto && miniAuto.addEventListener('click', toggleAuto);
+    panelAuto && panelAuto.addEventListener('click', toggleAuto);
 
     // 진행바 탐색(클릭/드래그) — 메인·미니 공용
     function seekFrom(clientX, el) {
@@ -669,6 +795,13 @@ const ICON = {
     populateVoices();
     synth.addEventListener?.('voiceschanged', populateVoices);
     updateUI();
+
+    // CTA 부제: 예상 청취 시간 안내
+    const ctaSub = root.querySelector('[data-cta-sub]');
+    if (ctaSub && totalChars) {
+      const estMin = Math.max(1, Math.round(totalChars / (CPS * 60)));
+      ctaSub.textContent = '약 ' + estMin + '분 · AI 음성으로 들어보세요';
+    }
 
     // 이전 글에서 '연속재생'으로 넘어온 경우 자동 시작(데스크톱). 모바일은 정책상 막히면 재생 버튼 한 번.
     try {

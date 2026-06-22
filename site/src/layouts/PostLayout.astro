@@ -14,6 +14,7 @@ import GlossaryTooltips from '../components/GlossaryTooltips.astro';
 import TagList from '../components/TagList.astro';
 import AuthorBox from '../components/AuthorBox.astro';
 import { SITE, CATEGORIES, type CategorySlug } from '../consts';
+import { bylineLabel, resolveAuthorName } from '../data/personas';
 
 interface RelatedPost {
   href: string;
@@ -31,6 +32,7 @@ interface Props {
   updatedDate?: Date;
   category: CategorySlug;
   author: string;
+  format?: 'guide' | 'column';
   heroImage?: string;
   readingTime?: number;
   premium?: boolean;
@@ -40,11 +42,14 @@ interface Props {
   guide?: { title: string; href: string };
 }
 const {
-  title, description, pubDate, updatedDate, category, author, heroImage,
+  title, description, pubDate, updatedDate, category, author, format = 'guide', heroImage,
   readingTime, premium = false, tags = [], headings = [], related = [], guide,
 } = Astro.props;
 
 const cat = CATEGORIES[category];
+// 칼럼이면 작성자를 페르소나로 안전 해석(미지정·미등록 시 카테고리 기본 칼럼니스트로 대체)
+const resolvedAuthor = resolveAuthorName(author, category, format === 'column');
+const byline = bylineLabel(resolvedAuthor);
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Article',
@@ -52,7 +57,7 @@ const jsonLd = {
   description,
   datePublished: pubDate.toISOString(),
   dateModified: (updatedDate ?? pubDate).toISOString(),
-  author: { '@type': 'Organization', name: author },
+  author: { '@type': 'Organization', name: byline },
   publisher: { '@type': 'Organization', name: SITE.name },
   articleSection: cat.name,
   ...(heroImage ? { image: new URL(heroImage, SITE.url).href } : {}),
@@ -77,7 +82,7 @@ const jsonLd = {
       <h1>{title}{premium && <span class="premium-tag">멤버십</span>}</h1>
       <p class="dek">{description}</p>
       <div class="article-meta">
-        <span>{author}</span>
+        <span>{byline}</span>
         <span aria-hidden="true">·</span>
         <FormattedDate date={pubDate} />
         {readingTime && (<><span aria-hidden="true">·</span><span>{readingTime}분 읽기</span></>)}
@@ -112,7 +117,7 @@ const jsonLd = {
       <div class="measure article-footer">
         <TagList tags={tags} />
         <ShareButtons title={title} />
-        <AuthorBox author={author} />
+        <AuthorBox author={resolvedAuthor} />
       </div>
     )}
 

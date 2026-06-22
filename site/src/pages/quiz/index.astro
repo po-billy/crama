@@ -1,0 +1,57 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const quizzes = [
+  {
+    emoji: '🐢',
+    title: '나의 머니 캐릭터 테스트',
+    desc: '6가지 질문으로 내 돈 성향을 캐릭터로 진단하고, 딱 맞는 글을 추천받아요.',
+    href: '/quiz/money-character/',
+    cta: '캐릭터 찾기',
+  },
+  {
+    emoji: '📈',
+    title: '투자 성향 진단',
+    desc: '5가지 질문으로 나의 위험 감수 성향과 그에 맞는 투자법을 알아봐요.',
+    href: '/quiz/investor-type/',
+    cta: '진단 시작',
+  },
+];
+---
+<BaseLayout title="성향 테스트 · 진단" description="돈과 투자에 대한 나의 성향을 알아보는 간단한 테스트 모음. 결과에 맞는 재테크 글까지 추천받아 보세요.">
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">Quiz</span>
+      <h1>성향 테스트 · 진단</h1>
+      <p>질문 몇 개로 나의 돈·투자 성향을 알아보고, 결과에 맞는 글을 추천받아 보세요.</p>
+    </header>
+
+    <div class="quiz-list">
+      {quizzes.map((q) => (
+        <a class="quiz-tile" href={q.href}>
+          <span class="quiz-tile__emoji" aria-hidden="true">{q.emoji}</span>
+          <span class="quiz-tile__body">
+            <h2 class="quiz-tile__title">{q.title}</h2>
+            <p class="quiz-tile__desc">{q.desc}</p>
+            <span class="quiz-tile__cta">{q.cta} →</span>
+          </span>
+        </a>
+      ))}
+    </div>
+  </div>
+
+  <style>
+    .quiz-list { display: grid; gap: 1.1rem; max-width: 40rem; }
+    .quiz-tile {
+      display: flex; gap: 1.1rem; align-items: center;
+      border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper-2);
+      padding: 1.3rem 1.4rem; transition: border-color .15s ease, transform .05s ease;
+    }
+    .quiz-tile:hover { border-color: var(--accent); }
+    .quiz-tile:active { transform: scale(0.995); }
+    .quiz-tile__emoji { font-size: 2.6rem; line-height: 1; flex: none; }
+    .quiz-tile__title { font-size: 1.25rem; margin: 0 0 0.3rem; }
+    .quiz-tile__desc { color: var(--muted); line-height: 1.55; margin: 0 0 0.5rem; font-size: 0.95rem; }
+    .quiz-tile__cta { color: var(--accent); font-weight: 600; font-size: 0.92rem; }
+  </style>
+</BaseLayout>

@@ -1,0 +1,47 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="예금 이자(세후) 계산기" description="예치금·금리·기간으로 단리 예금의 세전·세후 이자와 만기 수령액을 계산합니다.">
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">계산기</span>
+      <h1>예금 이자(세후) 계산기</h1>
+      <p>목돈을 한 번에 맡기는 예금의 세후 이자와 만기 금액을 확인해 보세요.</p>
+    </header>
+    <div class="calc">
+      <div class="calc__inputs">
+        <div class="calc__field"><label for="dp-principal">예치금 (만원)</label><input id="dp-principal" type="number" value="1000" step="100" min="0" /></div>
+        <div class="calc__field"><label for="dp-rate">연 이율 (%)</label><input id="dp-rate" type="number" value="3.5" step="0.1" min="0" /></div>
+        <div class="calc__field"><label for="dp-months">예치 기간 (개월)</label><input id="dp-months" type="number" value="12" step="1" min="1" /></div>
+      </div>
+      <div class="calc__result">
+        <div class="calc__result-label">만기 수령액 (세후)</div>
+        <div class="calc__result-main" id="dp-total">-</div>
+        <div class="calc__row"><span>세전 이자</span><strong id="dp-gross">-</strong></div>
+        <div class="calc__row"><span>이자 과세 (15.4%)</span><strong id="dp-tax">-</strong></div>
+        <div class="calc__row"><span>세후 이자</span><strong id="dp-net">-</strong></div>
+      </div>
+    </div>
+    <p class="calc__note measure">* 단리 기준(이자 = 원금 × 연이율 × 기간/12)이며 이자소득세 15.4%(소득세 14% + 지방소득세 1.4%)를 적용했습니다. 매월 적립하는 적금은 <a href="/tools/savings-calculator/">적금·예금 계산기</a>를 이용하세요.</p>
+  </div>
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const won = (man) => Math.round(man).toLocaleString('ko-KR') + '만원';
+      const calc = () => {
+        const p = (+$('dp-principal').value || 0) * 10000;
+        const rate = (+$('dp-rate').value || 0) / 100;
+        const months = +$('dp-months').value || 0;
+        const gross = p * rate * (months / 12);
+        const tax = gross * 0.154;
+        const net = gross - tax;
+        $('dp-gross').textContent = won(gross / 10000);
+        $('dp-tax').textContent = won(tax / 10000);
+        $('dp-net').textContent = won(net / 10000);
+        $('dp-total').textContent = p > 0 ? won((p + net) / 10000) : '-';
+      };
+      ['dp-principal', 'dp-rate', 'dp-months'].forEach((id) => $(id).addEventListener('input', calc));
+      calc();
+    })();
+  </script>
+</BaseLayout>

@@ -1,0 +1,40 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="전월세 전환 계산기" description="전환율을 기준으로 보증금을 월세로, 월세를 보증금으로 환산합니다.">
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">계산기</span>
+      <h1>전월세 전환 계산기</h1>
+      <p>전월세 전환율로 보증금↔월세를 서로 환산해 보세요.</p>
+    </header>
+    <div class="calc">
+      <div class="calc__inputs">
+        <div class="calc__field"><label for="j-rate">전월세 전환율 (%)</label><input id="j-rate" type="number" value="5.5" step="0.1" min="0" /></div>
+        <div class="calc__field"><label for="j-deposit">전환할 보증금 (만원)</label><input id="j-deposit" type="number" value="10000" step="500" min="0" /></div>
+        <div class="calc__field"><label for="j-wolse">또는 월세 (만원)</label><input id="j-wolse" type="number" value="" step="5" min="0" placeholder="월세→보증금 환산 시 입력" /></div>
+      </div>
+      <div class="calc__result">
+        <div class="calc__result-label">보증금 → 월세</div>
+        <div class="calc__result-main" id="j-to-wolse">-</div>
+        <div class="calc__row"><span>월세 → 환산 보증금</span><strong id="j-to-deposit">-</strong></div>
+      </div>
+    </div>
+    <p class="calc__note measure">* 월세 = 보증금 × 전환율 ÷ 12, 보증금 = 월세 × 12 ÷ 전환율. 전월세 전환율은 지역·시기에 따라 다르며 법정 상한이 적용될 수 있습니다(참고용 계산).</p>
+  </div>
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const won = (man) => Math.round(man).toLocaleString('ko-KR') + '만원';
+      const calc = () => {
+        const rate = (+$('j-rate').value || 0) / 100;
+        const deposit = +$('j-deposit').value || 0;
+        const wolse = +$('j-wolse').value || 0;
+        $('j-to-wolse').textContent = deposit > 0 && rate > 0 ? won(deposit * rate / 12) : '-';
+        $('j-to-deposit').textContent = wolse > 0 && rate > 0 ? won(wolse * 12 / rate) : '-';
+      };
+      ['j-rate', 'j-deposit', 'j-wolse'].forEach((id) => $(id).addEventListener('input', calc));
+      calc();
+    })();
+  </script>
+</BaseLayout>

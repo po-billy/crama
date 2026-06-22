@@ -1,0 +1,41 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="DSR 계산기" description="연소득과 연간 대출 원리금으로 총부채원리금상환비율(DSR)을 계산합니다.">
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">계산기</span>
+      <h1>DSR 계산기</h1>
+      <p>내 소득 대비 1년에 갚는 원리금 비율(DSR)을 확인해 보세요.</p>
+    </header>
+    <div class="calc">
+      <div class="calc__inputs">
+        <div class="calc__field"><label for="d-income">연 소득 (만원)</label><input id="d-income" type="number" value="5000" step="100" min="0" /></div>
+        <div class="calc__field"><label for="d-mortgage">주택담보대출 연 원리금 (만원)</label><input id="d-mortgage" type="number" value="1200" step="100" min="0" /></div>
+        <div class="calc__field"><label for="d-other">기타 대출 연 원리금 (만원)</label><input id="d-other" type="number" value="300" step="100" min="0" /></div>
+      </div>
+      <div class="calc__result">
+        <div class="calc__result-label">나의 DSR</div>
+        <div class="calc__result-main" id="d-dsr">-</div>
+        <div class="calc__row"><span>연간 총 원리금</span><strong id="d-total">-</strong></div>
+        <div class="calc__row"><span>판정</span><strong id="d-verdict">-</strong></div>
+      </div>
+    </div>
+    <p class="calc__note measure">* DSR = (연간 대출 원리금 상환액 합계 ÷ 연 소득) × 100. 통상 은행권 DSR 40% 규제가 적용되며(차주·대출 종류에 따라 상이), 비율이 낮을수록 추가 대출 여력이 큽니다. 대출 기초는 <a href="/blog/loan-basics-guide/">대출 가이드</a>를 참고하세요.</p>
+  </div>
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const calc = () => {
+        const income = (+$('d-income').value || 0);
+        const total = (+$('d-mortgage').value || 0) + (+$('d-other').value || 0);
+        const dsr = income > 0 ? (total / income) * 100 : 0;
+        $('d-total').textContent = total.toLocaleString('ko-KR') + '만원';
+        $('d-dsr').textContent = income > 0 ? dsr.toFixed(1) + '%' : '-';
+        $('d-verdict').textContent = income <= 0 ? '-' : dsr <= 40 ? '여유 (40% 이하)' : dsr <= 50 ? '주의 (40% 초과)' : '높음 (50% 초과)';
+      };
+      ['d-income', 'd-mortgage', 'd-other'].forEach((id) => $(id).addEventListener('input', calc));
+      calc();
+    })();
+  </script>
+</BaseLayout>

@@ -12,14 +12,27 @@ import { NOTICE } from '../consts';
 )}
 <script is:inline>
   (() => {
-    const el = document.getElementById('notice-banner');
-    if (!el) return;
-    const key = 'crama:notice:' + (el.dataset.key || '');
-    if (localStorage.getItem(key) === 'closed') return;
-    el.hidden = false;
-    document.getElementById('notice-close')?.addEventListener('click', () => {
-      el.hidden = true;
-      localStorage.setItem(key, 'closed');
-    });
+    const keyOf = (el) => 'crama:notice:' + (el.dataset.key || '');
+    function apply() {
+      const el = document.getElementById('notice-banner');
+      if (!el) return;
+      let closed = false;
+      try { closed = localStorage.getItem(keyOf(el)) === 'closed'; } catch (e) {}
+      el.hidden = closed;
+    }
+    if (!window.__noticeBound) {
+      window.__noticeBound = true;
+      // 닫기: 문서 위임 → SPA 전환으로 요소가 교체돼도 동작
+      document.addEventListener('click', (e) => {
+        const btn = e.target && e.target.closest ? e.target.closest('#notice-close') : null;
+        if (!btn) return;
+        const el = document.getElementById('notice-banner');
+        if (!el) return;
+        el.hidden = true;
+        try { localStorage.setItem(keyOf(el), 'closed'); } catch (e2) {}
+      });
+      document.addEventListener('astro:page-load', apply);
+    }
+    apply();
   })();
 </script>

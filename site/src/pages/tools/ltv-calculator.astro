@@ -1,0 +1,42 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="주택담보대출 한도(LTV) 계산기" description="주택가격과 LTV 비율로 담보대출 가능 금액을 계산합니다.">
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">계산기</span>
+      <h1>주담대 한도(LTV) 계산기</h1>
+      <p>주택가격과 LTV 비율로 대출 가능 금액을 가늠해 보세요.</p>
+    </header>
+    <div class="calc">
+      <div class="calc__inputs">
+        <div class="calc__field"><label for="l-price">주택 가격 (만원)</label><input id="l-price" type="number" value="50000" step="1000" min="0" /></div>
+        <div class="calc__field"><label for="l-ltv">LTV (%)</label><input id="l-ltv" type="number" value="70" step="1" min="0" max="100" /></div>
+        <div class="calc__field"><label for="l-existing">기존 대출 잔액 (만원)</label><input id="l-existing" type="number" value="0" step="500" min="0" /></div>
+      </div>
+      <div class="calc__result">
+        <div class="calc__result-label">대출 가능 금액(추정)</div>
+        <div class="calc__result-main" id="l-avail">-</div>
+        <div class="calc__row"><span>LTV 한도 총액</span><strong id="l-limit">-</strong></div>
+      </div>
+    </div>
+    <p class="calc__note measure">* 대출 가능액 = 주택가격 × LTV − 기존 대출 잔액. 실제 한도는 지역(규제지역 여부)·주택 수·소득(DSR) 등에 따라 더 제한될 수 있습니다. <a href="/tools/dsr-calculator/">DSR 계산기</a>도 함께 확인하세요.</p>
+  </div>
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const won = (man) => Math.round(man).toLocaleString('ko-KR') + '만원';
+      const calc = () => {
+        const price = +$('l-price').value || 0;
+        const ltv = (+$('l-ltv').value || 0) / 100;
+        const existing = +$('l-existing').value || 0;
+        const limit = price * ltv;
+        const avail = Math.max(0, limit - existing);
+        $('l-limit').textContent = price > 0 ? won(limit) : '-';
+        $('l-avail').textContent = price > 0 ? won(avail) : '-';
+      };
+      ['l-price', 'l-ltv', 'l-existing'].forEach((id) => $(id).addEventListener('input', calc));
+      calc();
+    })();
+  </script>
+</BaseLayout>

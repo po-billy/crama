@@ -1,0 +1,42 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="해외주식 양도소득세 계산기" description="해외주식 양도차익에서 기본공제 250만원을 빼고 양도소득세(22%)를 계산합니다.">
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">계산기</span>
+      <h1>해외주식 양도세 계산기</h1>
+      <p>해외주식 매매 차익에 붙는 양도소득세를 계산해 보세요.</p>
+    </header>
+    <div class="calc">
+      <div class="calc__inputs">
+        <div class="calc__field"><label for="o-profit">연간 양도차익 (만원)</label><input id="o-profit" type="number" value="1000" step="50" min="0" /></div>
+        <div class="calc__field"><label for="o-deduction">기본공제 (만원)</label><input id="o-deduction" type="number" value="250" step="10" min="0" /></div>
+      </div>
+      <div class="calc__result">
+        <div class="calc__result-label">예상 양도소득세</div>
+        <div class="calc__result-main" id="o-tax">-</div>
+        <div class="calc__row"><span>과세표준</span><strong id="o-base">-</strong></div>
+        <div class="calc__row"><span>세후 실현 차익</span><strong id="o-net">-</strong></div>
+      </div>
+    </div>
+    <p class="calc__note measure">* 해외주식 양도소득은 연 250만원 기본공제 후 22%(양도소득세 20% + 지방소득세 2%)가 과세되며, 다음 해 5월 확정신고 대상입니다. 손익은 연간 통산되고 종목별 손실과 상계됩니다(참고용 간이 계산).</p>
+  </div>
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const won = (man) => Math.round(man).toLocaleString('ko-KR') + '만원';
+      const calc = () => {
+        const profit = +$('o-profit').value || 0;
+        const ded = +$('o-deduction').value || 0;
+        const base = Math.max(0, profit - ded);
+        const tax = base * 0.22;
+        $('o-base').textContent = won(base);
+        $('o-tax').textContent = profit > 0 ? won(tax) : '-';
+        $('o-net').textContent = profit > 0 ? won(profit - tax) : '-';
+      };
+      ['o-profit', 'o-deduction'].forEach((id) => $(id).addEventListener('input', calc));
+      calc();
+    })();
+  </script>
+</BaseLayout>

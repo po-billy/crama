@@ -1,0 +1,43 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="노후자금 계산기" description="은퇴 후 월 생활비와 기간으로 필요한 노후 자금을 간단히 계산합니다.">
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">계산기</span>
+      <h1>노후자금 계산기</h1>
+      <p>은퇴 후 생활을 위해 얼마가 필요한지 가늠해 보세요.</p>
+    </header>
+    <div class="calc">
+      <div class="calc__inputs">
+        <div class="calc__field"><label for="r-spend">은퇴 후 월 생활비 (만원)</label><input id="r-spend" type="number" value="250" step="10" min="0" /></div>
+        <div class="calc__field"><label for="r-pension">예상 월 연금 수령 (만원)</label><input id="r-pension" type="number" value="80" step="10" min="0" /></div>
+        <div class="calc__field"><label for="r-years">은퇴 후 기간 (년)</label><input id="r-years" type="number" value="30" step="1" min="0" /></div>
+      </div>
+      <div class="calc__result">
+        <div class="calc__result-label">필요한 노후 자금</div>
+        <div class="calc__result-main" id="r-need">-</div>
+        <div class="calc__row"><span>매월 부족분(연금 제외)</span><strong id="r-gap">-</strong></div>
+        <div class="calc__row"><span>총 필요 생활비</span><strong id="r-total">-</strong></div>
+      </div>
+    </div>
+    <p class="calc__note measure">* 필요 노후자금 = (월 생활비 − 월 연금) × 12 × 기간으로 계산한 간이 추정이며, 물가상승·투자수익은 반영하지 않았습니다. 보다 보수적으로 보려면 <a href="/tools/inflation-calculator/">물가상승률 계산기</a>·<a href="/tools/fire-calculator/">FIRE 계산기</a>를 함께 쓰세요.</p>
+  </div>
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const won = (man) => Math.round(man).toLocaleString('ko-KR') + '만원';
+      const calc = () => {
+        const spend = +$('r-spend').value || 0;
+        const pension = +$('r-pension').value || 0;
+        const years = +$('r-years').value || 0;
+        const gap = Math.max(0, spend - pension);
+        $('r-gap').textContent = won(gap);
+        $('r-need').textContent = years > 0 ? won(gap * 12 * years) : '-';
+        $('r-total').textContent = years > 0 ? won(spend * 12 * years) : '-';
+      };
+      ['r-spend', 'r-pension', 'r-years'].forEach((id) => $(id).addEventListener('input', calc));
+      calc();
+    })();
+  </script>
+</BaseLayout>

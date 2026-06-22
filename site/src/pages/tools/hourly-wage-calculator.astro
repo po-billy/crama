@@ -1,0 +1,43 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="시급·주휴수당 계산기" description="시급과 주 근로시간으로 주휴수당과 예상 주급·월급을 계산합니다.">
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">계산기</span>
+      <h1>시급·주휴수당 계산기</h1>
+      <p>시급과 주 근로시간으로 주휴수당 포함 예상 급여를 계산해 보세요.</p>
+    </header>
+    <div class="calc">
+      <div class="calc__inputs">
+        <div class="calc__field"><label for="h-wage">시급 (원)</label><input id="h-wage" type="number" value="10030" step="10" min="0" /></div>
+        <div class="calc__field"><label for="h-hours">주 근로시간</label><input id="h-hours" type="number" value="40" step="1" min="0" max="68" /></div>
+      </div>
+      <div class="calc__result">
+        <div class="calc__result-label">예상 월급 (주휴 포함)</div>
+        <div class="calc__result-main" id="h-month">-</div>
+        <div class="calc__row"><span>주휴수당 (주)</span><strong id="h-weekly-holiday">-</strong></div>
+        <div class="calc__row"><span>예상 주급 (주휴 포함)</span><strong id="h-week">-</strong></div>
+      </div>
+    </div>
+    <p class="calc__note measure">* 주 소정근로시간이 15시간 이상이면 주휴수당이 발생합니다. 주휴수당 = (주 근로시간 ÷ 40) × 8 × 시급(주 40시간 기준 8시간분), 월급은 1개월 ≈ 4.345주로 환산한 추정입니다. 실제는 근로계약·근무형태에 따라 달라질 수 있습니다.</p>
+  </div>
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const won = (n) => Math.round(n).toLocaleString('ko-KR') + '원';
+      const calc = () => {
+        const wage = +$('h-wage').value || 0;
+        const hours = +$('h-hours').value || 0;
+        const holidayHours = hours >= 15 ? (Math.min(hours, 40) / 40) * 8 : 0;
+        const holidayPay = holidayHours * wage;
+        const week = hours * wage + holidayPay;
+        $('h-weekly-holiday').textContent = won(holidayPay);
+        $('h-week').textContent = won(week);
+        $('h-month').textContent = won(week * 4.345);
+      };
+      ['h-wage', 'h-hours'].forEach((id) => $(id).addEventListener('input', calc));
+      calc();
+    })();
+  </script>
+</BaseLayout>

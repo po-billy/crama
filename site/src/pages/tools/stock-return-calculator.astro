@@ -1,0 +1,49 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="주식 수익률 계산기" description="매수가·매도가·수량과 수수료·세금으로 실제 손익과 수익률을 계산합니다.">
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">계산기</span>
+      <h1>주식 수익률 계산기</h1>
+      <p>수수료·세금까지 반영한 실제 손익과 수익률을 확인해 보세요.</p>
+    </header>
+    <div class="calc">
+      <div class="calc__inputs">
+        <div class="calc__field"><label for="st-buy">매수가 (원)</label><input id="st-buy" type="number" value="50000" step="100" min="0" /></div>
+        <div class="calc__field"><label for="st-sell">매도가 (원)</label><input id="st-sell" type="number" value="55000" step="100" min="0" /></div>
+        <div class="calc__field"><label for="st-qty">수량 (주)</label><input id="st-qty" type="number" value="100" step="1" min="0" /></div>
+        <div class="calc__field"><label for="st-fee">매매 수수료 (%)</label><input id="st-fee" type="number" value="0.015" step="0.001" min="0" /></div>
+        <div class="calc__field"><label for="st-tax">매도 거래세 (%)</label><input id="st-tax" type="number" value="0.18" step="0.01" min="0" /></div>
+      </div>
+      <div class="calc__result">
+        <div class="calc__result-label">실현 손익 (세후)</div>
+        <div class="calc__result-main" id="st-pl">-</div>
+        <div class="calc__row"><span>수익률</span><strong id="st-rate">-</strong></div>
+        <div class="calc__row"><span>총 매수금액</span><strong id="st-buytotal">-</strong></div>
+        <div class="calc__row"><span>총 비용(수수료+세금)</span><strong id="st-cost">-</strong></div>
+      </div>
+    </div>
+    <p class="calc__note measure">* 매수금액 = 매수가 × 수량 × (1 + 수수료율), 매도금액 = 매도가 × 수량 × (1 − 수수료율 − 거래세율). 수수료·거래세율은 증권사·시장·연도에 따라 다르니 직접 입력하세요. 투자 심리는 <a href="/blog/investor-psychology-guide/">투자 심리 가이드</a>에서 다룹니다.</p>
+  </div>
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const won = (n) => Math.round(n).toLocaleString('ko-KR') + '원';
+      const calc = () => {
+        const buy = +$('st-buy').value || 0, sell = +$('st-sell').value || 0, qty = +$('st-qty').value || 0;
+        const fee = (+$('st-fee').value || 0) / 100, tax = (+$('st-tax').value || 0) / 100;
+        const buyTotal = buy * qty * (1 + fee);
+        const sellTotal = sell * qty * (1 - fee - tax);
+        const pl = sellTotal - buyTotal;
+        const cost = (buy * qty * fee) + (sell * qty * (fee + tax));
+        $('st-buytotal').textContent = won(buyTotal);
+        $('st-cost').textContent = won(cost);
+        $('st-pl').textContent = qty > 0 ? won(pl) : '-';
+        $('st-rate').textContent = buyTotal > 0 ? (pl / buyTotal * 100).toFixed(2) + '%' : '-';
+      };
+      ['st-buy', 'st-sell', 'st-qty', 'st-fee', 'st-tax'].forEach((id) => $(id).addEventListener('input', calc));
+      calc();
+    })();
+  </script>
+</BaseLayout>

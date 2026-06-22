@@ -1,0 +1,39 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="평수 변환기 (평 ↔ ㎡)" description="평과 제곱미터(㎡)를 서로 변환합니다.">
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">계산기</span>
+      <h1>평수 변환기 (평 ↔ ㎡)</h1>
+      <p>부동산 면적, 평과 제곱미터를 서로 바꿔 보세요.</p>
+    </header>
+    <div class="calc">
+      <div class="calc__inputs">
+        <div class="calc__field"><label for="p-pyeong">평</label><input id="p-pyeong" type="number" value="24" step="1" min="0" /></div>
+        <div class="calc__field"><label for="p-sqm">또는 제곱미터 (㎡)</label><input id="p-sqm" type="number" value="" step="1" min="0" placeholder="㎡→평 변환 시 입력" /></div>
+      </div>
+      <div class="calc__result">
+        <div class="calc__result-label">평 → ㎡</div>
+        <div class="calc__result-main" id="p-to-sqm">-</div>
+        <div class="calc__row"><span>㎡ → 평</span><strong id="p-to-pyeong">-</strong></div>
+      </div>
+    </div>
+    <p class="calc__note measure">* 1평 = 약 3.3058㎡. 분양 면적은 공급면적(전용+공용) 기준이라 실제 전용면적과 다를 수 있습니다.</p>
+  </div>
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const F = 3.305785;
+      const num = (n) => n.toLocaleString('ko-KR', { maximumFractionDigits: 2 });
+      const calc = () => {
+        const py = +$('p-pyeong').value || 0;
+        const sqm = +$('p-sqm').value || 0;
+        $('p-to-sqm').textContent = py > 0 ? num(py * F) + '㎡' : '-';
+        $('p-to-pyeong').textContent = sqm > 0 ? num(sqm / F) + '평' : '-';
+      };
+      ['p-pyeong', 'p-sqm'].forEach((id) => $(id).addEventListener('input', calc));
+      calc();
+    })();
+  </script>
+</BaseLayout>

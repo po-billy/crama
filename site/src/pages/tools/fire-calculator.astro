@@ -1,0 +1,43 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="FIRE(4% 룰) 계산기" description="연간 지출과 인출률로 경제적 자유에 필요한 목표 자산과, 보유 자산으로 가능한 연 인출액을 계산합니다.">
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">계산기</span>
+      <h1>FIRE(4% 룰) 계산기</h1>
+      <p>경제적 자유에 필요한 목표 자산을 4% 룰로 가늠해 보세요.</p>
+    </header>
+    <div class="calc">
+      <div class="calc__inputs">
+        <div class="calc__field"><label for="f-spend">월 지출 (만원)</label><input id="f-spend" type="number" value="250" step="10" min="0" /></div>
+        <div class="calc__field"><label for="f-rate">연 인출률 (%)</label><input id="f-rate" type="number" value="4" step="0.1" min="0.1" /></div>
+        <div class="calc__field"><label for="f-asset">현재 자산 (만원)</label><input id="f-asset" type="number" value="" step="1000" min="0" placeholder="가능 인출액 보려면 입력" /></div>
+      </div>
+      <div class="calc__result">
+        <div class="calc__result-label">필요한 목표 자산</div>
+        <div class="calc__result-main" id="f-target">-</div>
+        <div class="calc__row"><span>연간 지출</span><strong id="f-annual">-</strong></div>
+        <div class="calc__row"><span>현재 자산으로 가능한 월 인출</span><strong id="f-withdraw">-</strong></div>
+      </div>
+    </div>
+    <p class="calc__note measure">* 목표 자산 = 연간 지출 ÷ 인출률(예: 4% → 연지출 × 25). '4% 룰'은 은퇴 자산의 4%를 매년 인출해도 장기간 고갈되지 않는다는 경험칙으로, 시장 상황·기간에 따라 달라질 수 있는 참고 지표입니다.</p>
+  </div>
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const won = (man) => Math.round(man).toLocaleString('ko-KR') + '만원';
+      const calc = () => {
+        const spend = +$('f-spend').value || 0;
+        const rate = (+$('f-rate').value || 0) / 100;
+        const asset = +$('f-asset').value || 0;
+        const annual = spend * 12;
+        $('f-annual').textContent = spend > 0 ? won(annual) : '-';
+        $('f-target').textContent = spend > 0 && rate > 0 ? won(annual / rate) : '-';
+        $('f-withdraw').textContent = asset > 0 && rate > 0 ? won(asset * rate / 12) : '-';
+      };
+      ['f-spend', 'f-rate', 'f-asset'].forEach((id) => $(id).addEventListener('input', calc));
+      calc();
+    })();
+  </script>
+</BaseLayout>

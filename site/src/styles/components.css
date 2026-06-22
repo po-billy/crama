@@ -231,7 +231,11 @@
   border-radius: var(--radius); padding: 1.5rem; position: sticky; top: 5rem;
 }
 .calc__result-label { font-size: 0.82rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
-.calc__result-main { font-family: var(--font-serif); font-size: clamp(1.7rem, 5vw, 2.4rem); color: var(--accent); font-weight: 600; margin: 0.3rem 0 1rem; font-variant-numeric: tabular-nums; }
+.calc__result-main { font-family: var(--font-serif); font-size: clamp(1.7rem, 5vw, 2.4rem); color: var(--accent); font-weight: 600; margin: 0.3rem 0 0.2rem; font-variant-numeric: tabular-nums; }
+/* 초보자 보강(자동 삽입): 큰 금액 한글 단위 / 만원 입력 환산 / 용어 한 줄 설명 */
+.calc__readable { font-size: 0.95rem; font-weight: 600; color: var(--ink-soft); margin: 0 0 1rem; }
+.calc__hint { font-size: 0.8rem; font-weight: 600; color: var(--accent); margin-top: 0.05rem; }
+.calc__termhelp { font-size: 0.8rem; color: var(--muted); line-height: 1.45; margin-top: 0.1rem; }
 .calc__row { display: flex; justify-content: space-between; gap: 1rem; padding: 0.6rem 0; border-top: 1px solid var(--line); font-size: 0.95rem; color: var(--ink-soft); }
 .calc__row strong { color: var(--ink); font-variant-numeric: tabular-nums; }
 .calc__note { font-size: 0.82rem; color: var(--muted); margin: 2.5rem auto 0; }
@@ -278,6 +282,17 @@
   font-size: 0.52rem; font-weight: 700; letter-spacing: 0.02em; padding: 0.1rem 0.34rem; border-radius: 999px;
 }
 .hcircle__label { display: block; margin-top: 0.5rem; font-size: 0.74rem; color: var(--ink); line-height: 1.25; }
+/* 모바일: 한 화면에 ~5.5개만 보이게 해 "더 있다"는 걸 인지시키고 슬라이드 유도 */
+@media (max-width: 640px) {
+  .hcircle { width: calc((100% - 2.5rem) / 5.5); }
+  .hcircle__img { width: 84%; max-width: 4rem; height: auto; aspect-ratio: 1; }
+  .hcircle__label { font-size: 0.68rem; }
+  /* 우측 끝을 살짝 페이드해 잘린 항목(=더 있음)을 강조 */
+  .home-circles {
+    -webkit-mask-image: linear-gradient(90deg, #000 90%, transparent);
+    mask-image: linear-gradient(90deg, #000 90%, transparent);
+  }
+}
 @media (min-width: 1024px) {
   .home-circles { gap: 1rem; justify-content: center; padding-top: 1.8rem; }
   .hcircle { width: 6rem; }
@@ -544,6 +559,8 @@
   background: var(--ink); color: var(--paper); padding: 0.6rem 2.4rem 0.6rem 1rem;
   font-size: 0.9rem; position: relative; overflow: hidden;
 }
+/* hidden 속성 존중(닫기 동작) — .notice-banner display 가 [hidden] 을 덮지 않도록 */
+.notice-banner[hidden] { display: none; }
 /* 한 줄 고정: 절대 줄바꿈하지 않고 텍스트가 좌측으로 흐른다 */
 .notice-banner__viewport {
   flex: 1; min-width: 0; overflow: hidden;

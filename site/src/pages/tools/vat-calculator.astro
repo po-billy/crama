@@ -1,0 +1,42 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="부가가치세(VAT) 계산기" description="공급가액에서 부가세·합계를, 합계금액에서 공급가액·부가세를 역산합니다.">
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">계산기</span>
+      <h1>부가가치세(VAT) 계산기</h1>
+      <p>공급가액↔합계금액의 부가세 10%를 양방향으로 계산해 보세요.</p>
+    </header>
+    <div class="calc">
+      <div class="calc__inputs">
+        <div class="calc__field"><label for="v-supply">공급가액 (원)</label><input id="v-supply" type="number" value="1000000" step="1000" min="0" /></div>
+        <div class="calc__field"><label for="v-total">또는 합계금액 (부가세 포함, 원)</label><input id="v-total" type="number" value="" step="1000" min="0" placeholder="합계→공급가액 역산 시 입력" /></div>
+      </div>
+      <div class="calc__result">
+        <div class="calc__result-label">공급가액 → 합계금액</div>
+        <div class="calc__result-main" id="v-total-out">-</div>
+        <div class="calc__row"><span>부가세 (10%)</span><strong id="v-vat-out">-</strong></div>
+        <div class="calc__row"><span>합계 → 공급가액</span><strong id="v-supply-out">-</strong></div>
+        <div class="calc__row"><span>합계 중 부가세</span><strong id="v-vat-in">-</strong></div>
+      </div>
+    </div>
+    <p class="calc__note measure">* 부가가치세율 10% 기준. 합계금액 = 공급가액 × 1.1, 공급가액 = 합계 ÷ 1.1. 면세·간이과세 등은 별도입니다.</p>
+  </div>
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const won = (n) => Math.round(n).toLocaleString('ko-KR') + '원';
+      const calc = () => {
+        const supply = +$('v-supply').value || 0;
+        const total = +$('v-total').value || 0;
+        $('v-vat-out').textContent = supply > 0 ? won(supply * 0.1) : '-';
+        $('v-total-out').textContent = supply > 0 ? won(supply * 1.1) : '-';
+        $('v-supply-out').textContent = total > 0 ? won(total / 1.1) : '-';
+        $('v-vat-in').textContent = total > 0 ? won(total - total / 1.1) : '-';
+      };
+      ['v-supply', 'v-total'].forEach((id) => $(id).addEventListener('input', calc));
+      calc();
+    })();
+  </script>
+</BaseLayout>

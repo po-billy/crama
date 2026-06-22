@@ -1,0 +1,45 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="배당금 계산기" description="투자금액과 배당수익률로 세전·세후 연 배당금과 월평균 배당을 계산합니다.">
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">계산기</span>
+      <h1>배당금 계산기</h1>
+      <p>투자금액과 배당수익률로 세후 배당금을 확인해 보세요.</p>
+    </header>
+    <div class="calc">
+      <div class="calc__inputs">
+        <div class="calc__field"><label for="dv-amount">투자 금액 (만원)</label><input id="dv-amount" type="number" value="5000" step="100" min="0" /></div>
+        <div class="calc__field"><label for="dv-yield">배당수익률 (연, %)</label><input id="dv-yield" type="number" value="4" step="0.1" min="0" /></div>
+      </div>
+      <div class="calc__result">
+        <div class="calc__result-label">연 배당금 (세후)</div>
+        <div class="calc__result-main" id="dv-net">-</div>
+        <div class="calc__row"><span>연 배당금 (세전)</span><strong id="dv-gross">-</strong></div>
+        <div class="calc__row"><span>배당소득세 (15.4%)</span><strong id="dv-tax">-</strong></div>
+        <div class="calc__row"><span>월평균 (세후)</span><strong id="dv-month">-</strong></div>
+      </div>
+    </div>
+    <p class="calc__note measure">* 배당소득세 15.4%(소득세 14% + 지방소득세 1.4%)를 적용한 간이 계산입니다. 연 금융소득 2,000만원 초과 시 금융소득종합과세 대상이 될 수 있습니다. 배당 투자는 <a href="/blog/money-dividend-basics/">배당 투자 기초</a>를 참고하세요.</p>
+  </div>
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const won = (man) => Math.round(man).toLocaleString('ko-KR') + '만원';
+      const calc = () => {
+        const amount = (+$('dv-amount').value || 0) * 10000;
+        const y = (+$('dv-yield').value || 0) / 100;
+        const gross = amount * y;
+        const tax = gross * 0.154;
+        const net = gross - tax;
+        $('dv-gross').textContent = won(gross / 10000);
+        $('dv-tax').textContent = won(tax / 10000);
+        $('dv-net').textContent = amount > 0 ? won(net / 10000) : '-';
+        $('dv-month').textContent = amount > 0 ? Math.round(net / 12).toLocaleString('ko-KR') + '원' : '-';
+      };
+      ['dv-amount', 'dv-yield'].forEach((id) => $(id).addEventListener('input', calc));
+      calc();
+    })();
+  </script>
+</BaseLayout>

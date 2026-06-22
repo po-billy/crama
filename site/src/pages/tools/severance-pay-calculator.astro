@@ -1,0 +1,43 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="퇴직금 계산기" description="월 평균임금과 재직기간으로 예상 퇴직금을 간단히 계산합니다.">
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">계산기</span>
+      <h1>퇴직금 계산기</h1>
+      <p>월 평균임금과 재직기간으로 예상 퇴직금을 어림해 보세요.</p>
+    </header>
+    <div class="calc">
+      <div class="calc__inputs">
+        <div class="calc__field"><label for="s-wage">월 평균임금 (원)</label><input id="s-wage" type="number" value="3000000" step="100000" min="0" /></div>
+        <div class="calc__field"><label for="s-years">재직 기간 (년)</label><input id="s-years" type="number" value="3" step="1" min="0" /></div>
+        <div class="calc__field"><label for="s-months">추가 개월</label><input id="s-months" type="number" value="0" step="1" min="0" max="11" /></div>
+      </div>
+      <div class="calc__result">
+        <div class="calc__result-label">예상 퇴직금</div>
+        <div class="calc__result-main" id="s-pay">-</div>
+        <div class="calc__row"><span>총 재직일수</span><strong id="s-days">-</strong></div>
+        <div class="calc__row"><span>1일 평균임금</span><strong id="s-daily">-</strong></div>
+      </div>
+    </div>
+    <p class="calc__note measure">* 퇴직금 = 1일 평균임금 × 30일 × (총재직일수 ÷ 365)로 계산한 간이 추정입니다. 평균임금은 퇴직 전 3개월간 받은 임금(상여·수당 포함) 총액을 그 기간 일수로 나눈 값이며, 실제 금액은 회사 규정·산정방식에 따라 달라질 수 있습니다. 노후 준비는 <a href="/blog/pension-irp-tax-guide/">연금·IRP 가이드</a>를 참고하세요.</p>
+  </div>
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const won = (n) => Math.round(n).toLocaleString('ko-KR') + '원';
+      const calc = () => {
+        const wage = +$('s-wage').value || 0;
+        const days = (+$('s-years').value || 0) * 365 + (+$('s-months').value || 0) * 30;
+        const daily = (wage * 3) / 91.25; // 3개월 급여 ÷ 약 91.25일
+        const pay = daily * 30 * (days / 365);
+        $('s-pay').textContent = days > 0 ? won(pay) : '-';
+        $('s-days').textContent = days > 0 ? days.toLocaleString('ko-KR') + '일' : '-';
+        $('s-daily').textContent = wage > 0 ? won(daily) : '-';
+      };
+      ['s-wage', 's-years', 's-months'].forEach((id) => $(id).addEventListener('input', calc));
+      calc();
+    })();
+  </script>
+</BaseLayout>

@@ -1,0 +1,43 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="비상금 목표 계산기" description="월 생활비와 목표 개월수로 마련해야 할 비상금 규모를 계산합니다.">
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">계산기</span>
+      <h1>비상금 목표 계산기</h1>
+      <p>위기에 대비할 비상금이 얼마나 필요한지 계산해 보세요.</p>
+    </header>
+    <div class="calc">
+      <div class="calc__inputs">
+        <div class="calc__field"><label for="e-spend">월 생활비 (만원)</label><input id="e-spend" type="number" value="250" step="10" min="0" /></div>
+        <div class="calc__field"><label for="e-months">목표 개월수</label><input id="e-months" type="number" value="6" step="1" min="1" /></div>
+        <div class="calc__field"><label for="e-have">현재 모은 비상금 (만원)</label><input id="e-have" type="number" value="0" step="50" min="0" /></div>
+      </div>
+      <div class="calc__result">
+        <div class="calc__result-label">목표 비상금</div>
+        <div class="calc__result-main" id="e-target">-</div>
+        <div class="calc__row"><span>더 모아야 할 금액</span><strong id="e-left">-</strong></div>
+        <div class="calc__row"><span>달성률</span><strong id="e-pct">-</strong></div>
+      </div>
+    </div>
+    <p class="calc__note measure">* 보통 3~6개월치 생활비를 권합니다(안정적 직장 3개월, 프리랜서·자영업 6개월 이상). 비상금은 언제든 꺼낼 수 있는 곳에 두세요. <a href="/blog/emergency-fund-story/">비상금이 나를 구한 이야기</a>를 참고하세요.</p>
+  </div>
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const won = (man) => Math.round(man).toLocaleString('ko-KR') + '만원';
+      const calc = () => {
+        const spend = +$('e-spend').value || 0;
+        const months = +$('e-months').value || 0;
+        const have = +$('e-have').value || 0;
+        const target = spend * months;
+        $('e-target').textContent = target > 0 ? won(target) : '-';
+        $('e-left').textContent = target > 0 ? won(Math.max(0, target - have)) : '-';
+        $('e-pct').textContent = target > 0 ? Math.min(100, (have / target) * 100).toFixed(0) + '%' : '-';
+      };
+      ['e-spend', 'e-months', 'e-have'].forEach((id) => $(id).addEventListener('input', calc));
+      calc();
+    })();
+  </script>
+</BaseLayout>

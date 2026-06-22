@@ -1,0 +1,40 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="환율 계산기" description="환율을 직접 입력해 외화↔원화 금액을 양방향으로 환산합니다.">
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">계산기</span>
+      <h1>환율 계산기</h1>
+      <p>현재 환율을 입력하면 외화와 원화를 서로 환산해 줍니다.</p>
+    </header>
+    <div class="calc">
+      <div class="calc__inputs">
+        <div class="calc__field"><label for="ex-rate">환율 (1단위 = 원)</label><input id="ex-rate" type="number" value="1380" step="0.1" min="0" /></div>
+        <div class="calc__field"><label for="ex-foreign">외화 금액</label><input id="ex-foreign" type="number" value="100" step="1" min="0" /></div>
+        <div class="calc__field"><label for="ex-krw">또는 원화 금액 (원)</label><input id="ex-krw" type="number" value="" step="1000" min="0" placeholder="원→외화 환산 시 입력" /></div>
+      </div>
+      <div class="calc__result">
+        <div class="calc__result-label">외화 → 원화</div>
+        <div class="calc__result-main" id="ex-to-krw">-</div>
+        <div class="calc__row"><span>원화 → 외화</span><strong id="ex-to-foreign">-</strong></div>
+      </div>
+    </div>
+    <p class="calc__note measure">* 입력한 환율 기준 단순 환산이며, 실제 거래 시 환전 수수료·스프레드가 추가됩니다. 환전 절약 팁은 <a href="/blog/currency-exchange-saving/">환전 수수료 아끼기</a>를 참고하세요.</p>
+  </div>
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const num = (n) => n.toLocaleString('ko-KR', { maximumFractionDigits: 2 });
+      const calc = () => {
+        const rate = +$('ex-rate').value || 0;
+        const foreign = +$('ex-foreign').value || 0;
+        const krw = +$('ex-krw').value || 0;
+        $('ex-to-krw').textContent = foreign > 0 && rate > 0 ? num(foreign * rate) + '원' : '-';
+        $('ex-to-foreign').textContent = krw > 0 && rate > 0 ? num(krw / rate) : '-';
+      };
+      ['ex-rate', 'ex-foreign', 'ex-krw'].forEach((id) => $(id).addEventListener('input', calc));
+      calc();
+    })();
+  </script>
+</BaseLayout>

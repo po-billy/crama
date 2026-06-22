@@ -301,6 +301,7 @@
     let epoch = 0;      // 발화 세대 — 취소된 이전 발화의 콜백을 무시하는 토큰
     let followEnabled = true; // 자동 스크롤(따라가기) on/off
     let retried = -1;   // Safari 발화 누락 시 1회 재시도용(인덱스 기록)
+    let lastSpeakAt = 0; // 마지막 speak 호출 시각(iOS onend 누락 보정용)
 
     function fmt(sec) {
       sec = Math.max(0, Math.round(sec));
@@ -420,6 +421,7 @@
       };
       try { if (synth.paused) synth.resume(); } catch (e) {}
       synth.speak(u);
+      lastSpeakAt = performance.now();
       // Safari: 큐에 쌓인 발화가 시작되지 않고 누락되는 버그 → 시작 안 되면 1회 재시도
       setTimeout(() => {
         if (myEpoch === epoch && state === 'playing' && !started && !synth.speaking && retried !== i) {
@@ -474,6 +476,14 @@
 
     // 진행바·시간을 부드럽게 갱신(재생 중 보간)
     setInterval(() => { if (state === 'playing') updateUI(); }, 120);
+
+    // iOS/모바일 보정: onend가 누락돼 발화가 멈춘 경우, 다음 청크로 자동 진행(따라가기·하이라이트 복구)
+    setInterval(() => {
+      if (state !== 'playing') return;
+      if (synth.speaking || synth.pending || synth.paused) return;
+      if (performance.now() - lastSpeakAt < 700) return; // speak 직후 과도기 제외
+      speakFrom(idx + 1); // epoch 토큰이 있어 중복 진행은 무시됨
+    }, 400);
 
     // ----- 이벤트 -----
     function togglePlay() {

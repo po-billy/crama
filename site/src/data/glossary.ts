@@ -73,13 +73,15 @@ export const money: Term[] = [
   { term: '골든크로스 / 데드크로스', def: '단기 이동평균선이 장기선을 위로 뚫으면 골든크로스, 아래로 뚫으면 데드크로스로 해석한다.', href: '/blog/stock-chart-basics/', hrefLabel: '차트 보는 법' },
   { term: '추격매수', def: '이미 많이 오른 자산을 뒤늦게 따라 사는 것. 고점에서 사기 쉬워 위험이 크다.', href: '/blog/chasing-returns-fomo/', hrefLabel: '추격매수의 심리' },
   { term: '리볼빙', def: '이번 달 카드값 일부만 갚고 나머지를 다음 달로 넘기는 것. 넘긴 금액에 높은 이자가 붙는다.', href: '/blog/minimum-payment-trap/', hrefLabel: '최소결제의 함정' },
+  { term: '라떼 팩터', def: '매일 무심코 쓰는 작은 돈이 쌓이면 큰돈이 된다는 개념. 단, 푼돈에만 매몰되면 큰 결정을 놓친다.', href: '/blog/latte-factor-myth/', hrefLabel: '라떼팩터의 함정' },
+  { term: '통장 쪼개기', def: '월급·생활비·저축·비상금 통장을 용도별로 나눠 돈에 이름표를 붙이는 돈 관리법.', href: '/blog/account-splitting-story/', hrefLabel: '통장 쪼개기' },
 ];
 
 export const ai: Term[] = [
   { term: 'LLM (거대 언어 모델)', def: '방대한 텍스트로 학습해 사람처럼 글을 이해하고 생성하는 AI 모델. ChatGPT, Claude 등이 해당된다.' },
   { term: '생성형 AI', def: '글·이미지·음성·영상 등 새로운 콘텐츠를 만들어 내는 AI를 통칭하는 말.', href: '/blog/ai-trends-2026/', hrefLabel: '2026 AI 트렌드' },
   { term: '프롬프트', def: 'AI에게 주는 지시나 질문. 잘 쓸수록 좋은 결과가 나온다.', href: '/blog/ai-prompt-basics/', hrefLabel: '프롬프트 작성법' },
-  { term: '환각 (할루시네이션)', def: 'AI가 사실이 아닌 내용을 그럴듯하게 지어내는 현상. 그래서 검증이 필요하다.', href: '/blog/ai-copyright-ethics/', hrefLabel: 'AI 윤리' },
+  { term: '환각 (할루시네이션)', def: 'AI가 사실이 아닌 내용을 그럴듯하게 지어내는 현상. 그래서 검증이 필요하다.', href: '/blog/ai-hallucination-story/', hrefLabel: 'AI 환각 이야기' },
   { term: '토큰', def: 'AI가 텍스트를 처리하는 기본 단위. 단어나 글자 조각에 해당하며, 사용량·비용의 기준이 된다.' },
   { term: '멀티모달', def: '텍스트뿐 아니라 이미지·음성·영상을 함께 이해하고 다루는 AI의 능력.', href: '/blog/ai-trends-2026/', hrefLabel: '2026 AI 트렌드' },
   { term: 'AI 에이전트', def: '스스로 도구를 쓰고 여러 단계를 실행해 작업을 완수하는 AI.', href: '/blog/ai-agent-workflow/', hrefLabel: 'AI 에이전트' },

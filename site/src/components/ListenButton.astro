@@ -62,6 +62,7 @@ const ICON = {
       <button class="aminibar__chip" type="button" data-mini-rate aria-label="재생 속도">1.0×</button>
       <button class="aminibar__btn aminibar__btn--voice" type="button" data-mini-voice aria-label="음성 변경" title="음성 변경" hidden><span class="ic" aria-hidden="true" set:html={ICON.voice}></span></button>
       <button class="aminibar__follow" type="button" data-follow aria-pressed="true" aria-label="따라가기" title="읽는 위치로 자동 스크롤"><span class="ic" aria-hidden="true" set:html={ICON.follow}></span><span class="aminibar__followlabel" data-follow-label>따라가기</span></button>
+      <button class="aminibar__btn aminibar__btn--toggle" type="button" data-mini-autonext aria-pressed="false" aria-label="이어 듣기" title="이어 듣기: 끝나면 다음 글을 이어서"><span class="ic" aria-hidden="true" set:html={ICON.next}></span></button>
       <button class="aminibar__btn aminibar__btn--stop" type="button" data-mini-stop aria-label="닫기"><span class="ic" aria-hidden="true" set:html={ICON.close}></span></button>
     </div>
   </div>
@@ -162,20 +163,19 @@ const ICON = {
     background: var(--ink);
     background: color-mix(in srgb, var(--ink) 95%, transparent);
     -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
-    color: var(--paper); border-radius: 16px;
+    color: var(--paper); border-radius: 16px; overflow: hidden;
     box-shadow: 0 18px 44px -14px rgba(0,0,0,0.55);
     padding: 0.55rem;
   }
   .aminibar[hidden] { display: none; }
 
-  /* 상단 진행바(상태 시각화 + 탐색) */
+  /* 상단 진행바(상태 시각화 + 탐색) — 카드 overflow:hidden 이 곡률에 맞춰 클리핑 */
   .aminibar__track {
     position: absolute; left: 0; right: 0; top: 0; height: 3px;
-    background: rgba(255,255,255,0.18); border-radius: 16px 16px 0 0;
-    cursor: pointer; touch-action: none;
+    background: rgba(255,255,255,0.18); cursor: pointer; touch-action: none;
   }
   .aminibar__track:hover { height: 5px; }
-  .aminibar__trackfill { height: 100%; width: 0%; background: var(--accent); border-top-left-radius: 16px; }
+  .aminibar__trackfill { height: 100%; width: 0%; background: var(--accent); }
 
   .aminibar__inner { display: flex; align-items: center; gap: 0.5rem; }
   .aminibar__grp { display: flex; align-items: center; gap: 0.25rem; flex: none; }
@@ -217,6 +217,11 @@ const ICON = {
   }
   .aminibar__follow[aria-pressed="true"] { background: var(--accent); color: #fff; }
   .aminibar__follow[aria-pressed="false"] { opacity: 0.6; }
+
+  /* 이어듣기 토글(아이콘) */
+  .aminibar__btn--toggle[aria-pressed="false"] { opacity: 0.6; }
+  .aminibar__btn--toggle[aria-pressed="true"] { background: var(--accent); color: #fff; opacity: 1; }
+  .aminibar__btn--toggle[aria-pressed="true"]:hover { background: var(--accent); filter: brightness(1.08); }
 
   /* 변경 알림 토스트 */
   .atoast {
@@ -281,6 +286,7 @@ const ICON = {
     const miniPlay = mini.querySelector('[data-mini-play]');
     const miniIcon = mini.querySelector('[data-mini-icon]');
     const miniStop = mini.querySelector('[data-mini-stop]');
+    const miniAuto = mini.querySelector('[data-mini-autonext]');
     const miniStatus = mini.querySelector('[data-mini-status]');
     const miniTime = mini.querySelector('[data-mini-time]');
     const miniBar = mini.querySelector('[data-mini-bar]');
@@ -623,13 +629,18 @@ const ICON = {
     }
     miniVoice && miniVoice.addEventListener('click', cycleVoice);
 
-    function renderAuto() { if (autoBtn) autoBtn.setAttribute('aria-pressed', String(autoNext)); }
+    function renderAuto() {
+      if (autoBtn) autoBtn.setAttribute('aria-pressed', String(autoNext));
+      if (miniAuto) miniAuto.setAttribute('aria-pressed', String(autoNext));
+    }
     renderAuto();
-    autoBtn && autoBtn.addEventListener('click', () => {
+    function toggleAuto() {
       autoNext = !autoNext; renderAuto();
       try { localStorage.setItem(AUTO_KEY, autoNext ? '1' : '0'); } catch (e) {}
       toast(autoNext ? '이어 듣기 켜짐 · 다음 글로 이어집니다' : '이어 듣기 꺼짐');
-    });
+    }
+    autoBtn && autoBtn.addEventListener('click', toggleAuto);
+    miniAuto && miniAuto.addEventListener('click', toggleAuto);
 
     // 진행바 탐색(클릭/드래그) — 메인·미니 공용
     function seekFrom(clientX, el) {

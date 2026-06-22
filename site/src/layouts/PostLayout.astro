@@ -68,7 +68,7 @@ const jsonLd = {
 >
   <ReadingProgress />
   <FloatingShare />
-  <article class="wrap">
+  <article class="wrap" data-next-article={related[0]?.href ?? ''}>
     <Breadcrumbs items={[{ label: cat.name, href: `/category/${cat.slug}/` }, { label: title }]} />
 
     <header class="article-head measure">

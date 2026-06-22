@@ -11,6 +11,7 @@
         <select data-voice aria-label="음성 선택"></select>
       </div>
       <button class="aplayer__chip" type="button" data-rate-btn aria-label="재생 속도">1.0×</button>
+      <button class="aplayer__chip aplayer__chip--toggle" type="button" data-autonext aria-pressed="false" title="연속재생: 끝나면 다음 글을 이어서 들려줘요">⟳ 연속재생</button>
     </div>
   </div>
 
@@ -72,7 +73,9 @@
   .aplayer__top { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; margin-bottom: 0.85rem; }
   .aplayer__brand { font-size: 0.82rem; font-weight: 700; letter-spacing: 0.02em; color: var(--ink); display: inline-flex; align-items: center; gap: 0.35rem; }
   .aplayer__brandicon { font-size: 0.95rem; }
-  .aplayer__opts { display: flex; align-items: center; gap: 0.5rem; }
+  .aplayer__opts { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end; }
+  .aplayer__chip--toggle[aria-pressed='true'] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .aplayer__chip--toggle { min-width: 0; }
 
   .aplayer__chip {
     border: 1px solid var(--line); background: var(--paper); color: var(--ink-soft);
@@ -264,6 +267,12 @@
     let rate = 1, selectedVoiceName = '';
     try { rate = parseFloat(localStorage.getItem(RATE_KEY)) || 1; } catch (e) {}
     try { selectedVoiceName = localStorage.getItem(VOICE_KEY) || ''; } catch (e) {}
+    const AUTO_KEY = 'crama:tts:auto';
+    let autoNext = false;
+    try { autoNext = localStorage.getItem(AUTO_KEY) === '1'; } catch (e) {}
+    const nextEl = document.querySelector('article[data-next-article]');
+    const nextHref = nextEl ? nextEl.getAttribute('data-next-article') : '';
+    const autoBtn = root.querySelector('[data-autonext]');
 
     // ----- 본문 → (문장 청크 + 원본 요소) 매핑. 읽는 위치 하이라이트/스크롤용 -----
     function pushSentences(out, text, el) {
@@ -448,6 +457,13 @@
     }
     function stop(reachedEnd) {
       synth.cancel();
+      // 연속재생: 끝까지 읽었고 토글이 켜져 있으면 다음 글로 이동해 이어 재생
+      if (reachedEnd && autoNext && nextHref) {
+        try { sessionStorage.setItem('crama:tts:continue', '1'); } catch (e) {}
+        try { document.body.classList.remove('audio-active'); } catch (e) {}
+        location.href = nextHref;
+        return;
+      }
       idx = reachedEnd ? 0 : idx;
       frozenFrac = 0;
       setState('idle');
@@ -549,6 +565,13 @@
     }
     miniVoice && miniVoice.addEventListener('click', cycleVoice);
 
+    function renderAuto() { if (autoBtn) autoBtn.setAttribute('aria-pressed', String(autoNext)); }
+    renderAuto();
+    autoBtn && autoBtn.addEventListener('click', () => {
+      autoNext = !autoNext; renderAuto();
+      try { localStorage.setItem(AUTO_KEY, autoNext ? '1' : '0'); } catch (e) {}
+    });
+
     // 진행바 탐색(클릭/드래그)
     function seekFromEvent(clientX) {
       const r = bar.getBoundingClientRect();
@@ -571,6 +594,14 @@
     populateVoices();
     synth.addEventListener?.('voiceschanged', populateVoices);
     updateUI();
+
+    // 이전 글에서 '연속재생'으로 넘어온 경우 자동 시작(데스크톱). 모바일은 정책상 막히면 재생 버튼 한 번.
+    try {
+      if (sessionStorage.getItem('crama:tts:continue') === '1') {
+        sessionStorage.removeItem('crama:tts:continue');
+        setTimeout(() => { if (state === 'idle') start(); }, 500);
+      }
+    } catch (e) {}
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initListen, { once: true });

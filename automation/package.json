@@ -7,13 +7,16 @@
   "scripts": {
     "generate": "node run.js",
     "dry": "node run.js --dry-run",
-    "audio": "node gen-audio.js"
+    "audio": "node gen-audio.js",
+    "audio:all": "node gen-audio-all.js",
+    "audio:count": "node gen-audio-all.js --dry"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.70.0",
     "@aws-sdk/client-s3": "^3.700.0",
     "dotenv": "^16.4.5",
     "microsoft-cognitiveservices-speech-sdk": "^1.42.0",
+    "node-html-parser": "^8.0.2",
     "sharp": "^0.35.1"
   }
 }

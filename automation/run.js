@@ -2,9 +2,12 @@ import 'dotenv/config';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execSync } from 'node:child_process';
 import { research, writeArticle, imagePrompt } from './lib/claude.js';
 import { generateHero } from './lib/image.js';
+import { generateAudio } from './gen-audio.js';
 import {
+  ROOT,
   BLOG_DIR,
   PUBLIC_IMG,
   OUTPUT_DIR,
@@ -111,7 +114,21 @@ async function main() {
 
   log(`⑤ ${dryRun ? '미리보기 저장' : '발행 완료'}: ${outFile}`);
   log(`   제목: ${art.title}`);
-  if (dryRun) log('DRY RUN — 사이트에는 반영되지 않았습니다. git push 시 자동 배포됩니다.');
+  if (dryRun) { log('DRY RUN — 사이트에는 반영되지 않았습니다. git push 시 자동 배포됩니다.'); return; }
+
+  // ⑥ 오디오 자동 생성(Azure 키 있을 때) — 빌드 후 HTML에서 추출 → MP3+타임스탬프 → R2 → frontmatter audio:
+  const audioOn = process.env.AZURE_SPEECH_KEY && !args.includes('--no-audio');
+  if (audioOn) {
+    try {
+      log('⑥ 오디오 생성 — 사이트 빌드 중…');
+      execSync('npm run build', { cwd: path.join(ROOT, 'site'), stdio: 'ignore' });
+      const r = await generateAudio(slug, { force: true });
+      log(`   오디오 완료: ${r.chars}자 / ${(r.durationMs / 1000).toFixed(0)}초 → ${r.url}`);
+    } catch (e) {
+      log('   ⚠️ 오디오 생성 실패(글은 정상 발행됨): ' + (e.message || e));
+    }
+  }
+  log('git add/commit/push 하면 배포됩니다.');
 }
 
 main().catch((e) => {

@@ -255,11 +255,11 @@ hr {
 .prose th { font-weight: 600; color: var(--ink); }
 
 /* ---------- 글 헤더 ---------- */
-.article-head { text-align: center; margin: 2.5rem auto 2rem; }
+.article-head { text-align: left; margin: 2.5rem auto 2rem; }
 .article-head h1 { font-size: clamp(2rem, 5vw, 3.1rem); line-height: 1.08; margin-top: 0.6rem; }
 .article-head .dek { color: var(--muted); font-size: 1.15rem; margin-top: 0.8rem; }
 .article-meta {
-  display: flex; gap: 0.7rem; justify-content: center; align-items: center;
+  display: flex; gap: 0.7rem; justify-content: flex-start; align-items: center; flex-wrap: wrap;
   margin-top: 1.4rem; font-size: 0.88rem; color: var(--muted);
 }
 .article-meta time { font-variant-numeric: tabular-nums; }

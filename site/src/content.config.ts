@@ -10,6 +10,7 @@ const blog = defineCollection({
     pubDate: z.coerce.date(),
     updatedDate: z.coerce.date().optional(),
     category: z.enum(['money', 'ai', 'income']),
+    format: z.enum(['guide', 'column']).default('guide'), // 정보성(guide) vs 칼럼(column)
     tags: z.array(z.string()).default([]),
     lang: z.enum(['ko', 'en']).default('ko'),
     heroImage: z.string().optional(),

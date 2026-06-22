@@ -17,6 +17,7 @@ const toCard = (p: (typeof posts)[number]) => ({
   pubDate: p.data.pubDate,
   category: p.data.category,
   heroImage: p.data.heroImage,
+  format: p.data.format,
 });
 
 // 허브(필러) + 입문 가이드 — 별도 섹션으로 분리, 랭킹/최신에서는 제외

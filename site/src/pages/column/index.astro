@@ -1,0 +1,33 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import { type CategorySlug } from '../../consts';
+
+const columns = (await getCollection('blog'))
+  .filter((p) => !p.data.draft && p.data.format === 'column')
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+---
+<BaseLayout title="칼럼 — 읽을거리" description="숫자와 정보를 넘어, 돈과 AI를 둘러싼 이야기와 관점을 전문 칼럼니스트의 시선으로 풀어낸 크라마(Crama)의 칼럼 모음.">
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">Column</span>
+      <h1>칼럼 · 읽을거리</h1>
+      <p>정보를 넘어 이야기로 — 돈과 AI를 둘러싼 장면과 관점을, 천천히 읽는 글로 모았습니다.</p>
+    </header>
+
+    <div class="card-grid">
+      {columns.map((p) => (
+        <PostCard
+          href={`/blog/${p.id}/`}
+          title={p.data.title}
+          description={p.data.description}
+          pubDate={p.data.pubDate}
+          category={p.data.category as CategorySlug}
+          heroImage={p.data.heroImage}
+          format={p.data.format}
+        />
+      ))}
+    </div>
+  </div>
+</BaseLayout>

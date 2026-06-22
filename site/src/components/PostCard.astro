@@ -10,13 +10,16 @@ interface Props {
   category: CategorySlug;
   heroImage?: string;
   feature?: boolean;
+  format?: 'guide' | 'column';
 }
-const { href, title, description, pubDate, category, heroImage, feature = false } = Astro.props;
+const { href, title, description, pubDate, category, heroImage, feature = false, format = 'guide' } = Astro.props;
 const cat = CATEGORIES[category];
+const isColumn = format === 'column';
 ---
 {feature ? (
   <a href={href} class="feature card">
     <div class="feature__media card__media">
+      {isColumn && <span class="card__badge">칼럼</span>}
       {heroImage && <img src={heroImage} alt="" loading="eager" />}
     </div>
     <div>
@@ -29,6 +32,7 @@ const cat = CATEGORIES[category];
 ) : (
   <a href={href} class="card">
     <div class="card__media">
+      {isColumn && <span class="card__badge">칼럼</span>}
       {heroImage && <img src={heroImage} alt="" loading="lazy" />}
     </div>
     <span class="eyebrow">{cat.name}</span>

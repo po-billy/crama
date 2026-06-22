@@ -5,6 +5,8 @@ import Footer from '../components/Footer.astro';
 import NoticeBanner from '../components/NoticeBanner.astro';
 import BackToTop from '../components/BackToTop.astro';
 import CookieConsent from '../components/CookieConsent.astro';
+import CalcEnhance from '../components/CalcEnhance.astro';
+import { ClientRouter } from 'astro:transitions';
 
 interface Props {
   title: string;
@@ -13,15 +15,28 @@ interface Props {
   type?: 'website' | 'article';
   publishedTime?: Date;
   jsonLd?: Record<string, unknown>;
+  spa?: boolean; // 글 페이지에서 SPA(View Transitions) — 오디오 끊김 없는 글↔글 이동
 }
-const props = Astro.props;
+const { spa, ...props } = Astro.props;
 ---
 <!doctype html>
 <html lang="ko">
   <head>
     <BaseHead {...props} />
+    {spa && <ClientRouter />}
   </head>
   <body>
+    {spa && (
+      <script is:inline>
+        if (!window.__cramaGA) {
+          window.__cramaGA = true;
+          document.addEventListener('astro:page-load', () => {
+            try { if (window.gtag) gtag('event', 'page_view', { page_path: location.pathname + location.search, page_location: location.href, page_title: document.title }); } catch (e) {}
+            try { (adsbygoogle = window.adsbygoogle || []).forEach(function(){}); } catch (e) {}
+          });
+        }
+      </script>
+    )}
     <a href="#main" class="skip-link">본문으로 건너뛰기</a>
     <NoticeBanner />
     <Header />
@@ -31,5 +46,6 @@ const props = Astro.props;
     <Footer />
     <BackToTop />
     <CookieConsent />
+    <CalcEnhance />
   </body>
 </html>

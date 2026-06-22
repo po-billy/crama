@@ -35,6 +35,8 @@ const data = allTerms.map((t) => ({ term: t.term, def: t.def, href: t.href ?? nu
       const dataEl = document.querySelector('[data-gloss-data]');
       const prose = document.querySelector('.prose');
       if (!dataEl || !prose) return;
+      if (prose.__glossInit) return; // SPA 전환 시 같은 페이지 중복 처리 방지
+      prose.__glossInit = true;
 
       let terms;
       try { terms = JSON.parse(dataEl.textContent || '[]'); } catch (e) { return; }
@@ -160,5 +162,6 @@ const data = allTerms.map((t) => ({ term: t.term, def: t.def, href: t.href ?? nu
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
     else init();
+    if (!window.__glossPL) { window.__glossPL = true; document.addEventListener('astro:page-load', init); }
   })();
 </script>

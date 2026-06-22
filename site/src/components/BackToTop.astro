@@ -4,11 +4,11 @@
 <button class="back-to-top" id="back-to-top" aria-label="맨 위로" title="맨 위로">↑</button>
 <script is:inline>
   (() => {
-    const btn = document.getElementById('back-to-top');
-    if (!btn) return;
-    const onScroll = () => btn.classList.toggle('is-visible', window.scrollY > 600);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-    onScroll();
+    const el = () => document.getElementById('back-to-top');
+    const onScroll = () => { const b = el(); if (b) b.classList.toggle('is-visible', window.scrollY > 600); };
+    if (!window.__bttScroll) { window.__bttScroll = true; window.addEventListener('scroll', onScroll, { passive: true }); }
+    const bind = () => { const b = el(); if (b && !b.__bound) { b.__bound = true; b.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' })); } onScroll(); };
+    bind();
+    if (!window.__bttPL) { window.__bttPL = true; document.addEventListener('astro:page-load', bind); }
   })();
 </script>

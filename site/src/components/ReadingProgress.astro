@@ -4,15 +4,14 @@
 <div class="reading-progress" id="reading-progress" aria-hidden="true"></div>
 <script is:inline>
   (() => {
-    const bar = document.getElementById('reading-progress');
-    if (!bar) return;
     const update = () => {
+      const bar = document.getElementById('reading-progress'); if (!bar) return;
       const h = document.documentElement;
       const max = h.scrollHeight - h.clientHeight;
       bar.style.transform = `scaleX(${max > 0 ? Math.min(h.scrollTop / max, 1) : 0})`;
     };
-    window.addEventListener('scroll', update, { passive: true });
-    window.addEventListener('resize', update);
+    if (!window.__rpScroll) { window.__rpScroll = true; window.addEventListener('scroll', update, { passive: true }); window.addEventListener('resize', update); }
     update();
+    if (!window.__rpPL) { window.__rpPL = true; document.addEventListener('astro:page-load', update); }
   })();
 </script>

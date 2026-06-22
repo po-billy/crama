@@ -18,25 +18,20 @@
 </div>
 <script is:inline>
   (() => {
-    const dock = document.getElementById('fshare');
-    if (!dock) return;
-    const onScroll = () => dock.classList.toggle('is-visible', window.scrollY > 400);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-
-    const toast = document.getElementById('fshare-toast');
-    const showToast = () => {
-      toast.classList.add('show');
-      clearTimeout(toast._t);
-      toast._t = setTimeout(() => toast.classList.remove('show'), 1400);
+    const onScroll = () => { const dock = document.getElementById('fshare'); if (dock) dock.classList.toggle('is-visible', window.scrollY > 400); };
+    if (!window.__fsScroll) { window.__fsScroll = true; window.addEventListener('scroll', onScroll, { passive: true }); }
+    const bind = () => {
+      const dock = document.getElementById('fshare');
+      if (!dock || dock.__bound) { onScroll(); return; }
+      dock.__bound = true;
+      const toast = document.getElementById('fshare-toast');
+      const showToast = () => { if (!toast) return; toast.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => toast.classList.remove('show'), 1400); };
+      const copy = async () => { try { await navigator.clipboard.writeText(location.href); showToast(); } catch {} };
+      document.getElementById('fshare-share')?.addEventListener('click', () => { if (navigator.share) navigator.share({ title: document.title, url: location.href }).catch(() => {}); else copy(); });
+      document.getElementById('fshare-copy')?.addEventListener('click', copy);
+      onScroll();
     };
-    const copy = async () => {
-      try { await navigator.clipboard.writeText(location.href); showToast(); } catch {}
-    };
-    document.getElementById('fshare-share')?.addEventListener('click', () => {
-      if (navigator.share) navigator.share({ title: document.title, url: location.href }).catch(() => {});
-      else copy();
-    });
-    document.getElementById('fshare-copy')?.addEventListener('click', copy);
+    bind();
+    if (!window.__fsPL) { window.__fsPL = true; document.addEventListener('astro:page-load', bind); }
   })();
 </script>

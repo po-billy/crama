@@ -14,6 +14,7 @@ const blog = defineCollection({
     tags: z.array(z.string()).default([]),
     lang: z.enum(['ko', 'en']).default('ko'),
     heroImage: z.string().optional(),
+    audio: z.string().optional(), // 발행 시 생성한 오디오(MP3) URL — 있으면 고품질 음성 재생(백그라운드 청취)
     author: z.string().default('Crama 편집부'),
     draft: z.boolean().default(false),
     affiliate: z.boolean().default(false),

@@ -2,6 +2,9 @@
 // 본문 오디오 플레이어 (Web Speech API) — 무료, 클라이언트 전용.
 // 오디오북 서비스풍 UI: 재생/일시정지·건너뛰기·진행바(탐색)·예상시간·속도·음성선택.
 // .prose 본문을 문장 단위로 끊어 큐 재생(긴 문장 끊김 회피). 화면 끄면 멈춤(브라우저 TTS 한계).
+// audioSrc 가 있으면(발행 시 생성한 MP3) 고품질 음성 + 백그라운드 청취로 전환 예정(미연결 시 Web Speech 폴백).
+interface Props { audioSrc?: string }
+const { audioSrc } = Astro.props as Props;
 const ICON = {
   back: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/><text x="12.5" y="15.3" font-size="8.5" font-weight="700" fill="currentColor" stroke="none" text-anchor="middle">15</text></svg>`,
   fwd: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/><text x="11.5" y="15.3" font-size="8.5" font-weight="700" fill="currentColor" stroke="none" text-anchor="middle">15</text></svg>`,
@@ -13,7 +16,7 @@ const ICON = {
   chevUp: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg>`,
 };
 ---
-<div class="aplayer" data-listen hidden>
+<div class="aplayer" data-listen hidden data-audio-src={audioSrc}>
   <button class="aplayer__cta" type="button" data-play-cta aria-label="오디오로 듣기">
     <span class="aplayer__cta-ic" aria-hidden="true">🎧</span>
     <span class="aplayer__cta-tx">

@@ -36,6 +36,7 @@ interface Props {
   heroImage?: string;
   readingTime?: number;
   premium?: boolean;
+  audioSrc?: string;
   tags?: string[];
   headings?: MarkdownHeading[];
   related?: RelatedPost[];
@@ -43,7 +44,7 @@ interface Props {
 }
 const {
   title, description, pubDate, updatedDate, category, author, format = 'guide', heroImage,
-  readingTime, premium = false, tags = [], headings = [], related = [], guide,
+  readingTime, premium = false, audioSrc, tags = [], headings = [], related = [], guide,
 } = Astro.props;
 
 const cat = CATEGORIES[category];
@@ -95,7 +96,7 @@ const jsonLd = {
       </figure>
     )}
 
-    <ListenButton />
+    <ListenButton audioSrc={audioSrc} />
 
     {guide && (
       <a class="guide-link measure" href={guide.href}>

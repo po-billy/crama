@@ -10,7 +10,8 @@ const OUT = path.resolve('../site/public/img/generated');
 
 const STYLE =
   'cute 3D rendered claymation toy figurine character, soft rounded clay material, smooth studio lighting, ' +
-  'pastel lavender and peach gradient background, centered full body, friendly and charming, high detail, no text, no words';
+  'centered full body, friendly and charming, high detail, no text, no words, ' +
+  'isolated on a fully transparent background, no scenery, no floor, no shadow';
 
 const CHARS = [
   { key: 'turtle', subject: 'a calm sturdy turtle character gently hugging a golden piggy bank, content and reassuring expression' },
@@ -26,7 +27,7 @@ async function openaiImage(prompt) {
   const res = await fetch('https://api.openai.com/v1/images/generations', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
-    body: JSON.stringify({ model, prompt, size: '1024x1024', n: 1 }),
+    body: JSON.stringify({ model, prompt, size: '1024x1024', n: 1, background: 'transparent', output_format: 'png' }),
   });
   if (!res.ok) throw new Error('OpenAI image error: ' + (await res.text()));
   const json = await res.json();
@@ -41,7 +42,10 @@ for (const c of CHARS) {
   process.stdout.write(`▶ ${c.key} ... `);
   const buf = await openaiImage(prompt);
   const file = path.join(OUT, `quiz-${c.key}.webp`);
-  await sharp(buf).resize({ width: 768, height: 768, fit: 'cover' }).webp({ quality: 82 }).toFile(file);
+  await sharp(buf)
+    .resize({ width: 768, height: 768, fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .webp({ quality: 82, alphaQuality: 100 })
+    .toFile(file);
   console.log('완료 →', `/img/generated/quiz-${c.key}.webp`);
 }
 console.log('\n전체 완료');

@@ -36,68 +36,96 @@ const picksFromList = EDITOR_PICKS
 const picks = [
   ...picksFromList,
   ...posts.filter((p) => !picksFromList.includes(p) && !guideSlugs.includes(p.id)),
-].slice(0, 6);
+].slice(0, 8);
 const ranking = picks;
 
 // 좌측 콘텐츠 로테이터 — 가이드/진단/도구/사전이 롤링(슬라이드는 추가만 하면 됨)
 const slides = [
-  { badge: '가이드', title: '주식 투자 완벽 가이드', desc: '기본기·계좌·종목·운용까지, 처음이라면 여기서 시작하세요.', href: '/blog/stock-investing-complete-guide/', cta: '가이드 보기', img: '/img/generated/rotator-guide-hero.webp' },
-  { badge: '테스트', title: '나의 머니 캐릭터 테스트', desc: '6가지 질문으로 내 돈 성향을 캐릭터로 진단하고 맞춤 글을 추천받아요.', href: '/quiz/money-character/', cta: '캐릭터 찾기', img: '/img/generated/rotator-quiz-hero.webp' },
+  { badge: '칼럼', title: '읽을거리, 천천히 읽는 머니 칼럼', desc: '정보를 넘어 이야기로 — 돈과 AI를 둘러싼 관점과 장면들.', href: '/column/', cta: '칼럼 보기', img: '/img/generated/lifestyle-inflation-trap-hero.webp' },
   { badge: '도구', title: '바로 쓰는 금융 계산기', desc: '복리·평단가·대출 등 7종, 입력하면 즉시 계산.', href: '/tools/', cta: '계산기 열기', img: '/img/generated/rotator-tools-hero.webp' },
   { badge: '사전', title: '금융·AI 용어 사전', desc: '모르는 용어를 빠르게 찾고 관련 글로 이동.', href: '/glossary/', cta: '용어 보기', img: '/img/generated/rotator-glossary-hero.webp' },
+  { badge: '가이드', title: '주식 투자 완벽 가이드', desc: '기본기·계좌·종목·운용까지, 처음이라면 여기서 시작하세요.', href: '/blog/stock-investing-complete-guide/', cta: '가이드 보기', img: '/img/generated/rotator-guide-hero.webp' },
+  { badge: '테스트', title: '나의 머니 캐릭터 테스트', desc: '10가지 질문으로 내 돈 성향을 캐릭터로 진단하고 맞춤 글을 추천받아요.', href: '/quiz/money-character/', cta: '캐릭터 찾기', img: '/img/generated/rotator-quiz-hero.webp' },
 ];
 
-const latest = posts.filter((p) => !guideSlugs.includes(p.id)).slice(0, 6);
+// 배너 하단 원형 퀵메뉴 — 콘텐츠 + 테스트 바로가기
+const circles = [
+  { label: '머니 캐릭터 테스트', href: '/quiz/money-character/', icon: '/img/generated/menu-test.webp', badge: 'NEW' },
+  { label: '투자 성향 진단', href: '/quiz/investor-type/', icon: '/img/generated/menu-quiz.webp' },
+  { label: '칼럼', href: '/column/', icon: '/img/generated/menu-column.webp' },
+  { label: '완벽 가이드', href: '/guides/', icon: '/img/generated/menu-guide.webp' },
+  { label: '계산기', href: '/tools/', icon: '/img/generated/menu-calc.webp' },
+  { label: '용어집', href: '/glossary/', icon: '/img/generated/menu-glossary.webp' },
+  { label: '주식·재테크', href: '/category/money/', icon: '/img/generated/menu-money.webp' },
+  { label: 'AI 트렌드', href: '/category/ai/', icon: '/img/generated/menu-ai.webp' },
+  { label: '부업·지원금', href: '/category/income/', icon: '/img/generated/menu-income.webp' },
+];
+
+const latest = posts.filter((p) => !guideSlugs.includes(p.id)).slice(0, 8);
 const byCategory = (slug: 'money' | 'ai' | 'income') =>
-  posts.filter((p) => p.data.category === slug).slice(0, 3);
+  posts.filter((p) => p.data.category === slug).slice(0, 4);
 ---
 <BaseLayout title={SITE.title} description={SITE.description}>
-  <div class="wrap">
+  <div class="wrap wrap--home">
     <header class="home-masthead">
       <h1>주식·재테크와 AI 트렌드, <em>깊이 있게.</em></h1>
     </header>
 
-    <section class="home-hero">
+    <section class="home-banner">
       <section class="rotator rotator--banner" aria-label="추천 콘텐츠">
-      <div class="rotator__viewport">
-        {slides.map((s, i) => (
-          <a class={i === 0 ? 'rslide is-active' : 'rslide'} href={s.href} data-slide={i}>
-            <img class="rslide__bg" src={s.img} alt="" loading={i === 0 ? 'eager' : 'lazy'} />
-            <span class="rslide__badge">{s.badge}</span>
-            <h2 class="rslide__title">{s.title}</h2>
-            <p class="rslide__desc">{s.desc}</p>
-            <span class="rslide__cta">{s.cta} →</span>
-          </a>
-        ))}
-        <div class="rotator__counter"><span id="rot-cur">1</span> / {slides.length}</div>
-      </div>
-      <div class="rotator__dots">
-        {slides.map((_, i) => (
-          <button class="rotator__dot" type="button" data-dot={i} aria-label={`${i + 1}번 콘텐츠`} aria-current={i === 0 ? 'true' : 'false'}></button>
-        ))}
-      </div>
+        <div class="rotator__viewport">
+          {slides.map((s, i) => (
+            <a class={i === 0 ? 'rslide is-active' : 'rslide'} href={s.href} data-slide={i}>
+              <picture>
+                <source media="(min-width: 1024px)" srcset={s.img} />
+                <img class="rslide__bg" src={s.imgMobile ?? s.img} alt="" loading={i === 0 ? 'eager' : 'lazy'} />
+              </picture>
+              <span class="rslide__badge">{s.badge}</span>
+              <h2 class="rslide__title">{s.title}</h2>
+              <p class="rslide__desc">{s.desc}</p>
+              <span class="rslide__cta">{s.cta} →</span>
+            </a>
+          ))}
+          <div class="rotator__counter"><span id="rot-cur">1</span> / {slides.length}</div>
+        </div>
+        <div class="rotator__dots">
+          {slides.map((_, i) => (
+            <button class="rotator__dot" type="button" data-dot={i} aria-label={`${i + 1}번 콘텐츠`} aria-current={i === 0 ? 'true' : 'false'}></button>
+          ))}
+        </div>
+      </section>
     </section>
 
-      <div class="home-hero__side">
-        <div class="side-head"><h2>주목할 아티클</h2></div>
-        <ol class="ranked-list">
-          {ranking.map((p, i) => (
-            <li>
-              <a class="ranked" href={`/blog/${p.id}/`}>
-                <span class="ranked__num">{i + 1}</span>
-                {p.data.heroImage && (
-                  <div class="ranked__thumb"><img src={p.data.heroImage} alt="" loading="lazy" /></div>
-                )}
-                <div class="ranked__body">
-                  <h3 class="ranked__title">{p.data.title}</h3>
-                  <div class="ranked__meta">{CATEGORIES[p.data.category].name} · <FormattedDate date={p.data.pubDate} /></div>
-                </div>
-              </a>
-            </li>
-          ))}
-        </ol>
-      </div>
+    <nav class="home-circles" aria-label="바로가기">
+      {circles.map((c) => (
+        <a class="hcircle" href={c.href}>
+          <span class="hcircle__img">
+            <img src={c.icon} alt="" loading="lazy" />
+            {c.badge && <span class="hcircle__badge">{c.badge}</span>}
+          </span>
+          <span class="hcircle__label">{c.label}</span>
+        </a>
+      ))}
+    </nav>
 
+    <section class="home-rank">
+      <div class="section-head"><h2>주목할 아티클</h2><a href="/category/money/">전체 보기</a></div>
+      <ol class="ranked-list">
+        {ranking.map((p, i) => (
+          <li>
+            <a class="ranked" href={`/blog/${p.id}/`}>
+              <span class="ranked__num">{i + 1}</span>
+              {p.data.heroImage && (
+                <div class="ranked__thumb"><img src={p.data.heroImage} alt="" loading="lazy" /></div>
+              )}
+              <div class="ranked__body">
+                <h3 class="ranked__title">{p.data.title}</h3>
+                <div class="ranked__meta">{CATEGORIES[p.data.category].name} · <FormattedDate date={p.data.pubDate} /></div>
+              </div>
+            </a>
+          </li>
+        ))}
+      </ol>
     </section>
 
     <script is:inline>

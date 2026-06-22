@@ -105,6 +105,8 @@ hr {
   gap: 1.5rem;
   padding-block: 1.05rem;
 }
+/* 헤더도 홈 와이드(1440)에 맞춰 정렬 — PC 전용 */
+@media (min-width: 1024px) { .site-header .site-header__inner { max-width: 90rem; } }
 .brand { order: 1; }
 /* 검색·테마 버튼 — 로고와 같은 줄(상단)에 배치 */
 .header-actions { order: 3; display: flex; align-items: center; gap: 0.7rem; }

@@ -395,7 +395,8 @@ const marquee = [...resultKeys, ...resultKeys];
     .mc-progress__bar { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 999px; transition: width .3s ease; }
     .mc-step { color: var(--muted); font-size: 0.85rem; font-weight: 600; margin: 0 0 0.5rem; }
     .mc-question { font-size: 1.45rem; line-height: 1.35; margin: 0 0 1.6rem; }
-    .mc-options { display: flex; flex-direction: column; gap: 0.7rem; }
+    /* 선택지 수(4~6개)에 따라 높이가 변해 하단이 들썩이는 걸 막기 위해 최소 높이 고정(6개 기준) */
+    .mc-options { display: flex; flex-direction: column; gap: 0.7rem; min-height: 25rem; }
     .mc-opt {
       font: inherit; text-align: left; cursor: pointer; color: var(--ink);
       background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius);

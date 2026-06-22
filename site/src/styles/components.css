@@ -472,9 +472,22 @@
   flex: none; width: 3rem; height: 3rem; border-radius: 999px; background: var(--ink); color: var(--paper);
   font-family: var(--font-serif); font-weight: 600; font-size: 1.4rem; display: grid; place-items: center;
 }
-.author-box__name { font-family: var(--font-serif); font-size: 1.1rem; font-weight: 600; margin: 0 0 0.3rem; color: var(--ink); }
+.author-box__name { font-family: var(--font-serif); font-size: 1.1rem; font-weight: 600; margin: 0 0 0.3rem; color: var(--ink); display: flex; align-items: baseline; gap: 0.55rem; flex-wrap: wrap; }
+.author-box__beat { font-family: var(--font-sans); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.04em; color: var(--accent); }
 .author-box__bio { color: var(--muted); font-size: 0.94rem; line-height: 1.6; margin: 0 0 0.5rem; }
+.author-box__note { font-size: 0.76rem; color: var(--muted); opacity: 0.8; margin: 0 0 0.5rem; }
 .author-box__link { font-size: 0.9rem; font-weight: 600; color: var(--accent); }
+
+/* ---------- 카테고리 글 유형 필터 (전체/칼럼/가이드) ---------- */
+.cat-filter { display: flex; gap: 0.4rem; margin: 0 0 1.8rem; flex-wrap: wrap; }
+.cat-filter__tab {
+  font-family: var(--font-sans); font-size: 0.9rem; font-weight: 600; color: var(--muted);
+  background: var(--paper-2); border: 1px solid var(--line); border-radius: 999px;
+  padding: 0.42rem 0.95rem; cursor: pointer; transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+.cat-filter__tab:hover { color: var(--ink); border-color: var(--ink); }
+.cat-filter__tab.is-active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.cat-filter__count { font-size: 0.78rem; opacity: 0.7; margin-left: 0.15rem; }
 
 /* ---------- 상단 공지 배너 (가로 텍스트 슬라이드) ---------- */
 .notice-banner {

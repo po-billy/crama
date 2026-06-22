@@ -1,0 +1,81 @@
+---
+import { getCollection } from 'astro:content';
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import PostCard from '../../../components/PostCard.astro';
+import { CATEGORIES, PILLARS, type CategorySlug } from '../../../consts';
+
+export const getStaticPaths = (async () => {
+  return (Object.keys(CATEGORIES) as CategorySlug[]).map((slug) => ({ params: { slug } }));
+}) satisfies GetStaticPaths;
+
+const { slug } = Astro.params as { slug: CategorySlug };
+const cat = CATEGORIES[slug];
+
+const posts = (await getCollection('blog'))
+  .filter((p) => !p.data.draft && p.data.category === slug)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const columnCount = posts.filter((p) => p.data.format === 'column').length;
+const guideCount = posts.length - columnCount;
+---
+<BaseLayout title={`${cat.name} — ${cat.tagline}`} description={cat.description}>
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">{cat.tagline}</span>
+      <h1>{cat.name}</h1>
+      <p>{cat.description}</p>
+    </header>
+
+    {PILLARS[slug] && (
+      <a class="pillar-banner" href={`/blog/${PILLARS[slug]}/`}>
+        <span class="pillar-banner__badge">가이드</span>
+        <span class="pillar-banner__text">처음이세요? <strong>{cat.name} 완벽 가이드</strong>로 한 번에 시작하세요</span>
+        <span class="pillar-banner__cta">가이드 보기 →</span>
+      </a>
+    )}
+
+    {columnCount > 0 && guideCount > 0 && (
+      <div class="cat-filter" role="tablist" aria-label="글 유형 필터">
+        <button class="cat-filter__tab is-active" type="button" data-filter="all" aria-pressed="true">전체 <span class="cat-filter__count">{posts.length}</span></button>
+        <button class="cat-filter__tab" type="button" data-filter="column" aria-pressed="false">칼럼 <span class="cat-filter__count">{columnCount}</span></button>
+        <button class="cat-filter__tab" type="button" data-filter="guide" aria-pressed="false">가이드 <span class="cat-filter__count">{guideCount}</span></button>
+      </div>
+    )}
+
+    {posts.length === 0 ? (
+      <p style="color:var(--muted);">아직 발행된 글이 없습니다. 곧 채워집니다.</p>
+    ) : (
+      <div class="card-grid" data-cat-grid>
+        {posts.map((p) => (
+          <PostCard
+            href={`/blog/${p.id}/`}
+            title={p.data.title}
+            description={p.data.description}
+            pubDate={p.data.pubDate}
+            category={p.data.category}
+            heroImage={p.data.heroImage}
+            format={p.data.format}
+          />
+        ))}
+      </div>
+    )}
+  </div>
+
+  <script is:inline>
+    (() => {
+      const tabs = Array.from(document.querySelectorAll('.cat-filter__tab'));
+      const grid = document.querySelector('[data-cat-grid]');
+      if (!tabs.length || !grid) return;
+      const cards = Array.from(grid.querySelectorAll('.card'));
+      tabs.forEach((tab) => tab.addEventListener('click', () => {
+        const f = tab.getAttribute('data-filter');
+        tabs.forEach((t) => { const on = t === tab; t.classList.toggle('is-active', on); t.setAttribute('aria-pressed', String(on)); });
+        cards.forEach((c) => {
+          const show = f === 'all' || c.getAttribute('data-format') === f;
+          c.style.display = show ? '' : 'none';
+        });
+      }));
+    })();
+  </script>
+</BaseLayout>

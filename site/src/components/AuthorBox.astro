@@ -1,17 +1,23 @@
 ---
 // 저자/편집부 정보 박스 — 글 하단(E-E-A-T 신뢰 신호)
+// 칼럼 글은 작성자(author)가 칼럼니스트 페르소나면 그 프로필을, 아니면 편집부 소개를 보여준다.
 import { SITE } from '../consts';
+import { getPersona } from '../data/personas';
 interface Props { author?: string; }
 const { author = SITE.author } = Astro.props;
+const persona = getPersona(author);
 ---
 <aside class="author-box">
-  <div class="author-box__avatar" aria-hidden="true">C</div>
+  <div class="author-box__avatar" aria-hidden="true">{persona ? persona.initial : 'C'}</div>
   <div>
-    <p class="author-box__name">{author}</p>
-    <p class="author-box__bio">
-      {SITE.name}는 주식·재테크와 AI 트렌드를 깊이 있게 다루는 인사이트 매거진입니다.
-      흩어진 정보를 정리하고 맥락을 더해, 실전에 바로 쓰이는 원본 콘텐츠를 전합니다.
+    <p class="author-box__name">
+      {persona ? persona.name : author}
+      {persona && <span class="author-box__beat">{persona.beat}</span>}
     </p>
+    <p class="author-box__bio">
+      {persona ? persona.bio : `${SITE.name}는 주식·재테크와 AI 트렌드를 깊이 있게 다루는 인사이트 매거진입니다. 흩어진 정보를 정리하고 맥락을 더해, 실전에 바로 쓰이는 원본 콘텐츠를 전합니다.`}
+    </p>
+    {persona && <p class="author-box__note">크라마 편집 칼럼니스트</p>}
     <a class="author-box__link" href="/about/">편집 원칙 보기 →</a>
   </div>
 </aside>

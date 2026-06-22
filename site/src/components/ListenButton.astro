@@ -2,6 +2,15 @@
 // 본문 오디오 플레이어 (Web Speech API) — 무료, 클라이언트 전용.
 // 오디오북 서비스풍 UI: 재생/일시정지·건너뛰기·진행바(탐색)·예상시간·속도·음성선택.
 // .prose 본문을 문장 단위로 끊어 큐 재생(긴 문장 끊김 회피). 화면 끄면 멈춤(브라우저 TTS 한계).
+const ICON = {
+  back: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/><text x="12.5" y="15.3" font-size="8.5" font-weight="700" fill="currentColor" stroke="none" text-anchor="middle">15</text></svg>`,
+  fwd: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/><text x="11.5" y="15.3" font-size="8.5" font-weight="700" fill="currentColor" stroke="none" text-anchor="middle">15</text></svg>`,
+  play: `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M7 4.5v15l12-7.5z"/></svg>`,
+  voice: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h3.5L13 19V5L7.5 9.5z"/><path d="M16.5 8.5a4.5 4.5 0 0 1 0 7"/></svg>`,
+  follow: `<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/></svg>`,
+  close: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>`,
+  next: `<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M5 5v14l9-7z"/><rect x="15.5" y="5" width="2.8" height="14" rx="0.8"/></svg>`,
+};
 ---
 <div class="aplayer" data-listen hidden>
   <div class="aplayer__top">
@@ -11,20 +20,14 @@
         <select data-voice aria-label="음성 선택"></select>
       </div>
       <button class="aplayer__chip" type="button" data-rate-btn aria-label="재생 속도">1.0×</button>
-      <button class="aplayer__chip aplayer__chip--toggle" type="button" data-autonext aria-pressed="false" title="이어 듣기: 끝나면 다음 글을 이어서 들려줘요">⏭ 이어 듣기</button>
+      <button class="aplayer__chip aplayer__chip--toggle" type="button" data-autonext aria-pressed="false" title="이어 듣기: 끝나면 다음 글을 이어서 들려줘요"><span class="ic" aria-hidden="true" set:html={ICON.next}></span> 이어 듣기</button>
     </div>
   </div>
 
   <div class="aplayer__main">
-    <button class="aplayer__skip" type="button" data-back aria-label="15초 뒤로">
-      <span aria-hidden="true">«</span><small>15</small>
-    </button>
-    <button class="aplayer__play" type="button" data-play aria-label="재생">
-      <span class="aplayer__playicon" data-icon aria-hidden="true">▶</span>
-    </button>
-    <button class="aplayer__skip" type="button" data-fwd aria-label="15초 앞으로">
-      <small>15</small><span aria-hidden="true">»</span>
-    </button>
+    <button class="aplayer__skip" type="button" data-back aria-label="15초 뒤로"><span class="ic" aria-hidden="true" set:html={ICON.back}></span></button>
+    <button class="aplayer__play" type="button" data-play aria-label="재생"><span class="aplayer__playicon" data-icon aria-hidden="true" set:html={ICON.play}></span></button>
+    <button class="aplayer__skip" type="button" data-fwd aria-label="15초 앞으로"><span class="ic" aria-hidden="true" set:html={ICON.fwd}></span></button>
 
     <div class="aplayer__progress">
       <div class="aplayer__bar" data-bar role="slider" aria-label="재생 위치" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
@@ -42,11 +45,14 @@
 
 <!-- 청취 중 어디서나 조작하는 하단 고정 미니 컨트롤 -->
 <div class="aminibar" data-mini hidden>
+  <div class="aminibar__track" data-mini-bar role="slider" aria-label="재생 위치" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
+    <div class="aminibar__trackfill" data-mini-fill></div>
+  </div>
   <div class="aminibar__inner">
     <div class="aminibar__grp">
-      <button class="aminibar__btn aminibar__btn--skip" type="button" data-mini-back aria-label="15초 뒤로"><span aria-hidden="true">«</span><small>15</small></button>
-      <button class="aminibar__btn aminibar__btn--play" type="button" data-mini-play aria-label="재생/일시정지"><span data-mini-icon aria-hidden="true">❚❚</span></button>
-      <button class="aminibar__btn aminibar__btn--skip" type="button" data-mini-fwd aria-label="15초 앞으로"><small>15</small><span aria-hidden="true">»</span></button>
+      <button class="aminibar__btn" type="button" data-mini-back aria-label="15초 뒤로"><span class="ic" aria-hidden="true" set:html={ICON.back}></span></button>
+      <button class="aminibar__btn aminibar__btn--play" type="button" data-mini-play aria-label="재생/일시정지"><span class="ic" data-mini-icon aria-hidden="true" set:html={ICON.play}></span></button>
+      <button class="aminibar__btn" type="button" data-mini-fwd aria-label="15초 앞으로"><span class="ic" aria-hidden="true" set:html={ICON.fwd}></span></button>
     </div>
     <div class="aminibar__txt">
       <strong data-mini-status>재생 중</strong>
@@ -54,11 +60,9 @@
     </div>
     <div class="aminibar__grp">
       <button class="aminibar__chip" type="button" data-mini-rate aria-label="재생 속도">1.0×</button>
-      <button class="aminibar__btn aminibar__btn--voice" type="button" data-mini-voice aria-label="음성 변경" title="음성 변경" hidden><span aria-hidden="true">🔊</span></button>
-      <button class="aminibar__follow" type="button" data-follow aria-pressed="true" title="읽는 위치로 자동 스크롤">
-        <span class="aminibar__dot" aria-hidden="true"></span><span class="aminibar__followlabel" data-follow-label>따라가기</span>
-      </button>
-      <button class="aminibar__btn aminibar__btn--stop" type="button" data-mini-stop aria-label="닫기">✕</button>
+      <button class="aminibar__btn aminibar__btn--voice" type="button" data-mini-voice aria-label="음성 변경" title="음성 변경" hidden><span class="ic" aria-hidden="true" set:html={ICON.voice}></span></button>
+      <button class="aminibar__follow" type="button" data-follow aria-pressed="true" aria-label="따라가기" title="읽는 위치로 자동 스크롤"><span class="ic" aria-hidden="true" set:html={ICON.follow}></span><span class="aminibar__followlabel" data-follow-label>따라가기</span></button>
+      <button class="aminibar__btn aminibar__btn--stop" type="button" data-mini-stop aria-label="닫기"><span class="ic" aria-hidden="true" set:html={ICON.close}></span></button>
     </div>
   </div>
 </div>
@@ -79,7 +83,10 @@
   .aplayer__brandicon { font-size: 0.95rem; }
   .aplayer__opts { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end; }
   .aplayer__chip--toggle[aria-pressed='true'] { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .aplayer__chip--toggle { min-width: 0; }
+  .aplayer__chip--toggle { min-width: 0; display: inline-flex; align-items: center; gap: 0.3rem; }
+  /* 아이콘 컨테이너(SVG) */
+  .ic { display: inline-flex; align-items: center; justify-content: center; }
+  .ic svg { display: block; }
 
   .aplayer__chip {
     border: 1px solid var(--line); background: var(--paper); color: var(--ink-soft);
@@ -106,15 +113,15 @@
   }
   .aplayer__play:hover { filter: brightness(1.05); }
   .aplayer__play:active { transform: scale(0.95); }
-  .aplayer__playicon { font-size: 1.05rem; line-height: 1; margin-left: 1px; }
+  .aplayer__playicon { display: inline-flex; }
+  .aplayer__playicon svg { display: block; }
 
   .aplayer__skip {
-    display: inline-flex; flex-direction: row; align-items: center; gap: 0.1rem;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 2.6rem; height: 2.6rem;
     background: none; border: 1px solid var(--line); border-radius: 999px;
-    color: var(--ink-soft); cursor: pointer; padding: 0.4rem 0.6rem;
-    font-size: 0.95rem; line-height: 1;
+    color: var(--ink-soft); cursor: pointer;
   }
-  .aplayer__skip small { font-size: 0.62rem; font-weight: 700; }
   .aplayer__skip:hover { border-color: var(--accent); color: var(--accent); }
 
   .aplayer__progress { min-width: 0; }
@@ -148,46 +155,50 @@
     .aplayer__progress { grid-column: 1 / -1; }
   }
 
-  /* ----- 하단 바텀시트형 미니 컨트롤 (오디오) ----- */
+  /* ----- 미니 플레이어: PC=떠있는 카드 / 모바일=바텀바 ----- */
   .aminibar {
-    position: fixed; left: 0; right: 0; bottom: 0; z-index: 80;
+    position: fixed; left: 50%; bottom: 1.3rem; transform: translateX(-50%);
+    width: min(680px, calc(100vw - 2.5rem)); z-index: 80;
     background: var(--ink);
     background: color-mix(in srgb, var(--ink) 95%, transparent);
-    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
-    color: var(--paper);
-    border-top-left-radius: 18px; border-top-right-radius: 18px;
-    box-shadow: 0 -10px 30px -12px rgba(0,0,0,0.5);
-    padding: 0.5rem 0 max(0.5rem, env(safe-area-inset-bottom));
+    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+    color: var(--paper); border-radius: 16px;
+    box-shadow: 0 18px 44px -14px rgba(0,0,0,0.55);
+    padding: 0.55rem;
   }
   .aminibar[hidden] { display: none; }
-  .aminibar__inner {
-    max-width: var(--wide); margin-inline: auto; padding-inline: 1.5rem;
-    display: flex; align-items: center; gap: 0.5rem; justify-content: space-between;
+
+  /* 상단 진행바(상태 시각화 + 탐색) */
+  .aminibar__track {
+    position: absolute; left: 0; right: 0; top: 0; height: 3px;
+    background: rgba(255,255,255,0.18); border-radius: 16px 16px 0 0;
+    cursor: pointer; touch-action: none;
   }
-  .aminibar__grp { display: flex; align-items: center; gap: 0.3rem; flex: none; }
+  .aminibar__track:hover { height: 5px; }
+  .aminibar__trackfill { height: 100%; width: 0%; background: var(--accent); border-top-left-radius: 16px; }
+
+  .aminibar__inner { display: flex; align-items: center; gap: 0.5rem; }
+  .aminibar__grp { display: flex; align-items: center; gap: 0.25rem; flex: none; }
 
   /* 공통 아이콘 버튼 */
   .aminibar__btn {
     border: none; background: transparent; color: var(--paper); cursor: pointer;
-    height: 2.6rem; min-width: 2.6rem; padding: 0 0.6rem; border-radius: 999px;
-    display: inline-flex; align-items: center; justify-content: center; gap: 2px;
-    font-size: 0.92rem; line-height: 1; flex: none; transition: background .15s;
+    height: 2.6rem; min-width: 2.6rem; padding: 0 0.5rem; border-radius: 999px;
+    display: inline-flex; align-items: center; justify-content: center;
+    line-height: 1; flex: none; transition: background .15s;
   }
   .aminibar__btn:hover { background: rgba(255,255,255,0.14); }
-  .aminibar__btn--skip small { font-size: 0.6rem; font-weight: 700; opacity: 0.85; }
-  .aminibar__btn--voice { font-size: 1rem; }
-  .aminibar__btn--stop { font-size: 0.82rem; opacity: 0.65; }
+  .aminibar__btn--stop { opacity: 0.7; }
   .aminibar__btn--stop:hover { opacity: 1; }
   .aminibar__btn--play {
-    background: var(--accent); color: #fff; width: 3rem; height: 3rem; min-width: 3rem;
-    margin: 0 0.15rem; font-size: 0.9rem;
+    background: var(--accent); color: #fff; width: 3rem; height: 3rem; min-width: 3rem; margin: 0 0.15rem;
   }
   .aminibar__btn--play:hover { background: var(--accent); filter: brightness(1.08); }
 
   /* 정보(상태 + 시간) — 가운데, 남는 공간 차지 */
-  .aminibar__txt { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; flex: 1; align-items: center; text-align: center; }
-  .aminibar__txt strong { font-size: 0.8rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-  .aminibar__txt span { font-size: 0.72rem; opacity: 0.7; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .aminibar__txt { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; flex: 1; padding: 0 0.4rem; }
+  .aminibar__txt strong { font-size: 0.82rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .aminibar__txt span { font-size: 0.72rem; opacity: 0.65; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
   /* 배속 칩 */
   .aminibar__chip {
@@ -199,19 +210,17 @@
 
   /* 따라가기 토글 */
   .aminibar__follow {
-    display: inline-flex; align-items: center; gap: 0.4rem;
-    height: 2.6rem; padding: 0 0.9rem; border-radius: 999px; cursor: pointer; flex: none; border: none;
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    height: 2.6rem; padding: 0 0.85rem; border-radius: 999px; cursor: pointer; flex: none; border: none;
     background: rgba(255,255,255,0.14); color: var(--paper);
     font-size: 0.76rem; font-weight: 700; white-space: nowrap; transition: background .15s, opacity .15s;
   }
-  .aminibar__dot { width: 0.5rem; height: 0.5rem; border-radius: 999px; flex: none; background: rgba(255,255,255,0.55); }
   .aminibar__follow[aria-pressed="true"] { background: var(--accent); color: #fff; }
-  .aminibar__follow[aria-pressed="true"] .aminibar__dot { background: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,0.25); }
-  .aminibar__follow[aria-pressed="false"] { opacity: 0.55; }
+  .aminibar__follow[aria-pressed="false"] { opacity: 0.6; }
 
   /* 변경 알림 토스트 */
   .atoast {
-    position: fixed; left: 50%; bottom: 5rem; transform: translateX(-50%) translateY(8px);
+    position: fixed; left: 50%; bottom: 5.5rem; transform: translateX(-50%) translateY(8px);
     z-index: 90; background: var(--ink); color: var(--paper);
     padding: 0.55rem 1.05rem; border-radius: 999px; font-size: 0.82rem; font-weight: 600;
     box-shadow: 0 10px 28px -8px rgba(0,0,0,0.55); opacity: 0; pointer-events: none;
@@ -220,21 +229,27 @@
   .atoast[hidden] { display: none; }
   .atoast.is-show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-  /* 모바일: 정보·라벨 숨기고 컴팩트 (양끝 정렬) */
+  /* 모바일: 풀폭 바텀바 + 정보/라벨 숨김 */
   @media (max-width: 640px) {
-    .aminibar { padding: 0.4rem 0 max(0.4rem, env(safe-area-inset-bottom)); }
-    .aminibar__inner { padding-inline: 0.8rem; gap: 0.3rem; }
+    .aminibar {
+      left: 0; right: 0; bottom: 0; transform: none; width: auto;
+      border-radius: 16px 16px 0 0;
+      box-shadow: 0 -10px 30px -12px rgba(0,0,0,0.5);
+      padding: 0.45rem 0 max(0.45rem, env(safe-area-inset-bottom));
+    }
+    .aminibar__track { border-radius: 0; }
+    .aminibar__inner { padding-inline: 0.8rem; justify-content: space-between; gap: 0.3rem; }
     .aminibar__txt, .aminibar__followlabel { display: none; }
-    .aminibar__btn { min-width: 2.5rem; height: 2.5rem; padding: 0 0.45rem; }
+    .aminibar__btn { min-width: 2.5rem; height: 2.5rem; padding: 0 0.4rem; }
     .aminibar__btn--play { width: 2.9rem; height: 2.9rem; min-width: 2.9rem; }
     .aminibar__chip { min-width: 2.8rem; padding: 0 0.6rem; height: 2.5rem; }
-    .aminibar__follow { height: 2.5rem; padding: 0 0.6rem; }
-    .atoast { bottom: 4.5rem; }
+    .aminibar__follow { height: 2.5rem; padding: 0 0.55rem; }
+    .atoast { bottom: 4.8rem; }
   }
   @media (prefers-reduced-motion: no-preference) {
-    .aminibar { animation: amini-in .25s ease; }
+    .aminibar { animation: amini-fade .22s ease; }
   }
-  @keyframes amini-in { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  @keyframes amini-fade { from { opacity: 0; } to { opacity: 1; } }
 </style>
 
 <script is:inline>
@@ -268,6 +283,10 @@
     const miniStop = mini.querySelector('[data-mini-stop]');
     const miniStatus = mini.querySelector('[data-mini-status]');
     const miniTime = mini.querySelector('[data-mini-time]');
+    const miniBar = mini.querySelector('[data-mini-bar]');
+    const miniFill = mini.querySelector('[data-mini-fill]');
+    const ICON_PLAY = '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M7 4.5v15l12-7.5z"/></svg>';
+    const ICON_PAUSE = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><rect x="6.5" y="4.5" width="3.6" height="15" rx="1.2"/><rect x="14" y="4.5" width="3.6" height="15" rx="1.2"/></svg>';
     const followBtn = mini.querySelector('[data-follow]');
     const followLabel = mini.querySelector('[data-follow-label]');
     const miniBack = mini.querySelector('[data-mini-back]');
@@ -374,6 +393,8 @@
       fill.style.width = pct + '%';
       knob.style.left = pct + '%';
       bar.setAttribute('aria-valuenow', String(Math.round(f * 100)));
+      if (miniFill) miniFill.style.width = pct + '%';
+      if (miniBar) miniBar.setAttribute('aria-valuenow', String(Math.round(f * 100)));
       const t = totalSec() * f;
       elapsedEl.textContent = fmt(t);
       totalEl.textContent = fmt(totalSec());
@@ -432,8 +453,8 @@
     function setState(next) {
       state = next;
       const playing = state === 'playing';
-      icon.textContent = playing ? '❚❚' : '▶';
-      miniIcon.textContent = playing ? '❚❚' : '▶';
+      icon.innerHTML = playing ? ICON_PAUSE : ICON_PLAY;
+      if (miniIcon) miniIcon.innerHTML = playing ? ICON_PAUSE : ICON_PLAY;
       playBtn.setAttribute('aria-label', playing ? '일시정지' : '재생');
       mini.hidden = state === 'idle';
       try { document.body.classList.toggle('audio-active', state !== 'idle'); } catch (e) {}
@@ -610,16 +631,21 @@
       toast(autoNext ? '이어 듣기 켜짐 · 다음 글로 이어집니다' : '이어 듣기 꺼짐');
     });
 
-    // 진행바 탐색(클릭/드래그)
-    function seekFromEvent(clientX) {
-      const r = bar.getBoundingClientRect();
+    // 진행바 탐색(클릭/드래그) — 메인·미니 공용
+    function seekFrom(clientX, el) {
+      const r = el.getBoundingClientRect();
       const f = Math.max(0, Math.min(1, (clientX - r.left) / r.width));
       goTo(chunkAtFraction(f));
     }
-    let dragging = false;
-    bar.addEventListener('pointerdown', (e) => { dragging = true; bar.setPointerCapture(e.pointerId); seekFromEvent(e.clientX); });
-    bar.addEventListener('pointermove', (e) => { if (dragging) seekFromEvent(e.clientX); });
-    bar.addEventListener('pointerup', () => { dragging = false; });
+    function bindSeek(el) {
+      if (!el) return;
+      let drag = false;
+      el.addEventListener('pointerdown', (e) => { drag = true; try { el.setPointerCapture(e.pointerId); } catch (e2) {} seekFrom(e.clientX, el); });
+      el.addEventListener('pointermove', (e) => { if (drag) seekFrom(e.clientX, el); });
+      el.addEventListener('pointerup', () => { drag = false; });
+    }
+    bindSeek(bar);
+    bindSeek(miniBar);
     bar.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowRight') { e.preventDefault(); skipBySeconds(SKIP_SEC); }
       else if (e.key === 'ArrowLeft') { e.preventDefault(); skipBySeconds(-SKIP_SEC); }

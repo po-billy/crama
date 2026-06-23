@@ -33,7 +33,9 @@ console.log('제목   :', title);
 console.log('프롬프트:', prompt);
 
 const hero = await generateHero({ prompt, slug, outDir: PUBLIC_IMG, provider: 'openai' });
-mdx = mdx.replace(/heroImage:.*$/m, `heroImage: '${hero.publicPath}'`);
+// heroImage 줄이 있으면 교체, 없으면(수동 작성 글) title 아래에 새로 삽입
+if (/^\s*heroImage:.*$/m.test(mdx)) mdx = mdx.replace(/^\s*heroImage:.*$/m, `heroImage: '${hero.publicPath}'`);
+else mdx = mdx.replace(/^(title:.*)$/m, `$1\nheroImage: '${hero.publicPath}'`);
 await fs.writeFile(mdxPath, mdx, 'utf8');
 
 console.log('이미지 :', hero.file);

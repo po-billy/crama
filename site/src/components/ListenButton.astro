@@ -1109,7 +1109,14 @@ const ICON = {
     if (C.slug === thisSlug && !audio.paused) {
       highlightOff = false; renderIcons(); setActive(true); setStatus(); update();
     } else {
+      // 목록 미니 플레이어('글 보기')에서 넘어온 경우, 그 재생 위치에서 이어받기
+      let resumeT = 0;
+      try { const r = JSON.parse(sessionStorage.getItem('crama:tts:resume') || 'null'); if (r && r.slug === thisSlug) { resumeT = Number(r.t) || 0; sessionStorage.removeItem('crama:tts:resume'); } } catch (e) {}
       if (audio.paused) { if (audio.src !== audioSrc) { audio.src = audioSrc; audio.currentTime = 0; } C.slug = thisSlug; }
+      if (resumeT > 0) {
+        const seek = () => { try { audio.currentTime = resumeT; } catch (e) {} update(); audio.removeEventListener('loadedmetadata', seek); };
+        if (audio.readyState >= 1 && audio.duration) seek(); else audio.addEventListener('loadedmetadata', seek);
+      }
       renderIcons(); setStatus();
       try { if (sessionStorage.getItem('crama:tts:continue') === '1') { sessionStorage.removeItem('crama:tts:continue'); audio.play().catch(() => {}); } } catch (e) {}
     }

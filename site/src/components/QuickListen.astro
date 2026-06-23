@@ -43,6 +43,17 @@
     audio.addEventListener('ended', render);
     q('[data-ql-toggle]').addEventListener('click', () => { if (audio.paused) audio.play().catch(() => {}); else audio.pause(); });
     q('[data-ql-close]').addEventListener('click', () => { audio.pause(); bar.hidden = true; });
+    // '글 보기' → 현재 재생 위치를 넘겨 본문 플레이어가 이어받게(데스크톱 자동 이어재생, 모바일은 그 지점에서 한 번 탭)
+    openLink.addEventListener('click', () => {
+      try {
+        const m = (openLink.getAttribute('href') || '').match(/\/blog\/([^/]+)/);
+        if (m) {
+          sessionStorage.setItem('crama:tts:resume', JSON.stringify({ slug: m[1], t: audio.currentTime || 0 }));
+          sessionStorage.setItem('crama:tts:continue', '1');
+        }
+      } catch (e) {}
+      audio.pause();
+    });
     // 진행바 탐색
     track && track.addEventListener('pointerdown', (e) => {
       const r = track.getBoundingClientRect();

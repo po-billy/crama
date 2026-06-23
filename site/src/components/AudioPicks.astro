@@ -67,18 +67,24 @@ const lists = PLAYLISTS.map((pl) => ({
       const a = e.target && e.target.closest ? e.target.closest('[data-audio-play]') : null;
       if (!a) return;
       const src = a.getAttribute('data-src');
-      if (src && typeof window.cramaQuickPlay === 'function') {
-        // 탭한 자리에서 즉시 재생(모바일 자동재생 정책 충족). '글 보기'로 이동 가능.
-        e.preventDefault();
-        window.cramaQuickPlay(src, a.getAttribute('data-title'), a.getAttribute('href'));
+      const href = a.getAttribute('href') || '';
+      if (src && window.__cramaCtl) {
+        // 탭 제스처 안에서 재생 시작 → ClientRouter 소프트 내비로 글 이동, 오디오 유지(무탭 이어재생)
+        try {
+          const C = window.__cramaCtl();
+          if (C.audio.src !== src) { C.audio.src = src; try { C.audio.currentTime = 0; } catch (e2) {} }
+          const m = href.match(/\/blog\/([^/]+)/); C.slug = m ? m[1] : null;
+          const p = C.audio.play(); if (p && p.catch) p.catch(() => {});
+        } catch (err) {}
+        // preventDefault 하지 않음 → 링크가 소프트 내비(SPA)로 이동
       } else {
-        // 폴백: 페이지 이동 후 자동재생 시도(데스크톱)
         try { sessionStorage.setItem('crama:tts:continue', '1'); } catch (err) {}
       }
     });
   }
-  // 시간에 따라 한 칸씩 자동 스크롤(끝에서 처음으로 루프). 손대면 잠시 멈췄다 재개.
-  (() => {
+  // 자동 스크롤(한 칸씩, 끝에서 루프). 손대면 잠시 멈췄다 재개. SPA 전환마다 재바인딩(이전 타이머 정리).
+  function __aplAuto() {
+    if (window.__aplStop) { window.__aplStop(); window.__aplStop = null; }
     const el = document.querySelector('.apl__scroll');
     if (!el) return;
     const gap = () => { const g = parseFloat(getComputedStyle(el).columnGap || getComputedStyle(el).gap || '14'); return isNaN(g) ? 14 : g; };
@@ -90,13 +96,16 @@ const lists = PLAYLISTS.map((pl) => ({
       else el.scrollBy({ left: step(), behavior: 'smooth' });
     };
     const start = () => { clearInterval(t); t = setInterval(tick, 4000); };
-    const stop = () => clearInterval(t);
-    const pause = () => { stop(); clearTimeout(idle); idle = setTimeout(start, 4500); };
+    const stop = () => { clearInterval(t); clearTimeout(idle); };
+    const pause = () => { clearInterval(t); clearTimeout(idle); idle = setTimeout(start, 4500); };
     el.addEventListener('mouseenter', stop);
     el.addEventListener('mouseleave', start);
     ['pointerdown', 'touchstart', 'wheel'].forEach((e) => el.addEventListener(e, pause, { passive: true }));
+    window.__aplStop = stop;
     start();
-  })();
+  }
+  if (!window.__aplBound) { window.__aplBound = true; document.addEventListener('astro:page-load', __aplAuto); }
+  if (document.readyState !== 'loading') __aplAuto(); else document.addEventListener('DOMContentLoaded', __aplAuto, { once: true });
 </script>
 
 <style>

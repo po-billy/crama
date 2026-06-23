@@ -14,6 +14,8 @@ const PLAYLISTS = [
 
 const all = await getCollection('blog');
 const byId = new Map(all.map((p) => [p.id, p]));
+// 48px 썸네일엔 풀사이즈 hero 대신 160px 썸네일 사용(용량 절감)
+const thumb = (h) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.webp$/, '-hero-thumb.webp') : h);
 const estMin = (p) => Math.max(1, Math.round((p.body || '').length / 600));
 const lists = PLAYLISTS.map((pl) => ({
   ...pl,
@@ -38,7 +40,7 @@ const lists = PLAYLISTS.map((pl) => ({
               <li>
                 <a class="apl__item" href={`/blog/${p.id}/`} data-audio-play>
                   <span class="apl__thumb">
-                    {p.data.heroImage && <img src={p.data.heroImage} alt="" loading="lazy" width="48" height="48" />}
+                    {p.data.heroImage && <img src={thumb(p.data.heroImage)} alt="" loading="lazy" width="48" height="48" />}
                   </span>
                   <span class="apl__body">
                     <span class="apl__tag">오디오 · {CATEGORIES[p.data.category]?.name ?? ''}</span>
@@ -70,7 +72,7 @@ const lists = PLAYLISTS.map((pl) => ({
 </script>
 
 <style>
-  .apl { max-width: var(--wide); margin: 2.2rem auto; }
+  .apl { margin: 2.2rem 0; }
   .apl__head { padding: 0 0.2rem; }
   .apl__title { font-family: var(--font-serif); font-size: 1.4rem; margin: 0; display: flex; align-items: center; gap: 0.4rem; }
   .apl__sub { color: var(--muted); font-size: 0.9rem; margin: 0.25rem 0 0; }

@@ -65,6 +65,9 @@ const circles = [
 const latest = posts.filter((p) => !guideSlugs.includes(p.id)).slice(0, 8);
 const byCategory = (slug: 'money' | 'ai' | 'income') =>
   posts.filter((p) => p.data.category === slug).slice(0, 4);
+
+// 작은 썸네일(160px) 경로 — 랭킹/리스트의 48~90px 썸네일에 풀사이즈 hero 대신 사용(이미지 용량 절감)
+const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.webp$/, '-hero-thumb.webp') : h);
 ---
 <BaseLayout title={SITE.title} description={SITE.description}>
   <div class="wrap wrap--home">
@@ -117,7 +120,7 @@ const byCategory = (slug: 'money' | 'ai' | 'income') =>
             <a class="ranked" href={`/blog/${p.id}/`}>
               <span class="ranked__num">{i + 1}</span>
               {p.data.heroImage && (
-                <div class="ranked__thumb"><img src={p.data.heroImage} alt="" loading="lazy" /></div>
+                <div class="ranked__thumb"><img src={thumb(p.data.heroImage)} alt="" loading="lazy" width="60" height="60" /></div>
               )}
               <div class="ranked__body">
                 <h3 class="ranked__title">{p.data.title}</h3>

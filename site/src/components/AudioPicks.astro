@@ -38,7 +38,7 @@ const lists = PLAYLISTS.map((pl) => ({
           <ul class="apl__items">
             {pl.items.map((p) => (
               <li>
-                <a class="apl__item" href={`/blog/${p.id}/`} data-audio-play>
+                <a class="apl__item" href={`/blog/${p.id}/`} data-audio-play data-src={p.data.audio} data-title={p.data.title}>
                   <span class="apl__thumb">
                     {p.data.heroImage && <img src={thumb(p.data.heroImage)} alt="" loading="lazy" width="48" height="48" />}
                   </span>
@@ -66,7 +66,15 @@ const lists = PLAYLISTS.map((pl) => ({
     document.addEventListener('click', (e) => {
       const a = e.target && e.target.closest ? e.target.closest('[data-audio-play]') : null;
       if (!a) return;
-      try { sessionStorage.setItem('crama:tts:continue', '1'); } catch (err) {}
+      const src = a.getAttribute('data-src');
+      if (src && typeof window.cramaQuickPlay === 'function') {
+        // 탭한 자리에서 즉시 재생(모바일 자동재생 정책 충족). '글 보기'로 이동 가능.
+        e.preventDefault();
+        window.cramaQuickPlay(src, a.getAttribute('data-title'), a.getAttribute('href'));
+      } else {
+        // 폴백: 페이지 이동 후 자동재생 시도(데스크톱)
+        try { sessionStorage.setItem('crama:tts:continue', '1'); } catch (err) {}
+      }
     });
   }
   // 시간에 따라 한 칸씩 자동 스크롤(끝에서 처음으로 루프). 손대면 잠시 멈췄다 재개.

@@ -6,6 +6,7 @@ import NoticeBanner from '../components/NoticeBanner.astro';
 import BackToTop from '../components/BackToTop.astro';
 import CookieConsent from '../components/CookieConsent.astro';
 import CalcEnhance from '../components/CalcEnhance.astro';
+import QuickListen from '../components/QuickListen.astro';
 import { ClientRouter } from 'astro:transitions';
 
 interface Props {
@@ -47,5 +48,6 @@ const { spa, ...props } = Astro.props;
     <BackToTop />
     <CookieConsent />
     <CalcEnhance />
+    <QuickListen />
   </body>
 </html>

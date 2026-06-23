@@ -1,0 +1,96 @@
+---
+// 전역 '바로 듣기' 미니 플레이어 — 목록에서 탭하면 그 자리에서 즉시 재생(모바일 자동재생 정책 충족).
+// window.cramaQuickPlay(src, title, href) 로 호출. 글 페이지의 본문 플레이어와는 별개(가벼운 재생용).
+---
+<div class="qlbar" data-ql hidden role="region" aria-label="오디오 바로 듣기">
+  <div class="qlbar__track" data-ql-track aria-hidden="true"><div class="qlbar__fill" data-ql-fill></div></div>
+  <button class="qlbar__btn qlbar__play" type="button" data-ql-toggle aria-label="재생/일시정지">
+    <span class="qlbar__ic" data-ql-icon></span>
+  </button>
+  <div class="qlbar__txt">
+    <strong class="qlbar__title" data-ql-title>오디오</strong>
+    <span class="qlbar__time" data-ql-time>0:00 / 0:00</span>
+  </div>
+  <a class="qlbar__open" data-ql-open href="/">글 보기 →</a>
+  <button class="qlbar__btn qlbar__close" type="button" data-ql-close aria-label="닫기">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18" /></svg>
+  </button>
+</div>
+
+<script is:inline>
+  (() => {
+    if (window.__qlInit) return;
+    window.__qlInit = true;
+    const bar = document.querySelector('[data-ql]');
+    if (!bar) return;
+    const ICON_PLAY = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M7 4.5v15l12-7.5z"/></svg>';
+    const ICON_PAUSE = '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6.5" y="4.5" width="3.6" height="15" rx="1.2"/><rect x="14" y="4.5" width="3.6" height="15" rx="1.2"/></svg>';
+    const audio = new Audio();
+    audio.preload = 'metadata';
+    const q = (s) => bar.querySelector(s);
+    const icon = q('[data-ql-icon]'), title = q('[data-ql-title]'), timeEl = q('[data-ql-time]');
+    const openLink = q('[data-ql-open]'), fill = q('[data-ql-fill]'), track = q('[data-ql-track]');
+    let curSrc = '';
+    const fmt = (s) => { s = Math.max(0, Math.round(s || 0)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+    const render = () => { icon.innerHTML = audio.paused ? ICON_PLAY : ICON_PAUSE; };
+    audio.addEventListener('timeupdate', () => {
+      const d = audio.duration || 0, c = audio.currentTime || 0;
+      timeEl.textContent = fmt(c) + ' / ' + fmt(d);
+      if (fill) fill.style.width = (d ? (c / d) * 100 : 0) + '%';
+    });
+    audio.addEventListener('play', render);
+    audio.addEventListener('pause', render);
+    audio.addEventListener('ended', render);
+    q('[data-ql-toggle]').addEventListener('click', () => { if (audio.paused) audio.play().catch(() => {}); else audio.pause(); });
+    q('[data-ql-close]').addEventListener('click', () => { audio.pause(); bar.hidden = true; });
+    // 진행바 탐색
+    track && track.addEventListener('pointerdown', (e) => {
+      const r = track.getBoundingClientRect();
+      if (audio.duration) { audio.currentTime = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * audio.duration; }
+    });
+
+    window.cramaQuickPlay = function (src, ttl, href) {
+      if (!src) { if (href) location.href = href; return; }
+      if (src !== curSrc) { curSrc = src; audio.src = src; audio.currentTime = 0; }
+      title.textContent = ttl || '오디오';
+      if (openLink) openLink.href = href || '/';
+      bar.hidden = false;
+      render();
+      const p = audio.play();
+      if (p && p.catch) p.catch(() => {});
+      if ('mediaSession' in navigator) {
+        try { navigator.mediaSession.metadata = new MediaMetadata({ title: ttl || 'Crama 오디오', artist: 'Crama', album: 'crama.app' }); } catch (e) {}
+        try { navigator.mediaSession.setActionHandler('play', () => audio.play()); } catch (e) {}
+        try { navigator.mediaSession.setActionHandler('pause', () => audio.pause()); } catch (e) {}
+      }
+    };
+  })();
+</script>
+
+<style>
+  .qlbar {
+    position: fixed; left: 50%; bottom: 1rem; transform: translateX(-50%); z-index: 85;
+    width: min(640px, calc(100vw - 1.5rem));
+    display: flex; align-items: center; gap: 0.6rem; padding: 0.55rem 0.7rem;
+    background: color-mix(in srgb, var(--ink) 95%, transparent); color: var(--paper);
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    border-radius: 14px; box-shadow: 0 14px 40px -14px rgba(0,0,0,0.55); overflow: hidden;
+  }
+  .qlbar[hidden] { display: none; }
+  .qlbar__track { position: absolute; top: 0; left: 0; right: 0; height: 3px; background: rgba(255,255,255,0.18); cursor: pointer; }
+  .qlbar__fill { height: 100%; width: 0%; background: var(--accent); }
+  .qlbar__btn { border: none; background: transparent; color: var(--paper); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+  .qlbar__play { width: 2.6rem; height: 2.6rem; min-width: 2.6rem; border-radius: 999px; background: var(--accent); color: #fff; flex: none; }
+  .qlbar__ic { display: inline-flex; }
+  .qlbar__txt { display: flex; flex-direction: column; min-width: 0; flex: 1; line-height: 1.2; }
+  .qlbar__title { font-size: 0.86rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .qlbar__time { font-size: 0.72rem; opacity: 0.7; font-variant-numeric: tabular-nums; }
+  .qlbar__open { flex: none; font-size: 0.78rem; font-weight: 700; color: var(--accent-soft, #ffd9cc); text-decoration: none; white-space: nowrap; padding: 0 0.2rem; }
+  .qlbar__open:hover { text-decoration: underline; }
+  .qlbar__close { width: 2rem; height: 2rem; flex: none; opacity: 0.7; }
+  .qlbar__close:hover { opacity: 1; }
+  @media (max-width: 640px) {
+    .qlbar { left: 0; right: 0; bottom: 0; transform: none; width: auto; border-radius: 14px 14px 0 0; padding: 0.5rem 0.7rem max(0.5rem, env(safe-area-inset-bottom)); }
+    .qlbar__open { font-size: 0.74rem; }
+  }
+</style>

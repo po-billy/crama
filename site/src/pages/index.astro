@@ -6,6 +6,7 @@ import FormattedDate from '../components/FormattedDate.astro';
 import AdSlot from '../components/AdSlot.astro';
 import { SITE, CATEGORIES, EDITOR_PICKS, PILLARS, GUIDE_EXTRA } from '../consts';
 import AudioPicks from '../components/AudioPicks.astro';
+import Curations from '../components/Curations.astro';
 
 const posts = (await getCollection('blog'))
   .filter((p) => !p.data.draft)
@@ -133,6 +134,8 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
     </section>
 
     <AudioPicks />
+
+    <Curations />
 
     <script is:inline>
       (() => {

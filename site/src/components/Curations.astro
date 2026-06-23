@@ -1,0 +1,115 @@
+---
+// 크라마 기획전 — 빅 비주얼 카드 캐러셀(상단 큰 이미지 + 배지·헤드라인, 아래 대표 글 2개)
+import { getCollection } from 'astro:content';
+import { CATEGORIES } from '../consts';
+
+// 기획전 큐레이션. lead = 상단 큰 이미지로 쓸 글, href = 배너 클릭 시 이동(컬렉션/허브), items = 대표 글 2개.
+const CURATIONS = [
+  { badge: '기획', title: '지금 꼭 챙길 2026 정부 지원', href: '/category/income/', lead: 'livelihood-coupon-2026', items: ['youth-future-savings-2026', 'median-income-2026'] },
+  { badge: '트렌드', title: '2026 AI 대전환, 무엇이 달라졌나', href: '/category/ai/', lead: 'latest-ai-models-2026', items: ['ai-trends-2026', 'chatgpt-free-vs-paid'] },
+  { badge: '시리즈', title: '돈에 대한 생각을 바꾸는 칼럼', href: '/column/', lead: 'scarcity-mindset', items: ['time-over-money', 'lifestyle-inflation-trap'] },
+  { badge: '가이드', title: '주식 투자, 처음이라면 여기서', href: '/category/money/', lead: 'stock-investing-complete-guide', items: ['how-to-choose-brokerage', 'us-stock-investment-beginners-guide'] },
+  { badge: '기획', title: '월급 밖에서 버는 법', href: '/blog/income-complete-guide/', lead: 'side-hustle-for-office-workers', items: ['ai-side-hustle-guide', 'seed-money-guide'] },
+];
+
+const all = await getCollection('blog');
+const byId = new Map(all.map((p) => [p.id, p]));
+const thumb = (h) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.webp$/, '-hero-thumb.webp') : h);
+const cards = CURATIONS.map((c) => {
+  const lead = byId.get(c.lead);
+  const items = c.items.map((s) => byId.get(s)).filter((p) => p && !p.data.draft).slice(0, 2);
+  return lead && items.length ? { ...c, lead, items } : null;
+}).filter(Boolean);
+---
+{cards.length > 0 && (
+  <section class="curay" aria-label="크라마 기획전">
+    <div class="curay__head">
+      <h2 class="curay__title">크라마가 주목한 주제</h2>
+      <p class="curay__sub">지금 챙겨야 할 주제만 모았어요.</p>
+    </div>
+    <div class="curay__scroll">
+      {cards.map((c) => (
+        <div class="curay__card">
+          <a class="curay__hero" href={c.href} style={`--bg:url(${c.lead.data.heroImage})`}>
+            <span class="curay__badge">{c.badge}</span>
+            <span class="curay__headline">{c.title}</span>
+            <span class="curay__more">전체 보기 →</span>
+          </a>
+          <ul class="curay__items">
+            {c.items.map((p) => (
+              <li>
+                <a class="curay__item" href={`/blog/${p.id}/`}>
+                  <span class="curay__thumb">
+                    {p.data.heroImage && <img src={thumb(p.data.heroImage)} alt="" loading="lazy" width="44" height="44" />}
+                  </span>
+                  <span class="curay__body">
+                    <strong class="curay__name">{p.data.title}</strong>
+                    <span class="curay__meta">{CATEGORIES[p.data.category]?.name ?? ''} · {p.data.author}</span>
+                  </span>
+                  <span class="curay__go" aria-hidden="true">›</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  </section>
+)}
+
+<style>
+  .curay { margin: 2.4rem 0; }
+  .curay__head { padding: 0 0.2rem; }
+  .curay__title { font-family: var(--font-serif); font-size: 1.4rem; margin: 0; }
+  .curay__sub { color: var(--muted); font-size: 0.9rem; margin: 0.25rem 0 0; }
+
+  .curay__scroll {
+    display: flex; gap: 1rem; margin-top: 1rem; padding: 0.2rem 0.2rem 0.8rem;
+    overflow-x: auto; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; scrollbar-width: thin;
+  }
+  .curay__card { flex: 0 0 min(300px, 82vw); scroll-snap-align: start; }
+
+  /* 상단 빅 비주얼 */
+  .curay__hero {
+    position: relative; display: block; aspect-ratio: 4 / 3; border-radius: 16px; overflow: hidden;
+    background-image: var(--bg); background-size: cover; background-position: center;
+    color: #fff; text-decoration: none; isolation: isolate;
+  }
+  .curay__hero::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.15) 45%, rgba(0,0,0,0.72) 100%);
+    z-index: 1;
+  }
+  .curay__badge {
+    position: absolute; top: 0.8rem; left: 0.8rem; z-index: 2;
+    background: rgba(255,255,255,0.92); color: var(--ink); font-size: 0.68rem; font-weight: 800;
+    padding: 0.2rem 0.55rem; border-radius: 999px; letter-spacing: 0.02em;
+  }
+  .curay__headline {
+    position: absolute; left: 0.95rem; right: 0.95rem; bottom: 1.9rem; z-index: 2;
+    font-family: var(--font-serif); font-size: 1.18rem; font-weight: 700; line-height: 1.32;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.4);
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .curay__more { position: absolute; left: 0.95rem; bottom: 0.85rem; z-index: 2; font-size: 0.78rem; font-weight: 700; opacity: 0.92; }
+  .curay__hero:hover .curay__more { text-decoration: underline; }
+
+  /* 아래 대표 글 2개 */
+  .curay__items { list-style: none; margin: 0.7rem 0 0; padding: 0; display: grid; gap: 0.45rem; }
+  .curay__item {
+    display: flex; align-items: center; gap: 0.6rem; padding: 0.35rem 0.2rem;
+    text-decoration: none; color: var(--ink); border-radius: 10px; transition: background .15s ease;
+  }
+  .curay__item:hover { background: var(--paper-2, color-mix(in srgb, var(--accent) 6%, var(--paper))); }
+  .curay__thumb { flex: none; width: 2.75rem; height: 2.75rem; border-radius: 8px; overflow: hidden; background: var(--line); }
+  .curay__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .curay__body { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+  .curay__name {
+    font-size: 0.88rem; font-weight: 700; line-height: 1.3; color: var(--ink);
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .curay__meta { font-size: 0.72rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .curay__go { flex: none; color: var(--muted); font-size: 1.2rem; }
+
+  @media (max-width: 640px) { .curay__title { font-size: 1.25rem; } }
+</style>

@@ -114,6 +114,7 @@ const data = allTerms.map((t) => ({ term: t.term, def: t.def, href: t.href ?? nu
       const pop = document.createElement('div');
       pop.className = 'gloss-pop';
       pop.setAttribute('role', 'tooltip');
+      pop.setAttribute('aria-label', '용어 설명');
       const arrow = document.createElement('span');
       arrow.className = 'gloss-pop__arrow';
       document.body.appendChild(pop);

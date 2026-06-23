@@ -849,7 +849,7 @@ const ICON = {
   // 지속 오디오 컨트롤러 — window 에 1회 생성해 SPA 소프트 내비를 넘어 유지(이벤트는 1회 바인딩 후 페이지 훅으로 위임)
   function cramaCtl() {
     if (window.__cramaPlayer) return window.__cramaPlayer;
-    const audio = new Audio(); audio.preload = 'metadata';
+    const audio = new Audio(); audio.preload = 'none'; // 재생 전엔 MP3 미다운로드(성능: 1.7MB 절감)
     const C = { audio, slug: null, href: '', rate: 1, autoNext: false, follow: true, hooks: {} };
     try { C.rate = parseFloat(localStorage.getItem('crama:tts:rate')) || 1; } catch (e) {}
     try { C.autoNext = localStorage.getItem('crama:tts:auto') === '1'; } catch (e) {}

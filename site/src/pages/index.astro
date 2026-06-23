@@ -78,7 +78,7 @@ const byCategory = (slug: 'money' | 'ai' | 'income') =>
             <a class={i === 0 ? 'rslide is-active' : 'rslide'} href={s.href} data-slide={i}>
               <picture>
                 <source media="(min-width: 1024px)" srcset={s.img} />
-                <img class="rslide__bg" src={s.imgMobile ?? s.img} alt="" loading={i === 0 ? 'eager' : 'lazy'} />
+                <img class="rslide__bg" src={s.imgMobile ?? s.img} alt="" loading={i === 0 ? 'eager' : 'lazy'} fetchpriority={i === 0 ? 'high' : 'auto'} />
               </picture>
               <span class="rslide__badge">{s.badge}</span>
               <h2 class="rslide__title">{s.title}</h2>
@@ -109,7 +109,7 @@ const byCategory = (slug: 'money' | 'ai' | 'income') =>
     </nav>
 
     <section class="home-rank">
-      <div class="section-head"><h2>주목할 아티클</h2><a href="/category/money/">전체 보기</a></div>
+      <div class="section-head"><h2>주목할 아티클</h2><a href="/category/money/">재테크 글 전체 보기</a></div>
       <ol class="ranked-list">
         {ranking.map((p, i) => (
           <li>
@@ -215,7 +215,7 @@ const byCategory = (slug: 'money' | 'ai' | 'income') =>
     <section>
       <div class="section-head">
         <h2>최신 글</h2>
-        <a href="/category/ai/">전체 보기</a>
+        <a href="/category/ai/">최신 글 전체 보기</a>
       </div>
       <div class="card-grid">
         {latest.map((p) => <PostCard {...toCard(p)} />)}

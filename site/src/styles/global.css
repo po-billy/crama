@@ -4,9 +4,9 @@
    무채색 + 1 액센트, 넉넉한 여백. 아이콘/그라데이션 최소화.
    ============================================================ */
 
-/* 폰트: Pretendard(본문), Fraunces·Noto Serif KR(헤드라인) */
-@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Noto+Serif+KR:wght@500;600;700&display=swap');
+/* 폰트: Pretendard(본문)·Fraunces·Noto Serif KR(헤드라인)
+   — 렌더 차단 방지를 위해 BaseHead.astro에서 '동적 서브셋 + 비차단(<link>)'으로 로드한다.
+     CSS @import는 직렬 렌더 차단을 유발하므로 사용 금지. */
 
 :root {
   /* 컬러 — 라이트(페이퍼) */

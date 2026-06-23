@@ -5,6 +5,7 @@ import PostCard from '../components/PostCard.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import AdSlot from '../components/AdSlot.astro';
 import { SITE, CATEGORIES, EDITOR_PICKS, PILLARS, GUIDE_EXTRA } from '../consts';
+import AudioPicks from '../components/AudioPicks.astro';
 
 const posts = (await getCollection('blog'))
   .filter((p) => !p.data.draft)
@@ -127,6 +128,8 @@ const byCategory = (slug: 'money' | 'ai' | 'income') =>
         ))}
       </ol>
     </section>
+
+    <AudioPicks />
 
     <script is:inline>
       (() => {

@@ -1,0 +1,89 @@
+---
+// 추천 콘텐츠 '오디오로 바로 듣기' — 누르면 해당 글로 이동해 자동 재생(crama:tts:continue 플래그 재활용)
+import { getCollection } from 'astro:content';
+
+// 듣기 좋은(오디오 있는) 추천 글 큐레이션. 앞에서부터 audio 있는 것만 노출.
+const CURATED = [
+  'time-over-money',
+  'scarcity-mindset',
+  'lifestyle-inflation-trap',
+  'youth-future-savings-2026',
+  'latest-ai-models-2026',
+];
+const all = await getCollection('blog');
+const byId = new Map(all.map((p) => [p.id, p]));
+const picks = CURATED.map((id) => byId.get(id)).filter((p) => p && p.data.audio && !p.data.draft).slice(0, 3);
+---
+{picks.length > 0 && (
+  <section class="apick" aria-label="오디오로 바로 듣기">
+    <div class="apick__head">
+      <span class="apick__badge">🎧 오디오로 듣기</span>
+      <h2 class="apick__title">눌러서 바로 들어보세요</h2>
+      <p class="apick__sub">이동하면서 · 일하면서 · 스마트폰 보면서. 누르면 해당 글로 이동해 <strong>바로 재생</strong>돼요.</p>
+    </div>
+    <ul class="apick__list">
+      {picks.map((p) => (
+        <li>
+          <a class="apick__item" href={`/blog/${p.id}/`} data-audio-play>
+            <span class="apick__play" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M7 4.5v15l12-7.5z" /></svg>
+            </span>
+            <span class="apick__txt">
+              <strong>{p.data.title}</strong>
+              <small>▶ 바로 듣기</small>
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+)}
+
+<script is:inline>
+  // 추천 듣기 클릭 → 자동재생 플래그 설정 후 기본 링크 이동(도착 페이지에서 재생)
+  if (!window.__apickBound) {
+    window.__apickBound = true;
+    document.addEventListener('click', (e) => {
+      const a = e.target && e.target.closest ? e.target.closest('[data-audio-play]') : null;
+      if (!a) return;
+      try { sessionStorage.setItem('crama:tts:continue', '1'); } catch (err) {}
+    });
+  }
+</script>
+
+<style>
+  .apick {
+    max-width: var(--wide); margin: 2.2rem auto; padding: 1.5rem 1.4rem;
+    border: 1px solid var(--line); border-radius: 16px;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 9%, var(--paper)), var(--paper-2, var(--paper)));
+  }
+  .apick__head { margin-bottom: 0.4rem; }
+  .apick__badge { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.04em; color: var(--accent); }
+  .apick__title { font-family: var(--font-serif); font-size: 1.4rem; margin: 0.25rem 0 0.3rem; line-height: 1.2; }
+  .apick__sub { color: var(--muted); font-size: 0.93rem; margin: 0; line-height: 1.5; }
+  .apick__sub strong { color: var(--accent); }
+  .apick__list { list-style: none; margin: 1rem 0 0; padding: 0; display: grid; gap: 0.6rem; }
+  .apick__item {
+    display: flex; align-items: center; gap: 0.85rem; padding: 0.7rem 0.85rem;
+    border: 1px solid var(--line); border-radius: 12px; background: var(--paper);
+    text-decoration: none; color: var(--ink);
+    transition: border-color .15s ease, transform .12s ease, box-shadow .15s ease;
+  }
+  .apick__item:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: 0 8px 20px -12px rgba(0,0,0,0.3); }
+  .apick__play {
+    flex: none; width: 2.6rem; height: 2.6rem; border-radius: 999px;
+    background: var(--accent); color: #fff; display: grid; place-items: center;
+    box-shadow: 0 4px 12px -5px var(--accent);
+  }
+  .apick__play svg { margin-left: 2px; }
+  .apick__txt { display: flex; flex-direction: column; min-width: 0; }
+  .apick__txt strong {
+    font-size: 0.98rem; font-weight: 700; line-height: 1.32; color: var(--ink);
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .apick__txt small { font-size: 0.78rem; color: var(--accent); font-weight: 700; margin-top: 0.15rem; }
+  @media (max-width: 640px) {
+    .apick { margin: 1.6rem auto; padding: 1.2rem 1.05rem; border-radius: 14px; }
+    .apick__title { font-size: 1.25rem; }
+  }
+</style>

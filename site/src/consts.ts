@@ -81,7 +81,7 @@ export const NAV = [
 // 상단 공지/추천 배너 — 내용만 바꾸면 됨. key를 바꾸면 닫았던 사용자에게 다시 표시.
 export const NOTICE = {
   enabled: true,
-  key: '2026-06-youth',
-  text: '🔥 청년미래적금 신청 7/3까지 — 조건·금리·5부제 총정리 보기',
-  href: '/blog/youth-future-savings-2026/',
+  key: '2026-06-coupon',
+  text: '💸 민생회복 소비쿠폰 — 내 대상·금액(최대 60만원)·신청법 총정리 보기',
+  href: '/blog/livelihood-coupon-2026/',
 } as const;

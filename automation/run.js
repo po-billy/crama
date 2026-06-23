@@ -128,6 +128,21 @@ async function main() {
       log('   ⚠️ 오디오 생성 실패(글은 정상 발행됨): ' + (e.message || e));
     }
   }
+  // ⑦ IndexNow — 배포 후 Bing·Naver·Yandex 등에 즉시 색인 푸시(Google 미참여 → 사이트맵/색인요청으로 커버).
+  //    실제 URL 이 200 으로 떠야 의미 있으므로, 기본은 명령만 안내하고 INDEXNOW_AUTO=1 일 때만 자동 호출.
+  const url = `https://crama.app/blog/${slug}/`;
+  if (process.env.INDEXNOW_AUTO === '1') {
+    try {
+      const { submit } = await import('./lib/indexnow.js');
+      const r = await submit([url]);
+      log(`⑦ IndexNow 푸시: ${r.ok ? '성공' : '실패'}(status ${r.status})`);
+    } catch (e) {
+      log('⑦ IndexNow 실패(글은 정상 발행됨): ' + (e.message || e));
+    }
+  } else {
+    log(`⑦ 배포 후 색인 푸시:  npm run indexnow -- ${url}`);
+  }
+
   log('git add/commit/push 하면 배포됩니다.');
 }
 

@@ -9,7 +9,9 @@
     "dry": "node run.js --dry-run",
     "audio": "node gen-audio.js",
     "audio:all": "node gen-audio-all.js",
-    "audio:count": "node gen-audio-all.js --dry"
+    "audio:count": "node gen-audio-all.js --dry",
+    "indexnow": "node indexnow.js",
+    "indexnow:all": "node indexnow.js --all"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.70.0",

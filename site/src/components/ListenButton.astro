@@ -14,6 +14,7 @@ const ICON = {
   close: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>`,
   next: `<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M5 5v14l9-7z"/><rect x="15.5" y="5" width="2.8" height="14" rx="0.8"/></svg>`,
   chevUp: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg>`,
+  pip: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="2"/><rect x="11.5" y="11" width="7.5" height="6" rx="1" fill="currentColor" stroke="none"/></svg>`,
 };
 ---
 <div class="aplayer" data-listen hidden data-audio-src={audioSrc}>
@@ -98,6 +99,7 @@ const ICON = {
       <button class="aminibar__btn aminibar__btn--voice" type="button" data-mini-voice aria-label="음성 변경" title="음성 변경" hidden><span class="ic" aria-hidden="true" set:html={ICON.voice}></span></button>
       <button class="aminibar__follow" type="button" data-follow aria-pressed="true" aria-label="따라가기" title="읽는 위치로 자동 스크롤"><span class="ic" aria-hidden="true" set:html={ICON.follow}></span><span class="aminibar__followlabel" data-follow-label>따라가기</span></button>
       <button class="aminibar__btn aminibar__btn--toggle" type="button" data-mini-autonext aria-pressed="false" aria-label="이어 듣기" title="이어 듣기: 끝나면 다음 글을 이어서"><span class="ic" aria-hidden="true" set:html={ICON.next}></span></button>
+      <button class="aminibar__btn aminibar__btn--pip" type="button" data-mini-pip aria-pressed="false" aria-label="플레이어 분리" title="플레이어 분리 — 최소화해도 화면 위에 떠 있어요" hidden><span class="ic" aria-hidden="true" set:html={ICON.pip}></span></button>
       <button class="aminibar__btn aminibar__expand" type="button" data-mini-expand aria-expanded="false" aria-label="설정 펼치기"><span class="ic" aria-hidden="true" set:html={ICON.chevUp}></span></button>
       <button class="aminibar__btn aminibar__btn--stop" type="button" data-mini-stop aria-label="닫기"><span class="ic" aria-hidden="true" set:html={ICON.close}></span></button>
     </div>
@@ -310,6 +312,10 @@ const ICON = {
   .aminibar__btn--toggle[aria-pressed="true"] { background: var(--accent); color: #fff; opacity: 1; }
   .aminibar__btn--toggle[aria-pressed="true"]:hover { background: var(--accent); filter: brightness(1.08); }
 
+  /* 플레이어 분리(Document PiP) — 켜지면 강조 */
+  .aminibar__btn--pip[aria-pressed="true"] { background: var(--accent); color: #fff; }
+  .aminibar__btn--pip[aria-pressed="true"]:hover { background: var(--accent); filter: brightness(1.08); }
+
   /* 변경 알림 토스트 */
   .atoast {
     position: fixed; left: 50%; bottom: 5.5rem; transform: translateX(-50%) translateY(8px);
@@ -341,6 +347,7 @@ const ICON = {
     .aminibar__trail .aminibar__chip,
     .aminibar__trail .aminibar__btn--voice,
     .aminibar__trail .aminibar__follow,
+    .aminibar__trail .aminibar__btn--pip,
     .aminibar__trail .aminibar__btn--toggle { display: none; }
     .aminibar__btn { min-width: 2.6rem; height: 2.6rem; padding: 0 0.4rem; }
     .aminibar__btn--play { width: 3rem; height: 3rem; min-width: 3rem; }
@@ -395,6 +402,7 @@ const ICON = {
     const miniTime = mini.querySelector('[data-mini-time]');
     const miniBar = mini.querySelector('[data-mini-bar]');
     const miniFill = mini.querySelector('[data-mini-fill]');
+    const miniPip = mini.querySelector('[data-mini-pip]');
     const ICON_PLAY = '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M7 4.5v15l12-7.5z"/></svg>';
     const ICON_PAUSE = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><rect x="6.5" y="4.5" width="3.6" height="15" rx="1.2"/><rect x="14" y="4.5" width="3.6" height="15" rx="1.2"/></svg>';
     const followBtn = mini.querySelector('[data-follow]');
@@ -582,6 +590,7 @@ const ICON = {
       if (state === 'playing') { setStatus('재생 중…'); miniStatus.textContent = '재생 중'; }
       else if (state === 'paused') { setStatus('일시정지'); miniStatus.textContent = '일시정지'; }
       else { setStatus('화면을 끄면 멈춰요'); }
+      try { if ('mediaSession' in navigator) navigator.mediaSession.playbackState = playing ? 'playing' : (state === 'paused' ? 'paused' : 'none'); } catch (e) {}
     }
 
     function speakFrom(i) {
@@ -802,6 +811,24 @@ const ICON = {
     synth.addEventListener?.('voiceschanged', populateVoices);
     updateUI();
 
+    // OS 미디어 컨트롤 — 미디어키/시스템 오버레이로 조작(Web Speech 는 플랫폼에 따라 표시 안 될 수 있음)
+    if ('mediaSession' in navigator) {
+      try {
+        const titleEl = document.querySelector('.article-head h1');
+        const ogImg = document.querySelector('meta[property="og:image"]');
+        const art = ogImg && ogImg.content ? [{ src: ogImg.content, sizes: '1200x630', type: 'image/jpeg' }] : [];
+        navigator.mediaSession.metadata = new MediaMetadata({ title: titleEl ? titleEl.textContent.trim() : document.title, artist: 'Crama 오디오', album: 'crama.app', artwork: art });
+        navigator.mediaSession.setActionHandler('play', () => { if (state !== 'playing') togglePlay(); });
+        navigator.mediaSession.setActionHandler('pause', () => { if (state === 'playing') togglePlay(); });
+        navigator.mediaSession.setActionHandler('seekbackward', () => skipBySeconds(-SKIP_SEC));
+        navigator.mediaSession.setActionHandler('seekforward', () => skipBySeconds(SKIP_SEC));
+        try { navigator.mediaSession.setActionHandler('nexttrack', () => { if (nextHref) stop(true); }); } catch (e) {}
+      } catch (e) {}
+    }
+
+    // 분리형 플레이어(PC에서 최소화해도 떠 있는 플로팅 창)
+    setupPiP(mini, miniPip, toast);
+
     // CTA 부제: 예상 청취 시간 안내
     const ctaSub = root.querySelector('[data-cta-sub]');
     if (ctaSub && totalChars) {
@@ -836,6 +863,67 @@ const ICON = {
     catch (e) { location.href = href; }
   }
 
+  // ===== 분리형 플레이어(Document Picture-in-Picture) =====
+  // 미니바를 항상-위 플로팅 창으로 옮겨, 브라우저를 '최소화'해도 화면 위에 플레이어가 떠 있게 한다.
+  // Chromium(Chrome/Edge) 데스크톱만 지원 → 미지원(Safari/Firefox 등)은 명시적으로 안내. 브라우저 '완전 종료' 시는 사라짐(웹 한계).
+  function setupPiP(mini, btn, toast) {
+    if (!btn || !mini) return;
+    // 모바일은 잠금화면(MediaSession) 컨트롤로 충분 → 분리 버튼 노출 안 함
+    if (!window.matchMedia('(min-width: 641px)').matches) return;
+    btn.hidden = false;
+
+    if (!('documentPictureInPicture' in window)) {
+      // 미지원 브라우저: 클릭 시 이유를 명시적으로 알려줌
+      btn.addEventListener('click', () => {
+        const ua = navigator.userAgent;
+        const isSafari = /^((?!chrome|chromium|crios|android|edg|edgios|opr|fxios).)*safari/i.test(ua);
+        const isFirefox = /firefox|fxios/i.test(ua);
+        toast(isSafari ? 'Safari는 분리형 플레이어 미지원 · Chrome/Edge에서 가능해요'
+          : isFirefox ? 'Firefox는 분리형 플레이어 미지원 · Chrome/Edge에서 가능해요'
+          : '이 브라우저는 분리형 플레이어 미지원 · Chrome/Edge에서 가능해요');
+      });
+      return;
+    }
+
+    let pipWin = null, placeholder = null;
+    function dock() {
+      if (!pipWin) return;
+      try {
+        if (placeholder && placeholder.parentNode) { placeholder.parentNode.insertBefore(mini, placeholder); placeholder.remove(); }
+        else document.body.appendChild(mini);
+      } catch (e) {}
+      placeholder = null;
+      const w = pipWin; pipWin = null;
+      try { w.close(); } catch (e) {}
+      btn.setAttribute('aria-pressed', 'false');
+      btn.title = '플레이어 분리 — 최소화해도 화면 위에 떠 있어요';
+    }
+    async function open() {
+      try { pipWin = await documentPictureInPicture.requestWindow({ width: 540, height: 96 }); }
+      catch (e) { pipWin = null; toast('분리형 플레이어를 열 수 없어요'); return; }
+      // 메인 문서 스타일 복제(스코프드 CSS·:root 변수 포함) + PiP 창 맞춤 보정
+      document.querySelectorAll('style, link[rel="stylesheet"]').forEach((node) => {
+        try { pipWin.document.head.appendChild(node.cloneNode(true)); } catch (e) {}
+      });
+      const extra = pipWin.document.createElement('style');
+      extra.textContent = 'html,body{margin:0;height:100%;overflow:hidden;background:#0e0e0e}'
+        + '.aminibar{position:static!important;inset:auto!important;transform:none!important;width:100%!important;height:100%!important;border-radius:0!important;box-shadow:none!important;animation:none!important;box-sizing:border-box}'
+        + '.aminibar__panel{display:none!important}';
+      pipWin.document.head.appendChild(extra);
+      // 원위치 표시용 자리(주석)를 남기고 미니바를 PiP 창으로 이동(이벤트 핸들러 그대로 유지됨)
+      placeholder = document.createComment('aminibar');
+      if (mini.parentNode) mini.parentNode.insertBefore(placeholder, mini); else document.body.appendChild(placeholder);
+      pipWin.document.body.appendChild(mini);
+      mini.hidden = false;
+      btn.setAttribute('aria-pressed', 'true');
+      btn.title = '플레이어 되돌리기';
+      pipWin.addEventListener('pagehide', dock, { once: true }); // 사용자가 PiP 창을 닫으면 원위치로 복귀
+    }
+    btn.addEventListener('click', () => { if (pipWin) dock(); else open(); });
+    // SPA 전환(ClientRouter) 직전 DOM 교체와 충돌 방지 — 도킹 후 전환
+    document.addEventListener('astro:before-swap', () => { if (pipWin) dock(); }, { once: true });
+  }
+
   function initAudioMode(root, prose, audioSrc) {
     const SKIP_SEC = 15, RATES = [0.75, 1, 1.25, 1.5, 1.75, 2];
     const RATE_KEY = 'crama:tts:rate', AUTO_KEY = 'crama:tts:auto';
@@ -855,7 +943,7 @@ const ICON = {
     const miniStatus = m('[data-mini-status]'), miniTime = m('[data-mini-time]');
     const miniBar = m('[data-mini-bar]'), miniFill = m('[data-mini-fill]');
     const miniBack = m('[data-mini-back]'), miniFwd = m('[data-mini-fwd]'), miniRate = m('[data-mini-rate]');
-    const miniVoice = m('[data-mini-voice]'), miniAuto = m('[data-mini-autonext]'), miniExpand = m('[data-mini-expand]');
+    const miniVoice = m('[data-mini-voice]'), miniAuto = m('[data-mini-autonext]'), miniExpand = m('[data-mini-expand]'), miniPip = m('[data-mini-pip]');
     const followBtn = m('[data-follow]'), followLabel = m('[data-follow-label]');
     const panelRate = m('[data-panel-rate]'), panelVoiceRow = m('[data-panel-voice-row]');
     const panelFollow = m('[data-panel-follow]'), panelAuto = m('[data-panel-autonext]');
@@ -926,6 +1014,10 @@ const ICON = {
       elapsedEl.textContent = fmt(cur); totalEl.textContent = fmt(dur);
       if (miniTime) miniTime.textContent = fmt(cur) + ' / ' + fmt(dur);
       if (!highlightOff && timing && domChunks.length) { const i = idxAtMs(cur * 1000); if (i >= 0 && i < domChunks.length) highlight(domChunks[i].el); }
+      // OS 미디어 오버레이의 탐색바(스크러버) 갱신
+      if (dur && 'mediaSession' in navigator && navigator.mediaSession.setPositionState) {
+        try { navigator.mediaSession.setPositionState({ duration: dur, playbackRate: audio.playbackRate || 1, position: Math.min(cur, dur) }); } catch (e) {}
+      }
     }
     function setStatus() {
       const t = audio.paused ? (audio.currentTime > 0 ? '일시정지' : '잠금화면에서도 들을 수 있어요') : '재생 중…';
@@ -1005,9 +1097,13 @@ const ICON = {
         navigator.mediaSession.setActionHandler('pause', () => audio.pause());
         navigator.mediaSession.setActionHandler('seekbackward', () => skip(-SKIP_SEC));
         navigator.mediaSession.setActionHandler('seekforward', () => skip(SKIP_SEC));
+        try { navigator.mediaSession.setActionHandler('seekto', (d) => { if (d && d.seekTime != null && audio.duration) { audio.currentTime = Math.min(d.seekTime, audio.duration); update(); } }); } catch (e) {}
         try { navigator.mediaSession.setActionHandler('nexttrack', () => { if (nextHref) finish(); }); } catch (e) {}
       } catch (e) {}
     }
+
+    // 분리형 플레이어(PC에서 최소화해도 떠 있는 플로팅 창)
+    setupPiP(mini, miniPip, toast);
 
     // 상태 결정: 소프트 내비로 '이미 이 글을 재생 중'이면 끊지 말고 인계(하이라이트 복귀), 아니면 이 글 음원 준비
     if (C.slug === thisSlug && !audio.paused) {

@@ -1,46 +1,64 @@
 ---
-// 추천 콘텐츠 '오디오로 바로 듣기' — 누르면 해당 글로 이동해 자동 재생(crama:tts:continue 플래그 재활용)
+// 오디오 플레이리스트 — 테마별 카드(가로 스크롤). 누르면 해당 글로 이동해 자동 재생.
 import { getCollection } from 'astro:content';
+import { CATEGORIES } from '../consts';
 
-// 듣기 좋은(오디오 있는) 추천 글 큐레이션. 앞에서부터 audio 있는 것만 노출.
-const CURATED = [
-  'time-over-money',
-  'scarcity-mindset',
-  'lifestyle-inflation-trap',
-  'youth-future-savings-2026',
-  'latest-ai-models-2026',
+// 테마별 큐레이션(시간대/무드 + 글 묶음). audio 있는 글만 노출.
+const PLAYLISTS = [
+  { vibe: '출근길', title: '월급쟁이를 위한 돈 칼럼', slugs: ['time-over-money', 'scarcity-mindset', 'lifestyle-inflation-trap'] },
+  { vibe: '지금 꼭', title: '내가 받을 수 있는 정부 지원', slugs: ['livelihood-coupon-2026', 'youth-future-savings-2026', 'median-income-2026'] },
+  { vibe: '일하며', title: '지금 알아야 할 AI 트렌드', slugs: ['latest-ai-models-2026', 'ai-trends-2026', 'chatgpt-free-vs-paid'] },
+  { vibe: '마음 챙김', title: '조급할 때 듣는 돈 이야기', slugs: ['latte-factor-myth', 'chasing-returns-fomo', 'compound-interest-power'] },
+  { vibe: '퇴근길', title: '월급 밖에서 버는 법', slugs: ['side-hustle-for-office-workers', 'ai-side-hustle-guide', 'seed-money-guide'] },
 ];
+
 const all = await getCollection('blog');
 const byId = new Map(all.map((p) => [p.id, p]));
-const picks = CURATED.map((id) => byId.get(id)).filter((p) => p && p.data.audio && !p.data.draft).slice(0, 3);
+const estMin = (p) => Math.max(1, Math.round((p.body || '').length / 600));
+const lists = PLAYLISTS.map((pl) => ({
+  ...pl,
+  items: pl.slugs.map((s) => byId.get(s)).filter((p) => p && p.data.audio && !p.data.draft).slice(0, 3),
+})).filter((pl) => pl.items.length > 0);
 ---
-{picks.length > 0 && (
-  <section class="apick" aria-label="오디오로 바로 듣기">
-    <div class="apick__head">
-      <span class="apick__badge">🎧 오디오로 듣기</span>
-      <h2 class="apick__title">눌러서 바로 들어보세요</h2>
-      <p class="apick__sub">이동하면서 · 일하면서 · 스마트폰 보면서. 누르면 해당 글로 이동해 <strong>바로 재생</strong>돼요.</p>
+{lists.length > 0 && (
+  <section class="apl" aria-label="오디오로 듣는 콘텐츠">
+    <div class="apl__head">
+      <h2 class="apl__title"><span aria-hidden="true">🎧</span> 오디오로 듣는 콘텐츠</h2>
+      <p class="apl__sub">이동하며 · 일하며 · 스마트폰 보며. 누르면 바로 재생돼요.</p>
     </div>
-    <ul class="apick__list">
-      {picks.map((p) => (
-        <li>
-          <a class="apick__item" href={`/blog/${p.id}/`} data-audio-play>
-            <span class="apick__play" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M7 4.5v15l12-7.5z" /></svg>
-            </span>
-            <span class="apick__txt">
-              <strong>{p.data.title}</strong>
-              <small>▶ 바로 듣기</small>
-            </span>
-          </a>
-        </li>
+    <div class="apl__scroll">
+      {lists.map((pl) => (
+        <div class="apl__card">
+          <div class="apl__card-head">
+            <span class="apl__vibe">{pl.vibe}</span>
+            <strong class="apl__card-title">{pl.title}</strong>
+          </div>
+          <ul class="apl__items">
+            {pl.items.map((p) => (
+              <li>
+                <a class="apl__item" href={`/blog/${p.id}/`} data-audio-play>
+                  <span class="apl__thumb">
+                    {p.data.heroImage && <img src={p.data.heroImage} alt="" loading="lazy" width="48" height="48" />}
+                  </span>
+                  <span class="apl__body">
+                    <span class="apl__tag">오디오 · {CATEGORIES[p.data.category]?.name ?? ''}</span>
+                    <strong class="apl__name">{p.data.title}</strong>
+                    <span class="apl__meta">{p.data.author} · 약 {estMin(p)}분</span>
+                  </span>
+                  <span class="apl__play" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 4.5v15l12-7.5z" /></svg>
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
       ))}
-    </ul>
+    </div>
   </section>
 )}
 
 <script is:inline>
-  // 추천 듣기 클릭 → 자동재생 플래그 설정 후 기본 링크 이동(도착 페이지에서 재생)
   if (!window.__apickBound) {
     window.__apickBound = true;
     document.addEventListener('click', (e) => {
@@ -52,38 +70,59 @@ const picks = CURATED.map((id) => byId.get(id)).filter((p) => p && p.data.audio 
 </script>
 
 <style>
-  .apick {
-    max-width: var(--wide); margin: 2.2rem auto; padding: 1.5rem 1.4rem;
-    border: 1px solid var(--line); border-radius: 16px;
-    background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 9%, var(--paper)), var(--paper-2, var(--paper)));
+  .apl { max-width: var(--wide); margin: 2.2rem auto; }
+  .apl__head { padding: 0 0.2rem; }
+  .apl__title { font-family: var(--font-serif); font-size: 1.4rem; margin: 0; display: flex; align-items: center; gap: 0.4rem; }
+  .apl__sub { color: var(--muted); font-size: 0.9rem; margin: 0.25rem 0 0; }
+
+  .apl__scroll {
+    display: flex; gap: 0.9rem; margin-top: 1rem; padding: 0.2rem 0.2rem 0.8rem;
+    overflow-x: auto; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
   }
-  .apick__head { margin-bottom: 0.4rem; }
-  .apick__badge { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.04em; color: var(--accent); }
-  .apick__title { font-family: var(--font-serif); font-size: 1.4rem; margin: 0.25rem 0 0.3rem; line-height: 1.2; }
-  .apick__sub { color: var(--muted); font-size: 0.93rem; margin: 0; line-height: 1.5; }
-  .apick__sub strong { color: var(--accent); }
-  .apick__list { list-style: none; margin: 1rem 0 0; padding: 0; display: grid; gap: 0.6rem; }
-  .apick__item {
-    display: flex; align-items: center; gap: 0.85rem; padding: 0.7rem 0.85rem;
-    border: 1px solid var(--line); border-radius: 12px; background: var(--paper);
-    text-decoration: none; color: var(--ink);
-    transition: border-color .15s ease, transform .12s ease, box-shadow .15s ease;
+  .apl__card {
+    flex: 0 0 min(320px, 84vw); scroll-snap-align: start;
+    border: 1px solid var(--line); border-radius: 16px; padding: 1rem 0.9rem 0.7rem;
+    background: var(--paper);
   }
-  .apick__item:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: 0 8px 20px -12px rgba(0,0,0,0.3); }
-  .apick__play {
-    flex: none; width: 2.6rem; height: 2.6rem; border-radius: 999px;
-    background: var(--accent); color: #fff; display: grid; place-items: center;
-    box-shadow: 0 4px 12px -5px var(--accent);
+  /* 파스텔 톤 로테이션 */
+  .apl__card:nth-child(5n+1) { background: color-mix(in srgb, #8b7ff0 12%, var(--paper)); }
+  .apl__card:nth-child(5n+2) { background: color-mix(in srgb, #f0a27f 13%, var(--paper)); }
+  .apl__card:nth-child(5n+3) { background: color-mix(in srgb, #6fc3a3 13%, var(--paper)); }
+  .apl__card:nth-child(5n+4) { background: color-mix(in srgb, #6fa8f0 12%, var(--paper)); }
+  .apl__card:nth-child(5n+5) { background: color-mix(in srgb, #e6c45f 16%, var(--paper)); }
+
+  .apl__card-head { margin: 0 0.15rem 0.7rem; }
+  .apl__vibe { font-size: 0.72rem; font-weight: 700; color: var(--accent); }
+  .apl__card-title { display: block; font-size: 1.05rem; font-weight: 700; line-height: 1.25; margin-top: 0.1rem; color: var(--ink); }
+
+  .apl__items { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.4rem; }
+  .apl__item {
+    display: flex; align-items: center; gap: 0.65rem; padding: 0.5rem; border-radius: 12px;
+    text-decoration: none; color: var(--ink); background: color-mix(in srgb, var(--paper) 72%, transparent);
+    transition: background .15s ease, transform .12s ease;
   }
-  .apick__play svg { margin-left: 2px; }
-  .apick__txt { display: flex; flex-direction: column; min-width: 0; }
-  .apick__txt strong {
-    font-size: 0.98rem; font-weight: 700; line-height: 1.32; color: var(--ink);
+  .apl__item:hover { background: var(--paper); transform: translateY(-1px); }
+  .apl__thumb {
+    flex: none; width: 3rem; height: 3rem; border-radius: 9px; overflow: hidden;
+    background: var(--paper-2, var(--line)); display: block;
+  }
+  .apl__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .apl__body { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+  .apl__tag { font-size: 0.66rem; font-weight: 700; color: var(--accent); letter-spacing: 0.01em; }
+  .apl__name {
+    font-size: 0.86rem; font-weight: 700; line-height: 1.3; color: var(--ink); margin: 0.05rem 0;
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   }
-  .apick__txt small { font-size: 0.78rem; color: var(--accent); font-weight: 700; margin-top: 0.15rem; }
+  .apl__meta { font-size: 0.72rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .apl__play {
+    flex: none; width: 2.1rem; height: 2.1rem; border-radius: 999px;
+    background: var(--accent); color: #fff; display: grid; place-items: center;
+    box-shadow: 0 3px 9px -4px var(--accent);
+  }
+  .apl__play svg { margin-left: 1px; }
+
   @media (max-width: 640px) {
-    .apick { margin: 1.6rem auto; padding: 1.2rem 1.05rem; border-radius: 14px; }
-    .apick__title { font-size: 1.25rem; }
+    .apl__title { font-size: 1.25rem; }
   }
 </style>

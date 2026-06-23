@@ -99,17 +99,32 @@ const siteJsonLd = {
 <!-- 사이트 소유 확인 -->
 <meta name="naver-site-verification" content="c69b0220b12e6057b3e2906976c33f3a2ea703e4" />
 
-<!-- Google AdSense -->
+<!-- Google AdSense + GA4 — 모바일 TBT 절감을 위해 무거운 외부 스크립트를
+     '첫 상호작용' 또는 '4초 유휴' 시점에 지연 로드(기능은 그대로, 초기 메인스레드 차단만 회피). -->
 <meta name="google-adsense-account" content="ca-pub-8780643027232358" />
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8780643027232358" crossorigin="anonymous"></script>
-
-<!-- Google Analytics (GA4) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-4NSBZ832J7"></script>
 <script is:inline>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
   gtag('config', 'G-4NSBZ832J7');
+  (() => {
+    let done = false;
+    const EVTS = ['pointerdown', 'keydown', 'touchstart', 'scroll'];
+    function add(src, cross) {
+      const s = document.createElement('script');
+      s.async = true; s.src = src;
+      if (cross) s.crossOrigin = 'anonymous';
+      document.head.appendChild(s);
+    }
+    function loadThirdParty() {
+      if (done) return; done = true;
+      EVTS.forEach((e) => window.removeEventListener(e, loadThirdParty));
+      add('https://www.googletagmanager.com/gtag/js?id=G-4NSBZ832J7');
+      add('https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8780643027232358', true);
+    }
+    EVTS.forEach((e) => window.addEventListener(e, loadThirdParty, { passive: true, once: true }));
+    setTimeout(loadThirdParty, 4000);
+  })();
 </script>
 
 <!-- Open Graph -->

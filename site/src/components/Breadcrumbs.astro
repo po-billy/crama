@@ -8,7 +8,7 @@ const { items } = Astro.props;
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
-  itemListElement: [{ name: SITE.name, href: '/' }, ...items].map((c, i) => ({
+  itemListElement: [{ label: '홈', href: '/' }, ...items].map((c, i) => ({
     '@type': 'ListItem',
     position: i + 1,
     name: c.label,

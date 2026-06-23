@@ -100,7 +100,9 @@ const siteJsonLd = {
 <meta name="naver-site-verification" content="c69b0220b12e6057b3e2906976c33f3a2ea703e4" />
 
 <!-- Google AdSense + GA4 — 모바일 TBT 절감을 위해 무거운 외부 스크립트를
-     '첫 상호작용' 또는 '4초 유휴' 시점에 지연 로드(기능은 그대로, 초기 메인스레드 차단만 회피). -->
+     '첫 사용자 상호작용(스크롤·터치·클릭·마우스이동) 시점'에만 지연 로드.
+     실제 사용자는 대부분 즉시 상호작용하므로 광고/측정은 정상 동작하고,
+     초기 렌더 단계의 메인스레드 차단(TBT)만 제거된다. -->
 <meta name="google-adsense-account" content="ca-pub-8780643027232358" />
 <script is:inline>
   window.dataLayer = window.dataLayer || [];
@@ -109,7 +111,7 @@ const siteJsonLd = {
   gtag('config', 'G-4NSBZ832J7');
   (() => {
     let done = false;
-    const EVTS = ['pointerdown', 'keydown', 'touchstart', 'scroll'];
+    const EVTS = ['pointerdown', 'mousemove', 'touchstart', 'keydown', 'scroll', 'wheel'];
     function add(src, cross) {
       const s = document.createElement('script');
       s.async = true; s.src = src;
@@ -123,7 +125,6 @@ const siteJsonLd = {
       add('https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8780643027232358', true);
     }
     EVTS.forEach((e) => window.addEventListener(e, loadThirdParty, { passive: true, once: true }));
-    setTimeout(loadThirdParty, 4000);
   })();
 </script>
 

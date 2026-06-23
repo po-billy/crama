@@ -61,7 +61,7 @@ const cards = CURATIONS.map((c) => {
   // 시간에 따라 한 칸씩 자동 스크롤(끝에서 처음으로 루프). 손대면 잠시 멈췄다 재개.
   (() => {
     const el = document.querySelector('.curay__scroll');
-    if (!el || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+    if (!el) return;
     const gap = () => { const g = parseFloat(getComputedStyle(el).columnGap || getComputedStyle(el).gap || '16'); return isNaN(g) ? 16 : g; };
     const step = () => { const c = el.firstElementChild; return c ? c.getBoundingClientRect().width + gap() : el.clientWidth; };
     let t, idle;

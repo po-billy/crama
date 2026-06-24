@@ -75,6 +75,7 @@ export const money: Term[] = [
   { term: '리볼빙', def: '이번 달 카드값 일부만 갚고 나머지를 다음 달로 넘기는 것. 넘긴 금액에 높은 이자가 붙는다.', href: '/blog/minimum-payment-trap/', hrefLabel: '최소결제의 함정' },
   { term: '라떼 팩터', def: '매일 무심코 쓰는 작은 돈이 쌓이면 큰돈이 된다는 개념. 단, 푼돈에만 매몰되면 큰 결정을 놓친다.', href: '/blog/latte-factor-myth/', hrefLabel: '라떼팩터의 함정' },
   { term: '통장 쪼개기', def: '월급·생활비·저축·비상금 통장을 용도별로 나눠 돈에 이름표를 붙이는 돈 관리법.', href: '/blog/account-splitting-story/', hrefLabel: '통장 쪼개기' },
+  { term: '매몰비용', def: '이미 써서 돌이킬 수 없는 비용. 본전 생각에 끌려 더 나쁜 결정을 하지 않으려면 매몰비용은 무시해야 한다.', href: '/blog/subscription-trap/', hrefLabel: '구독의 함정' },
 ];
 
 export const ai: Term[] = [

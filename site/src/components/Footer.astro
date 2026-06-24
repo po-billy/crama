@@ -1,11 +1,15 @@
 ---
 import { SITE } from '../consts';
 import SubscribeBox from './SubscribeBox.astro';
+import PodcastLinks from './PodcastLinks.astro';
 const year = new Date().getFullYear();
 ---
 <footer class="site-footer">
   <div class="wrap">
     <SubscribeBox />
+  </div>
+  <div class="wrap site-footer__podcast">
+    <PodcastLinks />
   </div>
   <div class="wrap site-footer__inner">
     <div>© {year} {SITE.name}. {SITE.tagline}.</div>
@@ -24,3 +28,7 @@ const year = new Date().getFullYear();
     본 사이트의 콘텐츠는 정보 제공을 목적으로 하며 특정 상품·종목의 매매를 권유하지 않습니다. 투자 등 최종 판단과 책임은 이용자 본인에게 있습니다. · 문의: <a href="mailto:gmlthd94@gmail.com">gmlthd94@gmail.com</a>
   </div>
 </footer>
+
+<style>
+  .site-footer__podcast { padding-top: 1.1rem; padding-bottom: 0.2rem; }
+</style>

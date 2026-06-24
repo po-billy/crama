@@ -1,0 +1,43 @@
+---
+// 팟캐스트 구독 버튼 — 스포티파이 / 애플 팟캐스트 / RSS. 푸터·홈 등에서 재사용.
+interface Props { compact?: boolean }
+const { compact = false } = Astro.props;
+const SPOTIFY = 'https://open.spotify.com/show/033DHRPU1sMJr3RdugoqTG';
+const APPLE = 'https://podcasts.apple.com/podcast/id6783594375';
+const RSS = '/podcast.xml';
+---
+<div class:list={["podlinks", compact && "podlinks--compact"]}>
+  <span class="podlinks__label"><span aria-hidden="true">🎧</span> 팟캐스트로 듣기</span>
+  <div class="podlinks__btns">
+    <a class="podbtn podbtn--spotify" href={SPOTIFY} target="_blank" rel="noopener" aria-label="Spotify에서 듣기">
+      <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor" aria-hidden="true"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.5 17.31a.75.75 0 0 1-1.03.25c-2.82-1.72-6.37-2.11-10.55-1.16a.75.75 0 1 1-.33-1.46c4.57-1.04 8.5-.59 11.66 1.34.35.22.46.68.25 1.03zm1.47-3.27a.94.94 0 0 1-1.29.31c-3.23-1.98-8.15-2.56-11.97-1.4a.94.94 0 1 1-.54-1.8c4.36-1.32 9.78-.68 13.49 1.6.44.27.58.85.31 1.29zm.13-3.41C15.78 8.3 8.99 8.08 5.2 9.23a1.12 1.12 0 1 1-.65-2.15c4.35-1.32 11.85-1.06 16.16 1.5a1.12 1.12 0 1 1-1.15 1.93z"/></svg>
+      <span>Spotify</span>
+    </a>
+    <a class="podbtn podbtn--apple" href={APPLE} target="_blank" rel="noopener" aria-label="Apple Podcasts에서 듣기">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12 1.6a10.4 10.4 0 0 0-3.7 20.13c-.06-.7-.02-1.5.16-2.27l1.2-5.07c-.3-.6-.47-1.27-.47-1.98a4.41 4.41 0 0 1 8.82 0c0 .71-.17 1.38-.47 1.98l1.2 5.07c.18.77.22 1.57.16 2.27A10.4 10.4 0 0 0 12 1.6zm0 9.2a1.9 1.9 0 1 0 0 3.8 1.9 1.9 0 0 0 0-3.8zm0 4.9c-1.18 0-2.2.62-2.2 1.55 0 .57.12 1.66.32 2.5.16.69.4 1.5.62 2.06.3.78.66 1.19 1.26 1.19s.96-.41 1.26-1.19c.22-.56.46-1.37.62-2.06.2-.84.32-1.93.32-2.5 0-.93-1.02-1.55-2.2-1.55z"/></svg>
+      <span>Apple</span>
+    </a>
+    <a class="podbtn podbtn--rss" href={RSS} target="_blank" rel="noopener" aria-label="RSS 피드">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><circle cx="5" cy="19" r="2.2"/><path d="M3 10.2a10.8 10.8 0 0 1 10.8 10.8h3A13.8 13.8 0 0 0 3 7.2zM3 4.3A16.7 16.7 0 0 1 19.7 21h3A19.7 19.7 0 0 0 3 1.3z"/></svg>
+      <span>RSS</span>
+    </a>
+  </div>
+</div>
+
+<style>
+  .podlinks { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
+  .podlinks__label { font-size: 0.86rem; font-weight: 700; color: var(--ink); white-space: nowrap; }
+  .podlinks__btns { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .podbtn {
+    display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.42rem 0.8rem;
+    border-radius: 999px; font-size: 0.82rem; font-weight: 700; text-decoration: none;
+    border: 1px solid var(--line); color: var(--ink); background: var(--paper);
+    transition: transform .12s ease, box-shadow .15s ease, border-color .15s ease;
+  }
+  .podbtn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px -8px rgba(0,0,0,0.3); }
+  .podbtn svg { display: block; }
+  .podbtn--spotify:hover { color: #1db954; border-color: color-mix(in srgb, #1db954 50%, var(--line)); }
+  .podbtn--apple:hover { color: #9d4edd; border-color: color-mix(in srgb, #9d4edd 50%, var(--line)); }
+  .podbtn--rss:hover { color: #f26522; border-color: color-mix(in srgb, #f26522 50%, var(--line)); }
+  .podlinks--compact .podlinks__label { font-size: 0.8rem; }
+</style>

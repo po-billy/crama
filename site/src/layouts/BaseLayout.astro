@@ -6,7 +6,6 @@ import NoticeBanner from '../components/NoticeBanner.astro';
 import BackToTop from '../components/BackToTop.astro';
 import CookieConsent from '../components/CookieConsent.astro';
 import CalcEnhance from '../components/CalcEnhance.astro';
-import QuickListen from '../components/QuickListen.astro';
 import { ClientRouter } from 'astro:transitions';
 
 interface Props {
@@ -27,6 +26,21 @@ const { spa, ...props } = Astro.props;
     {spa && <ClientRouter />}
   </head>
   <body>
+    <script is:inline>
+      // 전역 지속 오디오 컨트롤러 — 목록(홈)·본문 공용. 1회 생성, SPA 소프트 내비를 넘어 유지(이벤트는 페이지 훅으로 위임).
+      if (!window.__cramaCtl) {
+        window.__cramaCtl = function () {
+          if (window.__cramaPlayer) return window.__cramaPlayer;
+          var audio = new Audio(); audio.preload = 'none';
+          var C = { audio: audio, slug: null, href: '', rate: 1, autoNext: false, follow: true, hooks: {} };
+          try { C.rate = parseFloat(localStorage.getItem('crama:tts:rate')) || 1; } catch (e) {}
+          try { C.autoNext = localStorage.getItem('crama:tts:auto') === '1'; } catch (e) {}
+          audio.playbackRate = C.rate;
+          ['timeupdate', 'play', 'pause', 'ended', 'loadedmetadata'].forEach(function (n) { audio.addEventListener(n, function (e) { if (C.hooks[n]) C.hooks[n](e); }); });
+          window.__cramaPlayer = C; return C;
+        };
+      }
+    </script>
     {spa && (
       <script is:inline>
         if (!window.__cramaGA) {
@@ -48,6 +62,5 @@ const { spa, ...props } = Astro.props;
     <BackToTop />
     <CookieConsent />
     <CalcEnhance />
-    <QuickListen />
   </body>
 </html>

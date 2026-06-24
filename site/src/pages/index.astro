@@ -70,7 +70,7 @@ const byCategory = (slug: 'money' | 'ai' | 'income') =>
 // 작은 썸네일(160px) 경로 — 랭킹/리스트의 48~90px 썸네일에 풀사이즈 hero 대신 사용(이미지 용량 절감)
 const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.webp$/, '-hero-thumb.webp') : h);
 ---
-<BaseLayout title={SITE.title} description={SITE.description}>
+<BaseLayout spa title={SITE.title} description={SITE.description}>
   <div class="wrap wrap--home">
     <header class="home-masthead">
       <h1>주식·재테크와 AI 트렌드, <em>깊이 있게.</em></h1>
@@ -138,7 +138,8 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
     <Curations />
 
     <script is:inline>
-      (() => {
+      function __rotInit() {
+        if (window.__rotStop) { window.__rotStop(); window.__rotStop = null; }
         const root = document.querySelector('.rotator');
         if (!root) return;
         const slides = Array.from(root.querySelectorAll('.rslide'));
@@ -164,7 +165,7 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
           if (counter) counter.textContent = String(next + 1);
           cur = next;
         };
-        const start = () => { timer = setInterval(() => show(cur + 1), 5000); };
+        const start = () => { clearInterval(timer); timer = setInterval(() => show(cur + 1), 5000); };
         const stop = () => clearInterval(timer);
         dots.forEach((d, i) => d.addEventListener('click', () => { show(i); stop(); start(); }));
         root.addEventListener('mouseenter', stop);
@@ -187,8 +188,11 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
         // 스와이프 직후 발생하는 링크 클릭은 무시(원치 않는 페이지 이동 방지)
         slides.forEach((s) => s.addEventListener('click', (e) => { if (justSwiped) { e.preventDefault(); e.stopPropagation(); } }));
 
+        window.__rotStop = stop;
         start();
-      })();
+      }
+      if (!window.__rotBound) { window.__rotBound = true; document.addEventListener('astro:page-load', __rotInit); }
+      if (document.readyState !== 'loading') __rotInit(); else document.addEventListener('DOMContentLoaded', __rotInit, { once: true });
     </script>
 
     {guidePosts.length > 0 && (
@@ -212,7 +216,8 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
           <button class="guides__arrow guides__arrow--next" type="button" data-guides-next aria-label="다음 가이드">›</button>
         </div>
         <script is:inline>
-          (() => {
+          function __guidesInit() {
+            if (window.__guidesStop) { window.__guidesStop(); window.__guidesStop = null; }
             const grid = document.querySelector('[data-guides]');
             if (!grid) return;
             const prev = document.querySelector('[data-guides-prev]');
@@ -225,7 +230,7 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
             prev && prev.addEventListener('click', () => grid.scrollBy({ left: -stepW(), behavior: 'smooth' }));
             next && next.addEventListener('click', () => grid.scrollBy({ left: stepW(), behavior: 'smooth' }));
             let timer;
-            const start = () => { timer = setInterval(() => {
+            const start = () => { clearInterval(timer); timer = setInterval(() => {
               if (atEnd()) grid.scrollTo({ left: 0, behavior: 'smooth' });
               else grid.scrollBy({ left: stepW(), behavior: 'smooth' });
             }, 4500); };
@@ -233,8 +238,11 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
             grid.addEventListener('mouseenter', stop);
             grid.addEventListener('mouseleave', start);
             grid.addEventListener('pointerdown', stop);
+            window.__guidesStop = stop;
             start();
-          })();
+          }
+          if (!window.__guidesBound) { window.__guidesBound = true; document.addEventListener('astro:page-load', __guidesInit); }
+          if (document.readyState !== 'loading') __guidesInit(); else document.addEventListener('DOMContentLoaded', __guidesInit, { once: true });
         </script>
       </section>
     )}

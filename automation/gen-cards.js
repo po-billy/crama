@@ -23,15 +23,20 @@ const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').
 // SVG는 자동 줄바꿈이 없어 직접 래핑(공백 우선, 너무 길면 강제 분할)
 function wrap(text, max) {
   const out = [];
+  const hardSplit = (s) => { while (s.length > max) { out.push(s.slice(0, max)); s = s.slice(max); } return s; };
   for (const rawLine of String(text).split('\n')) {
-    const words = rawLine.split(' ');
+    const words = rawLine.split(/\s+/).filter(Boolean);
     let cur = '';
-    for (const w of words) {
-      const next = cur ? cur + ' ' + w : w;
-      if (next.length <= max) { cur = next; continue; }
-      if (cur) out.push(cur);
-      if (w.length > max) { let s = w; while (s.length > max) { out.push(s.slice(0, max)); s = s.slice(max); } cur = s; }
-      else cur = w;
+    for (const word of words) {
+      // 단어를 ·(가운뎃점) 뒤에서 추가로 쪼갬(· 유지) → 줄바꿈 기회, 공백은 안 넣음
+      const chunks = word.split(/(?<=·)/).filter(Boolean);
+      for (let k = 0; k < chunks.length; k++) {
+        const c = chunks[k];
+        const sep = cur === '' ? '' : k === 0 ? ' ' : ''; // 단어 첫 조각만 앞 공백
+        if (cur === '') { cur = c.length > max ? hardSplit(c) : c; }
+        else if ((cur + sep + c).length <= max) { cur += sep + c; }
+        else { out.push(cur); cur = c.length > max ? hardSplit(c) : c; }
+      }
     }
     out.push(cur);
   }

@@ -4,7 +4,7 @@
 import 'dotenv/config';
 import Anthropic from '@anthropic-ai/sdk';
 import sharp from 'sharp';
-import { readFileSync, mkdirSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { BLOG_DIR, OUTPUT_DIR, ROOT, log } from './lib/util.js';
 
@@ -244,7 +244,10 @@ async function condense(art) {
     '  "kicker": "상단 영문/한글 라벨 한 단어~두 단어 (예: 청년 정책, AI 트렌드)",\n' +
     '  "hook": "커버 카드 헤드라인. 호기심을 끄는 한 문장, 24자 이내, 낚시 금지",\n' +
     '  "cards": [ { "heading": "핵심 포인트 제목 16자 이내", "stat": "그 포인트의 핵심 수치/키워드 7자 이내 (예: 6~12%, 연 19.4%, ~7/3, 월 50만). 없으면 빈 문자열", "body": "1~2문장 설명 65자 이내. 가장 중요한 키워드 1~2개를 **별표 두개**로 감싸 강조" } ],   // 3~4개\n' +
-    '  "cta": "마지막 카드용 한 줄 (16자 이내)"\n' +
+    '  "cta": "마지막 카드용 한 줄 (16자 이내)",\n' +
+    '  "caption": "인스타그램 게시물 캡션. 커버 hook과 겹치지 않는 변주로 시작하는 강한 첫 줄 + 핵심 가치 2~3문장 + 부드러운 CTA(예: 전문은 프로필 링크에서). 과장·낚시 금지, 이모지는 0~2개만. 200자 내외, 사람이 쓴 듯 자연스럽게",\n' +
+    '  "captionThreads": "스레드용 짧은 캡션. 280자 이내, 핵심 한 가지 + 작은 호기심. 해시태그·이모지 없이 담백하게",\n' +
+    '  "hashtags": ["해시태그 키워드 8~12개를 # 없이 배열로. 글 주제(예: 재테크, 지원금, AI) + 도달용 일반 태그(예: 돈관리, 사회초년생) 혼합, 한글 위주, 띄어쓰기 없이"]\n' +
     '}\n' +
     '카드는 글의 가장 중요한 3~4개 포인트만. stat에는 숫자가 있으면 반드시 큰 수치로 뽑고, body의 핵심어는 **이렇게** 강조해라.';
   const resp = await client.messages.create({ model: MODEL, max_tokens: 1500, system, messages: [{ role: 'user', content: user }] });
@@ -264,7 +267,43 @@ const MOCK = {
     { heading: '신청 기간은 단 2주', stat: '~7/3', body: '첫 주는 출생연도 끝자리 **5부제**로 운영. 대상이면 **서둘러** 확인하세요.' },
   ],
   cta: '흐름을 먼저 읽는 사람들',
+  caption: '“몰라서 못 받는” 돈이 있습니다. 청년미래적금은 정부가 매달 기여금을 얹어줘 환산 수익률이 연 19.4%에 달해요. 나이·소득 조건만 맞으면 누구나 가입할 수 있는데, 의외로 모르는 분이 많습니다. 신청은 7/3까지, 5부제로 운영되니 대상이면 서두르는 게 좋아요. 전문은 프로필 링크에서.',
+  captionThreads: '은행엔 없는 적금이 있어요. 정부가 매달 기여금을 얹어주는 청년미래적금, 환산 수익률이 연 19.4%. 조건이 되는데 안 하면 그냥 손해입니다. 신청은 7월 3일까지.',
+  hashtags: ['청년미래적금', '청년적금', '재테크', '목돈모으기', '사회초년생', '정부지원금', '적금추천', '돈관리', '짠테크', '금융꿀팁'],
 };
+
+// 인스타/스레드에 바로 붙여넣을 캡션 파일 본문
+function buildCaption(slug, data) {
+  const url = `https://crama.app/blog/${slug}/`;
+  const tags = (data.hashtags || [])
+    .map((h) => '#' + String(h).replace(/^#/, '').replace(/\s+/g, ''))
+    .join(' ');
+  const ig = [
+    (data.caption || '').trim(),
+    '',
+    '— 전문은 프로필 링크(crama.app)에서 읽어요.',
+    '',
+    tags,
+  ].join('\n').trim();
+  const threads = [
+    (data.captionThreads || data.caption || '').trim(),
+    '',
+    '전문 → ' + url,
+  ].join('\n').trim();
+  return [
+    '════════ 인스타그램 캡션 (복붙) ════════',
+    ig,
+    '',
+    '',
+    '════════ 스레드 캡션 (≤500자, 복붙) ════════',
+    threads,
+    '',
+    '',
+    `■ 글 링크: ${url}`,
+    `■ 카드: 01~${String((data.cards || []).length + 2).padStart(2, '0')}.png 순서대로 업로드`,
+    '',
+  ].join('\n');
+}
 
 async function main() {
   const slug = process.argv[2];
@@ -298,9 +337,13 @@ async function main() {
   for (let i = 0; i < rest.length; i++) {
     await sharp(Buffer.from(rest[i])).png().toFile(num(i + 2));
   }
-  log(`완료: ${rest.length + 1}장 → ${outDir}`);
+  // 캡션·해시태그(인스타/스레드 복붙용)
+  writeFileSync(path.join(outDir, 'caption.txt'), buildCaption(slug, data), 'utf8');
+
+  log(`완료: ${rest.length + 1}장 + caption.txt → ${outDir}`);
   console.log('  hook:', data.hook);
   points.forEach((p, i) => console.log(`  ${i + 1}. ${p.heading}`));
+  if (data.caption) console.log('  caption:', data.caption.slice(0, 60) + '…');
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

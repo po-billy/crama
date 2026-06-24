@@ -53,6 +53,43 @@ function dots(total, active, cx, y) {
   return s;
 }
 
+// 본문 인라인 하이라이트: **강조** 구간을 테라코타 굵게. 줄바꿈 자동 래핑.
+function parseHL(s) {
+  const out = [], re = /\*\*(.+?)\*\*/g;
+  let last = 0, m;
+  while ((m = re.exec(s))) {
+    if (m.index > last) out.push({ t: s.slice(last, m.index), hl: false });
+    out.push({ t: m[1], hl: true });
+    last = re.lastIndex;
+  }
+  if (last < s.length) out.push({ t: s.slice(last), hl: false });
+  return out;
+}
+function richText(body, x, y0, lh, fs, baseFill, max) {
+  const words = [];
+  for (const seg of parseHL(body)) for (const w of seg.t.split(' ')) if (w !== '') words.push({ w, hl: seg.hl });
+  const lines = [];
+  let cur = [], len = 0;
+  for (const tok of words) {
+    const add = len === 0 ? tok.w.length : tok.w.length + 1;
+    if (len + add > max && len > 0) { lines.push(cur); cur = []; len = 0; }
+    cur.push(tok); len += len === 0 ? tok.w.length : tok.w.length + 1;
+  }
+  if (cur.length) lines.push(cur);
+  const inner = lines.map((line, i) => {
+    const y = y0 + i * lh;
+    return line.map((tok, j) => {
+      const pos = j === 0 ? ` x="${x}" y="${y}"` : '';
+      const st = tok.hl ? ` fill="${ACCENT}" font-weight="bold"` : '';
+      // 후행 공백(줄 끝 제외, 다음이 문장부호면 생략) + xml:space=preserve 로 단어 간격 유지
+      const nextPunct = j < line.length - 1 && /^[,.!?)\]·%」』]/.test(line[j + 1].w);
+      const txt = esc(tok.w) + (j < line.length - 1 && !nextPunct ? ' ' : '');
+      return `<tspan${pos}${st}>${txt}</tspan>`;
+    }).join('');
+  }).join('');
+  return { svg: `<text xml:space="preserve" font-family="${SANS}" font-size="${fs}" fill="${baseFill}">${inner}</text>`, lines: lines.length };
+}
+
 function wordmark(x, y, color = INK, sub = true) {
   return `<text x="${x}" y="${y}" font-family="${SERIF}" font-size="40" font-weight="bold" fill="${color}">Crama</text>` +
     (sub ? `<text x="${x + 138}" y="${y}" font-family="${SANS}" font-size="24" fill="${MUTED}">트렌드를 읽다</text>` : '');
@@ -76,19 +113,29 @@ function coverSVG({ kicker, hook }) {
   </svg>`;
 }
 
-function pointSVG({ n, total, heading, body }) {
-  const hLines = wrap(heading, 15);
-  const hFs = 64, hLh = hFs * 1.22;
-  const hStart = 430;
-  const bStart = hStart + hLines.length * hLh + 36;
-  const bLines = wrap(body, 24);
-  const bFs = 38, bLh = bFs * 1.5;
+function pointSVG({ n, total, heading, stat, body }) {
+  const parts = [];
+  let y = 250;
+  // 번호 (작게)
+  parts.push(`<text x="90" y="${y}" font-family="${SERIF}" font-size="62" font-weight="bold" fill="${ACCENT}">${String(n).padStart(2, '0')}</text>`);
+  parts.push(`<rect x="92" y="${y + 24}" width="56" height="7" rx="3" fill="${ACCENT}"/>`);
+  y += 118;
+  // 제목 (라벨)
+  const hLines = wrap(heading, 16), hFs = 52, hLh = hFs * 1.24;
+  parts.push(`<text font-family="${SANS}" font-size="${hFs}" font-weight="bold" fill="${INK}">${tspans(hLines, 90, y, hLh)}</text>`);
+  y += hLines.length * hLh + 18;
+  // 핵심 수치 (큰 강조) — 있으면
+  if (stat) {
+    const sFs = stat.length > 7 ? 92 : 122;
+    parts.push(`<text x="86" y="${y + sFs * 0.82}" font-family="${SERIF}" font-size="${sFs}" font-weight="bold" fill="${ACCENT}">${esc(stat)}</text>`);
+    y += sFs * 0.82 + 56;
+  } else { y += 8; }
+  // 본문 (핵심어 하이라이트)
+  const rt = richText(body, 90, y + 8, 58, 39, INK_SOFT, 24);
+  parts.push(rt.svg);
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
     <rect width="${W}" height="${H}" fill="${PAPER}"/>
-    <text x="90" y="270" font-family="${SERIF}" font-size="150" font-weight="bold" fill="${ACCENT}" opacity="0.95">${String(n).padStart(2, '0')}</text>
-    <rect x="92" y="305" width="64" height="8" rx="4" fill="${ACCENT}"/>
-    <text font-family="${SANS}" font-size="${hFs}" font-weight="bold" fill="${INK}">${tspans(hLines, 90, hStart, hLh)}</text>
-    <text font-family="${SANS}" font-size="${bFs}" fill="${INK_SOFT}">${tspans(bLines, 90, bStart, bLh)}</text>
+    ${parts.join('')}
     <text x="90" y="${H - 90}" font-family="${SERIF}" font-size="30" font-weight="bold" fill="${MUTED}">Crama</text>
     ${dots(total, n, W / 2, H - 100)}
     <text x="${W - 90}" y="${H - 90}" text-anchor="end" font-family="${SANS}" font-size="26" fill="${MUTED}">crama.app</text>
@@ -168,10 +215,10 @@ async function condense(art) {
     '{\n' +
     '  "kicker": "상단 영문/한글 라벨 한 단어~두 단어 (예: 청년 정책, AI 트렌드)",\n' +
     '  "hook": "커버 카드 헤드라인. 호기심을 끄는 한 문장, 24자 이내, 낚시 금지",\n' +
-    '  "cards": [ { "heading": "핵심 포인트 제목 18자 이내", "body": "1~2문장 설명 70자 이내" } ],   // 3~4개\n' +
+    '  "cards": [ { "heading": "핵심 포인트 제목 16자 이내", "stat": "그 포인트의 핵심 수치/키워드 7자 이내 (예: 6~12%, 연 19.4%, ~7/3, 월 50만). 없으면 빈 문자열", "body": "1~2문장 설명 65자 이내. 가장 중요한 키워드 1~2개를 **별표 두개**로 감싸 강조" } ],   // 3~4개\n' +
     '  "cta": "마지막 카드용 한 줄 (16자 이내)"\n' +
     '}\n' +
-    '카드는 글의 가장 중요한 3~4개 포인트만. 정확한 수치가 있으면 살려라.';
+    '카드는 글의 가장 중요한 3~4개 포인트만. stat에는 숫자가 있으면 반드시 큰 수치로 뽑고, body의 핵심어는 **이렇게** 강조해라.';
   const resp = await client.messages.create({ model: MODEL, max_tokens: 1500, system, messages: [{ role: 'user', content: user }] });
   const text = resp.content.filter((b) => b.type === 'text').map((b) => b.text).join('').trim();
   const json = text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1);
@@ -183,10 +230,10 @@ const MOCK = {
   kicker: '청년 정책',
   hook: '몰라서 못 받는 연 19.4%, 청년미래적금',
   cards: [
-    { heading: '세 가지 조건, 다 충족해야', body: '만 19~34세 · 본인 총급여 7,500만원 이하 · 가구 중위소득 200% 이하. 병역 기간(최대 6년)은 나이에서 빼줍니다.' },
-    { heading: '정부가 얹어주는 6~12%', body: '월 최대 50만원을 3년. 일반형 6%, 중소기업 재직자 등 우대형은 12%를 정부가 더해줍니다.' },
-    { heading: '실질효과 연 최대 19.4%', body: '은행금리(최고 8%)에 정부기여금과 비과세까지 더한 환산 수익률. 일반 적금과 비교가 안 되는 이유.' },
-    { heading: '신청은 7월 3일까지', body: '단 2주. 첫 주는 출생연도 끝자리 5부제로 운영됩니다. 대상이면 서둘러 확인하세요.' },
+    { heading: '세 가지 조건을 모두 충족', stat: '19~34세', body: '나이 **만 19~34세**, 본인 총급여 **7,500만원 이하**, 가구 **중위소득 200% 이하**. 병역 기간은 나이에서 빼줍니다.' },
+    { heading: '정부가 얹어주는 기여금', stat: '6~12%', body: '월 최대 **50만원**을 3년. 일반형 6%, 중소기업 재직자 등 **우대형은 12%**를 정부가 더해줍니다.' },
+    { heading: '실질 가입효과', stat: '연 19.4%', body: '은행금리(최고 8%)에 **정부기여금**과 **이자 비과세**까지 더한 환산 수익률. 일반 적금과 비교 불가.' },
+    { heading: '신청 기간은 단 2주', stat: '~7/3', body: '첫 주는 출생연도 끝자리 **5부제**로 운영. 대상이면 **서둘러** 확인하세요.' },
   ],
   cta: '흐름을 먼저 읽는 사람들',
 };
@@ -215,7 +262,7 @@ async function main() {
   }
   // 02..) 포인트 + CTA
   const rest = [
-    ...points.map((p, i) => pointSVG({ n: i + 1, total: total - 1, heading: p.heading, body: p.body })),
+    ...points.map((p, i) => pointSVG({ n: i + 1, total: total - 1, heading: p.heading, stat: p.stat, body: p.body })),
     ctaSVG({ cta: data.cta }),
   ];
   for (let i = 0; i < rest.length; i++) {

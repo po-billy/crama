@@ -77,6 +77,8 @@ export const money: Term[] = [
   { term: '통장 쪼개기', def: '월급·생활비·저축·비상금 통장을 용도별로 나눠 돈에 이름표를 붙이는 돈 관리법.', href: '/blog/account-splitting-story/', hrefLabel: '통장 쪼개기' },
   { term: '매몰비용', def: '이미 써서 돌이킬 수 없는 비용. 본전 생각에 끌려 더 나쁜 결정을 하지 않으려면 매몰비용은 무시해야 한다.', href: '/blog/subscription-trap/', hrefLabel: '구독의 함정' },
   { term: '감가상각', def: '시간이 지나며 물건의 가치가 줄어드는 것. 진짜 비용은 산 가격이 아니라 줄어든 가치(산 가격 − 팔리는 가격)다.', href: '/blog/secondhand-lessons/', hrefLabel: '물건의 진짜 값' },
+  { term: '심리적 회계', def: '같은 돈이라도 출처·용도에 따라 머릿속에서 다른 계좌로 나눠 다르게 쓰는 심리. 공돈이 쉽게 새는 이유다.', href: '/blog/windfall-money/', hrefLabel: '공돈의 심리' },
+  { term: '손실 회피', def: '같은 크기라도 손실의 고통이 이익의 기쁨보다 더 강하게 느껴지는 심리. 공포 매도의 원인이 된다.', href: '/blog/first-loss/', hrefLabel: '첫 투자 손실' },
 ];
 
 export const ai: Term[] = [

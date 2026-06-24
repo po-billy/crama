@@ -150,12 +150,26 @@ async function condense(art) {
   return JSON.parse(json);
 }
 
+// 렌더 디자인 확인용 목업(크레딧 없이 테스트). 실제 카피는 Claude가 생성.
+const MOCK = {
+  kicker: '청년 정책',
+  hook: '몰라서 못 받는 연 19.4%, 청년미래적금',
+  cards: [
+    { heading: '세 가지 조건, 다 충족해야', body: '만 19~34세 · 본인 총급여 7,500만원 이하 · 가구 중위소득 200% 이하. 병역 기간(최대 6년)은 나이에서 빼줍니다.' },
+    { heading: '정부가 얹어주는 6~12%', body: '월 최대 50만원을 3년. 일반형 6%, 중소기업 재직자 등 우대형은 12%를 정부가 더해줍니다.' },
+    { heading: '실질효과 연 최대 19.4%', body: '은행금리(최고 8%)에 정부기여금과 비과세까지 더한 환산 수익률. 일반 적금과 비교가 안 되는 이유.' },
+    { heading: '신청은 7월 3일까지', body: '단 2주. 첫 주는 출생연도 끝자리 5부제로 운영됩니다. 대상이면 서둘러 확인하세요.' },
+  ],
+  cta: '흐름을 먼저 읽는 사람들',
+};
+
 async function main() {
   const slug = process.argv[2];
-  if (!slug) { console.error('사용법: node gen-cards.js <slug>'); process.exit(1); }
+  if (!slug) { console.error('사용법: node gen-cards.js <slug> [--mock]'); process.exit(1); }
+  const mock = process.argv.includes('--mock');
   const art = loadArticle(slug);
-  log(`카드 생성: ${art.title}`);
-  const data = await condense(art);
+  log(`카드 생성: ${art.title}${mock ? ' (목업)' : ''}`);
+  const data = mock ? MOCK : await condense(art);
   const points = (data.cards || []).slice(0, 4);
   const total = points.length + 2; // 커버 + 포인트들 + CTA
 

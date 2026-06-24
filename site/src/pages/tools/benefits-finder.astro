@@ -1,0 +1,194 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+const desc = '나이·가구원수·소득 몇 개만 입력하면, 청년미래적금·청년도약계좌·민생회복 소비쿠폰 등 받을 수 있는 지원을 30초 만에 가늠해 드립니다. 2026년 기준.';
+---
+<BaseLayout title="내가 받을 수 있는 지원금 진단기 (2026)" description={desc}>
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">진단기</span>
+      <h1>내가 받을 수 있는 지원금</h1>
+      <p>몰라서 못 받는 지원, 30초면 가늠할 수 있어요. 입력값은 저장되지 않습니다.</p>
+    </header>
+
+    <div class="bf">
+      <div class="bf__inputs">
+        <div class="calc__field"><label for="bf-age">만 나이</label><input id="bf-age" type="number" inputmode="numeric" value="28" min="0" max="120" /></div>
+        <div class="calc__field"><label for="bf-mil">병역 이행 기간 (년)<span class="bf-hint">청년 상품 나이에서 빼줘요</span></label><input id="bf-mil" type="number" inputmode="numeric" value="0" min="0" max="6" /></div>
+        <div class="calc__field"><label for="bf-size">가구원 수</label>
+          <select id="bf-size">
+            <option value="1">1인</option><option value="2">2인</option><option value="3">3인</option>
+            <option value="4">4인</option><option value="5">5인</option><option value="6">6인</option><option value="7">7인 이상</option>
+          </select>
+        </div>
+        <div class="calc__field"><label for="bf-hh">가구 월 소득 (만원)<span class="bf-hint">가구원 전체 세전 합산</span></label><input id="bf-hh" type="number" inputmode="numeric" value="300" min="0" /></div>
+        <div class="calc__field"><label for="bf-pay">본인 연 총급여 (만원)<span class="bf-hint">청년 상품 개인소득 요건</span></label><input id="bf-pay" type="number" inputmode="numeric" value="3500" min="0" /></div>
+        <div class="calc__field"><label for="bf-region">거주 지역</label>
+          <select id="bf-region">
+            <option value="capital">수도권</option>
+            <option value="non">비수도권</option>
+            <option value="declining">인구감소지역</option>
+          </select>
+        </div>
+        <label class="bf-check"><input id="bf-dual" type="checkbox" /> 맞벌이 2인 가구</label>
+      </div>
+
+      <div class="bf__results" id="bf-results" aria-live="polite"></div>
+    </div>
+
+    <p class="calc__note measure">
+      ※ 이 진단기는 2026년 기준 공개된 자격 요건으로 <strong>대략적인 가능성</strong>을 보여주는 참고용입니다.
+      민생회복 소비쿠폰의 ‘소득 하위 70%’는 실제로 <strong>건강보험료</strong>로 판정되며, 여기서는 중위소득 150%로 근사했습니다.
+      정확한 자격·금액·일정은 반드시 <strong>서민금융진흥원·행정안전부·복지로 등 공식 기관</strong>에서 확인하세요.
+      경계선이면 망설이지 말고 신청해 직접 판정을 받는 것이 가장 확실합니다.
+    </p>
+    <p class="calc__note measure">관련 글: <a href="/blog/median-income-2026/">2026 기준 중위소득 표</a> · <a href="/blog/government-benefits-finder/">정부지원금 찾는 4가지 통로</a> · <a href="/blog/youth-support-policy/">청년 지원 정책 총정리</a></p>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      // 2026년 기준 중위소득 100% (월, 원) — 보건복지부 고시
+      const MED = { 1: 2564238, 2: 4199292, 3: 5359036, 4: 6494738, 5: 7556719, 6: 8555952, 7: 9555185 };
+      const won = (man) => (+man || 0) * 10000;
+      const fmtMan = (n) => Math.round(n / 10000).toLocaleString('ko-KR') + '만원';
+
+      // 청년미래적금 신청 마감 D-day
+      const deadline = new Date(2026, 6, 3); // 2026-07-03
+      const dday = Math.ceil((deadline - new Date()) / 86400000);
+
+      const REGION_COUPON = { capital: '10만원', non: '15만원', declining: '20만~25만원' };
+
+      const card = (status, name, amount, reason, href, extra) => {
+        const cls = status === 'ok' ? 'is-ok' : status === 'maybe' ? 'is-maybe' : 'is-no';
+        const label = status === 'ok' ? '가능성 높음' : status === 'maybe' ? '경계 — 신청 권장' : '대상 아님';
+        return `<a class="bf-card ${cls}" href="${href}">
+          <div class="bf-card__top">
+            <span class="bf-card__badge">${label}</span>
+            ${amount ? `<span class="bf-card__amt">${amount}</span>` : ''}
+          </div>
+          <strong class="bf-card__name">${name}</strong>
+          <p class="bf-card__reason">${reason}</p>
+          ${extra ? `<p class="bf-card__extra">${extra}</p>` : ''}
+          <span class="bf-card__link">자세히 보기 →</span>
+        </a>`;
+      };
+
+      // 한도 대비 상태: 통과=ok, 5% 이내 초과=maybe, 그 이상=no
+      const band = (val, limit) => (val <= limit ? 'ok' : val <= limit * 1.05 ? 'maybe' : 'no');
+      const worst = (...s) => (s.includes('no') ? 'no' : s.includes('maybe') ? 'maybe' : 'ok');
+
+      const run = () => {
+        const age = +$('bf-age').value || 0;
+        const mil = Math.min(6, +$('bf-mil').value || 0);
+        const size = +$('bf-size').value || 1;
+        const hh = won($('bf-hh').value);
+        const pay = +$('bf-pay').value || 0; // 만원(연)
+        const dual = $('bf-dual').checked;
+        const region = $('bf-region').value;
+        const med = MED[size] || MED[7];
+        const ageAdj = age - mil;
+        const ageOk = age >= 19 && ageAdj <= 34;
+        const cards = [];
+
+        // ── 청년미래적금 (나이+개인소득7500+가구중위200%, 맞벌이2인 250%)
+        {
+          const hhLimit = (dual && size === 2) ? med * 2.5 : med * 2.0;
+          const ageS = ageOk ? 'ok' : 'no';
+          const payS = pay <= 7500 ? 'ok' : pay <= 7875 ? 'maybe' : 'no';
+          const hhS = band(hh, hhLimit);
+          const st = worst(ageS, payS, hhS);
+          let reason;
+          if (st === 'ok') reason = `만 19~34세·개인 총급여 7,500만원 이하·가구 중위 ${(dual && size===2)?'250':'200'}% 이하 요건을 모두 충족할 가능성이 높아요.`;
+          else if (ageS === 'no') reason = '만 19~34세(병역기간 제외) 요건에서 벗어나요.';
+          else if (payS === 'no') reason = '본인 총급여가 7,500만원 기준을 넘어 보여요.';
+          else if (hhS === 'no') reason = `가구 월소득이 기준(중위 ${(dual && size===2)?'250':'200'}%, 약 ${fmtMan(hhLimit)})을 넘어 보여요.`;
+          else reason = '소득이 기준 경계선이에요. 신청해 직접 판정받는 걸 권해요.';
+          const extra = (st !== 'no' && dday >= 0) ? `신청 마감 2026.7.3 · <strong>D-${dday}</strong>` : (st !== 'no' ? '이번 차수 신청은 마감됐어요(공식 일정 확인).' : '');
+          cards.push({ st, html: card(st, '청년미래적금', '월 50만·정부기여 6~12%', reason, '/blog/youth-future-savings-2026/', extra) });
+        }
+
+        // ── 청년도약계좌 (나이+개인소득7500+가구중위250%)
+        {
+          const ageS = ageOk ? 'ok' : 'no';
+          const payS = pay <= 7500 ? 'ok' : pay <= 7875 ? 'maybe' : 'no';
+          const hhS = band(hh, med * 2.5);
+          const st = worst(ageS, payS, hhS);
+          let reason;
+          if (st === 'ok') reason = '만 19~34세·개인소득·가구 중위 250% 이하 요건을 충족할 가능성이 높아요. (5년·월 70만원)';
+          else if (ageS === 'no') reason = '만 19~34세(병역기간 제외) 요건에서 벗어나요.';
+          else if (payS === 'no') reason = '본인 총급여가 가입 기준(7,500만원)을 넘어 보여요.';
+          else if (hhS === 'no') reason = `가구 월소득이 중위 250%(약 ${fmtMan(med * 2.5)})를 넘어 보여요.`;
+          else reason = '소득이 경계선이에요. 신청해 직접 판정받는 걸 권해요.';
+          cards.push({ st, html: card(st, '청년도약계좌', '월 70만·최대 5천만원대', reason, '/blog/youth-leap-vs-future-savings/', '') });
+        }
+
+        // ── 민생회복 소비쿠폰 (소득 하위 70% ≈ 중위 150%, 건보료 판정)
+        {
+          const hhS = band(hh, med * 1.5);
+          let reason;
+          if (hhS === 'ok') reason = '가구 소득이 ‘소득 하위 70%’(건보료 기준, 중위 150% 근사) 안에 들 가능성이 높아요.';
+          else if (hhS === 'maybe') reason = '소득이 경계선이에요. 실제 판정은 건강보험료 기준이라 확인이 필요해요.';
+          else reason = '가구 소득이 상위 30%에 가까워 일반 대상에선 어려울 수 있어요.';
+          const amt = hhS !== 'no' ? REGION_COUPON[region] : '';
+          const extra = '※ 기초생활수급자·차상위·한부모 가구는 소득과 무관하게 대상이며 더 많이 받아요.';
+          cards.push({ st: hhS, html: card(hhS, '민생회복 소비쿠폰', amt, reason, '/blog/livelihood-coupon-2026/', extra) });
+        }
+
+        const okN = cards.filter((c) => c.st === 'ok').length;
+        const maybeN = cards.filter((c) => c.st === 'maybe').length;
+        const summary = `<div class="bf-summary"><strong>${okN}개</strong> 가능성 높음${maybeN ? ` · <strong>${maybeN}개</strong> 경계` : ''} <span>(참고용 추정)</span></div>`;
+        $('bf-results').innerHTML = summary + cards.map((c) => c.html).join('');
+      };
+
+      ['bf-age', 'bf-mil', 'bf-size', 'bf-hh', 'bf-pay', 'bf-region', 'bf-dual'].forEach((id) => {
+        $(id).addEventListener('input', run);
+        $(id).addEventListener('change', run);
+      });
+      run();
+    })();
+  </script>
+
+  <style>
+    .bf { display: grid; grid-template-columns: 1fr 1.15fr; gap: 1.4rem; margin: 1.5rem 0; align-items: start; }
+    .bf__inputs {
+      display: grid; gap: 0.9rem; padding: 1.4rem; border: 1px solid var(--line);
+      border-radius: 14px; background: var(--paper-2);
+    }
+    .bf-hint { display: block; font-size: 0.72rem; color: var(--muted); font-weight: 400; margin-top: 0.1rem; }
+    .bf__inputs select, .bf__inputs input[type="number"] {
+      width: 100%; padding: 0.6rem 0.7rem; border: 1px solid var(--line); border-radius: 9px;
+      background: var(--paper); color: var(--ink); font-size: 1rem;
+    }
+    .bf-check { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: var(--ink-soft); cursor: pointer; }
+    .bf-check input { width: 1.05rem; height: 1.05rem; accent-color: var(--accent); }
+
+    .bf__results { display: grid; gap: 0.8rem; }
+    .bf-summary { font-size: 0.95rem; color: var(--ink-soft); padding: 0.2rem 0.2rem 0.3rem; }
+    .bf-summary strong { color: var(--accent); font-size: 1.1rem; }
+    .bf-summary span { color: var(--muted); font-size: 0.82rem; }
+
+    .bf-card {
+      display: block; text-decoration: none; color: var(--ink); padding: 1.1rem 1.2rem;
+      border: 1px solid var(--line); border-left: 4px solid var(--muted); border-radius: 12px;
+      background: var(--paper); transition: transform .12s ease, box-shadow .15s ease;
+    }
+    .bf-card:hover { transform: translateY(-2px); box-shadow: 0 10px 24px -14px rgba(0,0,0,0.35); }
+    .bf-card.is-ok { border-left-color: #2e9e6b; }
+    .bf-card.is-maybe { border-left-color: #d9a420; }
+    .bf-card.is-no { border-left-color: var(--line); opacity: 0.72; }
+    .bf-card__top { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; margin-bottom: 0.4rem; }
+    .bf-card__badge { font-size: 0.72rem; font-weight: 800; padding: 0.2rem 0.6rem; border-radius: 999px; letter-spacing: 0.02em; }
+    .is-ok .bf-card__badge { color: #1d7a4f; background: color-mix(in srgb, #2e9e6b 16%, transparent); }
+    .is-maybe .bf-card__badge { color: #9a7409; background: color-mix(in srgb, #d9a420 18%, transparent); }
+    .is-no .bf-card__badge { color: var(--muted); background: var(--paper-2); }
+    .bf-card__amt { font-size: 0.78rem; font-weight: 700; color: var(--accent); }
+    .bf-card__name { font-family: var(--font-serif); font-size: 1.18rem; display: block; }
+    .bf-card__reason { margin: 0.35rem 0 0; font-size: 0.9rem; color: var(--ink-soft); line-height: 1.55; }
+    .bf-card__extra { margin: 0.45rem 0 0; font-size: 0.78rem; color: var(--muted); line-height: 1.45; }
+    .bf-card__link { display: inline-block; margin-top: 0.6rem; font-size: 0.82rem; font-weight: 700; color: var(--accent); }
+
+    @media (max-width: 720px) {
+      .bf { grid-template-columns: 1fr; }
+    }
+  </style>
+</BaseLayout>

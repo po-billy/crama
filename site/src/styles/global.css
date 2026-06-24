@@ -316,6 +316,9 @@ hr {
 .site-footer__inner { display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: space-between; align-items: center; }
 .site-footer nav { display: flex; flex-wrap: wrap; gap: 1.2rem; }
 .site-footer a:hover { color: var(--accent); }
+.site-footer__disclaimer { margin-top: 1.4rem; padding-top: 1.2rem; border-top: 1px solid var(--line); font-size: 0.82rem; line-height: 1.6; color: var(--muted); }
+.site-footer__disclaimer a { color: var(--ink-soft); }
+.site-footer__disclaimer a:hover { color: var(--accent); }
 
 /* ---------- 페이지 히어로(카테고리/소개) ---------- */
 .page-hero { padding: 1.8rem 0 1.3rem; border-bottom: 1px solid var(--line); margin-bottom: 2rem; }

@@ -18,6 +18,15 @@ const { Content, headings } = await render(post);
 const words = post.body?.length ?? 0;
 const readingTime = Math.max(1, Math.round(words / 500));
 
+// 오디오 '이어 듣기' 다음 글 — 같은 카테고리에서 '시간 역순 바로 다음(더 이전) 글'.
+// 항상 더 오래된 글로만 이동하므로 재생이 한 방향으로 흘러 루프가 생기지 않는다.
+// (날짜 동점은 slug로 안정 정렬해 순서가 흔들리지 않게 함. 카테고리의 가장 오래된 글이면 종료.)
+const catOrdered = all
+  .filter((p) => p.data.category === post.data.category)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf() || (a.id < b.id ? -1 : 1));
+const curIdx = catOrdered.findIndex((p) => p.id === post.id);
+const nextHref = curIdx >= 0 && curIdx + 1 < catOrdered.length ? `/blog/${catOrdered[curIdx + 1].id}/` : '';
+
 // 같은 카테고리 관련글 3개
 const related = all
   .filter((p) => p.id !== post.id && p.data.category === post.data.category)
@@ -53,6 +62,7 @@ const guide = pillarPost ? { title: pillarPost.data.title, href: `/blog/${pillar
   tags={post.data.tags}
   headings={headings}
   related={related}
+  nextHref={nextHref}
   guide={guide}
 >
   <Content />

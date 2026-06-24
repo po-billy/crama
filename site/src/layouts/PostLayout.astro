@@ -40,11 +40,12 @@ interface Props {
   tags?: string[];
   headings?: MarkdownHeading[];
   related?: RelatedPost[];
+  nextHref?: string; // 오디오 '이어 듣기'의 다음 글 — 단조(시간 역순) 경로라 루프가 없다
   guide?: { title: string; href: string };
 }
 const {
   title, description, pubDate, updatedDate, category, author, format = 'guide', heroImage,
-  readingTime, premium = false, audioSrc, tags = [], headings = [], related = [], guide,
+  readingTime, premium = false, audioSrc, tags = [], headings = [], related = [], nextHref = '', guide,
 } = Astro.props;
 
 const cat = CATEGORIES[category];
@@ -76,7 +77,7 @@ const jsonLd = {
 >
   <ReadingProgress />
   <FloatingShare />
-  <article class="wrap" data-next-article={related[0]?.href ?? ''}>
+  <article class="wrap" data-next-article={nextHref}>
     <Breadcrumbs items={[{ label: cat.name, href: `/category/${cat.slug}/` }, { label: title }]} />
 
     <header class="article-head measure">

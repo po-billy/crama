@@ -4,9 +4,9 @@
 import 'dotenv/config';
 import Anthropic from '@anthropic-ai/sdk';
 import sharp from 'sharp';
-import { readFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, mkdirSync, existsSync } from 'node:fs';
 import path from 'node:path';
-import { BLOG_DIR, OUTPUT_DIR, log } from './lib/util.js';
+import { BLOG_DIR, OUTPUT_DIR, ROOT, log } from './lib/util.js';
 
 const MODEL = process.env.CARDS_MODEL || process.env.WRITE_MODEL || 'claude-sonnet-4-6';
 const client = new Anthropic();
@@ -126,7 +126,35 @@ function loadArticle(slug) {
     .replace(/\n{2,}/g, '\n')
     .replace(/[ \t]{2,}/g, ' ')
     .trim();
-  return { title: pick('title'), description: pick('description'), category: pick('category'), body: body.slice(0, 6000) };
+  return { title: pick('title'), description: pick('description'), category: pick('category'), heroImage: pick('heroImage'), body: body.slice(0, 6000) };
+}
+
+// 표지: 글의 히어로 이미지 + 다크 그라데이션 + 텍스트 (매거진 표지). 이미지 없으면 coverSVG 폴백.
+async function renderCover(out, { kicker, hook, heroPath }) {
+  const base = await sharp(heroPath).resize(W, H, { fit: 'cover', position: 'attention' }).toBuffer();
+  const lines = wrap(hook, 13);
+  const fs = lines.length > 2 ? 80 : 92, lh = fs * 1.16;
+  const wmY = H - 96;
+  const hookBottom = wmY - 88;
+  const startY = hookBottom - (lines.length - 1) * lh;
+  const kickerY = startY - fs - 34;
+  const overlay = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
+    <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="${DARK}" stop-opacity="0.28"/>
+      <stop offset="0.42" stop-color="${DARK}" stop-opacity="0.05"/>
+      <stop offset="0.72" stop-color="${DARK}" stop-opacity="0.7"/>
+      <stop offset="1" stop-color="${DARK}" stop-opacity="0.96"/>
+    </linearGradient></defs>
+    <rect width="${W}" height="${H}" fill="url(#g)"/>
+    <rect x="0" y="0" width="${W}" height="14" fill="${ACCENT}"/>
+    <text x="90" y="${kickerY}" font-family="${SANS}" font-size="30" font-weight="bold" letter-spacing="6" fill="#f4c9b8">${esc((kicker || 'CRAMA').toUpperCase())}</text>
+    <text font-family="${SERIF}" font-size="${fs}" font-weight="bold" fill="#ffffff">${tspans(lines, 90, startY, lh)}</text>
+    <rect x="92" y="${hookBottom + 26}" width="110" height="9" rx="4" fill="${ACCENT}"/>
+    <text x="90" y="${wmY}" font-family="${SERIF}" font-size="40" font-weight="bold" fill="#ffffff">Crama</text>
+    <text x="${228}" y="${wmY}" font-family="${SANS}" font-size="24" fill="#e7e1d6">트렌드를 읽다</text>
+    <text x="${W - 90}" y="${wmY}" text-anchor="end" font-family="${SANS}" font-size="30" font-weight="bold" fill="#ffffff">넘겨보기 →</text>
+  </svg>`;
+  await sharp(base).composite([{ input: Buffer.from(overlay) }]).png().toFile(out);
 }
 
 async function condense(art) {
@@ -176,16 +204,24 @@ async function main() {
   const outDir = path.join(OUTPUT_DIR, 'cards', slug);
   mkdirSync(outDir, { recursive: true });
 
-  const svgs = [
-    coverSVG({ kicker: data.kicker, hook: data.hook }),
+  const num = (i) => path.join(outDir, `${String(i).padStart(2, '0')}.png`);
+  // 01) 표지 — 히어로 이미지 있으면 합성, 없으면 타이포 폴백
+  const heroPath = art.heroImage ? path.join(ROOT, 'site', 'public', art.heroImage) : null;
+  if (heroPath && existsSync(heroPath)) {
+    await renderCover(num(1), { kicker: data.kicker, hook: data.hook, heroPath });
+  } else {
+    if (heroPath) log(`히어로 이미지 없음(${art.heroImage}) → 타이포 표지로 대체`);
+    await sharp(Buffer.from(coverSVG({ kicker: data.kicker, hook: data.hook }))).png().toFile(num(1));
+  }
+  // 02..) 포인트 + CTA
+  const rest = [
     ...points.map((p, i) => pointSVG({ n: i + 1, total: total - 1, heading: p.heading, body: p.body })),
     ctaSVG({ cta: data.cta }),
   ];
-  for (let i = 0; i < svgs.length; i++) {
-    const out = path.join(outDir, `${String(i + 1).padStart(2, '0')}.png`);
-    await sharp(Buffer.from(svgs[i])).png().toFile(out);
+  for (let i = 0; i < rest.length; i++) {
+    await sharp(Buffer.from(rest[i])).png().toFile(num(i + 2));
   }
-  log(`완료: ${svgs.length}장 → ${outDir}`);
+  log(`완료: ${rest.length + 1}장 → ${outDir}`);
   console.log('  hook:', data.hook);
   points.forEach((p, i) => console.log(`  ${i + 1}. ${p.heading}`));
 }

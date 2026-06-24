@@ -35,6 +35,7 @@ const ICON = {
       </div>
       <button class="aplayer__chip" type="button" data-rate-btn aria-label="재생 속도">1.0×</button>
       <button class="aplayer__chip aplayer__chip--toggle" type="button" data-autonext aria-pressed="false" title="이어 듣기: 끝나면 다음 글을 이어서 들려줘요"><span class="ic" aria-hidden="true" set:html={ICON.next}></span> 이어 듣기</button>
+      <button class="aplayer__chip" type="button" data-scope-btn title="이어 듣기 범위 — 전체 최신순 / 같은 카테고리 내">전체</button>
     </div>
   </div>
 
@@ -80,6 +81,10 @@ const ICON = {
     <div class="aprow">
       <span class="aprow__label">이어 듣기<small>끝나면 다음 글을 이어서 재생</small></span>
       <button class="aprow__sw" type="button" data-panel-autonext aria-pressed="false" aria-label="이어 듣기 켜기/끄기"></button>
+    </div>
+    <div class="aprow">
+      <span class="aprow__label">이어 듣기 범위<small>전체 최신순 / 같은 카테고리 내</small></span>
+      <button class="aprow__chip" type="button" data-panel-scope>전체</button>
     </div>
   </div>
 
@@ -371,6 +376,19 @@ const ICON = {
 </style>
 
 <script is:inline>
+  // ----- '이어 듣기 범위'(전체/카테고리) — 다음 글 선택에 공용 사용 -----
+  function ttsScope() { try { return localStorage.getItem('crama:tts:scope') === 'cat' ? 'cat' : 'all'; } catch (e) { return 'all'; } }
+  function nextFromEl(el) {
+    if (!el) return '';
+    return ttsScope() === 'cat'
+      ? (el.getAttribute('data-next-cat') || el.getAttribute('data-next-article') || '')
+      : (el.getAttribute('data-next-article') || '');
+  }
+  function nextFromHtml(html) {
+    const g = (n) => { const m = html.match(new RegExp(n + '="([^"]*)"')); return m ? m[1] : ''; };
+    return ttsScope() === 'cat' ? (g('data-next-cat') || g('data-next-article')) : g('data-next-article');
+  }
+
   function initListen() {
     const root = document.querySelector('[data-listen]');
     if (!root) return;
@@ -434,7 +452,7 @@ const ICON = {
     let autoNext = false;
     try { autoNext = localStorage.getItem(AUTO_KEY) === '1'; } catch (e) {}
     const nextEl = document.querySelector('article[data-next-article]');
-    const nextHref = nextEl ? nextEl.getAttribute('data-next-article') : '';
+    const nextHref = nextFromEl(nextEl);
     const autoBtn = root.querySelector('[data-autonext]');
     const toastEl = document.querySelector('[data-toast]');
     let toastTimer;
@@ -996,7 +1014,7 @@ const ICON = {
     let rate = C.rate, autoNext = C.autoNext, followEnabled = C.follow;
     audio.playbackRate = rate;
     const nextEl = document.querySelector('article[data-next-article]');
-    let nextHref = nextEl ? nextEl.getAttribute('data-next-article') : '';
+    let nextHref = nextFromEl(nextEl);
     C.href = nextHref;
 
     function fmt(sec) { sec = Math.max(0, Math.round(sec || 0)); const mn = Math.floor(sec / 60), s = sec % 60; return mn + ':' + String(s).padStart(2, '0'); }
@@ -1047,7 +1065,7 @@ const ICON = {
         fetch(target).then((r) => r.text()).then((html) => {
           const mt = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/);
           if (mt && 'mediaSession' in navigator) { try { navigator.mediaSession.metadata = new MediaMetadata({ title: mt[1].replace(/<[^>]+>/g, '').trim(), artist: 'Crama 오디오', album: 'crama.app' }); } catch (e) {} }
-          const nh = html.match(/data-next-article="([^"]*)"/); nextHref = nh ? nh[1] : ''; C.href = nextHref;
+          nextHref = nextFromHtml(html); C.href = nextHref;
         }).catch(() => {});
       } else {
         // 포그라운드: 소리 유지한 채 다음 글로 SPA 이동(조회수·광고는 실제 열람만)
@@ -1147,6 +1165,24 @@ const ICON = {
     if (audioSrc && typeof Audio !== 'undefined') { root.hidden = false; initAudioMode(root, prose, audioSrc); }
     else initListen(); // 폴백: 브라우저 내장 TTS(Web Speech)
   }
+
+  // '이어 듣기 범위'(전체/카테고리) 토글 — 재생 모드와 무관하게 전역에서 처리(라벨 동기화 + 클릭 시 전환)
+  function syncScopeUI() {
+    const label = ttsScope() === 'cat' ? '카테고리' : '전체';
+    document.querySelectorAll('[data-scope-btn], [data-panel-scope]').forEach((b) => { b.textContent = label; });
+  }
+  if (!window.__cramaScopeBound) {
+    window.__cramaScopeBound = true;
+    document.addEventListener('click', (e) => {
+      const b = e.target && e.target.closest ? e.target.closest('[data-scope-btn], [data-panel-scope]') : null;
+      if (!b) return;
+      e.preventDefault();
+      try { localStorage.setItem('crama:tts:scope', ttsScope() === 'cat' ? 'all' : 'cat'); } catch (err) {}
+      syncScopeUI();
+    });
+    document.addEventListener('astro:page-load', syncScopeUI);
+  }
+  syncScopeUI();
 
   // ClientRouter(블로그) 사용 시 전환마다 astro:page-load 발생 → 재바인딩. 리스너는 1회만 등록.
   if (!window.__cramaBootBound) { window.__cramaBootBound = true; document.addEventListener('astro:page-load', boot); }

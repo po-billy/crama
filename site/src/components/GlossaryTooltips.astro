@@ -154,9 +154,13 @@ const data = allTerms.map((t) => ({ term: t.term, def: t.def, href: t.href ?? nu
         const btn = e.target.closest('.gloss');
         if (btn) { e.preventDefault(); (openBtn === btn) ? hide() : show(btn); }
       });
-      // 데스크톱: 마우스 오버로도 표시
-      prose.addEventListener('mouseover', (e) => { const btn = e.target.closest('.gloss'); if (btn) show(btn); });
-      prose.addEventListener('mouseout', (e) => { const btn = e.target.closest('.gloss'); if (btn && openBtn === btn) hide(); });
+      // 터치 기기(hover: none)는 합성 mouseover가 click 토글과 충돌해 '두 번 탭' 버그가 나므로
+      // 마우스 오버 표시를 끄고 click 토글만 쓴다. 그 외(데스크톱 등)는 호버로도 표시.
+      const noHover = window.matchMedia && window.matchMedia('(hover: none)').matches;
+      if (!noHover) {
+        prose.addEventListener('mouseover', (e) => { const btn = e.target.closest('.gloss'); if (btn) show(btn); });
+        prose.addEventListener('mouseout', (e) => { const btn = e.target.closest('.gloss'); if (btn && openBtn === btn) hide(); });
+      }
       document.addEventListener('click', (e) => { if (openBtn && !e.target.closest('.gloss') && !e.target.closest('.gloss-pop')) hide(); });
       window.addEventListener('scroll', () => { if (openBtn) hide(); }, { passive: true });
     }

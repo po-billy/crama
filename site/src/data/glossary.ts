@@ -76,10 +76,12 @@ export const money: Term[] = [
   { term: '라떼 팩터', def: '매일 무심코 쓰는 작은 돈이 쌓이면 큰돈이 된다는 개념. 단, 푼돈에만 매몰되면 큰 결정을 놓친다.', href: '/blog/latte-factor-myth/', hrefLabel: '라떼팩터의 함정' },
   { term: '통장 쪼개기', def: '월급·생활비·저축·비상금 통장을 용도별로 나눠 돈에 이름표를 붙이는 돈 관리법.', href: '/blog/account-splitting-story/', hrefLabel: '통장 쪼개기' },
   { term: '매몰비용', def: '이미 써서 돌이킬 수 없는 비용. 본전 생각에 끌려 더 나쁜 결정을 하지 않으려면 매몰비용은 무시해야 한다.', href: '/blog/subscription-trap/', hrefLabel: '구독의 함정' },
+  { term: '감가상각', def: '시간이 지나며 물건의 가치가 줄어드는 것. 진짜 비용은 산 가격이 아니라 줄어든 가치(산 가격 − 팔리는 가격)다.', href: '/blog/secondhand-lessons/', hrefLabel: '물건의 진짜 값' },
 ];
 
 export const ai: Term[] = [
   { term: 'LLM (거대 언어 모델)', def: '방대한 텍스트로 학습해 사람처럼 글을 이해하고 생성하는 AI 모델. ChatGPT, Claude 등이 해당된다.' },
+  { term: '인지적 위임', def: '기억·계산·판단을 외부 도구(내비·AI 등)에 떠넘기는 것. 편하지만, 생각 자체를 위임하면 사고력이 약해질 수 있다.', href: '/blog/ai-and-thinking/', hrefLabel: 'AI와 사고력' },
   { term: '생성형 AI', def: '글·이미지·음성·영상 등 새로운 콘텐츠를 만들어 내는 AI를 통칭하는 말.', href: '/blog/ai-trends-2026/', hrefLabel: '2026 AI 트렌드' },
   { term: '프롬프트', def: 'AI에게 주는 지시나 질문. 잘 쓸수록 좋은 결과가 나온다.', href: '/blog/ai-prompt-basics/', hrefLabel: '프롬프트 작성법' },
   { term: '환각 (할루시네이션)', def: 'AI가 사실이 아닌 내용을 그럴듯하게 지어내는 현상. 그래서 검증이 필요하다.', href: '/blog/ai-hallucination-story/', hrefLabel: 'AI 환각 이야기' },

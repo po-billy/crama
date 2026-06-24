@@ -79,6 +79,8 @@ export const money: Term[] = [
   { term: '감가상각', def: '시간이 지나며 물건의 가치가 줄어드는 것. 진짜 비용은 산 가격이 아니라 줄어든 가치(산 가격 − 팔리는 가격)다.', href: '/blog/secondhand-lessons/', hrefLabel: '물건의 진짜 값' },
   { term: '심리적 회계', def: '같은 돈이라도 출처·용도에 따라 머릿속에서 다른 계좌로 나눠 다르게 쓰는 심리. 공돈이 쉽게 새는 이유다.', href: '/blog/windfall-money/', hrefLabel: '공돈의 심리' },
   { term: '손실 회피', def: '같은 크기라도 손실의 고통이 이익의 기쁨보다 더 강하게 느껴지는 심리. 공포 매도의 원인이 된다.', href: '/blog/first-loss/', hrefLabel: '첫 투자 손실' },
+  { term: '베블런재', def: '가격이 오를수록 오히려 수요가 느는 과시용 상품. 비쌈 자체가 신호가 되는 명품 등이 해당된다.', href: '/blog/status-spending/', hrefLabel: '과시소비의 심리' },
+  { term: '변동금리 / 고정금리', def: '변동금리는 시장 금리에 따라 이자가 바뀌고, 고정금리는 약정 기간 동안 그대로다. 금리 흐름에 따라 유불리가 갈린다.', href: '/blog/interest-rates-life/', hrefLabel: '금리와 내 삶' },
 ];
 
 export const ai: Term[] = [

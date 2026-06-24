@@ -8,7 +8,7 @@ import { readFileSync, mkdirSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { BLOG_DIR, OUTPUT_DIR, ROOT, log } from './lib/util.js';
 
-const MODEL = process.env.CARDS_MODEL || process.env.WRITE_MODEL || 'claude-sonnet-4-6';
+const MODEL = process.env.CARDS_MODEL || 'claude-opus-4-8'; // 짧은 카피라 비용 적고, 보이스 품질이 중요
 const client = new Anthropic();
 
 // ── 브랜드 토큰
@@ -205,10 +205,23 @@ async function renderCover(out, { kicker, hook, heroPath }) {
 }
 
 async function condense(art) {
-  const system =
-    '너는 한국어 소셜 카드뉴스 에디터다. 매거진 "크라마"의 톤(차분하고 신뢰감 있으며, 과장·낚시·이모지 남발 없음, ' +
-    '"먼저 읽는다/쉽게 풀어준다"는 결)으로, 주어진 글을 인스타그램 캐러셀 카드용 카피로 압축한다. ' +
-    '문장은 짧고 또렷하게. 숫자·핵심만. 반드시 JSON만 출력한다.';
+  const system = [
+    '너는 매거진 "크라마(Crama)"의 카피라이터다. 크라마는 돈·AI 트렌드를 "남보다 먼저, 쉽게 읽어주는" 매거진이다.',
+    '톤: 차분한 자신감 + 친근하지만 군더더기 없음 + 절제된 위트. 신뢰가 핵심이라 과장·낚시는 절대 안 쓴다.',
+    '인스타그램 캐러셀 카드용 한국어 카피를 쓴다.',
+    '',
+    '[목소리 규칙]',
+    '- 사람이 쓴 것처럼 자연스럽게. AI 특유의 대구("A가 아니라 B다", "~할 뿐이다")·판박이 표현 금지.',
+    '- 후킹은 낚시가 아니라 "구체적 이득"이나 "작은 궁금증"으로. 숫자와 생활감을 살려라.',
+    '- 짧고 리듬감 있게. 한 카드엔 한 메시지. 수식어 남발·이모지 금지.',
+    '- "최고/대박/무조건" 같은 과장 금지. 담백하게, 그러나 또렷하게. 독자에게 말 걸듯 해요체도 좋다.',
+    '',
+    '[후킹 예시]',
+    '- 밋밋(나쁨): "청년미래적금 총정리"',
+    '- 느낌있음(좋음): "3년 부으면 400만원이 더 붙어요" / "은행엔 없는 적금, 연 19.4%"',
+    '',
+    '반드시 JSON만 출력한다.',
+  ].join('\n');
   const user =
     `제목: ${art.title}\n설명: ${art.description}\n\n본문:\n${art.body}\n\n` +
     '아래 JSON 스키마로만 답해라(설명·코드펜스 금지):\n' +
@@ -242,9 +255,11 @@ async function main() {
   const slug = process.argv[2];
   if (!slug) { console.error('사용법: node gen-cards.js <slug> [--mock]'); process.exit(1); }
   const mock = process.argv.includes('--mock');
+  const di = process.argv.indexOf('--data');
+  const dataFile = di >= 0 ? process.argv[di + 1] : null; // 손으로 쓴 카피 JSON 주입(무료)
   const art = loadArticle(slug);
-  log(`카드 생성: ${art.title}${mock ? ' (목업)' : ''}`);
-  const data = mock ? MOCK : await condense(art);
+  log(`카드 생성: ${art.title}${dataFile ? ' (수동 카피)' : mock ? ' (목업)' : ''}`);
+  const data = dataFile ? JSON.parse(readFileSync(dataFile, 'utf8')) : mock ? MOCK : await condense(art);
   const points = (data.cards || []).slice(0, 4);
   const total = points.length + 2; // 커버 + 포인트들 + CTA
 

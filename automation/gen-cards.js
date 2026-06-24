@@ -66,13 +66,22 @@ function parseHL(s) {
   return out;
 }
 function richText(body, x, y0, lh, fs, baseFill, max) {
+  // 토큰화: **강조** 경계에서 원문에 공백이 없으면 glue=true(조사·부호가 앞에 붙음)
+  const segs = parseHL(body);
   const words = [];
-  for (const seg of parseHL(body)) for (const w of seg.t.split(' ')) if (w !== '') words.push({ w, hl: seg.hl });
+  for (let si = 0; si < segs.length; si++) {
+    const parts = segs[si].t.split(' ');
+    for (let pi = 0; pi < parts.length; pi++) {
+      if (parts[pi] === '') continue;
+      const glue = pi === 0 && si > 0 && !/\s$/.test(segs[si - 1].t) && !/^\s/.test(segs[si].t);
+      words.push({ w: parts[pi], hl: segs[si].hl, glue });
+    }
+  }
   const lines = [];
   let cur = [], len = 0;
   for (const tok of words) {
     const add = len === 0 ? tok.w.length : tok.w.length + 1;
-    if (len + add > max && len > 0) { lines.push(cur); cur = []; len = 0; }
+    if (len + add > max && len > 0 && !tok.glue) { lines.push(cur); cur = []; len = 0; }
     cur.push(tok); len += len === 0 ? tok.w.length : tok.w.length + 1;
   }
   if (cur.length) lines.push(cur);
@@ -81,9 +90,10 @@ function richText(body, x, y0, lh, fs, baseFill, max) {
     return line.map((tok, j) => {
       const pos = j === 0 ? ` x="${x}" y="${y}"` : '';
       const st = tok.hl ? ` fill="${ACCENT}" font-weight="bold"` : '';
-      // 후행 공백(줄 끝 제외, 다음이 문장부호면 생략) + xml:space=preserve 로 단어 간격 유지
-      const nextPunct = j < line.length - 1 && /^[,.!?)\]·%」』]/.test(line[j + 1].w);
-      const txt = esc(tok.w) + (j < line.length - 1 && !nextPunct ? ' ' : '');
+      // 다음 토큰이 문장부호이거나 glue(조사 등)면 후행 공백 생략. xml:space=preserve로 간격 유지
+      const next = line[j + 1];
+      const noSpace = next && (next.glue || /^[,.!?)\]·%」』]/.test(next.w));
+      const txt = esc(tok.w) + (j < line.length - 1 && !noSpace ? ' ' : '');
       return `<tspan${pos}${st}>${txt}</tspan>`;
     }).join('');
   }).join('');

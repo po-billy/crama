@@ -102,11 +102,13 @@ const year = new Date().getFullYear();
   .site-footer .foot-disc a { color: rgba(255,255,255,0.7); }
   .site-footer .foot-disc a:hover { color: #e8a184; }
 
-  /* 뉴스레터 박스 다크 보정 */
+  /* 뉴스레터 박스 다크 보정 + 푸터 안에서는 단일 컬럼(2단 그리드의 칸 눌림·알약 줄바꿈 방지) */
   .site-footer .subscribe {
     background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 14px; padding: 1.4rem 1.5rem;
+    border-radius: 14px; padding: 1.5rem 1.6rem;
+    grid-template-columns: 1fr; gap: 1rem; margin-bottom: 0; align-items: stretch;
   }
+  .site-footer .subscribe__contact { white-space: nowrap; align-self: start; }
   .site-footer .subscribe__title { color: #fff; }
   .site-footer .subscribe__sub { color: rgba(255,255,255,0.58); }
   .site-footer .subscribe__contact { color: rgba(255,255,255,0.72); border-color: rgba(255,255,255,0.22); }

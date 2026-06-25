@@ -112,8 +112,11 @@ function wordmark(x, y, color = INK, sub = true) {
 
 // ── 카드 SVG 빌더들
 function coverSVG({ kicker, hook }) {
-  const lines = wrap(hook, 11); // 큰 명조 헤드라인
-  const fs = lines.length > 3 ? 92 : 104;
+  // 폰트 크기에 맞춰 줄당 글자수를 계산(고정 시 큰 폰트에서 가로 넘침). 본문폭 ≈ 935px.
+  const htext = String(hook);
+  const hlen = [...htext].length;
+  const fs = hlen <= 14 ? 104 : hlen <= 22 ? 92 : 80;
+  const lines = wrap(htext, Math.max(7, Math.floor(935 / fs)));
   const lh = fs * 1.18;
   const blockH = lines.length * lh;
   const startY = Math.max(360, (H - blockH) / 2 - 40) + fs * 0.8;
@@ -194,8 +197,14 @@ function loadArticle(slug) {
 // 표지: 글의 히어로 이미지 + 다크 그라데이션 + 텍스트 (매거진 표지). 이미지 없으면 coverSVG 폴백.
 async function renderCover(out, { kicker, hook, heroPath }) {
   const base = await sharp(heroPath).resize(W, H, { fit: 'cover', position: 'attention' }).toBuffer();
-  const lines = wrap(hook, 13);
-  const fs = lines.length > 2 ? 80 : 92, lh = fs * 1.16;
+  // 한글 큰 명조는 글자폭이 거의 1em이라 줄당 글자수를 고정하면 1080px를 넘쳐 잘린다.
+  // 글 길이에 따라 폰트를 정하고, 본문폭(좌90~우여백 ≈ 935px)에 맞춰 줄당 글자수를 계산한다.
+  const htext = String(hook);
+  const hlen = [...htext].length;
+  let fs = hlen <= 16 ? 92 : hlen <= 26 ? 80 : 72;
+  let lines = wrap(htext, Math.max(8, Math.floor(935 / fs)));
+  if (lines.length >= 4) { fs = 64; lines = wrap(htext, Math.floor(935 / fs)); } // 매우 길면 더 축소
+  const lh = fs * 1.16;
   const wmY = H - 96;
   const hookBottom = wmY - 88;
   const startY = hookBottom - (lines.length - 1) * lh;
@@ -340,7 +349,16 @@ async function main() {
   // 캡션·해시태그(인스타/스레드 복붙용)
   writeFileSync(path.join(outDir, 'caption.txt'), buildCaption(slug, data), 'utf8');
 
-  log(`완료: ${rest.length + 1}장 + caption.txt → ${outDir}`);
+  // 카드별 대체 텍스트(접근성 alt) — 보이는 텍스트를 그대로 사용. social-post.js가 인스타 alt_text로 전송.
+  const stripHL = (s) => String(s || '').replace(/\*\*/g, '');
+  const altList = [
+    `크라마 카드뉴스 표지 — ${data.hook || art.title}`,
+    ...points.map((p) => `${p.heading}${p.stat ? ` (${p.stat})` : ''}. ${stripHL(p.body)}`.slice(0, 900)),
+    `${data.cta || '흐름을 먼저 읽는 사람들'} — 전문은 crama.app에서`,
+  ];
+  writeFileSync(path.join(outDir, 'meta.json'), JSON.stringify({ alt: altList }, null, 2), 'utf8');
+
+  log(`완료: ${rest.length + 1}장 + caption.txt + meta.json(alt) → ${outDir}`);
   console.log('  hook:', data.hook);
   points.forEach((p, i) => console.log(`  ${i + 1}. ${p.heading}`));
   if (data.caption) console.log('  caption:', data.caption.slice(0, 60) + '…');

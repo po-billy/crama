@@ -104,12 +104,18 @@ async function main() {
 
   if (!IG || !TOKEN) { console.error('IG_USER_ID / IG_ACCESS_TOKEN 이 .env에 없습니다(셋업 후 다시 시도).'); process.exit(1); }
 
+  // 카드별 접근성 대체 텍스트(gen-cards가 만든 meta.json) — 인스타 alt_text로 전송
+  let alts = [];
+  try { alts = JSON.parse(readFileSync(path.join(cardDir, 'meta.json'), 'utf8')).alt || []; } catch (e) {}
+
   // 2) 각 이미지 → 캐러셀 자식 컨테이너
   const children = [];
-  for (const url of urls) {
-    const c = await fb(`${IG}/media`, { image_url: url, is_carousel_item: 'true' });
+  for (let i = 0; i < urls.length; i++) {
+    const params = { image_url: urls[i], is_carousel_item: 'true' };
+    if (alts[i]) params.alt_text = String(alts[i]).slice(0, 1000); // 접근성 대체 텍스트(2025-03 API 지원)
+    const c = await fb(`${IG}/media`, params);
     children.push(c.id);
-    log(`자식 컨테이너 ${c.id}`);
+    log(`자식 컨테이너 ${c.id}${alts[i] ? ' (alt 적용)' : ''}`);
   }
   // 3) 캐러셀 컨테이너(캡션 포함)
   const carousel = await fb(`${IG}/media`, { media_type: 'CAROUSEL', children: children.join(','), caption });

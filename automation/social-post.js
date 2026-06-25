@@ -17,7 +17,10 @@ import { putObject, r2Configured } from './lib/r2.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const V = process.env.IG_GRAPH_VERSION || 'v21.0';
-const G = `https://graph.facebook.com/${V}`;
+// 기본은 Facebook 로그인 경로(graph.facebook.com). Instagram 로그인 방식이면 .env에
+// IG_API_BASE=graph.instagram.com 으로 바꾸면 동일 코드로 게시된다(엔드포인트 형태 동일).
+const BASE = (process.env.IG_API_BASE || 'graph.facebook.com').replace(/^https?:\/\//, '').replace(/\/+$/, '');
+const G = `https://${BASE}/${V}`;
 const IG = process.env.IG_USER_ID;
 const TOKEN = process.env.IG_ACCESS_TOKEN;
 

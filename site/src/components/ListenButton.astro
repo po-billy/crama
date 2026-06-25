@@ -1133,13 +1133,24 @@ const ICON = {
       // 목록 미니 플레이어('글 보기')에서 넘어온 경우, 그 재생 위치에서 이어받기
       let resumeT = 0;
       try { const r = JSON.parse(sessionStorage.getItem('crama:tts:resume') || 'null'); if (r && r.slug === thisSlug) { resumeT = Number(r.t) || 0; sessionStorage.removeItem('crama:tts:resume'); } } catch (e) {}
-      if (audio.paused) { if (audio.src !== audioSrc) { audio.src = audioSrc; audio.currentTime = 0; } C.slug = thisSlug; }
+      let continuing = false;
+      try { continuing = sessionStorage.getItem('crama:tts:continue') === '1'; } catch (e) {}
+      // 다른 글의 오디오가 전역 플레이어에 재생/일시정지 상태로 남아 있으면, 이 글 음원으로 교체하고 0초부터 시작.
+      // (앞 글 위치 승계 방지) '이어 듣기'·목록 '글 보기' 인계는 continue/resume 신호로만 허용하므로 여기서 제외.
+      if (C.slug && C.slug !== thisSlug && !continuing && resumeT === 0) {
+        try { audio.pause(); } catch (e) {}
+        if (audio.src !== audioSrc) audio.src = audioSrc;
+        try { audio.currentTime = 0; } catch (e) {}
+        C.slug = thisSlug; highlight(null); setActive(false);
+      } else if (audio.paused) {
+        if (audio.src !== audioSrc) { audio.src = audioSrc; audio.currentTime = 0; } C.slug = thisSlug;
+      }
       if (resumeT > 0) {
         const seek = () => { try { audio.currentTime = resumeT; } catch (e) {} update(); audio.removeEventListener('loadedmetadata', seek); };
         if (audio.readyState >= 1 && audio.duration) seek(); else audio.addEventListener('loadedmetadata', seek);
       }
       renderIcons(); setStatus();
-      try { if (sessionStorage.getItem('crama:tts:continue') === '1') { sessionStorage.removeItem('crama:tts:continue'); audio.play().catch(() => {}); } } catch (e) {}
+      try { if (continuing) { sessionStorage.removeItem('crama:tts:continue'); audio.play().catch(() => {}); } } catch (e) {}
     }
 
     // 백그라운드 이어재생 후 화면 복귀 시, 지금 재생 중인 글로 페이지 동기화(1회만 등록)

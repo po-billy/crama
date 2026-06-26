@@ -140,6 +140,15 @@ const jsonLd = {
       <AdSlot slot="article-bottom" />
     )}
 
+    <aside id="signup-cta" class="signup-cta measure" hidden>
+      <img src="/img/generated/meerkat-baby-wave.webp" alt="크라미" />
+      <div class="signup-cta__body">
+        <b>읽은 만큼 쌓이는 재미, 크라미</b>
+        <p>로그인하면 글 읽을 때마다 <strong>밀웜</strong>을 모아 나만의 <strong>크라미</strong>를 꾸밀 수 있어요. 콘텐츠는 계속 무료예요.</p>
+        <a class="signup-cta__btn" href="/login/">크라미 시작하기 →</a>
+      </div>
+    </aside>
+
     {related.length > 0 && (
       <section class="wrap" style="padding-inline:0;">
         <div class="section-head"><h2>이어 읽기</h2></div>
@@ -160,7 +169,11 @@ const jsonLd = {
     const m = location.pathname.match(/\/blog\/([^/]+)/);
     if (!m) return;
     const slug = m[1];
-    if (!(await getUser())) return;
+    if (!(await getUser())) {
+      const cta = document.getElementById('signup-cta'); // 로그아웃: 가입 유도 CTA 노출(콘텐츠는 그대로)
+      if (cta) (cta as HTMLElement).hidden = false;
+      return;
+    }
 
     // ── 스크랩(북마크) 버튼 ──
     const bm = document.getElementById('bm-btn');

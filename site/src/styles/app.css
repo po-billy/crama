@@ -112,6 +112,19 @@
 .ad-ph { color: #999; font-size: .9rem; }
 .admodal__bar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .8rem 1rem calc(.8rem + env(safe-area-inset-bottom)); }
 
+/* 로그인 페이지 */
+.login { max-width: 25rem; }
+.login__hero { text-align: center; margin-bottom: 1.5rem; }
+.login__mascot { width: 92px; height: 92px; object-fit: contain; display: block; margin: 0 auto .4rem; }
+.login h1 { font-size: 1.6rem; margin-bottom: .5rem; }
+.login .app__sub strong { color: var(--accent); }
+.ref-banner { display: flex; align-items: center; justify-content: space-between; gap: .6rem; flex-wrap: wrap;
+  background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 10px; padding: .7rem 1rem; margin-bottom: 1.2rem; font-size: .9rem; }
+.ref-banner b { color: var(--accent); font-family: var(--font-mono); letter-spacing: .05em; font-size: 1rem; }
+.ref-banner__bonus { color: var(--accent); font-weight: 800; white-space: nowrap; }
+.ref-input-row { display: flex; gap: .5rem; margin-top: .6rem; }
+.login__trust { text-align: center; color: var(--muted); font-size: .76rem; line-height: 1.6; margin-top: 1.6rem; }
+
 /* 친구 초대 */
 .invite { border: 1px solid var(--line); background: var(--paper-2); border-radius: 12px; padding: 1rem; margin-bottom: 2rem; }
 .invite h3 { font-family: var(--font-serif); font-size: 1.05rem; margin: 0 0 .3rem; }

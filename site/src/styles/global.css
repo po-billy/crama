@@ -128,6 +128,26 @@ hr {
 .bm-btn { display: inline-flex; align-items: center; gap: .3rem; background: none; border: 1px solid var(--line); border-radius: 999px; padding: .22rem .6rem; color: var(--muted); font-size: .8rem; cursor: pointer; }
 .bm-btn:hover { color: var(--accent); border-color: var(--accent); }
 .bm-btn.on { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+
+/* 가입 유도 CTA (로그아웃 사용자) — 콘텐츠 차단 없이 부드럽게 */
+.signup-cta { display: flex; gap: 1.2rem; align-items: center; border: 1px solid var(--line); background: var(--accent-soft); border-radius: 14px; padding: 1.3rem 1.5rem; margin: 3rem auto; }
+.signup-cta img { width: 72px; height: 72px; object-fit: contain; flex: none; }
+.signup-cta__body b { font-family: var(--font-serif); font-size: 1.15rem; color: var(--ink); display: block; }
+.signup-cta__body p { color: var(--ink-soft); font-size: .95rem; line-height: 1.6; margin: .35rem 0 .9rem; }
+.signup-cta__body strong { color: var(--accent); }
+.signup-cta__btn { display: inline-block; background: var(--accent); color: #fff; font-weight: 700; border-radius: var(--radius); padding: .6rem 1.3rem; }
+.signup-cta__btn:hover { color: #fff; opacity: .92; }
+@media (max-width: 520px) { .signup-cta { flex-direction: column; text-align: center; } }
+
+/* 홈 슬림 가입 스트립 (닫기 가능) */
+.signup-strip { display: flex; align-items: center; gap: .7rem; background: var(--accent-soft); border: 1px solid var(--line); border-radius: 10px; padding: .55rem .9rem; margin-bottom: 1.2rem; font-size: .9rem; }
+.signup-strip img { width: 34px; height: 34px; object-fit: contain; flex: none; }
+.signup-strip span { flex: 1; color: var(--ink-soft); min-width: 0; }
+.signup-strip strong { color: var(--accent); }
+.signup-strip__btn { flex: none; background: var(--accent); color: #fff; font-weight: 700; border-radius: 999px; padding: .35rem .95rem; font-size: .85rem; }
+.signup-strip__btn:hover { color: #fff; }
+.signup-strip__x { flex: none; background: none; border: 0; color: var(--muted); font-size: 1.25rem; cursor: pointer; line-height: 1; padding: 0 .2rem; }
+@media (max-width: 560px) { .signup-strip span { font-size: .8rem; } }
 .brand {
   font-family: var(--font-serif);
   font-weight: 600;

@@ -3,6 +3,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import '../styles/app.css';
 import { fetchActivePolls } from '../lib/polls-build.js';
 const polls = await fetchActivePolls();
+const featured = polls[0];
+const past = polls.slice(1);
 ---
 
 <BaseLayout title="오늘의 투표 — Crama" description="지금 화제인 이슈, 배경부터 읽고 한 표">
@@ -13,22 +15,53 @@ const polls = await fetchActivePolls();
       <p class="app__sub" style="margin-top:.4rem">지금 화제인 이슈, 배경부터 읽고 한 표 던지기 — 참여하면 <strong style="color:var(--accent)">밀웜 +3</strong></p>
     </header>
 
-    {polls.length === 0 ? (
+    {!featured ? (
       <p class="app__sub">진행 중인 투표가 없어요. 매일 새 투표가 올라와요 👀</p>
     ) : (
-      <div class="vlist">
-        {polls.map((p: any, i: number) => (
-          <a class="vcard" href={`/vote/${p.id}/`}>
-            <span class="vcard__no">{String(i + 1).padStart(2, '0')}</span>
-            <div class="vcard__main">
-              <span class="vcard__emoji">{p.emoji || '🗳️'}</span>
-              <h2 class="vcard__q">{p.question}</h2>
-              {p.teaser && <p class="vcard__teaser">{p.teaser}</p>}
-              <span class="vcard__go">배경 읽고 투표하기 →</span>
+      <>
+        <a class="vfeat" href={`/vote/${featured.id}/`}>
+          <div class="vfeat__bar">
+            <span class="vbadge vbadge--live"><i></i> 투표 진행 중</span>
+            <span class="vfeat__count" data-count={featured.id}></span>
+          </div>
+          <span class="vfeat__emoji">{featured.emoji || '🗳️'}</span>
+          <h2 class="vfeat__q">{featured.question}</h2>
+          {featured.teaser && <p class="vfeat__teaser">{featured.teaser}</p>}
+          <span class="vfeat__cta">배경 읽고 투표하기 →</span>
+        </a>
+
+        {past.length > 0 && (
+          <section class="vpast">
+            <h2 class="vpast__h">지난 투표</h2>
+            <div class="vgrid">
+              {past.map((p: any) => (
+                <a class="vpcard" href={`/vote/${p.id}/`}>
+                  <div class="vpcard__bar">
+                    <span class="vpcard__emoji">{p.emoji || '🗳️'}</span>
+                    <span class="vpcard__count" data-count={p.id}></span>
+                  </div>
+                  <h3 class="vpcard__q">{p.question}</h3>
+                  {p.teaser && <p class="vpcard__teaser">{p.teaser}</p>}
+                  <span class="vpcard__go">결과 보기 →</span>
+                </a>
+              ))}
             </div>
-          </a>
-        ))}
-      </div>
+          </section>
+        )}
+      </>
     )}
   </div>
 </BaseLayout>
+
+<script>
+  // 참여 수 라이브 채우기(있을 때만) — 진행중/지난 구분감 강화
+  import { getPollResults } from '../lib/api';
+  document.querySelectorAll('[data-count]').forEach(async (el) => {
+    const id = Number(el.getAttribute('data-count'));
+    try {
+      const r = await getPollResults(id);
+      const t = (r && (r as any).total) || 0;
+      if (t > 0) el.textContent = `${t.toLocaleString()}명 참여`;
+    } catch (e) {}
+  });
+</script>

@@ -1,0 +1,72 @@
+---
+// 상세페이지(아티클·투표) 우측 공통 사이드바 — 사이트 콘텐츠 노출(오늘의 투표·주목 아티클·크라미 CTA).
+import { getCollection } from 'astro:content';
+import { CATEGORIES, EDITOR_PICKS } from '../consts';
+import { fetchActivePolls } from '../lib/polls-build.js';
+
+interface Props {
+  excludePoll?: number | string; // 투표 상세에서 현재 글 제외
+  excludeSlug?: string;          // 아티클 상세에서 현재 글 제외
+}
+const { excludePoll, excludeSlug } = Astro.props;
+
+const posts = (await getCollection('blog'))
+  .filter((p) => !p.data.draft)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+// 주목 아티클: 에디터 픽 우선 + 최신으로 채움, 현재 글 제외, 5개
+const seen = new Set<string>();
+const ranked = [...EDITOR_PICKS.map((s) => posts.find((p) => p.id === s)).filter(Boolean), ...posts]
+  .filter((p): p is (typeof posts)[number] => Boolean(p) && p!.id !== excludeSlug && !seen.has(p!.id) && (seen.add(p!.id), true))
+  .slice(0, 5);
+
+const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.webp$/, '-hero-thumb.webp') : h);
+
+let polls = await fetchActivePolls();
+if (excludePoll != null) polls = polls.filter((p: any) => String(p.id) !== String(excludePoll));
+polls = polls.slice(0, 3);
+---
+
+<aside class="crail">
+  {polls.length > 0 && (
+    <section class="crail__box">
+      <h3 class="crail__h">🗳️ 오늘의 투표</h3>
+      <ul class="crail__polls">
+        {polls.map((p: any) => (
+          <li>
+            <a href={`/vote/${p.id}/`}>
+              <span class="crail__pe">{p.emoji || '🗳️'}</span>
+              <b>{p.question}</b>
+            </a>
+          </li>
+        ))}
+      </ul>
+      <a class="crail__more" href="/vote/">투표 전체 보기 →</a>
+    </section>
+  )}
+
+  <section class="crail__box">
+    <h3 class="crail__h">🔥 주목할 아티클</h3>
+    <ol class="crail__rank">
+      {ranked.map((p, i) => (
+        <li>
+          <a href={`/blog/${p.id}/`}>
+            <span class="crail__num">{i + 1}</span>
+            {p.data.heroImage && <img class="crail__thumb" src={thumb(p.data.heroImage)} alt="" width="44" height="44" loading="lazy" />}
+            <span class="crail__t">
+              <b>{p.data.title}</b>
+              <em>{CATEGORIES[p.data.category].name}</em>
+            </span>
+          </a>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <section class="crail__box crail__cta">
+    <img src="/img/generated/meerkat-baby-announce.webp" alt="크라미" />
+    <b>읽을수록 쌓이는 재미, 크라미</b>
+    <p>글 읽고 <strong>밀웜</strong> 모아 나만의 크라미 꾸미기</p>
+    <a class="crail__cta-btn" href="/me/">크라미 시작하기 →</a>
+  </section>
+</aside>

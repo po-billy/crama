@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import ContentRail from '../../components/ContentRail.astro';
 import '../../styles/app.css';
 import { fetchActivePolls } from '../../lib/polls-build.js';
 
@@ -12,6 +13,7 @@ const paras: string[] = String(poll.body || '').split(/\n\n+/).map((s: string) =
 ---
 
 <BaseLayout title={`${poll.question} — 오늘의 투표`} description={poll.teaser || poll.question}>
+  <div class="detail-layout">
   <article class="app poll-article">
     <a class="muted-link" href="/vote/" style="display:inline-block;margin-bottom:1.2rem">← 오늘의 투표</a>
     <div class="pa-eyebrow"><span class="pa-eyebrow__emoji">{poll.emoji || '🗳️'}</span> CRAMA VOTE</div>
@@ -30,6 +32,8 @@ const paras: string[] = String(poll.body || '').split(/\n\n+/).map((s: string) =
     <!-- 의견 -->
     <div class="pa-ops" id="po"></div>
   </article>
+  <ContentRail excludePoll={poll.id} />
+  </div>
   <div class="toast" id="toast"></div>
 </BaseLayout>
 

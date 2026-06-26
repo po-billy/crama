@@ -13,6 +13,7 @@ import ListenButton from '../components/ListenButton.astro';
 import GlossaryTooltips from '../components/GlossaryTooltips.astro';
 import TagList from '../components/TagList.astro';
 import AuthorBox from '../components/AuthorBox.astro';
+import ContentRail from '../components/ContentRail.astro';
 import { SITE, CATEGORIES, type CategorySlug } from '../consts';
 import { bylineLabel, resolveAuthorName } from '../data/personas';
 
@@ -50,6 +51,7 @@ const {
 } = Astro.props;
 
 const cat = CATEGORIES[category];
+const slug = (Astro.url.pathname.match(/\/blog\/([^/]+)/) || [])[1];
 // 칼럼이면 작성자를 페르소나로 안전 해석(미지정·미등록 시 카테고리 기본 칼럼니스트로 대체)
 const resolvedAuthor = resolveAuthorName(author, category, format === 'column');
 const byline = bylineLabel(resolvedAuthor);
@@ -78,6 +80,7 @@ const jsonLd = {
 >
   <ReadingProgress />
   <FloatingShare />
+  <div class="detail-layout">
   <article class="wrap" data-next-article={nextHref} data-next-cat={nextHrefCat}>
     <Breadcrumbs items={[{ label: cat.name, href: `/category/${cat.slug}/` }, { label: title }]} />
 
@@ -158,6 +161,8 @@ const jsonLd = {
       </section>
     )}
   </article>
+  <ContentRail excludeSlug={slug} />
+  </div>
 </BaseLayout>
 
 <script>

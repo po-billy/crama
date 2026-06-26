@@ -20,7 +20,7 @@ ${title ? `참고 주제(연관 글): "${title}"` : '오늘의 머니/AI/소비 
 - options: 선택지 2개(서로 대립, 각 12자 이내).
 - emoji: 토픽에 맞는 이모지 1개.
 - teaser: 리스트에서 클릭하고 싶게 만드는 한 줄 후킹 카피(35자 이내, 궁금증 유발).
-- body: 이 이슈의 배경을 알려주는 짧은 에디토리얼. 힙하고 트렌디하고 위트있는 톤(인스타·뉴닉 느낌), 2030이 술술 읽히게. 3~4개 짧은 문단(문단 사이 빈 줄 \\n\\n). 마지막은 "그래서, 당신의 선택은?" 식으로 투표를 유도. 과장된 광고체·이모지 남발 금지. 280~520자.
+- body: 이 이슈의 배경을 알려주는 짧은 에디토리얼. 힙하고 트렌디하고 위트있는 톤(인스타·뉴닉 느낌), 2030이 술술 읽히게. 3~4개 짧은 문단(문단 사이 빈 줄 \\n\\n). 마지막은 투표를 유도하는 한 문장. 과장된 광고체·이모지 남발 금지. 280~520자. 본문 안에서는 큰따옴표(") 쓰지 말고 작은따옴표(')만 사용(JSON 깨짐 방지).
 
 JSON만 출력:
 {"question":"...","options":["...","..."],"emoji":"...","teaser":"...","body":"문단1\\n\\n문단2\\n\\n문단3"}`;
@@ -40,8 +40,8 @@ JSON만 출력:
   const c = new pg.Client({ host, port: 5432, user: `postgres.${ref}`, password: pwd, database: 'postgres', ssl: { rejectUnauthorized: false } });
   await c.connect();
   try {
-    // 최근 4개만 활성 유지(오래된 투표 비활성)
-    await c.query('update polls set active=false where active=true and id not in (select id from polls order by created_at desc limit 4)');
+    // 최근 60개만 활성 유지(목록 "지난 투표" 아카이브로 노출, 더 오래된 건 비활성)
+    await c.query('update polls set active=false where active=true and id not in (select id from polls order by created_at desc limit 60)');
     const r = await c.query('insert into polls (question, options, emoji, teaser, body) values ($1,$2::jsonb,$3,$4,$5) returning id', [p.question, JSON.stringify(p.options.slice(0, 4)), p.emoji || '🗳️', p.teaser || null, p.body || null]);
     console.log('✓ 투표 생성:', r.rows[0].id, '—', p.question);
     return r.rows[0].id;

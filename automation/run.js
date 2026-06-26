@@ -145,6 +145,15 @@ async function main() {
     log(`⑦ 배포 후 색인 푸시:  npm run indexnow -- ${url}`);
   }
 
+  // ⑧ 오늘의 투표 자동 생성 (실패해도 글 발행엔 영향 없음 — DB 비번 없으면 스킵)
+  try {
+    const { generatePoll } = await import('./gen-poll.js');
+    await generatePoll(art.title);
+    log('⑧ 오늘의 투표 생성 완료');
+  } catch (e) {
+    log('⑧ 투표 생성 건너뜀: ' + (e.message || e));
+  }
+
   log('git add/commit/push 하면 배포됩니다.');
 }
 

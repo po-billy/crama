@@ -22,6 +22,7 @@ if (process.env.KAKAO_REST_API_KEY) {
   body.external_kakao_enabled = true;
   body.external_kakao_client_id = process.env.KAKAO_REST_API_KEY;
   body.external_kakao_secret = process.env.KAKAO_CLIENT_SECRET;
+  body.external_kakao_email_optional = true; // 이메일 강제 요청 방지(비즈앱 불필요)
 }
 
 console.log('설정 대상 → google:', !!body.external_google_enabled, '| kakao:', !!body.external_kakao_enabled);

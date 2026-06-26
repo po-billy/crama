@@ -114,7 +114,7 @@ hr {
 .search-link:hover { color: var(--accent); }
 
 /* 헤더 프로필 아바타 — 로그인 시 내 크라미(착장)를 동그라미로 줌. 값 튜닝 가능 */
-.me-ava { width: 30px; height: 30px; border-radius: 50%; overflow: hidden; position: relative; display: inline-block; border: 1px solid var(--line); background: var(--accent-soft); }
+.me-ava { width: 30px; height: 30px; border-radius: 50%; overflow: hidden; position: relative; display: inline-block; border: 1px solid var(--line); background: var(--paper-2); }
 .me-ava .char { position: absolute; width: 155%; height: 155%; left: -27%; top: -6%; }
 .me-ava img { position: absolute; }
 .me-ava .base { inset: 0; width: 100%; height: 100%; object-fit: contain; }
@@ -130,7 +130,7 @@ hr {
 .bm-btn.on { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
 
 /* 가입 유도 CTA (로그아웃 사용자) — 콘텐츠 차단 없이 부드럽게 */
-.signup-cta { display: flex; gap: 1.2rem; align-items: center; border: 1px solid var(--line); background: var(--accent-soft); border-radius: 14px; padding: 1.3rem 1.5rem; margin: 3rem auto; }
+.signup-cta { display: flex; gap: 1.2rem; align-items: center; border: 1px solid var(--line); background: var(--paper-2); border-radius: 14px; padding: 1.3rem 1.5rem; margin: 3rem auto; }
 .signup-cta img { width: 72px; height: 72px; object-fit: contain; flex: none; }
 .signup-cta__body b { font-family: var(--font-serif); font-size: 1.15rem; color: var(--ink); display: block; }
 .signup-cta__body p { color: var(--ink-soft); font-size: .95rem; line-height: 1.6; margin: .35rem 0 .9rem; }
@@ -140,14 +140,21 @@ hr {
 @media (max-width: 520px) { .signup-cta { flex-direction: column; text-align: center; } }
 
 /* 홈 슬림 가입 스트립 (닫기 가능) */
-.signup-strip { display: flex; align-items: center; gap: .7rem; background: var(--accent-soft); border: 1px solid var(--line); border-radius: 10px; padding: .55rem .9rem; margin-bottom: 1.2rem; font-size: .9rem; }
+.signup-strip { display: flex; align-items: center; gap: .7rem; background: #161412; border: 1px solid #161412; border-radius: 10px; padding: .55rem .9rem; margin-bottom: 1.2rem; font-size: .9rem; }
 .signup-strip img { width: 34px; height: 34px; object-fit: contain; flex: none; }
-.signup-strip span { flex: 1; color: var(--ink-soft); min-width: 0; }
-.signup-strip strong { color: var(--accent); }
-.signup-strip__btn { flex: none; background: var(--accent); color: #fff; font-weight: 700; border-radius: 999px; padding: .35rem .95rem; font-size: .85rem; }
-.signup-strip__btn:hover { color: #fff; }
-.signup-strip__x { flex: none; background: none; border: 0; color: var(--muted); font-size: 1.25rem; cursor: pointer; line-height: 1; padding: 0 .2rem; }
+.signup-strip span { flex: 1; color: #f1ece4; min-width: 0; }
+.signup-strip strong { color: #e8956f; }
+.signup-strip__btn { flex: none; background: #fff; color: #161412; font-weight: 700; border-radius: 999px; padding: .35rem .95rem; font-size: .85rem; }
+.signup-strip__btn:hover { color: #161412; opacity: .9; }
+.signup-strip__x { flex: none; background: none; border: 0; color: rgba(255,255,255,.55); font-size: 1.25rem; cursor: pointer; line-height: 1; padding: 0 .2rem; }
 @media (max-width: 560px) { .signup-strip span { font-size: .8rem; } }
+
+/* 오늘의 투표 플로팅 버튼 (크라미) */
+.vote-fab { position: fixed; left: 16px; bottom: 16px; z-index: 60; width: 60px; height: 60px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 6px 18px rgba(0,0,0,.2); overflow: hidden; transition: transform .15s; }
+.vote-fab[hidden] { display: none; }
+.vote-fab img { width: 42px; height: 42px; object-fit: contain; margin-top: 3px; }
+.vote-fab b { font-size: .56rem; font-weight: 800; line-height: 1; margin-bottom: 5px; }
+.vote-fab:hover { color: #fff; transform: translateY(-2px); }
 .brand {
   font-family: var(--font-serif);
   font-weight: 600;

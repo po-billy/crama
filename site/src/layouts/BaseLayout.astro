@@ -59,6 +59,17 @@ const { spa, ...props } = Astro.props;
       <slot />
     </main>
     <Footer />
+    <a href="/vote/" class="vote-fab" id="vote-fab" aria-label="오늘의 투표" hidden>
+      <img src="/img/generated/meerkat-baby-announce.webp" alt="" />
+      <b>투표</b>
+    </a>
+    <script is:inline>
+      (() => {
+        const f = document.getElementById('vote-fab');
+        if (!f) return;
+        if (!/^\/(vote|login|me|saved|wardrobe|calendar|membership)\b/.test(location.pathname)) f.hidden = false;
+      })();
+    </script>
     <BackToTop />
     <CookieConsent />
     <CalcEnhance />

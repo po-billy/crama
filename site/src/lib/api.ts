@@ -114,6 +114,44 @@ export async function claimReferral(code: string): Promise<{ ok: boolean; messag
   return { ok: !!r?.ok, message: r?.message ?? 'error', balance: r?.balance ?? 0 };
 }
 
+// ---------- 투표·여론 ----------
+export type Poll = { id: number; question: string; options: string[]; emoji?: string; context?: string; source_slug?: string };
+export type Opinion = { nickname: string; choice: number | null; text: string; created_at: string };
+
+export async function getActivePolls(): Promise<Poll[]> {
+  if (!isSupabaseConfigured) return [];
+  const { data } = await getSupabase().from('polls').select('id,question,options,emoji,context,source_slug').eq('active', true).order('created_at', { ascending: false });
+  return (data as Poll[]) ?? [];
+}
+export async function getMyVotes(pollIds: number[]): Promise<Record<number, number>> {
+  if (!pollIds.length) return {};
+  const { data } = await getSupabase().from('poll_votes').select('poll_id,choice').in('poll_id', pollIds);
+  const m: Record<number, number> = {};
+  ((data as { poll_id: number; choice: number }[]) ?? []).forEach((r) => { m[r.poll_id] = r.choice; });
+  return m;
+}
+export async function getPollResults(id: number): Promise<Record<string, number>> {
+  const { data } = await getSupabase().rpc('poll_results', { p_poll_id: id });
+  return (data as Record<string, number>) ?? { total: 0 };
+}
+export async function votePoll(id: number, choice: number) {
+  if (!(await getUser())) { location.href = '/login/'; return { ok: false, message: 'login' as string, counts: {} as Record<string, number>, balance: 0, myChoice: null as number | null }; }
+  const { data, error } = await getSupabase().rpc('vote_poll', { p_poll_id: id, p_choice: choice });
+  if (error) return { ok: false, message: error.message, counts: {}, balance: 0, myChoice: null };
+  const r = Array.isArray(data) ? data[0] : data;
+  return { ok: !!r?.ok, message: r?.message ?? 'error', counts: (r?.counts ?? {}) as Record<string, number>, balance: r?.balance ?? 0, myChoice: r?.my_choice ?? null };
+}
+export async function getOpinions(id: number): Promise<Opinion[]> {
+  const { data } = await getSupabase().from('poll_opinions').select('nickname,choice,text,created_at').eq('poll_id', id).order('created_at', { ascending: false }).limit(60);
+  return (data as Opinion[]) ?? [];
+}
+export async function addOpinion(id: number, text: string) {
+  const { data, error } = await getSupabase().rpc('add_opinion', { p_poll_id: id, p_text: text });
+  if (error) return { ok: false, message: error.message };
+  const r = Array.isArray(data) ? data[0] : data;
+  return { ok: !!r?.ok, message: r?.message ?? 'error' };
+}
+
 /** slot -> item_id (장착 상태만, 가벼운 조회) */
 export async function equippedMap(): Promise<Record<string, string>> {
   if (!isSupabaseConfigured) return {};

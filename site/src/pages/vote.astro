@@ -1,0 +1,106 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import '../styles/app.css';
+---
+
+<BaseLayout title="오늘의 투표 — Crama" description="트렌드 이슈에 한 표, 의견도 나눠요">
+  <div class="app">
+    <h1>오늘의 투표</h1>
+    <p class="app__sub">지금 화제인 이슈에 한 표 — 투표하면 <strong style="color:var(--accent)">밀웜 +3</strong>, 의견도 나눠봐요.</p>
+    <div id="polls"><p class="app__sub">불러오는 중…</p></div>
+  </div>
+  <div class="toast" id="toast"></div>
+</BaseLayout>
+
+<script>
+  import { getUser, getActivePolls, getMyVotes, getPollResults, votePoll, getOpinions, addOpinion, type Poll } from '../lib/api';
+
+  const $ = (id: string) => document.getElementById(id)!;
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
+  const toast = (m: string) => { const t = $('toast'); t.textContent = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200); };
+  const MSG: Record<string, string> = { already_voted: '이미 투표했어요', not_authenticated: '로그인이 필요해요', empty: '내용을 입력해 주세요' };
+
+  let loggedIn = false;
+  const myVote: Record<number, number | null> = {};
+
+  function resultsHtml(poll: Poll, counts: Record<string, number>, mine: number | null) {
+    const total = counts.total || 0;
+    return `<div class="poll__results">${poll.options.map((opt, i) => {
+      const c = counts[String(i)] || 0;
+      const pct = total ? Math.round((c / total) * 100) : 0;
+      return `<div class="rbar ${mine === i ? 'rbar--mine' : ''}">
+        <div class="rbar__fill" style="width:${pct}%"></div>
+        <div class="rbar__label">${mine === i ? '● ' : ''}${esc(opt)}</div>
+        <div class="rbar__pct">${pct}%</div>
+      </div>`;
+    }).join('')}<div class="poll__total">${total.toLocaleString()}명 참여</div></div>`;
+  }
+
+  function optionsHtml(poll: Poll) {
+    return `<div class="poll__opts">${poll.options.map((opt, i) => `<button class="opt-btn" data-i="${i}">${esc(opt)}</button>`).join('')}</div>`;
+  }
+
+  async function renderOpinions(poll: Poll, wrap: HTMLElement) {
+    const ops = await getOpinions(poll.id);
+    const voted = myVote[poll.id] != null;
+    const form = voted
+      ? `<div class="op-form"><input class="field" id="op-in-${poll.id}" placeholder="의견을 남겨보세요" maxlength="280" style="margin:0"><button class="btn btn--primary" id="op-send-${poll.id}" style="width:auto;padding-inline:1.1rem">등록</button></div>`
+      : `<p class="app__sub" style="margin:.4rem 0 0">투표하면 의견을 남길 수 있어요.</p>`;
+    const list = ops.length
+      ? ops.map((o) => `<div class="opinion"><div class="opinion__top"><b>${esc(o.nickname || '크라미')}</b>${o.choice != null && poll.options[o.choice] ? `<span class="opinion__tag">${esc(poll.options[o.choice])}</span>` : ''}</div><p>${esc(o.text)}</p></div>`).join('')
+      : `<p class="app__sub" style="margin:.4rem 0">아직 의견이 없어요. 첫 의견을 남겨보세요!</p>`;
+    wrap.innerHTML = `<h3 class="poll__ophead">의견 ${ops.length}</h3>${form}<div class="op-list">${list}</div>`;
+    if (voted) {
+      $(`op-send-${poll.id}`).onclick = async () => {
+        const inp = $(`op-in-${poll.id}`) as HTMLInputElement;
+        const txt = inp.value.trim();
+        if (!txt) return;
+        const r = await addOpinion(poll.id, txt);
+        if (!r.ok) return toast(MSG[r.message] ?? r.message);
+        inp.value = ''; renderOpinions(poll, wrap);
+      };
+    }
+  }
+
+  async function renderPoll(poll: Poll) {
+    const card = document.createElement('article');
+    card.className = 'poll';
+    card.innerHTML = `
+      <div class="poll__head"><span class="poll__emoji">${poll.emoji || '🗳️'}</span><h2>${esc(poll.question)}</h2></div>
+      ${poll.context ? `<p class="poll__ctx">${esc(poll.context)}</p>` : ''}
+      <div class="poll__body"></div>
+      <div class="poll__opinions"></div>`;
+    $('polls').appendChild(card);
+    const body = card.querySelector('.poll__body') as HTMLElement;
+    const opWrap = card.querySelector('.poll__opinions') as HTMLElement;
+
+    const mine = myVote[poll.id] ?? null;
+    if (mine != null) {
+      body.innerHTML = resultsHtml(poll, await getPollResults(poll.id), mine);
+    } else {
+      body.innerHTML = optionsHtml(poll);
+      body.querySelectorAll('.opt-btn').forEach((el) => el.addEventListener('click', async () => {
+        const i = Number((el as HTMLElement).dataset.i);
+        const r = await votePoll(poll.id, i);
+        if (!r.ok) { toast(MSG[r.message] ?? r.message); return; }
+        myVote[poll.id] = r.myChoice;
+        body.innerHTML = resultsHtml(poll, r.counts, r.myChoice);
+        if (r.message === 'ok') toast('투표 완료! 밀웜 +3');
+        renderOpinions(poll, opWrap);
+      }));
+    }
+    renderOpinions(poll, opWrap);
+  }
+
+  (async () => {
+    loggedIn = !!(await getUser());
+    const polls = await getActivePolls();
+    if (!polls.length) { $('polls').innerHTML = `<p class="app__sub">진행 중인 투표가 없어요. 곧 새 투표가 올라와요!</p>`; return; }
+    if (loggedIn) {
+      const votes = await getMyVotes(polls.map((p) => p.id));
+      Object.assign(myVote, votes);
+    }
+    $('polls').innerHTML = '';
+    for (const p of polls) await renderPoll(p);
+  })();
+</script>

@@ -9,7 +9,8 @@ import '../styles/app.css';
     <p class="app__sub">먼저 읽는 사람들 — 로그인하고 밀웜을 모아 옷장을 꾸며보세요.</p>
 
     <div id="provider-view" class="stack">
-      <button class="btn btn--kakao" id="kakao">카카오로 로그인</button>
+      <!-- 카카오: 비즈앱(사업자 인증) 후 email 권한 받으면 hidden 제거 -->
+      <button class="btn btn--kakao" id="kakao" hidden>카카오로 로그인</button>
       <button class="btn btn--google" id="google">Google로 로그인</button>
       <button class="btn btn--line" id="to-email">이메일로 로그인</button>
     </div>

@@ -81,10 +81,7 @@ const { spa, ...props } = Astro.props;
         fetch(su + '/rest/v1/polls?active=eq.true&order=created_at.desc&limit=1&select=id,question,emoji', { headers: { apikey: ak } })
           .then((r) => (r.ok ? r.json() : [])).then((rows) => {
             const p = rows && rows[0]; if (!p) return;
-            const href = '/vote/' + p.id + '/';
-            document.getElementById('vfab-btn').href = href;
-            const b = document.getElementById('vfab-bubble');
-            b.href = href;
+            const b = document.getElementById('vfab-bubble'); // 목록(/vote)으로 — 신규 투표 상세 미빌드 시 404 방지
             document.getElementById('vfab-q').textContent = (p.emoji ? p.emoji + ' ' : '') + p.question;
             let dismissed = false; try { dismissed = localStorage.getItem('crama:vfab-x') === String(p.id); } catch (e) {}
             if (!dismissed) b.hidden = false;

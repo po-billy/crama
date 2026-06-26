@@ -9,6 +9,9 @@ import { SITE, NAV } from '../consts';
     </a>
     <div class="header-actions">
       <a href="/search/" class="search-link" aria-label="검색" title="검색">⌕</a>
+      <a href="/me/" class="search-link" aria-label="내 계정" title="내 계정" style="display:inline-flex;align-items:center">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.6 3.2-5.5 7-5.5s7 1.9 7 5.5"/></svg>
+      </a>
       <button class="theme-toggle" id="theme-toggle" aria-label="다크 모드 전환" title="다크 모드 전환">◐</button>
     </div>
     <nav class="nav" aria-label="주요 메뉴">
@@ -26,12 +29,23 @@ import { SITE, NAV } from '../consts';
     localStorage.setItem('theme', dark ? 'light' : 'dark');
   });
 
-  // 스크롤 내리면 브랜드 줄을 숨기고 메뉴·검색·테마 바만 남기기
+  // 스크롤 내리면 브랜드 줄을 숨기고 메뉴·검색·테마 바만 남기기.
+  // 단일 임계점(예: 80)으로 토글하면, 컴팩트 전환 시 헤더 높이가 줄며 스크롤 위치가
+  // 그 임계점을 다시 넘나들어 켜짐↔꺼짐이 반복되는 '떨림'이 생긴다.
+  // → 켜는 값(140)과 끄는 값(70)을 벌린 히스테리시스 + rAF 스로틀로 피드백 루프를 끊는다.
   (() => {
     const header = document.querySelector('.site-header');
     if (!header) return;
-    const onScroll = () => header.classList.toggle('is-compact', window.scrollY > 80);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
+    let compact = false, ticking = false;
+    const update = () => {
+      ticking = false;
+      const y = window.scrollY || window.pageYOffset || 0;
+      if (!compact && y > 140) { compact = true; header.classList.add('is-compact'); }
+      else if (compact && y < 70) { compact = false; header.classList.remove('is-compact'); }
+    };
+    window.addEventListener('scroll', () => {
+      if (!ticking) { ticking = true; requestAnimationFrame(update); }
+    }, { passive: true });
+    update();
   })();
 </script>

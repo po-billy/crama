@@ -70,7 +70,7 @@ const byCategory = (slug: 'money' | 'ai' | 'income') =>
 // 작은 썸네일(160px) 경로 — 랭킹/리스트의 48~90px 썸네일에 풀사이즈 hero 대신 사용(이미지 용량 절감)
 const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.webp$/, '-hero-thumb.webp') : h);
 ---
-<BaseLayout spa title={SITE.title} description={SITE.description}>
+<BaseLayout spa title={SITE.title} description={SITE.description} image="/og-home.png">
   <div class="wrap wrap--home">
     <aside class="signup-strip" id="signup-strip" hidden>
       <img src="/img/generated/meerkat-baby-stand.webp" alt="" />

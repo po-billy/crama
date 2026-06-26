@@ -47,7 +47,10 @@ export async function signUpEmail(email: string, password: string) {
 
 export async function signInOAuth(provider: OAuthProvider) {
   const redirectTo = `${location.origin}/me/`;
-  const { error } = await getSupabase().auth.signInWithOAuth({ provider, options: { redirectTo } });
+  const options: { redirectTo: string; scopes?: string } = { redirectTo };
+  // 카카오: 닉네임만 요청(이메일은 비즈앱 필요해서 제외) → KOE205 방지
+  if (provider === 'kakao') options.scopes = 'profile_nickname';
+  const { error } = await getSupabase().auth.signInWithOAuth({ provider, options });
   return { error: error?.message };
 }
 

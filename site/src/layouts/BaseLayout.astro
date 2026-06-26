@@ -59,15 +59,37 @@ const { spa, ...props } = Astro.props;
       <slot />
     </main>
     <Footer />
-    <a href="/vote/" class="vote-fab" id="vote-fab" aria-label="오늘의 투표" hidden>
-      <img src="/img/generated/meerkat-baby-announce.webp" alt="" />
-      <b>투표</b>
-    </a>
+    <div class="vfab" id="vfab" hidden data-su={import.meta.env.PUBLIC_SUPABASE_URL ?? ''} data-ak={import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? ''}>
+      <a class="vfab__bubble" id="vfab-bubble" href="/vote/" hidden>
+        <button class="vfab__x" id="vfab-x" aria-label="닫기">×</button>
+        <b id="vfab-q"></b>
+        <span class="vfab__cta">지금 투표하기 →</span>
+      </a>
+      <a class="vote-fab" href="/vote/" id="vfab-btn" aria-label="오늘의 투표">
+        <img src="/img/generated/meerkat-baby-announce.webp" alt="" />
+        <b>투표</b>
+      </a>
+    </div>
     <script is:inline>
       (() => {
-        const f = document.getElementById('vote-fab');
-        if (!f) return;
-        if (!/^\/(vote|login|me|saved|wardrobe|calendar|membership)\b/.test(location.pathname)) f.hidden = false;
+        const w = document.getElementById('vfab');
+        if (!w) return;
+        if (/^\/(vote|login|me|saved|wardrobe|calendar|membership)\b/.test(location.pathname)) return;
+        w.hidden = false;
+        const su = w.dataset.su, ak = w.dataset.ak;
+        if (!su || !ak) return;
+        fetch(su + '/rest/v1/polls?active=eq.true&order=created_at.desc&limit=1&select=id,question,emoji', { headers: { apikey: ak } })
+          .then((r) => (r.ok ? r.json() : [])).then((rows) => {
+            const p = rows && rows[0]; if (!p) return;
+            const href = '/vote/' + p.id + '/';
+            document.getElementById('vfab-btn').href = href;
+            const b = document.getElementById('vfab-bubble');
+            b.href = href;
+            document.getElementById('vfab-q').textContent = (p.emoji ? p.emoji + ' ' : '') + p.question;
+            let dismissed = false; try { dismissed = localStorage.getItem('crama:vfab-x') === String(p.id); } catch (e) {}
+            if (!dismissed) b.hidden = false;
+            document.getElementById('vfab-x').addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); b.hidden = true; try { localStorage.setItem('crama:vfab-x', String(p.id)); } catch (e2) {} });
+          }).catch(() => {});
       })();
     </script>
     <BackToTop />

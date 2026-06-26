@@ -12,12 +12,20 @@ const MODEL = process.env.WRITE_MODEL || 'claude-sonnet-4-6';
 
 export async function generatePoll(title = '') {
   const client = new Anthropic();
-  const prompt = `너는 한국 2030 대상 머니·AI·소비 트렌드 매거진 'Crama'의 에디터야. 지금 화제인 이슈로 의견이 가볍게 갈리는 '여론 투표' 하나를 만들어줘.
+  const prompt = `너는 한국 2030 대상 머니·AI·소비 트렌드 매거진 'Crama'의 에디터야. 지금 화제인 이슈로 의견이 가볍게 갈리는 '여론 투표' 한 편을 칼럼처럼 만들어줘.
 ${title ? `참고 주제(연관 글): "${title}"` : '오늘의 머니/AI/소비 트렌드 중 의견이 갈릴 만한 주제'}
-규칙: question은 친근한 반말체 한 문장. options는 2개(서로 대립, 각 12자 이내). context는 한 줄 배경(40자 이내). emoji는 토픽에 맞는 1개.
-JSON만 출력: {"question":"...","options":["...","..."],"emoji":"...","context":"..."}`;
 
-  const resp = await client.messages.create({ model: MODEL, max_tokens: 400, messages: [{ role: 'user', content: prompt }] });
+요구사항(JSON으로):
+- question: 투표 질문. 친근한 반말체 한 문장, 호기심 자극.
+- options: 선택지 2개(서로 대립, 각 12자 이내).
+- emoji: 토픽에 맞는 이모지 1개.
+- teaser: 리스트에서 클릭하고 싶게 만드는 한 줄 후킹 카피(35자 이내, 궁금증 유발).
+- body: 이 이슈의 배경을 알려주는 짧은 에디토리얼. 힙하고 트렌디하고 위트있는 톤(인스타·뉴닉 느낌), 2030이 술술 읽히게. 3~4개 짧은 문단(문단 사이 빈 줄 \\n\\n). 마지막은 "그래서, 당신의 선택은?" 식으로 투표를 유도. 과장된 광고체·이모지 남발 금지. 280~520자.
+
+JSON만 출력:
+{"question":"...","options":["...","..."],"emoji":"...","teaser":"...","body":"문단1\\n\\n문단2\\n\\n문단3"}`;
+
+  const resp = await client.messages.create({ model: MODEL, max_tokens: 1200, messages: [{ role: 'user', content: prompt }] });
   const text = resp.content.map((b) => (b.type === 'text' ? b.text : '')).join('');
   const m = text.match(/\{[\s\S]*\}/);
   if (!m) throw new Error('JSON 파싱 실패: ' + text.slice(0, 120));
@@ -34,7 +42,7 @@ JSON만 출력: {"question":"...","options":["...","..."],"emoji":"...","context
   try {
     // 최근 4개만 활성 유지(오래된 투표 비활성)
     await c.query('update polls set active=false where active=true and id not in (select id from polls order by created_at desc limit 4)');
-    const r = await c.query('insert into polls (question, options, emoji, context) values ($1,$2::jsonb,$3,$4) returning id', [p.question, JSON.stringify(p.options.slice(0, 4)), p.emoji || '🗳️', p.context || null]);
+    const r = await c.query('insert into polls (question, options, emoji, teaser, body) values ($1,$2::jsonb,$3,$4,$5) returning id', [p.question, JSON.stringify(p.options.slice(0, 4)), p.emoji || '🗳️', p.teaser || null, p.body || null]);
     console.log('✓ 투표 생성:', r.rows[0].id, '—', p.question);
     return r.rows[0].id;
   } finally { await c.end(); }

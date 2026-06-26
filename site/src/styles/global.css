@@ -149,14 +149,13 @@ hr {
 .signup-strip__x { flex: none; background: none; border: 0; color: rgba(255,255,255,.55); font-size: 1.25rem; cursor: pointer; line-height: 1; padding: 0 .2rem; }
 @media (max-width: 560px) { .signup-strip span { font-size: .8rem; } }
 
-/* 오늘의 투표 플로팅 버튼 (크라미) + 말풍선 */
-.vfab { position: fixed; left: 16px; bottom: 16px; z-index: 60; }
+/* 오늘의 투표 플로팅 (크라미 마스코트) + 말풍선 */
+.vfab { position: fixed; left: 16px; bottom: 16px; z-index: 60; max-width: 80px; }
 .vfab[hidden] { display: none; }
-.vote-fab { position: relative; width: 60px; height: 60px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 6px 18px rgba(0,0,0,.2); overflow: hidden; transition: transform .15s; }
-.vote-fab img { width: 42px; height: 42px; object-fit: contain; margin-top: 3px; }
-.vote-fab b { font-size: .56rem; font-weight: 800; line-height: 1; margin-bottom: 5px; }
-.vote-fab:hover { color: #fff; transform: translateY(-2px); }
-.vfab__bubble { position: absolute; bottom: 70px; left: 0; width: max-content; max-width: 240px; background: #161412; color: #fff; border-radius: 12px; padding: .7rem .9rem; box-shadow: 0 10px 26px rgba(0,0,0,.25); }
+.vfab__btn { display: block; line-height: 0; transition: transform .15s; }
+.vfab__btn img { width: 100%; height: auto; object-fit: contain; filter: drop-shadow(0 4px 12px rgba(0,0,0,.22)); }
+.vfab__btn:hover { transform: translateY(-2px); }
+.vfab__bubble { position: absolute; bottom: calc(100% + 8px); left: 0; width: max-content; max-width: 240px; background: #161412; color: #fff; border-radius: 12px; padding: .7rem .9rem; box-shadow: 0 10px 26px rgba(0,0,0,.25); }
 .vfab__bubble[hidden] { display: none; }
 .vfab__bubble::after { content: ''; position: absolute; left: 22px; bottom: -6px; width: 13px; height: 13px; background: #161412; transform: rotate(45deg); }
 .vfab__bubble b { display: block; font-family: var(--font-sans); font-size: .82rem; font-weight: 600; line-height: 1.35; color: #fff; padding-right: .8rem; }

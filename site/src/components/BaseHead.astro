@@ -34,6 +34,7 @@ const siteJsonLd = {
       '@id': `${SITE.url}/#organization`,
       name: SITE.name,
       alternateName: ['크라마', 'CRAMA'],
+      slogan: 'Curate · Read · Ahead — 돈과 AI를 먼저 읽다',
       url: SITE.url,
       logo: new URL('/icon-512.png', SITE.url).href,
       description: SITE.description,
@@ -85,6 +86,18 @@ const siteJsonLd = {
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <link rel="manifest" href="/site.webmanifest" />
 <meta name="theme-color" content="#b04a2f" />
+<!-- PWA: iOS '홈 화면에 추가' 시 독립 앱처럼 실행 -->
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Crama" />
+<script is:inline>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+  }
+  // 친구 초대 링크(?ref=CODE) 저장 — 로그인 후 /me에서 보상 청구
+  try { const r = new URLSearchParams(location.search).get('ref'); if (r) localStorage.setItem('crama:ref', r); } catch (e) {}
+</script>
 <link rel="sitemap" href="/sitemap-index.xml" />
 <link rel="alternate" type="application/rss+xml" title={SITE.name} href="/rss.xml" />
 <link rel="alternate" type="application/rss+xml" title="크라마 오디오 (팟캐스트)" href="/podcast.xml" />

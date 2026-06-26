@@ -1,0 +1,199 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+---
+
+<AppLayout title="크라미 — Crama">
+  <div class="crami">
+    <div class="crami__bar">
+      <button class="crami__back" id="back" aria-label="뒤로">‹</button>
+      <span class="t">크라미</span>
+      <span class="worm-badge"><span id="wbi"></span> <span id="bal">0</span></span>
+    </div>
+
+    <div class="crami__body">
+      <div class="crami__stage dress dress--stage" id="dress">
+        <div class="char">
+          <img class="base base-body" src="/img/generated/meerkat-body.webp" alt="크라미" />
+          <img class="base base-head" src="/img/generated/meerkat-head.webp" alt="" />
+        </div>
+      </div>
+
+      <div class="crami__panel">
+        <div class="crami__controls">
+          <div id="tabs" class="slot-tabs" style="flex:1;margin:0;padding:0"></div>
+          <button class="toggle" id="owned-toggle" aria-pressed="false">보유만</button>
+        </div>
+        <div class="crami__list"><div id="list"></div></div>
+        <div class="crami__cta" id="cta"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 장바구니 시트 -->
+  <div class="sheet" id="cart" hidden>
+    <div class="sheet__panel">
+      <h3>구매하고 착용</h3>
+      <p class="app__sub" style="margin:0">아직 없는 아이템만 구매해요</p>
+      <div class="sheet__list" id="cart-list"></div>
+      <div class="cart-total"><span>합계</span><span class="worm-badge"><span id="cart-wi"></span> <span id="cart-total-n">0</span></span></div>
+      <button class="btn btn--primary" id="cart-buy">일괄 구매하고 착용</button>
+      <button class="muted-link" id="cart-cancel" style="margin-top:.6rem">취소</button>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+</AppLayout>
+
+<script>
+  import { getUser, wormBalance, wardrobeData, buyItem, equipItem, type WardrobeItem, type WardrobeSlot } from '../lib/api';
+
+  const $ = (id: string) => document.getElementById(id)!;
+  const toast = (m: string) => { const t = $('toast'); t.textContent = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200); };
+  const MSG: Record<string, string> = { insufficient: '밀웜이 부족해요!', already_owned: '이미 보유한 아이템이에요.', not_authenticated: '로그인이 필요해요.' };
+  const wormSvg = (c = 'var(--accent)') => `<svg width="15" height="15" viewBox="0 0 24 24" style="vertical-align:-2px"><circle cx="5" cy="16.5" r="3.6" fill="${c}" opacity=".92"/><circle cx="9" cy="14.5" r="4" fill="${c}"/><circle cx="13" cy="12" r="4.1" fill="${c}"/><circle cx="16.6" cy="9.6" r="3.7" fill="${c}"/><circle cx="19.5" cy="7.6" r="3.1" fill="${c}"/><circle cx="20.6" cy="6.7" r=".85" fill="#1a1a1a"/></svg>`;
+  const IMG = (id: string) => `/img/wardrobe/${id}.webp`;
+
+  const SLOTS: { key: WardrobeSlot; label: string }[] = [
+    { key: 'hat', label: '모자' }, { key: 'glasses', label: '안경' }, { key: 'scarf', label: '스카프' },
+    { key: 'outfit', label: '의상' }, { key: 'floor', label: '바닥' }, { key: 'wallpaper', label: '벽지' },
+  ];
+
+  let data: { catalog: WardrobeItem[]; owned: Set<string>; equipped: Record<string, string> };
+  let look: Record<string, string | null> = {}; // 현재 입어본 룩(슬롯→아이템). equipped 로 초기화
+  let slot: WardrobeSlot = 'hat';
+  let ownedOnly = false;
+  let loggedIn = false;
+  let balance = 0;
+
+  const byId = () => new Map(data.catalog.map((i) => [i.id, i]));
+
+  // ── 미리보기 합성 ──
+  function bgImg(id: string, css: string) { const i = document.createElement('img'); i.className = 'layer'; i.src = IMG(id); i.style.cssText = 'position:absolute;' + css; return i; }
+  function partImg(id: string, cls: string) { const i = document.createElement('img'); i.className = 'layer ' + cls; i.src = IMG(id); return i; }
+  function renderPreview() {
+    const dress = $('dress');
+    const char = dress.querySelector('.char') as HTMLElement;
+    dress.querySelectorAll('.layer').forEach((n) => n.remove());
+    char.querySelectorAll('.layer').forEach((n) => n.remove());
+    dress.style.background = 'transparent';
+    if (look.wallpaper) dress.insertBefore(bgImg(look.wallpaper, 'inset:0;width:100%;height:100%;object-fit:cover'), char);
+    if (look.floor) dress.insertBefore(bgImg(look.floor, 'left:0;right:0;bottom:0;width:100%;height:22%;object-fit:cover'), char);
+    const head = char.querySelector('.base-head');
+    if (look.outfit) char.insertBefore(partImg(look.outfit, 'gear'), head);
+    if (look.scarf) char.insertBefore(partImg(look.scarf, 'gear-scarf'), head);
+    (['glasses', 'hat'] as WardrobeSlot[]).forEach((s) => { if (look[s]) char.appendChild(partImg(look[s]!, 'acc-' + s)); });
+  }
+
+  // ── 탭 / 보유만 ──
+  function renderTabs() {
+    $('tabs').innerHTML = SLOTS.map((s) => `<button class="slot-tab" aria-pressed="${s.key === slot}" data-slot="${s.key}">${s.label}</button>`).join('');
+    $('tabs').querySelectorAll('.slot-tab').forEach((el) => el.addEventListener('click', () => { slot = (el as HTMLElement).dataset.slot as WardrobeSlot; renderTabs(); renderItems(); }));
+  }
+
+  // ── 아이템 그리드 ──
+  function renderItems() {
+    let items = data.catalog.filter((i) => i.slot === slot);
+    if (ownedOnly) items = items.filter((i) => data.owned.has(i.id));
+    const sel = look[slot] || null;
+    if (!items.length) { $('list').innerHTML = `<p class="app__sub" style="text-align:center;margin-top:2.5rem">${ownedOnly ? '보유한 항목이 없어요' : '항목이 없어요'}</p>`; return; }
+    const fit = slot === 'floor' || slot === 'wallpaper' ? 'cover' : 'contain';
+    $('list').innerHTML = '<div class="item-grid">' + items.map((it) => {
+      const owned = data.owned.has(it.id); const on = sel === it.id;
+      const meta = owned
+        ? `<div class="item__meta" style="color:${on ? 'var(--accent)' : 'var(--muted)'}">${on ? '● 착용중' : '보유'}</div>`
+        : `<div class="item__meta">${wormSvg()} ${it.price_worms}</div>`;
+      return `<div class="item" data-id="${it.id}" data-on="${on ? 1 : 0}">
+        <div class="item__swatch"><img src="${IMG(it.id)}" style="width:100%;height:100%;object-fit:${fit}" loading="lazy">${it.rarity === 'rare' ? '<span class="rare">RARE</span>' : ''}</div>
+        <div class="item__name">${it.name}</div>${meta}</div>`;
+    }).join('') + '</div>';
+    $('list').querySelectorAll('.item').forEach((el) => el.addEventListener('click', () => onTap((el as HTMLElement).dataset.id!)));
+  }
+
+  function onTap(id: string) {
+    const it = byId().get(id)!;
+    if (look[it.slot] === id) look[it.slot] = null; // 다시 누르면 벗기
+    else look[it.slot] = id;
+    renderPreview(); renderItems(); renderCTA();
+  }
+
+  // ── 하단 CTA ──
+  function diff() { return SLOTS.filter((s) => (look[s.key] || null) !== (data.equipped[s.key] || null)); }
+  function unownedInLook() { return [...new Set(Object.values(look).filter(Boolean) as string[])].filter((id) => !data.owned.has(id)); }
+
+  function renderCTA() {
+    const unowned = unownedInLook();
+    const changed = diff().length > 0;
+    const el = $('cta');
+    let main = '', action: (() => void) | null = null;
+    if (unowned.length) {
+      const total = unowned.reduce((a, id) => a + (byId().get(id)?.price_worms || 0), 0);
+      main = `${wormSvg('#fff')} &nbsp;${unowned.length}개 구매하고 착용 · ${total}`;
+      action = () => openCart(unowned, total);
+    } else if (changed) {
+      main = '이대로 착용';
+      action = applyLook;
+    } else {
+      el.innerHTML = `<button class="btn btn--line" disabled>착용 완료</button>`;
+      return;
+    }
+    el.innerHTML = `<div style="display:flex;gap:.5rem">
+      <button class="btn btn--line" id="reset-btn" style="width:auto;flex:none;padding-inline:1.1rem">전부 벗기</button>
+      <button class="btn btn--primary" id="cta-btn" style="flex:1">${main}</button>
+    </div>`;
+    ($('cta-btn') as HTMLButtonElement).onclick = action!;
+    ($('reset-btn') as HTMLButtonElement).onclick = resetLook;
+  }
+
+  function resetLook() { look = { ...data.equipped }; renderPreview(); renderItems(); renderCTA(); }
+
+  async function applyLook() {
+    if (!loggedIn) { location.href = '/login/'; return; }
+    for (const s of SLOTS) {
+      const want = look[s.key] || null;
+      const have = data.equipped[s.key] || null;
+      if (want === have) continue;
+      if (want) await equipItem(want, s.key, false);
+      else await equipItem('', s.key, true); // 벗기
+    }
+    await reload();
+    toast('착용 완료!');
+  }
+
+  // ── 장바구니 ──
+  function openCart(ids: string[], total: number) {
+    if (!loggedIn) { location.href = '/login/'; return; }
+    const insufficient = total > balance;
+    $('cart-list').innerHTML = ids.map((id) => { const it = byId().get(id)!; return `<div class="cart-item"><img src="${IMG(id)}"><span class="nm">${it.name}</span><span class="worm-badge">${wormSvg()} ${it.price_worms}</span></div>`; }).join('');
+    $('cart-wi').innerHTML = wormSvg();
+    $('cart-total-n').textContent = String(total);
+    const buy = $('cart-buy') as HTMLButtonElement;
+    buy.disabled = insufficient;
+    buy.textContent = insufficient ? `밀웜 부족 (보유 ${balance})` : '일괄 구매하고 착용';
+    buy.onclick = async () => {
+      buy.disabled = true; buy.textContent = '구매 중…';
+      for (const id of ids) { const r = await buyItem(id); if (!r.ok) { toast(MSG[r.message] ?? r.message); buy.disabled = false; buy.textContent = '일괄 구매하고 착용'; return; } }
+      $('cart').hidden = true;
+      await applyLook();
+    };
+    $('cart').hidden = false;
+  }
+
+  async function reload() {
+    data = await wardrobeData();
+    look = { ...data.equipped };
+    balance = await wormBalance();
+    $('bal').textContent = String(balance);
+    renderPreview(); renderTabs(); renderItems(); renderCTA();
+  }
+
+  // ── 이벤트 ──
+  $('back').onclick = () => location.assign('/me/');
+  $('cart-cancel').onclick = () => { $('cart').hidden = true; };
+  $('cart').onclick = (e) => { if (e.target === $('cart')) $('cart').hidden = true; };
+  $('owned-toggle').onclick = () => { ownedOnly = !ownedOnly; $('owned-toggle').setAttribute('aria-pressed', String(ownedOnly)); renderItems(); };
+  $('wbi').innerHTML = wormSvg();
+
+  (async () => {
+    loggedIn = !!(await getUser());
+    await reload();
+  })();
+</script>

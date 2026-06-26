@@ -1,0 +1,20 @@
+---
+// 풀스크린 앱 화면용 레이아웃 — 사이트 헤더/푸터/배너 없이 BaseHead(폰트·테마·메타)만.
+import BaseHead from '../components/BaseHead.astro';
+import '../styles/app.css';
+interface Props {
+  title: string;
+  description?: string;
+}
+const { title, description = '크라미 — 밀웜으로 꾸미기' } = Astro.props;
+---
+
+<!doctype html>
+<html lang="ko">
+  <head>
+    <BaseHead title={title} description={description} />
+  </head>
+  <body class="app-screen">
+    <slot />
+  </body>
+</html>

@@ -90,6 +90,10 @@ const jsonLd = {
         <span aria-hidden="true">·</span>
         <FormattedDate date={pubDate} />
         {readingTime && (<><span aria-hidden="true">·</span><span>{readingTime}분 읽기</span></>)}
+        <button id="bm-btn" class="bm-btn" hidden>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"/></svg>
+          <span id="bm-label">저장</span>
+        </button>
       </div>
     </header>
 
@@ -146,3 +150,65 @@ const jsonLd = {
     )}
   </article>
 </BaseLayout>
+
+<script>
+  // 밀웜 적립 — 글당 1회(서버 캡). 어뷰징 방지: 단순 스크롤이 아니라
+  //  · 완독: 스크롤 90% 도달 + 체류 20초 (둘 다)
+  //  · 오디오: 이 글 오디오를 60초(또는 길이의 50%) 이상 재생
+  import { getUser, earnWorms, getBookmarks, toggleBookmark } from '../lib/api';
+  (async () => {
+    const m = location.pathname.match(/\/blog\/([^/]+)/);
+    if (!m) return;
+    const slug = m[1];
+    if (!(await getUser())) return;
+
+    // ── 스크랩(북마크) 버튼 ──
+    const bm = document.getElementById('bm-btn');
+    if (bm) {
+      bm.hidden = false;
+      const lbl = document.getElementById('bm-label')!;
+      let saved = (await getBookmarks()).includes(slug);
+      const paint = () => { bm.classList.toggle('on', saved); lbl.textContent = saved ? '저장됨' : '저장'; };
+      paint();
+      bm.addEventListener('click', async () => {
+        const r = await toggleBookmark(slug);
+        saved = r.bookmarked; paint();
+      });
+    }
+
+    // ── 완독 ──
+    let readEarned = false;
+    const startedAt = Date.now();
+    let timer: any;
+    const tryRead = () => {
+      if (readEarned) return;
+      const scrolled = (window.scrollY + window.innerHeight) / document.body.scrollHeight;
+      const dwell = (Date.now() - startedAt) / 1000;
+      if (scrolled >= 0.9 && dwell >= 20) {
+        readEarned = true;
+        window.removeEventListener('scroll', tryRead);
+        clearInterval(timer);
+        earnWorms('read', slug);
+      }
+    };
+    window.addEventListener('scroll', tryRead, { passive: true });
+    timer = setInterval(tryRead, 5000); // 스크롤 멈춰도 체류시간 충족 체크
+
+    // ── 오디오 듣기 ──
+    let audioEarned = false;
+    const hookAudio = () => {
+      const C = (window as any).__cramaPlayer;
+      if (!C || !C.audio) return false;
+      C.audio.addEventListener('timeupdate', () => {
+        if (audioEarned || C.slug !== slug) return;
+        const need = Math.min(60, (C.audio.duration || 120) * 0.5);
+        if (C.audio.currentTime >= need) { audioEarned = true; earnWorms('audio', slug); }
+      });
+      return true;
+    };
+    if (!hookAudio()) {
+      const t = setInterval(() => { if (hookAudio()) clearInterval(t); }, 1000);
+      setTimeout(() => clearInterval(t), 30000);
+    }
+  })();
+</script>

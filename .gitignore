@@ -9,6 +9,8 @@ site/dist/
 !.env.example
 # automation dry-run output
 automation/output/
+# 배포 후 IndexNow 폴링용 — 마지막 발행 URL(런타임 전용)
+automation/last-url.txt
 # os/editor
 .DS_Store
 *.log

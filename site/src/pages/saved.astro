@@ -1,0 +1,36 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import '../styles/app.css';
+---
+
+<BaseLayout title="내 스크랩 — Crama" description="저장한 글 모아보기">
+  <div class="app">
+    <a class="muted-link" href="/me/" style="display:inline-block;margin-bottom:1rem">← 마이</a>
+    <h1>내 스크랩</h1>
+    <div id="list"><p class="app__sub">불러오는 중…</p></div>
+  </div>
+</BaseLayout>
+
+<script>
+  import { getUser, getBookmarks } from '../lib/api';
+  const CAT: Record<string, string> = { money: '주식·재테크', ai: 'AI 트렌드', income: '부업·지원금' };
+  (async () => {
+    const list = document.getElementById('list')!;
+    if (!(await getUser())) { location.replace('/login/'); return; }
+    const [slugs, feed] = await Promise.all([
+      getBookmarks(),
+      fetch('/feed.json').then((r) => r.json()).catch(() => ({ articles: [] })),
+    ]);
+    const bySlug = new Map((feed.articles || []).map((a: any) => [a.slug, a]));
+    const items = slugs.map((s) => bySlug.get(s)).filter(Boolean) as any[];
+    if (!items.length) {
+      list.innerHTML = `<p class="app__sub">아직 저장한 글이 없어요. 글에서 <b>저장</b>을 눌러보세요.</p>`;
+      return;
+    }
+    list.innerHTML = items.map((a) => `
+      <a class="saved-row" href="/blog/${a.slug}/">
+        <div class="saved-thumb">${a.heroImage ? `<img src="${a.heroImage}" alt="" loading="lazy">` : ''}</div>
+        <div class="saved-body"><span class="eyebrow">${CAT[a.category] || a.category}</span><b>${a.title}</b></div>
+      </a>`).join('');
+  })();
+</script>

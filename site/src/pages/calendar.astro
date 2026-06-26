@@ -1,0 +1,72 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+---
+
+<AppLayout title="출석 스탬프 — Crama">
+  <div class="crami">
+    <div class="crami__bar">
+      <button class="crami__back" id="back" aria-label="뒤로">‹</button>
+      <span class="t">출석 스탬프</span>
+      <span class="worm-badge" id="streak-chip" style="background:var(--accent-soft)">🔥 <span id="streak">0</span>일</span>
+    </div>
+
+    <div class="app" style="max-width:34rem">
+      <div class="panel">
+        <div class="cal__head">
+          <button class="muted-link" id="prev">‹</button>
+          <b id="cal-label"></b>
+          <button class="muted-link" id="next">›</button>
+        </div>
+        <div class="cal__grid" id="dow"></div>
+        <div class="cal__grid" id="cal"></div>
+        <div id="day-detail" class="app__sub" style="margin:1rem 0 0">날짜를 눌러 그날 받은 밀웜을 확인하세요</div>
+      </div>
+    </div>
+  </div>
+</AppLayout>
+
+<script>
+  import { getUser, stamps } from '../lib/api';
+
+  const $ = (id: string) => document.getElementById(id)!;
+  const wormSvg = () => '<svg width="15" height="15" viewBox="0 0 24 24"><circle cx="5" cy="16.5" r="3.6" fill="var(--accent)" opacity=".92"/><circle cx="9" cy="14.5" r="4" fill="var(--accent)"/><circle cx="13" cy="12" r="4.1" fill="var(--accent)"/><circle cx="16.6" cy="9.6" r="3.7" fill="var(--accent)"/><circle cx="19.5" cy="7.6" r="3.1" fill="var(--accent)"/><circle cx="20.6" cy="6.7" r=".85" fill="#1a1a1a"/></svg>';
+
+  let viewY = new Date().getFullYear(), viewM = new Date().getMonth();
+  let stampMap: Record<string, number> = {};
+
+  function renderDow() { $('dow').innerHTML = ['월', '화', '수', '목', '금', '토', '일'].map((d) => `<div class="cal__dow">${d}</div>`).join(''); }
+  function renderCal() {
+    const first = new Date(viewY, viewM, 1);
+    const start = (first.getDay() + 6) % 7;
+    const days = new Date(viewY, viewM + 1, 0).getDate();
+    const today = new Date();
+    let html = '';
+    for (let i = 0; i < start; i++) html += '<div class="cal__cell"></div>';
+    for (let d = 1; d <= days; d++) {
+      const worms = stampMap[`${viewY}-${viewM + 1}-${d}`] ?? 0;
+      const isToday = d === today.getDate() && viewM === today.getMonth() && viewY === today.getFullYear();
+      const cls = ['cal__day', worms > 0 ? 'cal__day--stamp' : '', isToday ? 'cal__day--today' : ''].join(' ').trim();
+      const face = `<img class="cal-head" src="/img/generated/meerkat-head.webp" alt="출석">`;
+      html += `<div class="cal__cell"><div class="${cls}" data-d="${d}">${worms > 0 ? face : d}</div></div>`;
+    }
+    $('cal').innerHTML = html;
+    $('cal-label').textContent = `${viewY}년 ${viewM + 1}월`;
+    $('cal').querySelectorAll('.cal__day').forEach((el) => el.addEventListener('click', () => {
+      const d = Number((el as HTMLElement).dataset.d);
+      const w = stampMap[`${viewY}-${viewM + 1}-${d}`] ?? 0;
+      $('day-detail').textContent = `${viewM + 1}월 ${d}일 — 밀웜 ${w}마리 획득`;
+    }));
+  }
+  async function refreshCal() { const s = await stamps(); stampMap = s.map; $('streak').textContent = String(s.streak); renderCal(); }
+
+  $('prev').onclick = () => { viewM--; if (viewM < 0) { viewM = 11; viewY--; } renderCal(); };
+  $('next').onclick = () => { viewM++; if (viewM > 11) { viewM = 0; viewY++; } renderCal(); };
+  $('back').onclick = () => location.assign('/me/');
+
+  (async () => {
+    const user = await getUser();
+    if (!user) { location.replace('/login/'); return; }
+    renderDow();
+    await refreshCal();
+  })();
+</script>

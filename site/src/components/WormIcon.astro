@@ -1,0 +1,13 @@
+---
+// 밀웜 전용 SVG 아이콘 (이모지 대체). RN WormIcon 과 동일 디자인.
+interface Props { size?: number; color?: string; class?: string }
+const { size = 18, color = 'currentColor', class: cls } = Astro.props;
+---
+<svg width={size} height={size} viewBox="0 0 24 24" class={cls} aria-hidden="true">
+  <circle cx="5" cy="16.5" r="3.6" fill={color} opacity="0.92" />
+  <circle cx="9" cy="14.5" r="4" fill={color} />
+  <circle cx="13" cy="12" r="4.1" fill={color} />
+  <circle cx="16.6" cy="9.6" r="3.7" fill={color} />
+  <circle cx="19.5" cy="7.6" r="3.1" fill={color} />
+  <circle cx="20.6" cy="6.7" r="0.85" fill="#1a1a1a" />
+</svg>

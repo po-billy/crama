@@ -1,0 +1,211 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import WormIcon from '../components/WormIcon.astro';
+import '../styles/app.css';
+---
+
+<BaseLayout title="마이 — Crama" description="내 프로필 · 밀웜 · 크라미">
+  <div class="app">
+    <!-- 연속 출석 → 캘린더 -->
+    <a class="streak-bar" href="/calendar/">
+      <span>🔥 <b id="streak">0</b>일 연속 출석 중</span>
+      <span class="go">캘린더로 보기 ›</span>
+    </a>
+
+    <!-- 마스코트 | 프로필 (가로) -->
+    <div class="me-top">
+      <div class="dress" id="dress">
+        <div class="char">
+          <img class="base base-body" src="/img/generated/meerkat-body.webp" alt="크라미" />
+          <img class="base base-head" src="/img/generated/meerkat-head.webp" alt="" />
+        </div>
+      </div>
+      <div class="me-profile">
+        <div class="nick-row" id="nick-row"><b id="nick">회원</b><button class="nick-edit" id="nick-edit">변경</button></div>
+        <span class="em" id="email"></span>
+        <span class="worm-badge"><WormIcon size={16} /> <span id="bal">0</span> 마리</span>
+      </div>
+    </div>
+
+    <!-- 크라미 꾸미기 -->
+    <a class="btn btn--primary" href="/wardrobe/" style="margin-bottom:.6rem">크라미 꾸미기</a>
+    <div class="me-actions">
+      <a class="btn btn--line" href="/calendar/">출석 캘린더</a>
+      <a class="btn btn--line" href="/saved/">내 스크랩</a>
+    </div>
+
+    <!-- 밀웜 모으기 -->
+    <h2 style="margin:0 0 0.8rem; font-size:1.2rem">밀웜 모으기</h2>
+    <div class="panel" id="earn-list"></div>
+
+    <!-- 친구 초대 -->
+    <div class="invite" style="margin-top:2rem">
+      <h3>친구 초대하고 밀웜 받기</h3>
+      <p class="app__sub" style="margin:0">초대 링크로 친구가 가입하면 <b>둘 다 +20밀웜</b></p>
+      <div class="invite__row">
+        <div class="invite__code" id="invite-link">…</div>
+        <button class="btn btn--primary invite__copy" id="invite-copy" style="width:auto;padding-inline:1.2rem">복사</button>
+      </div>
+    </div>
+
+    <!-- 로그아웃 (맨 아래) -->
+    <button class="btn btn--line me-logout-btn" id="logout">로그아웃</button>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <!-- 리워드 광고 자리표시자 (AdMob 연동 전 임시) -->
+  <div class="admodal" id="admodal" hidden>
+    <div class="admodal__panel">
+      <div class="admodal__media" id="ad-media"></div>
+      <div class="admodal__bar">
+        <span id="ad-count" class="app__sub" style="margin:0"></span>
+        <button class="btn btn--primary" id="ad-claim" disabled style="width:auto;padding-inline:1.4rem">보상 받기</button>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  import { getUser, getProfile, wormBalance, earnWorms, earnCountsToday, stamps, signOut, wardrobeData, updateNickname, claimReferral, claimStreakMilestone, type EarnAction, type WardrobeSlot } from '../lib/api';
+
+  const $ = (id: string) => document.getElementById(id)!;
+  const toast = (m: string) => { const t = $('toast'); t.textContent = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200); };
+  const wormSvg = () => '<svg width="15" height="15" viewBox="0 0 24 24"><circle cx="5" cy="16.5" r="3.6" fill="var(--accent)" opacity=".92"/><circle cx="9" cy="14.5" r="4" fill="var(--accent)"/><circle cx="13" cy="12" r="4.1" fill="var(--accent)"/><circle cx="16.6" cy="9.6" r="3.7" fill="var(--accent)"/><circle cx="19.5" cy="7.6" r="3.1" fill="var(--accent)"/><circle cx="20.6" cy="6.7" r=".85" fill="#1a1a1a"/></svg>';
+
+  // ── 캐릭터 장착 미리보기 ──
+  const IMG = (id: string) => `/img/wardrobe/${id}.webp`;
+  function bgImg(id: string, css: string) { const i = document.createElement('img'); i.className = 'layer'; i.src = IMG(id); i.style.cssText = 'position:absolute;' + css; return i; }
+  function partImg(id: string, cls: string) { const i = document.createElement('img'); i.className = 'layer ' + cls; i.src = IMG(id); return i; }
+  async function renderMascot() {
+    const w = await wardrobeData();
+    const eq = w.equipped as Record<string, string>;
+    const dress = $('dress');
+    const char = dress.querySelector('.char') as HTMLElement;
+    dress.querySelectorAll('.layer').forEach((n) => n.remove());
+    char.querySelectorAll('.layer').forEach((n) => n.remove());
+    dress.style.background = 'transparent';
+    if (eq.wallpaper) dress.insertBefore(bgImg(eq.wallpaper, 'inset:0;width:100%;height:100%;object-fit:cover'), char);
+    if (eq.floor) dress.insertBefore(bgImg(eq.floor, 'left:0;right:0;bottom:0;width:100%;height:22%;object-fit:cover'), char);
+    const head = char.querySelector('.base-head');
+    if (eq.outfit) char.insertBefore(partImg(eq.outfit, 'gear'), head);
+    if (eq.scarf) char.insertBefore(partImg(eq.scarf, 'gear-scarf'), head);
+    (['glasses', 'hat'] as WardrobeSlot[]).forEach((s) => { if (eq[s]) char.appendChild(partImg(eq[s], 'acc-' + s)); });
+  }
+
+  // ── 밀웜 적립 ──
+  const ROWS: { action: EarnAction; label: string; sub: string; reward: number; tappable: boolean }[] = [
+    { action: 'read', label: '글 완독하기', sub: '글을 끝까지 읽으면 자동', reward: 1, tappable: false },
+    { action: 'audio', label: '오디오 브리핑 듣기', sub: '재생하면 자동', reward: 1, tappable: false },
+    { action: 'attend', label: '출석 체크', sub: '매일 첫 방문', reward: 1, tappable: true },
+    { action: 'quiz', label: '주간 퀴즈 풀기', sub: '이번 주 복습', reward: 3, tappable: true },
+    { action: 'ad', label: '짧은 광고 보고 받기', sub: '하루 세 번', reward: 2, tappable: true },
+  ];
+  const MSG: Record<string, string> = { cap_reached: '오늘은 이미 다 받았어요!', not_authenticated: '로그인이 필요해요.', not_configured: '환경설정 후 사용할 수 있어요.' };
+  const CAP: Record<EarnAction, number> = { read: 0, audio: 0, attend: 1, quiz: 1, ad: 3 };
+  let counts: Record<string, number> = {};
+  const checkSvg = () => '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>';
+
+  function renderEarn() {
+    $('earn-list').innerHTML = ROWS.map((r) => {
+      const used = counts[r.action] ?? 0;
+      const cap = CAP[r.action];
+      const done = cap > 0 && used >= cap;
+      let right: string; let tappable = r.tappable;
+      if (done) { right = `<span class="earn-done">${checkSvg()} 완료</span>`; tappable = false; }
+      else if (r.action === 'ad') right = `<span class="worm-badge">${wormSvg()} ${r.reward}</span><span class="earn-remain" style="margin-left:.5rem">오늘 ${cap - used}번 남음</span>`;
+      else right = `<span class="worm-badge">${wormSvg()} ${r.reward}</span>`;
+      return `<div class="earn-row" ${tappable ? `data-tappable data-action="${r.action}"` : ''}>
+        <div class="earn-row__t"><b>${r.label}</b><span>${r.sub}</span></div>
+        <div style="display:flex;align-items:center;gap:.4rem">${right}${tappable ? '<span style="color:var(--muted)">›</span>' : ''}</div>
+      </div>`;
+    }).join('');
+    $('earn-list').querySelectorAll('[data-tappable]').forEach((el) => el.addEventListener('click', () => {
+      const action = (el as HTMLElement).dataset.action as EarnAction;
+      if (action === 'ad') showAd(); else doEarn(action);
+    }));
+  }
+
+  async function doEarn(action: EarnAction) {
+    const res = await earnWorms(action);
+    if (res.ok) { $('bal').textContent = String(res.balance); counts[action] = (counts[action] ?? 0) + 1; renderEarn(); toast('밀웜을 받았어요!'); }
+    else toast(MSG[res.message] ?? res.message);
+  }
+
+  // ── 리워드 광고 (AdMob 연동 전 임시: 지정 URL 5초 시청 후 보상) ──
+  const AD_CREATIVE = ''; // ← 여기에 영상(mp4/webm)·gif·이미지 URL. 비우면 임시 박스
+  function showAd() {
+    const media = $('ad-media');
+    const isVid = /\.(mp4|webm|mov)(\?|$)/i.test(AD_CREATIVE);
+    media.innerHTML = AD_CREATIVE
+      ? (isVid ? `<video src="${AD_CREATIVE}" autoplay muted playsinline loop></video>` : `<img src="${AD_CREATIVE}" alt="광고">`)
+      : `<span class="ad-ph">광고 영역 (URL 미설정)</span>`;
+    $('admodal').hidden = false;
+    let n = 5;
+    const claim = $('ad-claim') as HTMLButtonElement;
+    claim.disabled = true;
+    $('ad-count').textContent = `${n}초 후 보상 받기`;
+    const t = setInterval(() => {
+      n--;
+      if (n <= 0) { clearInterval(t); $('ad-count').textContent = '시청 완료!'; claim.disabled = false; }
+      else $('ad-count').textContent = `${n}초 후 보상 받기`;
+    }, 1000);
+    claim.onclick = async () => {
+      if (claim.disabled) return;
+      clearInterval(t);
+      const v = media.querySelector('video'); if (v) (v as HTMLVideoElement).pause();
+      $('admodal').hidden = true;
+      await doEarn('ad');
+    };
+  }
+
+  // ── 닉네임 변경 (인라인 편집, 이벤트 위임) ──
+  let curNick = '회원';
+  const showNick = () => { $('nick-row').innerHTML = `<b id="nick">${curNick}</b><button class="nick-edit" id="nick-edit">변경</button>`; };
+  $('nick-row').addEventListener('click', async (e) => {
+    const t = e.target as HTMLElement;
+    if (t.id === 'nick-edit') {
+      $('nick-row').innerHTML = `<input id="nick-input" class="nick-input" maxlength="20" value="${curNick.replace(/"/g, '&quot;')}"><button class="nick-edit" id="nick-save">저장</button><button class="nick-edit" id="nick-cancel" style="color:var(--muted)">취소</button>`;
+      const inp = document.getElementById('nick-input') as HTMLInputElement;
+      inp.focus(); inp.select();
+      inp.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') (document.getElementById('nick-save') as HTMLButtonElement).click(); });
+    } else if (t.id === 'nick-save') {
+      const inp = document.getElementById('nick-input') as HTMLInputElement;
+      const res = await updateNickname(inp.value);
+      if (res.error) { toast(res.error); return; }
+      curNick = res.nickname!; showNick(); toast('닉네임을 변경했어요');
+    } else if (t.id === 'nick-cancel') {
+      showNick();
+    }
+  });
+  $('logout').onclick = async () => { await signOut(); location.replace('/login/'); };
+
+  (async () => {
+    const user = await getUser();
+    if (!user) { location.replace('/login/'); return; }
+    await earnWorms('attend'); // 출석(서버 1일 1회 캡)
+
+    // 보상 청구: 친구 초대(대기 코드) + 연속출석 마일스톤
+    const ref = localStorage.getItem('crama:ref');
+    if (ref) { const r = await claimReferral(ref); localStorage.removeItem('crama:ref'); if (r.ok) toast('초대 보상 +20밀웜!'); }
+    const ms = await claimStreakMilestone();
+    if (ms.bonus > 0) toast(`${ms.reached}일 연속 달성! +${ms.bonus}밀웜`);
+
+    counts = await earnCountsToday();
+    renderEarn();
+    const [profile, bal, s] = await Promise.all([getProfile(), wormBalance(), stamps()]);
+    curNick = (profile as any)?.nickname || user.email?.split('@')[0] || '회원';
+    $('nick').textContent = curNick;
+    $('email').textContent = user.email ?? '';
+    $('bal').textContent = String(bal);
+    $('streak').textContent = String(s.streak);
+
+    // 친구 초대 링크
+    const code = (profile as any)?.referral_code;
+    if (code) {
+      const link = `${location.origin}/?ref=${code}`;
+      $('invite-link').textContent = link;
+      $('invite-copy').onclick = async () => { try { await navigator.clipboard.writeText(link); toast('초대 링크 복사됨'); } catch { } };
+    }
+    await renderMascot();
+  })();
+</script>

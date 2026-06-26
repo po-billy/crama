@@ -131,6 +131,8 @@ async function main() {
   // ⑦ IndexNow — 배포 후 Bing·Naver·Yandex 등에 즉시 색인 푸시(Google 미참여 → 사이트맵/색인요청으로 커버).
   //    실제 URL 이 200 으로 떠야 의미 있으므로, 기본은 명령만 안내하고 INDEXNOW_AUTO=1 일 때만 자동 호출.
   const url = `https://crama.app/blog/${slug}/`;
+  // 배포 후 자동 색인(GitHub Actions)이 '실제 라이브된 뒤' 폴링·제출하도록 발행 URL 을 파일로 남긴다.
+  try { await fs.writeFile(path.join(__dirname, 'last-url.txt'), url, 'utf8'); } catch (e) {}
   if (process.env.INDEXNOW_AUTO === '1') {
     try {
       const { submit } = await import('./lib/indexnow.js');

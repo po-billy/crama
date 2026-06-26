@@ -8,11 +8,11 @@ import { SITE, NAV } from '../consts';
       <small>{SITE.tagline}</small>
     </a>
     <div class="header-actions">
+      <button class="theme-toggle" id="theme-toggle" aria-label="다크 모드 전환" title="다크 모드 전환">◐</button>
       <a href="/search/" class="search-link" aria-label="검색" title="검색">⌕</a>
       <a href="/me/" class="search-link" aria-label="내 계정" title="내 계정" style="display:inline-flex;align-items:center">
-        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.6 3.2-5.5 7-5.5s7 1.9 7 5.5"/></svg>
+        <span id="me-ava"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.6 3.2-5.5 7-5.5s7 1.9 7 5.5"/></svg></span>
       </a>
-      <button class="theme-toggle" id="theme-toggle" aria-label="다크 모드 전환" title="다크 모드 전환">◐</button>
     </div>
     <nav class="nav" aria-label="주요 메뉴">
       {NAV.map((item) => (
@@ -47,5 +47,28 @@ import { SITE, NAV } from '../consts';
       if (!ticking) { ticking = true; requestAnimationFrame(update); }
     }, { passive: true });
     update();
+  })();
+</script>
+
+<script>
+  // 로그인 시 프로필 아이콘에 내 크라미(착장)를 동그라미로 — 로그인된 경우에만 supabase 동적 로드
+  (async () => {
+    const el = document.getElementById('me-ava');
+    if (!el) return;
+    let hasSession = false;
+    try { hasSession = Object.keys(localStorage).some((k) => k.includes('-auth-token')); } catch {}
+    if (!hasSession) return;
+    const { getUser, equippedMap } = await import('../lib/api');
+    if (!(await getUser())) return;
+    const eq = await equippedMap();
+    const IMG = (id: string) => `/img/wardrobe/${id}.webp`;
+    let html = '<img class="base base-body" src="/img/generated/meerkat-body.webp" alt="">';
+    if (eq.outfit) html += `<img class="layer gear" src="${IMG(eq.outfit)}" alt="">`;
+    if (eq.scarf) html += `<img class="layer gear-scarf" src="${IMG(eq.scarf)}" alt="">`;
+    html += '<img class="base base-head" src="/img/generated/meerkat-head.webp" alt="">';
+    if (eq.glasses) html += `<img class="layer acc-glasses" src="${IMG(eq.glasses)}" alt="">`;
+    if (eq.hat) html += `<img class="layer acc-hat" src="${IMG(eq.hat)}" alt="">`;
+    el.classList.add('me-ava');
+    el.innerHTML = `<div class="char">${html}</div>`;
   })();
 </script>

@@ -66,21 +66,37 @@ import AppLayout from '../layouts/AppLayout.astro';
 
   const byId = () => new Map(data.catalog.map((i) => [i.id, i]));
 
-  // ── 미리보기 합성 ──
-  function bgImg(id: string, css: string) { const i = document.createElement('img'); i.className = 'layer'; i.src = IMG(id); i.style.cssText = 'position:absolute;' + css; return i; }
-  function partImg(id: string, cls: string) { const i = document.createElement('img'); i.className = 'layer ' + cls; i.src = IMG(id); return i; }
+  // ── 미리보기 합성 (레이어를 data-slot 키로 재사용 → 바뀐 슬롯만 갱신, 깜빡임 없음) ──
   function renderPreview() {
     const dress = $('dress');
     const char = dress.querySelector('.char') as HTMLElement;
-    dress.querySelectorAll('.layer').forEach((n) => n.remove());
-    char.querySelectorAll('.layer').forEach((n) => n.remove());
-    dress.style.background = 'transparent';
-    if (look.wallpaper) dress.insertBefore(bgImg(look.wallpaper, 'inset:0;width:100%;height:100%;object-fit:cover'), char);
-    if (look.floor) dress.insertBefore(bgImg(look.floor, 'left:0;right:0;bottom:0;width:100%;height:22%;object-fit:cover'), char);
     const head = char.querySelector('.base-head');
-    if (look.outfit) char.insertBefore(partImg(look.outfit, 'gear'), head);
-    if (look.scarf) char.insertBefore(partImg(look.scarf, 'gear-scarf'), head);
-    (['glasses', 'hat'] as WardrobeSlot[]).forEach((s) => { if (look[s]) char.appendChild(partImg(look[s]!, 'acc-' + s)); });
+    dress.style.background = 'transparent';
+    const sync = (s: string, parent: HTMLElement, cls: string, css: string, before: Element | null) => {
+      let img = parent.querySelector(`:scope > img.layer[data-slot="${s}"]`) as HTMLImageElement | null;
+      const id = look[s];
+      if (!id) { if (img) img.remove(); return; }
+      const src = IMG(id);
+      if (!img) {
+        img = document.createElement('img');
+        img.className = 'layer ' + cls;
+        img.dataset.slot = s;
+        if (css) img.style.cssText = 'position:absolute;' + css;
+        img.src = src;
+        parent.insertBefore(img, before);
+      } else if (img.getAttribute('src') !== src) {
+        img.src = src; // 같은 슬롯 다른 아이템: src만 교체(요소 재사용)
+      }
+    };
+    sync('wallpaper', dress, '', 'inset:0;width:100%;height:100%;object-fit:cover', char);
+    sync('floor', dress, '', 'left:0;right:0;bottom:0;width:100%;height:22%;object-fit:cover', char);
+    sync('outfit', char, 'gear', '', head);
+    sync('scarf', char, 'gear-scarf', '', head);
+    sync('glasses', char, 'acc-glasses', '', null);
+    sync('hat', char, 'acc-hat', '', null);
+    // z순서 보정 (기존 요소 이동 = 이미지 리로드 없음): outfit,scarf < head < glasses < hat
+    const move = (s: string, before: Element | null) => { const el = char.querySelector(`:scope > img.layer[data-slot="${s}"]`); if (el) before ? char.insertBefore(el, before) : char.appendChild(el); };
+    move('outfit', head); move('scarf', head); move('glasses', null); move('hat', null);
   }
 
   // ── 탭 / 보유만 ──
@@ -108,11 +124,25 @@ import AppLayout from '../layouts/AppLayout.astro';
     $('list').querySelectorAll('.item').forEach((el) => el.addEventListener('click', () => onTap((el as HTMLElement).dataset.id!)));
   }
 
+  // 탭 시 선택 하이라이트/메타만 갱신 (이미지 재생성 X → 깜빡임 없음)
+  function refreshItemSelection() {
+    const sel = look[slot] || null;
+    $('list').querySelectorAll('.item').forEach((el) => {
+      const id = (el as HTMLElement).dataset.id!;
+      const on = sel === id;
+      (el as HTMLElement).dataset.on = on ? '1' : '0';
+      if (data.owned.has(id)) {
+        const meta = el.querySelector('.item__meta') as HTMLElement | null;
+        if (meta) { meta.style.color = on ? 'var(--accent)' : 'var(--muted)'; meta.textContent = on ? '● 착용중' : '보유'; }
+      }
+    });
+  }
+
   function onTap(id: string) {
     const it = byId().get(id)!;
     if (look[it.slot] === id) look[it.slot] = null; // 다시 누르면 벗기
     else look[it.slot] = id;
-    renderPreview(); renderItems(); renderCTA();
+    renderPreview(); refreshItemSelection(); renderCTA();
   }
 
   // ── 하단 CTA ──

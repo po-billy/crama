@@ -142,7 +142,7 @@ hr {
 /* 홈 슬림 가입 스트립 (닫기 가능) */
 .signup-strip { display: flex; align-items: center; gap: .7rem; background: #161412; border: 1px solid #161412; border-radius: 10px; padding: .55rem .9rem; margin-bottom: 1.2rem; font-size: .9rem; }
 .signup-strip img { width: 34px; height: 34px; object-fit: contain; flex: none; }
-.signup-strip span { flex: 1; color: #f1ece4; min-width: 0; }
+.signup-strip span { flex: 1; color: #f1ece4; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .signup-strip strong { color: #e8956f; }
 .signup-strip__btn { flex: none; background: #fff; color: #161412; font-weight: 700; border-radius: 999px; padding: .35rem .95rem; font-size: .85rem; }
 .signup-strip__btn:hover { color: #161412; opacity: .9; }

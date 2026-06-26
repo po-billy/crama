@@ -122,7 +122,9 @@
   background: var(--paper-2); border: 1px solid var(--accent); border-radius: 10px; padding: .7rem 1rem; margin-bottom: 1.2rem; font-size: .9rem; }
 .ref-banner b { color: var(--accent); font-family: var(--font-mono); letter-spacing: .05em; font-size: 1rem; }
 .ref-banner__bonus { color: var(--accent); font-weight: 800; white-space: nowrap; }
-.ref-input-row { display: flex; gap: .5rem; margin-top: .6rem; }
+.ref-input-row { display: flex; gap: .5rem; margin-top: .6rem; align-items: stretch; }
+.ref-input-row .field { flex: 1 1 auto; min-width: 0; }
+.ref-input-row .btn { flex: 0 0 auto; width: auto; white-space: nowrap; padding-inline: 1.25rem; }
 .login__trust { text-align: center; color: var(--muted); font-size: .76rem; line-height: 1.6; margin-top: 1.6rem; }
 
 /* 친구 초대 */

@@ -109,6 +109,7 @@
 .admodal__panel { background: var(--paper); border-radius: 14px; overflow: hidden; width: 100%; max-width: 440px; }
 .admodal__media { aspect-ratio: 16/9; background: #000; display: grid; place-items: center; }
 .admodal__media video, .admodal__media img { width: 100%; height: 100%; object-fit: contain; }
+.admodal__link { display: block; width: 100%; height: 100%; }
 .ad-ph { color: #999; font-size: .9rem; }
 .admodal__bar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .8rem 1rem calc(.8rem + env(safe-area-inset-bottom)); }
 

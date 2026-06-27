@@ -132,13 +132,17 @@ import '../styles/app.css';
   }
 
   // ── 리워드 광고 (AdMob 연동 전 임시: 지정 URL 5초 시청 후 보상) ──
-  const AD_CREATIVE = ''; // ← 여기에 영상(mp4/webm)·gif·이미지 URL. 비우면 임시 박스
+  const AD_CREATIVE = ''; // ← 영상(mp4/webm)·gif·이미지 URL. 비우면 임시 박스
+  const AD_LINK = '';     // ← 클릭 시 이동할 광고주 랜딩 URL. 비우면 클릭 비활성(보기만)
   function showAd() {
     const media = $('ad-media');
     const isVid = /\.(mp4|webm|mov)(\?|$)/i.test(AD_CREATIVE);
-    media.innerHTML = AD_CREATIVE
+    const inner = AD_CREATIVE
       ? (isVid ? `<video src="${AD_CREATIVE}" autoplay muted playsinline loop></video>` : `<img src="${AD_CREATIVE}" alt="광고">`)
       : `<span class="ad-ph">광고 영역 (URL 미설정)</span>`;
+    media.innerHTML = (AD_LINK && AD_CREATIVE)
+      ? `<a class="admodal__link" href="${AD_LINK}" target="_blank" rel="noopener sponsored">${inner}</a>`
+      : inner;
     $('admodal').hidden = false;
     let n = 5;
     const claim = $('ad-claim') as HTMLButtonElement;

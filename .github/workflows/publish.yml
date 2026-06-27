@@ -34,7 +34,7 @@ jobs:
           WRITE_MODEL: ${{ vars.WRITE_MODEL }}
           RESEARCH_MODEL: ${{ vars.RESEARCH_MODEL }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-        run: node run.js ${{ github.event.inputs.category && format('--category={0}', github.event.inputs.category) || '' }}
+        run: node run.js --no-poll ${{ github.event.inputs.category && format('--category={0}', github.event.inputs.category) || '' }}
       - name: Commit & push
         run: |
           git config user.name "crama-bot"

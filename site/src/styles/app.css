@@ -193,6 +193,10 @@
 .vfeat__bar { display: flex; align-items: center; justify-content: space-between; gap: .6rem; margin-bottom: 1rem; }
 .vfeat__count { font-size: .82rem; font-weight: 700; color: var(--muted); }
 .vfeat__emoji { font-size: 1.4rem; display: inline; vertical-align: middle; }
+/* 투표 커버 이미지(선택) */
+.vfeat__img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 12px; margin-bottom: 1rem; background: var(--paper-2); display: block; }
+.vpcard__img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 10px; margin-bottom: .7rem; background: var(--paper-2); display: block; }
+.pa-img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 14px; margin: 1rem 0 1.4rem; background: var(--paper-2); display: block; }
 .vfeat__q { font-family: var(--font-serif); font-size: 1.7rem; line-height: 1.28; margin: .5rem 0; }
 .vfeat__teaser { color: var(--ink-soft); font-size: 1rem; margin: 0 0 1.2rem; }
 .vfeat__cta { display: inline-block; font-weight: 800; color: #fff; background: var(--accent); border-radius: 999px; padding: .62rem 1.35rem; font-size: .9rem; }
@@ -245,17 +249,16 @@ body.app-screen { height: 100dvh; overflow: hidden; margin: 0; background: var(-
 .crami__list { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: .9rem 1rem 1.2rem; }
 .crami__cta { flex: none; padding: .7rem 1rem calc(.7rem + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); }
 
-/* PC: 좌우 2단 — 왼쪽 스테이지(적당 크기·sticky) + 오른쪽 패널(컨트롤·리스트·CTA). 모바일은 그대로 */
+/* PC: 크라미 스테이지를 상단 와이드 배너(16:5)로 두고 아래는 일반 스크롤 페이지 (모바일은 그대로) */
 @media (min-width: 900px) {
   body.app-screen { height: auto; overflow: auto; background: var(--paper-2); }
   .crami { height: auto; min-height: 100dvh; max-width: 960px; margin: 0 auto; border-inline: 1px solid var(--line); background: var(--paper); }
   .crami__bar { position: sticky; top: 0; z-index: 6; background: color-mix(in srgb, var(--paper) 92%, transparent); backdrop-filter: blur(6px); }
-  .crami__body { display: grid; grid-template-columns: minmax(300px, 340px) 1fr; align-items: start; gap: 1.6rem; padding: 1.4rem 1.6rem 2rem; }
-  .crami__stage { flex: none; height: auto; aspect-ratio: 1 / 1; position: sticky; top: 60px; border: 1px solid var(--line); border-radius: 16px; }
-  .crami__panel { min-width: 0; }
-  .crami__controls { position: sticky; top: 44px; z-index: 5; background: var(--paper); border-top: 0; }
-  .crami__list { overflow: visible; padding: 1rem 0 5rem; }
-  .crami__list .item-grid { grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  .crami__body { display: block; }                              /* 스택: 스테이지 위, 패널 아래 */
+  .crami__stage { flex: none; height: auto; aspect-ratio: 16 / 5; }  /* 상단 와이드 배너 */
+  .crami__controls { position: sticky; top: 50px; z-index: 5; background: var(--paper); }
+  .crami__list { overflow: visible; padding: 1.4rem 1.6rem 6rem; }
+  .crami__list .item-grid { grid-template-columns: repeat(4, 1fr); gap: 1rem; }
   .crami__cta { position: sticky; bottom: 0; background: color-mix(in srgb, var(--paper) 92%, transparent); backdrop-filter: blur(6px); }
 }
 .crami__cta .btn { font-size: 1.05rem; padding: .95rem; }

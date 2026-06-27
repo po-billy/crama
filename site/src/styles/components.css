@@ -272,7 +272,7 @@
 .hcircle { flex: none; width: 5.2rem; text-align: center; text-decoration: none; scroll-snap-align: start; }
 .hcircle__img {
   position: relative; width: 4rem; height: 4rem; margin: 0 auto; border-radius: 999px;
-  background: var(--paper-2); border: 1px solid var(--line);
+  background: var(--paper-2);
   display: grid; place-items: center; transition: border-color .15s ease, transform .1s ease;
 }
 .hcircle:hover .hcircle__img { border-color: var(--accent); transform: translateY(-2px); }

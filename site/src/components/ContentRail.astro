@@ -38,16 +38,23 @@ polls = polls.slice(0, 3);
   {polls.length > 0 && (
     <section class="crail__box">
       <h3 class="crail__h">🦫 빼꼼 투표</h3>
-      <ul class="crail__polls">
-        {polls.map((p: any) => (
-          <li>
-            <a href={`/vote/${p.id}/`}>
-              <span class="crail__pe">{p.emoji || '🗳️'}</span>
-              <b>{p.question}</b>
-            </a>
-          </li>
-        ))}
-      </ul>
+      <a class="crail__pollcard" href={`/vote/${polls[0].id}/`}>
+        {polls[0].image && <img class="crail__pollthumb" src={polls[0].image} alt="" loading="lazy" />}
+        <b class="crail__pollq">{polls[0].emoji ? polls[0].emoji + ' ' : ''}{polls[0].question}</b>
+        <span class="crail__pollcta">지금 빼꼼 투표 →</span>
+      </a>
+      {polls.length > 1 && (
+        <ul class="crail__polls">
+          {polls.slice(1).map((p: any) => (
+            <li>
+              <a href={`/vote/${p.id}/`}>
+                <span class="crail__pe">{p.emoji || '🗳️'}</span>
+                <b>{p.question}</b>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
       <a class="crail__more" href="/vote/">투표 전체 보기 →</a>
     </section>
   )}

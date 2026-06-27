@@ -174,7 +174,13 @@ hr {
 }
 .crail__box { border-radius: 14px; padding: 1.1rem 1.15rem; background: var(--paper); }
 .crail__h { font-family: var(--font-serif); font-size: 1.02rem; margin: 0 0 .85rem; }
-.crail__polls { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .75rem; }
+/* 빼꼼 투표 대표 카드 — vfab 말풍선과 동일 톤(다크 카드 + 16:9 커버 + 액센트 CTA) */
+.crail__pollcard { display: block; background: #161412; border-radius: 12px; padding: .7rem .8rem .8rem; box-shadow: 0 6px 18px rgba(0,0,0,.14); }
+.crail__pollthumb { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; margin-bottom: .55rem; display: block; }
+.crail__pollq { display: block; font-family: var(--font-sans); font-size: .9rem; font-weight: 600; line-height: 1.4; color: #fff; }
+.crail__pollcard:hover .crail__pollq { color: #fff; }
+.crail__pollcta { display: inline-block; margin-top: .45rem; font-size: .76rem; font-weight: 800; color: #e8956f; }
+.crail__polls { list-style: none; margin: .9rem 0 0; padding: 0; display: flex; flex-direction: column; gap: .75rem; }
 .crail__polls a { display: flex; gap: .5rem; align-items: flex-start; }
 .crail__pe { flex: none; font-size: 1rem; }
 .crail__polls b { font-weight: 600; font-size: .9rem; line-height: 1.4; color: var(--ink); }

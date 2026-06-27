@@ -7,6 +7,7 @@ import AdSlot from '../components/AdSlot.astro';
 import { SITE, CATEGORIES, EDITOR_PICKS, PILLARS, GUIDE_EXTRA } from '../consts';
 import AudioPicks from '../components/AudioPicks.astro';
 import Curations from '../components/Curations.astro';
+import AchievementModal from '../components/AchievementModal.astro';
 
 const posts = (await getCollection('blog'))
   .filter((p) => !p.data.draft)
@@ -71,6 +72,7 @@ const byCategory = (slug: 'money' | 'ai' | 'income') =>
 const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.webp$/, '-hero-thumb.webp') : h);
 ---
 <BaseLayout spa title={SITE.title} description={SITE.description} image="/og-home.png">
+  <AchievementModal />
   <div class="wrap wrap--home">
     <aside class="signup-strip" id="signup-strip" hidden>
       <img src="/img/generated/meerkat-baby-stand.webp" alt="" />

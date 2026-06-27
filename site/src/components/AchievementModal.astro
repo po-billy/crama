@@ -1,0 +1,58 @@
+---
+// 조코헌트 등재 축하 모달 — 최초 1회 노출(localStorage)
+---
+<div class="achm" id="achm" hidden>
+  <div class="achm__panel" role="dialog" aria-modal="true" aria-label="조코헌트 등재 소식">
+    <button class="achm__x" id="achm-x" aria-label="닫기">×</button>
+    <div class="achm__badge">🏆 조코헌트 등재</div>
+    <h2 class="achm__title">크라마가 <b>조코헌트 주간 1위</b>에 올랐어요 🥇</h2>
+    <img class="achm__img" src="/img/jocohunt-win.png" alt="조코헌트 주간 1위 크라마" loading="lazy" />
+    <div class="achm__stats">
+      <span><b>🥇 주간</b> 1위</span>
+      <span><b>🥈 월간</b> 2위</span>
+      <span><b>🥉 연간</b> 3위</span>
+    </div>
+    <p class="achm__sub">등록 <b>하루 만에</b> 거둔 성과예요. 먼저 읽어주신 여러분 덕분입니다 🙏</p>
+    <button class="achm__cta" id="achm-ok">고마워요 🎉</button>
+  </div>
+</div>
+
+<style>
+  .achm { position: fixed; inset: 0; z-index: 400; display: flex; align-items: center; justify-content: center; padding: 1.2rem;
+    background: rgba(20,16,12,.62); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+  .achm[hidden] { display: none; }
+  .achm__panel { position: relative; width: 100%; max-width: 420px; background: var(--paper); border-radius: 18px;
+    padding: 1.9rem 1.6rem 1.5rem; text-align: center; box-shadow: 0 24px 60px -16px rgba(0,0,0,.5);
+    animation: achm-pop .26s cubic-bezier(.2,.9,.3,1.3); }
+  @keyframes achm-pop { from { opacity: 0; transform: translateY(14px) scale(.96); } to { opacity: 1; transform: none; } }
+  .achm__x { position: absolute; top: .5rem; right: .7rem; background: none; border: 0; font-size: 1.5rem; line-height: 1; color: var(--muted); cursor: pointer; }
+  .achm__badge { display: inline-block; font-size: .76rem; font-weight: 800; letter-spacing: .04em; color: var(--accent);
+    background: var(--accent-soft); border-radius: 999px; padding: .3rem .85rem; margin-bottom: .8rem; }
+  .achm__title { font-family: var(--font-serif); font-size: 1.42rem; line-height: 1.32; margin: 0 0 1rem; }
+  .achm__title b { color: var(--accent); }
+  .achm__img { width: 100%; border-radius: 12px; display: block; margin: 0 auto 1rem; border: 1px solid var(--line); }
+  .achm__stats { display: flex; justify-content: center; gap: .45rem; margin-bottom: .9rem; flex-wrap: wrap; }
+  .achm__stats span { font-size: .85rem; color: var(--ink-soft); background: var(--paper-2); border: 1px solid var(--line); border-radius: 999px; padding: .4rem .8rem; }
+  .achm__stats b { color: var(--ink); font-weight: 700; }
+  .achm__sub { color: var(--muted); font-size: .92rem; line-height: 1.6; margin: 0 0 1.2rem; }
+  .achm__sub b { color: var(--ink-soft); }
+  .achm__cta { width: 100%; background: var(--accent); color: #fff; border: 0; border-radius: 999px; padding: .8rem; font-weight: 800; font-size: 1rem; cursor: pointer; }
+  .achm__cta:hover { color: #fff; filter: brightness(1.06); }
+</style>
+
+<script is:inline>
+  (() => {
+    const KEY = 'crama:ach-jocohunt-2026w26'; // 성과 갱신 시 키만 바꾸면 다시 1회 노출
+    function init() {
+      const m = document.getElementById('achm'); if (!m) return;
+      try { if (localStorage.getItem(KEY)) return; } catch (e) {}
+      const hide = () => { m.hidden = true; document.body.style.overflow = ''; try { localStorage.setItem(KEY, '1'); } catch (e) {} };
+      setTimeout(() => { m.hidden = false; document.body.style.overflow = 'hidden'; }, 700);
+      const x = document.getElementById('achm-x'); if (x) x.onclick = hide;
+      const ok = document.getElementById('achm-ok'); if (ok) ok.onclick = hide;
+      m.addEventListener('click', (e) => { if (e.target === m) hide(); });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !m.hidden) hide(); });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+  })();
+</script>

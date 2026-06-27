@@ -183,44 +183,50 @@
 .opinion__tag { font-size: .72rem; background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: .1rem .5rem; font-weight: 700; }
 .opinion p { margin: 0; font-size: .92rem; line-height: 1.5; color: var(--ink-soft); }
 
-/* 투표 리스트 (궁금증 유발 카드) */
-.vhead { margin-bottom: 1.8rem; }
-.vhead__eyebrow { font-family: var(--font-sans); font-size: .72rem; font-weight: 800; letter-spacing: .18em; color: var(--accent); }
-.vhead h1 { font-size: 2.1rem; margin: .2rem 0 0; }
-/* 진행 중 — featured 히어로 */
-.vfeat { display: block; border: 1px solid var(--line); border-radius: 18px; padding: 1.8rem 1.7rem; background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 6%, var(--paper)), var(--paper)); transition: box-shadow .15s, transform .15s; }
-.vfeat:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(0,0,0,.08); color: inherit; }
-.vfeat__bar { display: flex; align-items: center; justify-content: space-between; gap: .6rem; margin-bottom: 1rem; }
-.vfeat__count { font-size: .82rem; font-weight: 700; color: var(--muted); }
-.vfeat__emoji { font-size: 1.4rem; display: inline; vertical-align: middle; }
-/* 투표 커버 이미지(선택) */
-.vfeat__img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 12px; margin-bottom: 1rem; background: var(--paper-2); display: block; }
-.vpcard__img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 10px; margin-bottom: .7rem; background: var(--paper-2); display: block; }
-.pa-img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 14px; margin: 1rem 0 1.4rem; background: var(--paper-2); display: block; }
-.vfeat__q { font-family: var(--font-serif); font-size: 1.7rem; line-height: 1.28; margin: .5rem 0; }
-.vfeat__teaser { color: var(--ink-soft); font-size: 1rem; margin: 0 0 1.2rem; }
-.vfeat__cta { display: inline-block; font-weight: 800; color: #fff; background: var(--accent); border-radius: 999px; padding: .62rem 1.35rem; font-size: .9rem; }
-.vfeat:hover .vfeat__cta { opacity: .92; }
+/* ===== 빼꼼 투표 리스트 (피자스테이션형) ===== */
+.votewrap { max-width: 60rem; margin-inline: auto; padding: 2rem 1.5rem 5rem; }
+.vphead { margin-bottom: 1.6rem; }
+.vphead h1 { font-size: 2.2rem; margin: 0 0 .4rem; }
+.vphead p { color: var(--muted); font-size: 1rem; margin: 0; }
+.vphead strong { color: var(--accent); }
+
+/* 진행 중 — featured 카드 */
+.vfeat { display: block; border: 1px solid var(--line); border-radius: 16px; padding: 1.6rem 1.8rem; background: var(--paper); transition: box-shadow .15s, transform .15s; }
+.vfeat:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(0,0,0,.07); color: inherit; }
+.vfeat__top { display: flex; align-items: center; justify-content: space-between; gap: .8rem; flex-wrap: wrap; margin-bottom: 1.1rem; }
+.vfeat__act { display: flex; align-items: center; gap: 1.1rem; }
+.vfeat__count { color: var(--accent); font-weight: 700; font-size: .88rem; }
+.vfeat__btn { background: var(--accent); color: #fff; font-weight: 700; font-size: .9rem; border-radius: 8px; padding: .6rem 1.2rem; white-space: nowrap; }
+.vfeat:hover .vfeat__btn { opacity: .92; }
+.vfeat__q { font-family: var(--font-serif); font-size: 1.6rem; line-height: 1.32; margin: 0 0 1.1rem; }
+.vfeat__line { border-top: 1px solid var(--line); margin-bottom: 1rem; }
+.vfeat__excerpt { color: var(--ink-soft); font-size: .95rem; line-height: 1.6; margin: 0; }
+.vfeat__by { color: var(--muted); font-weight: 600; margin-left: .3rem; }
 
 /* 상태 배지 */
-.vbadge { display: inline-flex; align-items: center; gap: .4rem; font-size: .74rem; font-weight: 800; border-radius: 999px; padding: .32rem .72rem; }
-.vbadge--live { background: var(--accent); color: #fff; }
-.vbadge--live i { width: 7px; height: 7px; border-radius: 50%; background: #fff; animation: vpulse 1.4s infinite; }
+.vbadge { display: inline-flex; align-items: center; gap: .4rem; font-size: .76rem; font-weight: 800; border-radius: 999px; padding: .34rem .8rem; }
+.vbadge--live { background: color-mix(in srgb, var(--accent) 14%, var(--paper)); color: var(--accent); }
+.vbadge--live i { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: vpulse 1.4s infinite; }
 @keyframes vpulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
 
-/* 지난 투표 — 그리드 */
-.vpast { margin-top: 2.6rem; }
-.vpast__h { font-family: var(--font-serif); font-size: 1.15rem; margin: 0 0 1rem; padding-bottom: .6rem; border-bottom: 1px solid var(--line); }
-.vgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: .9rem; }
-.vpcard { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 14px; padding: 1.1rem 1.2rem; background: var(--paper); transition: border-color .15s, transform .15s; }
-.vpcard:hover { border-color: var(--accent); transform: translateY(-2px); color: inherit; }
-.vpcard__bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: .5rem; }
-.vpcard__emoji { font-size: 1.05rem; display: inline; vertical-align: middle; filter: grayscale(.2); opacity: .9; }
-.vpcard__count { font-size: .72rem; color: var(--muted); font-weight: 600; }
-.vpcard__q { font-family: var(--font-serif); font-size: 1.05rem; line-height: 1.32; margin: 0 0 .35rem; }
-.vpcard__teaser { color: var(--muted); font-size: .85rem; margin: 0 0 .8rem; flex: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.vpcard__go { font-size: .8rem; font-weight: 700; color: var(--ink-soft); }
-.vpcard:hover .vpcard__go { color: var(--accent); }
+/* 투표 상세 커버 이미지 */
+.pa-img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 14px; margin: 1rem 0 1.4rem; background: var(--paper-2); display: block; }
+
+/* 지난 투표 — 3열 그리드(커버 이미지 카드) */
+.vpast { margin-top: 2.8rem; }
+.vpast__h { font-family: var(--font-serif); font-size: 1.4rem; margin: 0 0 1.3rem; }
+.vgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.6rem 1.4rem; }
+.vpcard { display: block; transition: transform .15s; }
+.vpcard:hover { color: inherit; transform: translateY(-3px); }
+.vpcard__cover { aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: var(--paper-2); margin-bottom: .85rem; display: grid; place-items: center; }
+.vpcard__cover img { width: 100%; height: 100%; object-fit: cover; }
+.vpcard__coveremoji { font-size: 2.6rem; }
+.vpcard__q { font-family: var(--font-serif); font-size: 1.12rem; line-height: 1.35; margin: 0 0 .45rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.vpcard:hover .vpcard__q { color: var(--accent); }
+.vpcard__teaser { color: var(--muted); font-size: .88rem; line-height: 1.55; margin: 0 0 .6rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.vpcard__count { color: var(--accent); font-weight: 700; font-size: .82rem; }
+@media (max-width: 860px) { .vgrid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .vgrid { grid-template-columns: 1fr; } .vfeat__q { font-size: 1.35rem; } .vfeat__act { width: 100%; justify-content: space-between; } }
 
 /* 투표 상세 — 에디토리얼 */
 .poll-article { max-width: 38rem; }
@@ -255,7 +261,8 @@ body.app-screen { height: 100dvh; overflow: hidden; margin: 0; background: var(-
   .crami { height: auto; min-height: 100dvh; max-width: 960px; margin: 0 auto; border-inline: 1px solid var(--line); background: var(--paper); }
   .crami__bar { position: sticky; top: 0; z-index: 6; background: color-mix(in srgb, var(--paper) 92%, transparent); backdrop-filter: blur(6px); }
   .crami__body { display: block; }                              /* 스택: 스테이지 위, 패널 아래 */
-  .crami__stage { flex: none; width: auto; height: auto; aspect-ratio: 3; margin: 1.2rem 1.6rem 0;
+  /* 전역 .dress--stage(273줄)가 카드 규격을 덮어쓰지 않도록 결합 선택자로 우선순위 확보 */
+  .crami__stage.dress--stage { flex: none; width: auto; height: auto; aspect-ratio: 3; margin: 1.2rem 1.6rem 0;
     border-radius: 14px; overflow: hidden; position: relative; background: var(--paper-2); border: 1px solid var(--line); }
   .crami__controls { position: sticky; top: 50px; z-index: 5; background: var(--paper); }
   .crami__list { overflow: visible; padding: 1.4rem 1.6rem 7rem; }   /* 하단 고정 CTA 높이만큼 여백 */

@@ -63,7 +63,7 @@ const { spa, ...props } = Astro.props;
       <a class="vfab__bubble" id="vfab-bubble" href="/vote/" hidden>
         <button class="vfab__x" id="vfab-x" aria-label="닫기">×</button>
         <b id="vfab-q"></b>
-        <span class="vfab__cta">지금 투표하기 →</span>
+        <span class="vfab__cta">지금 빼꼼 투표 →</span>
       </a>
       <a class="vfab__btn" href="/vote/" id="vfab-btn" aria-label="오늘의 투표">
         <img src="/img/generated/crami-vote.webp" alt="" />
@@ -83,7 +83,7 @@ const { spa, ...props } = Astro.props;
           const apply = (rows) => {
             const p = rows && rows[0]; if (!p) return; // 활성 투표가 있을 때만 말풍선
             const b = document.getElementById('vfab-bubble'); if (!b) return;
-            document.getElementById('vfab-q').textContent = (p.emoji ? p.emoji + ' ' : '') + p.question;
+            document.getElementById('vfab-q').textContent = p.question + (p.emoji ? ' ' + p.emoji : '');
             let dismissed = false; try { dismissed = localStorage.getItem('crama:vfab-x') === String(p.id); } catch (e) {}
             if (!dismissed) b.hidden = false;
             const x = document.getElementById('vfab-x');

@@ -156,6 +156,20 @@
 .rbar__fill { position: absolute; left: 0; top: 0; bottom: 0; background: color-mix(in srgb, var(--accent) 13%, var(--paper)); z-index: 0; transition: width .5s ease; }
 .rbar--mine { border-color: var(--accent); }
 .rbar--mine .rbar__fill { background: color-mix(in srgb, var(--accent) 32%, var(--paper)); }
+
+/* 빼꼼 투표 — 크라미가 구멍에서 빼꼼(득표 많을수록 높이) */
+.peekpoll { display: flex; gap: .5rem; align-items: flex-end; justify-content: center; padding-top: .5rem; }
+.peekhole { flex: 1 1 0; max-width: 130px; text-align: center; }
+.peekhole__stage { position: relative; height: 140px; overflow: hidden; }
+.peekhole__crami { position: absolute; left: 50%; width: 72%; transform: translateX(-50%); bottom: calc(-44px + (var(--p) * 74px)); transition: bottom .85s cubic-bezier(.34, 1.56, .64, 1); }
+.peekhole__mound { position: absolute; left: 0; right: 0; bottom: 0; height: 30px; z-index: 2; background: radial-gradient(130% 160% at 50% 0%, #9a6440 0%, #6f4527 72%); border-top-left-radius: 50% 80%; border-top-right-radius: 50% 80%; }
+.peekhole__mound::after { content: ''; position: absolute; top: 3px; left: 50%; transform: translateX(-50%); width: 56%; height: 11px; background: rgba(0, 0, 0, .32); border-radius: 50%; }
+.peekhole__pct { font-family: var(--font-serif); font-weight: 700; font-size: 1.3rem; color: var(--ink); margin-top: .45rem; }
+.peekhole__label { font-size: .85rem; font-weight: 600; color: var(--ink-soft); line-height: 1.3; margin-top: .1rem; }
+.peekhole__cnt { font-size: .72rem; color: var(--muted); margin-top: .15rem; }
+.peekhole.is-mine .peekhole__pct { color: var(--accent); }
+.peekhole.is-mine .peekhole__mound { background: radial-gradient(130% 160% at 50% 0%, #c8754d 0%, var(--accent) 82%); }
+.peekhole__tag { display: inline-block; margin-top: .4rem; font-size: .66rem; font-weight: 800; color: #fff; background: var(--accent); border-radius: 999px; padding: .14rem .55rem; }
 .rbar__label { position: relative; z-index: 1; flex: 1; font-weight: 600; }
 .rbar__pct { position: relative; z-index: 1; font-weight: 800; color: var(--accent); }
 .poll__total { color: var(--muted); font-size: .82rem; margin-top: .3rem; }
@@ -178,7 +192,7 @@
 .vfeat:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(0,0,0,.08); color: inherit; }
 .vfeat__bar { display: flex; align-items: center; justify-content: space-between; gap: .6rem; margin-bottom: 1rem; }
 .vfeat__count { font-size: .82rem; font-weight: 700; color: var(--muted); }
-.vfeat__emoji { font-size: 2rem; display: block; }
+.vfeat__emoji { font-size: 1.4rem; display: inline; vertical-align: middle; }
 .vfeat__q { font-family: var(--font-serif); font-size: 1.7rem; line-height: 1.28; margin: .5rem 0; }
 .vfeat__teaser { color: var(--ink-soft); font-size: 1rem; margin: 0 0 1.2rem; }
 .vfeat__cta { display: inline-block; font-weight: 800; color: #fff; background: var(--accent); border-radius: 999px; padding: .62rem 1.35rem; font-size: .9rem; }
@@ -197,7 +211,7 @@
 .vpcard { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 14px; padding: 1.1rem 1.2rem; background: var(--paper); transition: border-color .15s, transform .15s; }
 .vpcard:hover { border-color: var(--accent); transform: translateY(-2px); color: inherit; }
 .vpcard__bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: .5rem; }
-.vpcard__emoji { font-size: 1.25rem; filter: grayscale(.2); opacity: .9; }
+.vpcard__emoji { font-size: 1.05rem; display: inline; vertical-align: middle; filter: grayscale(.2); opacity: .9; }
 .vpcard__count { font-size: .72rem; color: var(--muted); font-weight: 600; }
 .vpcard__q { font-family: var(--font-serif); font-size: 1.05rem; line-height: 1.32; margin: 0 0 .35rem; }
 .vpcard__teaser { color: var(--muted); font-size: .85rem; margin: 0 0 .8rem; flex: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }

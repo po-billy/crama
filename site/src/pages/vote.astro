@@ -10,9 +10,9 @@ const past = polls.slice(1);
 <BaseLayout title="오늘의 투표 — Crama" description="지금 화제인 이슈, 배경부터 읽고 한 표">
   <div class="app">
     <header class="vhead">
-      <span class="vhead__eyebrow">CRAMA VOTE</span>
-      <h1>오늘의 투표</h1>
-      <p class="app__sub" style="margin-top:.4rem">지금 화제인 이슈, 배경부터 읽고 한 표 던지기 — 참여하면 <strong style="color:var(--accent)">밀웜 +3</strong></p>
+      <span class="vhead__eyebrow">오늘의 여론 🦫</span>
+      <h1>빼꼼 투표</h1>
+      <p class="app__sub" style="margin-top:.4rem">지금 화제인 이슈에 한 표 — 표를 많이 받은 쪽 크라미가 구멍에서 <strong style="color:var(--accent)">빼꼼!</strong> 참여하면 <strong style="color:var(--accent)">밀웜 +3</strong></p>
     </header>
 
     {!featured ? (
@@ -24,8 +24,7 @@ const past = polls.slice(1);
             <span class="vbadge vbadge--live"><i></i> 투표 진행 중</span>
             <span class="vfeat__count" data-count={featured.id}></span>
           </div>
-          <span class="vfeat__emoji">{featured.emoji || '🗳️'}</span>
-          <h2 class="vfeat__q">{featured.question}</h2>
+          <h2 class="vfeat__q">{featured.question} <span class="vfeat__emoji">{featured.emoji || '🗳️'}</span></h2>
           {featured.teaser && <p class="vfeat__teaser">{featured.teaser}</p>}
           <span class="vfeat__cta">배경 읽고 투표하기 →</span>
         </a>
@@ -37,10 +36,9 @@ const past = polls.slice(1);
               {past.map((p: any) => (
                 <a class="vpcard" href={`/vote/${p.id}/`}>
                   <div class="vpcard__bar">
-                    <span class="vpcard__emoji">{p.emoji || '🗳️'}</span>
                     <span class="vpcard__count" data-count={p.id}></span>
                   </div>
-                  <h3 class="vpcard__q">{p.question}</h3>
+                  <h3 class="vpcard__q">{p.question} <span class="vpcard__emoji">{p.emoji || '🗳️'}</span></h3>
                   {p.teaser && <p class="vpcard__teaser">{p.teaser}</p>}
                   <span class="vpcard__go">결과 보기 →</span>
                 </a>

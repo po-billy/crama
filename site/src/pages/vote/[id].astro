@@ -16,7 +16,7 @@ const paras: string[] = String(poll.body || '').split(/\n\n+/).map((s: string) =
   <div class="detail-layout">
   <article class="app poll-article">
     <a class="muted-link" href="/vote/" style="display:inline-block;margin-bottom:1.2rem">← 오늘의 투표</a>
-    <div class="pa-eyebrow"><span class="pa-eyebrow__emoji">{poll.emoji || '🗳️'}</span> CRAMA VOTE</div>
+    <div class="pa-eyebrow"><span class="pa-eyebrow__emoji">{poll.emoji || '🗳️'}</span> 빼꼼 투표</div>
     <h1 class="pa-title">{poll.question}</h1>
     {poll.teaser && <p class="pa-teaser">{poll.teaser}</p>}
 
@@ -52,14 +52,27 @@ const paras: string[] = String(poll.body || '').split(/\n\n+/).map((s: string) =
 
   function resultsHtml(counts: Record<string, number>) {
     const total = counts.total || 0;
-    return `<div class="pa-results">${options.map((opt, i) => {
+    const peek = options.map((opt, i) => {
       const c = counts[String(i)] || 0;
       const pct = total ? Math.round((c / total) * 100) : 0;
-      return `<div class="rbar ${myChoice === i ? 'rbar--mine' : ''}"><div class="rbar__fill" style="width:${pct}%"></div><div class="rbar__label">${myChoice === i ? '● ' : ''}${esc(opt)}</div><div class="rbar__pct">${pct}%</div></div>`;
-    }).join('')}<div class="poll__total">${total.toLocaleString()}명 참여</div></div>`;
+      return { opt, i, c, pct };
+    });
+    const max = Math.max(1, ...peek.map((p) => p.pct)); // 최다 득표가 가장 높이 빼꼼
+    return `<div class="peekpoll">${peek
+      .map((p) => {
+        const rise = (p.pct / max).toFixed(3);
+        return `<div class="peekhole ${myChoice === p.i ? 'is-mine' : ''}">
+          <div class="peekhole__stage"><img class="peekhole__crami" src="/img/generated/meerkat-baby-stand.webp" alt="" style="--p:${rise}"><span class="peekhole__mound"></span></div>
+          <div class="peekhole__pct">${p.pct}%</div>
+          <div class="peekhole__label">${esc(p.opt)}</div>
+          <div class="peekhole__cnt">${p.c.toLocaleString()}표</div>
+          ${myChoice === p.i ? '<span class="peekhole__tag">내 선택</span>' : ''}
+        </div>`;
+      })
+      .join('')}</div><div class="poll__total">${total.toLocaleString()}명 참여</div>`;
   }
   function optionsHtml() {
-    return `<div class="pa-vote__q">당신의 선택은?</div><div class="poll__opts">${options.map((opt, i) => `<button class="opt-btn" data-i="${i}">${esc(opt)}</button>`).join('')}</div>`;
+    return `<div class="pa-vote__q">크라미를 어느 구멍에서 빼꼼 시킬까요?</div><div class="poll__opts">${options.map((opt, i) => `<button class="opt-btn" data-i="${i}">${esc(opt)}</button>`).join('')}</div>`;
   }
 
   async function renderVote() {

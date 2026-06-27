@@ -115,12 +115,12 @@ export async function claimReferral(code: string): Promise<{ ok: boolean; messag
 }
 
 // ---------- 투표·여론 ----------
-export type Poll = { id: number; question: string; options: string[]; emoji?: string; context?: string; source_slug?: string };
+export type Poll = { id: number; question: string; options: string[]; emoji?: string; context?: string; source_slug?: string; image?: string };
 export type Opinion = { nickname: string; choice: number | null; text: string; created_at: string };
 
 export async function getActivePolls(): Promise<Poll[]> {
   if (!isSupabaseConfigured) return [];
-  const { data } = await getSupabase().from('polls').select('id,question,options,emoji,context,source_slug').eq('active', true).order('created_at', { ascending: false });
+  const { data } = await getSupabase().from('polls').select('id,question,options,emoji,context,source_slug,image').eq('active', true).order('created_at', { ascending: false });
   return (data as Poll[]) ?? [];
 }
 export async function getMyVotes(pollIds: number[]): Promise<Record<number, number>> {

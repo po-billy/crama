@@ -20,6 +20,7 @@ const past = polls.slice(1);
     ) : (
       <>
         <a class="vfeat" href={`/vote/${featured.id}/`}>
+          {featured.image && <img class="vfeat__img" src={featured.image} alt="" />}
           <div class="vfeat__bar">
             <span class="vbadge vbadge--live"><i></i> 투표 진행 중</span>
             <span class="vfeat__count" data-count={featured.id}></span>
@@ -35,6 +36,7 @@ const past = polls.slice(1);
             <div class="vgrid">
               {past.map((p: any) => (
                 <a class="vpcard" href={`/vote/${p.id}/`}>
+                  {p.image && <img class="vpcard__img" src={p.image} alt="" loading="lazy" />}
                   <div class="vpcard__bar">
                     <span class="vpcard__count" data-count={p.id}></span>
                   </div>

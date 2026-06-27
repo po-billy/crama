@@ -19,6 +19,7 @@ const paras: string[] = String(poll.body || '').split(/\n\n+/).map((s: string) =
     <div class="pa-eyebrow"><span class="pa-eyebrow__emoji">{poll.emoji || '🗳️'}</span> 빼꼼 투표</div>
     <h1 class="pa-title">{poll.question}</h1>
     {poll.teaser && <p class="pa-teaser">{poll.teaser}</p>}
+    {poll.image && <img class="pa-img" src={poll.image} alt="" />}
 
     <div class="pa-body">
       {paras.map((p) => <p>{p}</p>)}

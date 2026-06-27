@@ -6,7 +6,7 @@ export async function fetchActivePolls() {
   if (!URL || !ANON) return [];
   try {
     const res = await fetch(
-      `${URL}/rest/v1/polls?active=eq.true&order=created_at.desc&select=id,question,options,emoji,teaser,context,body`,
+      `${URL}/rest/v1/polls?active=eq.true&order=created_at.desc&select=id,question,options,emoji,teaser,context,body,image`,
       { headers: { apikey: ANON, Authorization: `Bearer ${ANON}` } },
     );
     if (!res.ok) return [];

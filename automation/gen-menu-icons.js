@@ -8,8 +8,9 @@ import sharp from 'sharp';
 const OUT = path.resolve('../site/public/img/generated');
 
 const STYLE =
-  'cute 3D rendered claymation icon, single object, soft rounded clay material, smooth studio lighting, ' +
-  'simple and clear, centered, high detail, no text, no words, no letters, ' +
+  'modern flat app UI icon, clean simple vector-style illustration with soft subtle depth and gentle flat shading, ' +
+  'friendly rounded shapes, a small palette of soft harmonious colors, smooth and tidy like the quick-menu icons in popular mobile service apps, ' +
+  'single centered object, no clay texture, no glossy 3D render, no text, no words, no letters, ' +
   'isolated on a fully transparent background, no scenery, no floor, no shadow';
 
 const ICONS = [

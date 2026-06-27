@@ -4,15 +4,16 @@
 <div class="achm" id="achm" hidden>
   <div class="achm__panel" role="dialog" aria-modal="true" aria-label="조코헌트 등재 소식">
     <button class="achm__x" id="achm-x" aria-label="닫기">×</button>
-    <div class="achm__badge">🏆 조코헌트 등재</div>
+    <div class="achm__badge">🏆 조코헌트 주간 1위</div>
     <h2 class="achm__title">크라마가 <b>조코헌트 주간 1위</b>에 올랐어요 🥇</h2>
     <img class="achm__img" src="/img/jocohunt-win.png" alt="조코헌트 주간 1위 크라마" loading="lazy" />
     <div class="achm__stats">
-      <span><b>🥇 주간</b> 1위</span>
-      <span><b>🥈 월간</b> 2위</span>
-      <span><b>🥉 연간</b> 3위</span>
+      <span><b>🥇 주간</b> 1위 <em>확정</em></span>
+      <span><b>🥇 월간</b> 1위</span>
+      <span><b>🥇 연간</b> 1위</span>
     </div>
-    <p class="achm__sub">등록 <b>하루 만에</b> 거둔 성과예요. 먼저 읽어주신 여러분 덕분입니다 🙏</p>
+    <p class="achm__sub">등록 <b>하루 만에</b> 거둔 성과예요. 먼저 읽어주신 여러분 덕분입니다 🙏<br /><small>※ 월간·연간은 집계 중이라 변동될 수 있어요.</small></p>
+    <a class="achm__link" href="https://jocohunt.com" target="_blank" rel="noopener">조코헌트에서 보기 →</a>
     <button class="achm__cta" id="achm-ok">고마워요 🎉</button>
   </div>
 </div>
@@ -34,15 +35,19 @@
   .achm__stats { display: flex; justify-content: center; gap: .45rem; margin-bottom: .9rem; flex-wrap: wrap; }
   .achm__stats span { font-size: .85rem; color: var(--ink-soft); background: var(--paper-2); border: 1px solid var(--line); border-radius: 999px; padding: .4rem .8rem; }
   .achm__stats b { color: var(--ink); font-weight: 700; }
-  .achm__sub { color: var(--muted); font-size: .92rem; line-height: 1.6; margin: 0 0 1.2rem; }
+  .achm__stats em { font-style: normal; color: var(--accent); font-weight: 800; font-size: .76rem; }
+  .achm__sub { color: var(--muted); font-size: .92rem; line-height: 1.6; margin: 0 0 1rem; }
   .achm__sub b { color: var(--ink-soft); }
+  .achm__sub small { color: var(--muted); font-size: .8rem; }
+  .achm__link { display: inline-block; margin: 0 0 1rem; color: var(--accent); font-weight: 700; font-size: .9rem; }
+  .achm__link:hover { color: var(--accent); text-decoration: underline; }
   .achm__cta { width: 100%; background: var(--accent); color: #fff; border: 0; border-radius: 999px; padding: .8rem; font-weight: 800; font-size: 1rem; cursor: pointer; }
   .achm__cta:hover { color: #fff; filter: brightness(1.06); }
 </style>
 
 <script is:inline>
   (() => {
-    const KEY = 'crama:ach-jocohunt-2026w26'; // 성과 갱신 시 키만 바꾸면 다시 1회 노출
+    const KEY = 'crama:ach-jocohunt-top1'; // 성과 갱신 시 키만 바꾸면 다시 1회 노출
     function init() {
       const m = document.getElementById('achm'); if (!m) return;
       try { if (localStorage.getItem(KEY)) return; } catch (e) {}

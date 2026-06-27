@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-label="크라마 멤버십 — 읽을수록 밀웜이 쌓여요">
+  <rect width="1280" height="720" fill="#fbfaf8"/>
+  <circle cx="1090" cy="360" r="300" fill="#f3e7df"/>
+  <circle cx="1150" cy="250" r="70" fill="#e8a184" opacity="0.9"/>
+  <circle cx="990" cy="500" r="44" fill="#b04a2f" opacity="0.85"/>
+  <g transform="translate(1058,330)">
+    <ellipse cx="0" cy="0" rx="120" ry="120" fill="#b04a2f"/>
+    <text x="0" y="34" font-family="'Noto Serif KR','Nanum Myeongjo',serif" font-size="96" font-weight="800" fill="#fff" text-anchor="middle">밀</text>
+  </g>
+  <text x="96" y="206" font-family="'Helvetica Neue',Arial,sans-serif" font-size="26" letter-spacing="6" font-weight="700" fill="#b04a2f">CRAMA MEMBERSHIP</text>
+  <text x="94" y="316" font-family="'Noto Serif KR','Nanum Myeongjo',serif" font-size="74" font-weight="800" fill="#2a2622">읽을수록 밀웜이 쌓여요</text>
+  <text x="96" y="386" font-family="'Helvetica Neue',Arial,sans-serif" font-size="32" fill="#6b625a">모은 밀웜으로 크라미를 꾸미고, 멤버 혜택까지.</text>
+  <g transform="translate(96,452)">
+    <rect width="312" height="74" rx="37" fill="#b04a2f"/>
+    <text x="156" y="48" font-family="'Helvetica Neue',Arial,sans-serif" font-size="30" font-weight="800" fill="#fff" text-anchor="middle">멤버십 시작하기 →</text>
+  </g>
+  <text x="96" y="640" font-family="'Helvetica Neue',Arial,sans-serif" font-size="22" font-weight="800" fill="#2a2622">Crama<tspan fill="#b04a2f">.</tspan></text>
+  <text x="1184" y="60" font-family="'Helvetica Neue',Arial,sans-serif" font-size="20" letter-spacing="2" fill="#b8b0a8" text-anchor="end">AD</text>
+</svg>

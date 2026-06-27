@@ -131,18 +131,43 @@ import '../styles/app.css';
     else toast(MSG[res.message] ?? res.message);
   }
 
-  // ── 리워드 광고 (AdMob 연동 전 임시: 지정 URL 5초 시청 후 보상) ──
-  const AD_CREATIVE = ''; // ← 영상(mp4/webm)·gif·이미지 URL. 비우면 임시 박스
-  const AD_LINK = '';     // ← 클릭 시 이동할 광고주 랜딩 URL. 비우면 클릭 비활성(보기만)
+  // ── 리워드 광고 (하우스 광고 3종 가중치 로테이션 + GA4 노출/클릭 성과 측정) ──
+  // creative: 영상(mp4/webm)·gif·이미지 URL / link: 클릭 시 이동(새 탭) / weight: 노출 비중
+  // 실제 광고주가 생기면 이 배열만 교체하면 됩니다(빈 배열이면 임시 박스).
+  type Ad = { id: string; name: string; creative: string; link: string; weight: number };
+  const ADS: Ad[] = [
+    { id: 'membership', name: '멤버십',   creative: '/img/ads/ad-membership.svg', link: '/membership/', weight: 1 },
+    { id: 'vote',       name: '빼꼼투표', creative: '/img/ads/ad-vote.svg',       link: '/vote/',       weight: 1 },
+    { id: 'column',     name: '칼럼',     creative: '/img/ads/ad-column.svg',     link: '/column/',     weight: 1 },
+  ];
+  function pickAd(): Ad | null {
+    const pool = ADS.filter((a) => a.creative);
+    if (!pool.length) return null;
+    const total = pool.reduce((s, a) => s + (a.weight || 1), 0);
+    let r = Math.random() * total;
+    for (const a of pool) { r -= (a.weight || 1); if (r <= 0) return a; }
+    return pool[0];
+  }
+  function gaTrack(name: string, params: Record<string, any>) {
+    try { (window as any).gtag?.('event', name, params); } catch (e) {}
+  }
   function showAd() {
     const media = $('ad-media');
-    const isVid = /\.(mp4|webm|mov)(\?|$)/i.test(AD_CREATIVE);
-    const inner = AD_CREATIVE
-      ? (isVid ? `<video src="${AD_CREATIVE}" autoplay muted playsinline loop></video>` : `<img src="${AD_CREATIVE}" alt="광고">`)
+    const ad = pickAd();
+    const creative = ad?.creative || '';
+    const link = ad?.link || '';
+    const isVid = /\.(mp4|webm|mov)(\?|$)/i.test(creative);
+    const inner = creative
+      ? (isVid ? `<video src="${creative}" autoplay muted playsinline loop></video>` : `<img src="${creative}" alt="${ad?.name || '광고'}">`)
       : `<span class="ad-ph">광고 영역 (URL 미설정)</span>`;
-    media.innerHTML = (AD_LINK && AD_CREATIVE)
-      ? `<a class="admodal__link" href="${AD_LINK}" target="_blank" rel="noopener sponsored">${inner}</a>`
+    media.innerHTML = (link && creative)
+      ? `<a class="admodal__link" href="${link}" target="_blank" rel="noopener sponsored">${inner}</a>`
       : inner;
+    if (ad) {
+      gaTrack('ad_impression', { ad_id: ad.id, ad_name: ad.name, slot: 'reward' });
+      const a = media.querySelector('a.admodal__link');
+      if (a) a.addEventListener('click', () => gaTrack('ad_click', { ad_id: ad.id, ad_name: ad.name, slot: 'reward' }));
+    }
     $('admodal').hidden = false;
     let n = 5;
     const claim = $('ad-claim') as HTMLButtonElement;

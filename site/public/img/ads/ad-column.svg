@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-label="크라마 칼럼 — 돈에 대한 생각을 바꾸는 글">
+  <rect width="1280" height="720" fill="#fbfaf8"/>
+  <circle cx="1090" cy="360" r="300" fill="#efe9e0"/>
+  <circle cx="1150" cy="260" r="48" fill="#c9a24a" opacity="0.85"/>
+  <g transform="translate(1000,360) rotate(6)">
+    <rect x="-130" y="-95" width="260" height="190" rx="12" fill="#fff" stroke="#2a2622" stroke-width="6"/>
+    <line x1="-92" y1="-48" x2="92" y2="-48" stroke="#d8cfc4" stroke-width="10" stroke-linecap="round"/>
+    <line x1="-92" y1="-6" x2="92" y2="-6" stroke="#d8cfc4" stroke-width="10" stroke-linecap="round"/>
+    <line x1="-92" y1="36" x2="40" y2="36" stroke="#b04a2f" stroke-width="10" stroke-linecap="round"/>
+  </g>
+  <text x="96" y="206" font-family="'Helvetica Neue',Arial,sans-serif" font-size="26" letter-spacing="6" font-weight="700" fill="#b04a2f">CRAMA COLUMN</text>
+  <text x="94" y="316" font-family="'Noto Serif KR','Nanum Myeongjo',serif" font-size="74" font-weight="800" fill="#2a2622">생각을 바꾸는 돈 칼럼</text>
+  <text x="96" y="386" font-family="'Helvetica Neue',Arial,sans-serif" font-size="32" fill="#6b625a">사고 싶게 만드는 건 가격이 아니라 이야기예요.</text>
+  <g transform="translate(96,452)">
+    <rect width="284" height="74" rx="37" fill="#2a2622"/>
+    <text x="142" y="48" font-family="'Helvetica Neue',Arial,sans-serif" font-size="30" font-weight="800" fill="#fff" text-anchor="middle">칼럼 읽으러 →</text>
+  </g>
+  <text x="96" y="640" font-family="'Helvetica Neue',Arial,sans-serif" font-size="22" font-weight="800" fill="#2a2622">Crama<tspan fill="#b04a2f">.</tspan></text>
+  <text x="1184" y="60" font-family="'Helvetica Neue',Arial,sans-serif" font-size="20" letter-spacing="2" fill="#b8b0a8" text-anchor="end">AD</text>
+</svg>

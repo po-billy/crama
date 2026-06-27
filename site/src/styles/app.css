@@ -249,17 +249,21 @@ body.app-screen { height: 100dvh; overflow: hidden; margin: 0; background: var(-
 .crami__list { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: .9rem 1rem 1.2rem; }
 .crami__cta { flex: none; padding: .7rem 1rem calc(.7rem + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); }
 
-/* PC: 크라미 스테이지를 상단 와이드 배너(16:5)로 두고 아래는 일반 스크롤 페이지 (모바일은 그대로) */
+/* PC: 크라미 스테이지 상단 카드(3:1) + 하단 고정 CTA. 아래는 일반 스크롤 (모바일은 그대로) */
 @media (min-width: 900px) {
   body.app-screen { height: auto; overflow: auto; background: var(--paper-2); }
   .crami { height: auto; min-height: 100dvh; max-width: 960px; margin: 0 auto; border-inline: 1px solid var(--line); background: var(--paper); }
   .crami__bar { position: sticky; top: 0; z-index: 6; background: color-mix(in srgb, var(--paper) 92%, transparent); backdrop-filter: blur(6px); }
   .crami__body { display: block; }                              /* 스택: 스테이지 위, 패널 아래 */
-  .crami__stage { flex: none; height: auto; aspect-ratio: 16 / 5; }  /* 상단 와이드 배너 */
+  .crami__stage { flex: none; width: auto; height: auto; aspect-ratio: 3; margin: 1.2rem 1.6rem 0;
+    border-radius: 14px; overflow: hidden; position: relative; background: var(--paper-2); border: 1px solid var(--line); }
   .crami__controls { position: sticky; top: 50px; z-index: 5; background: var(--paper); }
-  .crami__list { overflow: visible; padding: 1.4rem 1.6rem 6rem; }
+  .crami__list { overflow: visible; padding: 1.4rem 1.6rem 7rem; }   /* 하단 고정 CTA 높이만큼 여백 */
   .crami__list .item-grid { grid-template-columns: repeat(4, 1fr); gap: 1rem; }
-  .crami__cta { position: sticky; bottom: 0; background: color-mix(in srgb, var(--paper) 92%, transparent); backdrop-filter: blur(6px); }
+  /* 하단 고정 액션바 (960 컨테이너 폭에 맞춰 중앙 정렬) */
+  .crami__cta { position: fixed; left: 0; right: 0; bottom: 0; max-width: 960px; margin: 0 auto; z-index: 7;
+    padding: .9rem 1.6rem calc(.9rem + env(safe-area-inset-bottom));
+    background: color-mix(in srgb, var(--paper) 94%, transparent); backdrop-filter: blur(6px); border-top: 1px solid var(--line); }
 }
 .crami__cta .btn { font-size: 1.05rem; padding: .95rem; }
 .toggle { margin-left: auto; display: inline-flex; align-items: center; gap: .35rem; font-size: .85rem; font-weight: 600; color: var(--ink-soft); white-space: nowrap; cursor: pointer; border: 1px solid var(--line); border-radius: 999px; padding: .35rem .7rem; }

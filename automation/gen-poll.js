@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import Anthropic from '@anthropic-ai/sdk';
 import pg from 'pg';
 import { pathToFileURL } from 'node:url';
+import { generatePollImage } from './gen-poll-image.js';
 
 dotenv.config({ path: '../supabase/.env' }); // DB 접속 (CI에선 GH secret 로 process.env)
 
@@ -43,8 +44,14 @@ JSON만 출력:
     // 최근 60개만 활성 유지(목록 "지난 투표" 아카이브로 노출, 더 오래된 건 비활성)
     await c.query('update polls set active=false where active=true and id not in (select id from polls order by created_at desc limit 60)');
     const r = await c.query('insert into polls (question, options, emoji, teaser, body) values ($1,$2::jsonb,$3,$4,$5) returning id', [p.question, JSON.stringify(p.options.slice(0, 4)), p.emoji || '🗳️', p.teaser || null, p.body || null]);
-    console.log('✓ 투표 생성:', r.rows[0].id, '—', p.question);
-    return r.rows[0].id;
+    const id = r.rows[0].id;
+    console.log('✓ 투표 생성:', id, '—', p.question);
+    // 커버 이미지 자동 생성(실패해도 투표 생성은 유지)
+    try {
+      await c.query('alter table polls add column if not exists image text');
+      console.log('  ✓ 커버 이미지:', await generatePollImage(c, id, p.question));
+    } catch (e) { console.log('  · 커버 이미지 생략:', e.message); }
+    return id;
   } finally { await c.end(); }
 }
 

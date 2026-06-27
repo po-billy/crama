@@ -36,7 +36,11 @@ import '../styles/app.css';
 
     <!-- 밀웜 모으기 -->
     <h2 style="margin:0 0 0.8rem; font-size:1.2rem">밀웜 모으기</h2>
-    <div class="panel" id="earn-list"></div>
+    <div class="panel" id="earn-list">
+      <div class="skel skel-row"></div><div class="skel skel-row"></div>
+      <div class="skel skel-row"></div><div class="skel skel-row"></div>
+      <div class="skel skel-row"></div>
+    </div>
 
     <!-- 친구 초대 -->
     <div class="invite" style="margin-top:2rem">
@@ -127,7 +131,7 @@ import '../styles/app.css';
 
   async function doEarn(action: EarnAction) {
     const res = await earnWorms(action);
-    if (res.ok) { $('bal').textContent = String(res.balance); counts[action] = (counts[action] ?? 0) + 1; renderEarn(); toast('밀웜을 받았어요!'); }
+    if (res.ok) { $('bal').textContent = String(res.balance); try { localStorage.setItem('crama:bal', String(res.balance)); } catch {} counts[action] = (counts[action] ?? 0) + 1; renderEarn(); toast('밀웜을 받았어요!'); }
     else toast(MSG[res.message] ?? res.message);
   }
 
@@ -209,6 +213,8 @@ import '../styles/app.css';
   $('logout').onclick = async () => { await signOut(); location.replace('/login/'); };
 
   (async () => {
+    // 캐시값 즉시 표시(0 점프 방지) — fetch 후 갱신
+    try { const cb = localStorage.getItem('crama:bal'); if (cb) $('bal').textContent = cb; const cs = localStorage.getItem('crama:streak'); if (cs) $('streak').textContent = cs; } catch {}
     const user = await getUser();
     if (!user) { location.replace('/login/'); return; }
     await earnWorms('attend'); // 출석(서버 1일 1회 캡)
@@ -227,6 +233,7 @@ import '../styles/app.css';
     $('email').textContent = user.email ?? '';
     $('bal').textContent = String(bal);
     $('streak').textContent = String(s.streak);
+    try { localStorage.setItem('crama:bal', String(bal)); localStorage.setItem('crama:streak', String(s.streak)); } catch {}
 
     // 친구 초대 링크
     const code = (profile as any)?.referral_code;

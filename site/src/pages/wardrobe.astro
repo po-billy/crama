@@ -23,7 +23,11 @@ import AppLayout from '../layouts/AppLayout.astro';
           <div id="tabs" class="slot-tabs" style="flex:1;margin:0;padding:0"></div>
           <button class="toggle" id="owned-toggle" aria-pressed="false">보유만</button>
         </div>
-        <div class="crami__list"><div id="list"></div></div>
+        <div class="crami__list"><div id="list"><div class="skel-grid">
+          <div class="skel skel-card"></div><div class="skel skel-card"></div>
+          <div class="skel skel-card"></div><div class="skel skel-card"></div>
+          <div class="skel skel-card"></div><div class="skel skel-card"></div>
+        </div></div></div>
         <div class="crami__cta" id="cta"></div>
       </div>
     </div>
@@ -212,6 +216,7 @@ import AppLayout from '../layouts/AppLayout.astro';
     look = { ...data.equipped };
     balance = await wormBalance();
     $('bal').textContent = String(balance);
+    try { localStorage.setItem('crama:bal', String(balance)); } catch {}
     renderPreview(); renderTabs(); renderItems(); renderCTA();
   }
 
@@ -223,6 +228,8 @@ import AppLayout from '../layouts/AppLayout.astro';
   $('wbi').innerHTML = wormSvg();
 
   (async () => {
+    // 캐시 잔액 즉시 표시(0 점프 방지) — fetch 후 갱신
+    try { const c = localStorage.getItem('crama:bal'); if (c) $('bal').textContent = c; } catch {}
     loggedIn = !!(await getUser());
     await reload();
   })();

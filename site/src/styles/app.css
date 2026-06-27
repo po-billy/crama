@@ -344,3 +344,17 @@ body.app-screen { height: 100dvh; overflow: hidden; margin: 0; background: var(-
   background: var(--ink); color: var(--paper); padding: 0.7rem 1.1rem; border-radius: 999px;
   font-size: 0.9rem; z-index: 100; opacity: 0; transition: opacity .2s; pointer-events: none; }
 .toast.show { opacity: 1; }
+
+/* 동적 데이터 부분 로딩 스켈레톤 — 동적 컨테이너에만 적용(전체 페이지 X → SEO 영향 없음) */
+.skel { position: relative; overflow: hidden; background: var(--paper-2); border-radius: 12px; }
+.skel::after {
+  content: ''; position: absolute; inset: 0; transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--line) 55%, transparent), transparent);
+  animation: skel-shimmer 1.2s ease-in-out infinite;
+}
+@keyframes skel-shimmer { 100% { transform: translateX(100%); } }
+.skel-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.9rem; }
+.skel-card { height: 9.5rem; }
+.skel-row { height: 3.4rem; }
+.skel-row + .skel-row { margin-top: 0.6rem; }
+@media (prefers-reduced-motion: reduce) { .skel::after { animation: none; } }

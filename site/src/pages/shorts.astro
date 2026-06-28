@@ -1,0 +1,323 @@
+---
+import { getCollection } from 'astro:content';
+import AppLayout from '../layouts/AppLayout.astro';
+import { CATEGORIES } from '../consts';
+
+// 최신 글을 세로 스와이프 '쇼츠' 피드로 — 카드 한 장 = 한 화면.
+const posts = (await getCollection('blog'))
+  .filter((p) => !p.data.draft)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 40);
+
+const estMin = (p) => Math.max(1, Math.round((p.body || '').length / 600));
+const thumb = (h?: string) => h; // 풀사이즈 hero 사용(전면 비주얼)
+---
+<AppLayout title="쇼츠 — Crama" description="돈·AI 인사이트를 한 장씩 넘겨 보는 쇼츠">
+  <div class="shorts">
+    <!-- 상단바 + 스크롤 진행 -->
+    <div class="shorts__top">
+      <div class="shorts__bar">
+        <button class="shorts__icon" id="sh-back" aria-label="닫기">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+        <span class="shorts__t">쇼츠</span>
+        <span class="shorts__count"><b id="sh-cur">1</b> / {posts.length}</span>
+      </div>
+      <div class="shorts__progress"><span class="shorts__progress-fill" id="sh-prog"></span></div>
+    </div>
+
+    <div class="shorts__feed" id="sh-feed">
+      {posts.map((p, i) => (
+        <section class="short" data-short data-slug={p.id} data-audio={p.data.audio ?? ''} data-title={p.data.title}>
+          <div class="short__card">
+            <div class="short__media">
+              {p.data.heroImage
+                ? <img src={thumb(p.data.heroImage)} alt="" loading={i < 2 ? 'eager' : 'lazy'} fetchpriority={i === 0 ? 'high' : 'auto'} />
+                : <div class="short__media-fallback" aria-hidden="true"></div>}
+              <span class="short__chip">{CATEGORIES[p.data.category].name} · {p.data.format === 'column' ? '칼럼' : '가이드'}</span>
+              {p.data.audio && (
+                <button class="short__listen" type="button" data-listen aria-label="본문 듣기">
+                  <span class="ic ic--play"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
+                  <span class="ic ic--pause"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><rect x="6.5" y="5" width="3.6" height="14" rx="1.2"/><rect x="13.9" y="5" width="3.6" height="14" rx="1.2"/></svg></span>
+                  <span class="ic ic--load" aria-hidden="true"></span>
+                </button>
+              )}
+              <span class="short__scrim" aria-hidden="true"></span>
+            </div>
+            <div class="short__sheet">
+              <div class="short__body">
+                <h2 class="short__title">{p.data.title}</h2>
+                <p class="short__desc">{p.data.description}</p>
+                <span class="short__rt">약 {estMin(p)}분 읽기</span>
+              </div>
+              <div class="short__row">
+                <a class="short__read" href={`/blog/${p.id}/`}>이어서 읽기
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                </a>
+                <button class="short__act" type="button" data-bm={p.id} aria-label="저장">
+                  <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12v16l-6-4-6 4z"/></svg>
+                </button>
+                <button class="short__act" type="button" data-share data-title={p.data.title} data-url={`/blog/${p.id}/`} aria-label="공유">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.8l7.4-4.3M8.3 13.2l7.4 4.3"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          {i === 0 && <span class="short__swipe" aria-hidden="true">위로 넘겨 다음 글<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg></span>}
+        </section>
+      ))}
+    </div>
+
+    <div class="shorts__toast" id="sh-toast" role="status" aria-live="polite"></div>
+  </div>
+</AppLayout>
+
+<script>
+  import { getBookmarks, toggleBookmark } from '../lib/api';
+
+  const feed = document.getElementById('sh-feed')!;
+  const cards = Array.from(document.querySelectorAll('[data-short]')) as HTMLElement[];
+  const curEl = document.getElementById('sh-cur')!;
+  const prog = document.getElementById('sh-prog')!;
+  const toastEl = document.getElementById('sh-toast')!;
+  let toastT: ReturnType<typeof setTimeout>;
+  const toast = (m: string) => { toastEl.textContent = m; toastEl.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => toastEl.classList.remove('on'), 1800); };
+
+  // ── 본문 오디오: 기존 MP3 + 타임스탬프 재활용, 제목 다음(본문)부터 재생 ──
+  const audio = new Audio(); audio.preload = 'none';
+  let userStarted = false;            // 자동재생 정책 — 첫 ▶ 이후에만 자동 전환
+  let activeCard: HTMLElement | null = null;
+  const jsonCache: Record<string, any> = {};
+
+  // gen-audio.js 와 동일 규칙(제목 청크 수 계산용)
+  function pushSentences(text: string): string[] {
+    const out: string[] = [];
+    const sentences = String(text).replace(/\s+/g, ' ').match(/[^.!?。…\n]+[.!?。…]?/g) || [text];
+    for (let s of sentences) {
+      s = s.trim(); if (!s) continue;
+      if (s.length <= 180) { out.push(s); continue; }
+      let buf = '';
+      for (const part of s.split(/(?<=[,;:、])\s*/)) { if ((buf + part).length > 180) { if (buf) out.push(buf.trim()); buf = part; } else buf += part; }
+      if (buf.trim()) out.push(buf.trim());
+    }
+    return out;
+  }
+  async function bodyStartSec(card: HTMLElement): Promise<number> {
+    const mp3 = card.dataset.audio!;
+    const jsonUrl = mp3.replace(/\.mp3(\?|$)/, '.json$1');
+    let data = jsonCache[jsonUrl];
+    if (!data) { try { data = await (await fetch(jsonUrl)).json(); } catch (e) { return 0; } jsonCache[jsonUrl] = data; }
+    const chunks = (data && data.chunks) || [];
+    const titleCount = pushSentences(card.dataset.title || '').length; // 제목 청크 수
+    for (let i = titleCount; i < chunks.length; i++) { if (chunks[i] && chunks[i].t != null) return chunks[i].t / 1000; }
+    return 0;
+  }
+  const listenBtn = (card: HTMLElement | null) => card?.querySelector('[data-listen]') as HTMLElement | null;
+  function paintAudioUI() {
+    cards.forEach((c) => listenBtn(c)?.classList.remove('is-playing', 'is-loading'));
+    if (activeCard && !audio.paused) listenBtn(activeCard)?.classList.add('is-playing');
+  }
+  audio.addEventListener('play', paintAudioUI);
+  audio.addEventListener('pause', paintAudioUI);
+  audio.addEventListener('playing', paintAudioUI);
+  audio.addEventListener('ended', () => {
+    if (!userStarted || !activeCard) return;
+    const i = cards.indexOf(activeCard);
+    if (i >= 0 && i < cards.length - 1) feed.scrollBy({ top: feed.clientHeight, behavior: 'smooth' }); // 끝나면 다음 글로
+  });
+
+  async function playCard(card: HTMLElement) {
+    const mp3 = card.dataset.audio;
+    if (!mp3) { audio.pause(); return; }
+    listenBtn(card)?.classList.add('is-loading');
+    const startSec = await bodyStartSec(card);
+    if (audio.src !== mp3) {
+      audio.src = mp3;
+      const seek = () => { try { audio.currentTime = startSec; } catch (e) {} audio.removeEventListener('loadedmetadata', seek); };
+      audio.addEventListener('loadedmetadata', seek);
+    } else {
+      try { audio.currentTime = startSec; } catch (e) {}
+    }
+    try { await audio.play(); } catch (e) {}
+    paintAudioUI();
+  }
+
+  // 현재 카드 추적(인덱스/활성 애니메이션 + 오디오 전환)
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (e.isIntersecting) {
+        e.target.classList.add('is-active');
+        activeCard = e.target as HTMLElement;
+        curEl.textContent = String(cards.indexOf(activeCard) + 1);
+        if (userStarted) playCard(activeCard); else paintAudioUI();
+      }
+    });
+  }, { threshold: 0.55 });
+  cards.forEach((c) => io.observe(c));
+
+  // 듣기 버튼: 첫 클릭이 자동재생 잠금 해제, 같은 카드 재생 중이면 일시정지
+  document.querySelectorAll('[data-listen]').forEach((b) => b.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    const card = (b as HTMLElement).closest('[data-short]') as HTMLElement;
+    if (!audio.paused && activeCard === card) { audio.pause(); return; }
+    userStarted = true; activeCard = card; playCard(card);
+  }));
+  window.addEventListener('pagehide', () => audio.pause());
+
+  // 스크롤 진행바
+  feed.addEventListener('scroll', () => {
+    const max = feed.scrollHeight - feed.clientHeight;
+    prog.style.transform = `scaleX(${max > 0 ? feed.scrollTop / max : 0})`;
+  }, { passive: true });
+
+  // 저장(북마크) — 기존 Supabase 시스템 재사용
+  const bmBtns = Array.from(document.querySelectorAll('[data-bm]')) as HTMLButtonElement[];
+  (async () => {
+    try {
+      const saved = new Set(await getBookmarks());
+      bmBtns.forEach((b) => { if (saved.has(b.dataset.bm!)) b.classList.add('on'); });
+    } catch (e) {}
+  })();
+  bmBtns.forEach((b) => b.addEventListener('click', async () => {
+    const r = await toggleBookmark(b.dataset.bm!);
+    b.classList.toggle('on', r.bookmarked);
+    toast(r.bookmarked ? '저장했어요' : '저장 해제');
+  }));
+
+  // 공유
+  document.querySelectorAll('[data-share]').forEach((b) => b.addEventListener('click', async () => {
+    const el = b as HTMLElement;
+    const url = new URL(el.dataset.url!, location.origin).href;
+    const title = el.dataset.title || 'Crama';
+    try {
+      if (navigator.share) await navigator.share({ title, url });
+      else { await navigator.clipboard.writeText(url); toast('링크를 복사했어요'); }
+    } catch (e) {}
+  }));
+
+  // 닫기 + 키보드 ↑↓
+  document.getElementById('sh-back')?.addEventListener('click', () => {
+    if (history.length > 1) history.back(); else location.assign('/');
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      feed.scrollBy({ top: (e.key === 'ArrowDown' ? 1 : -1) * feed.clientHeight, behavior: 'smooth' });
+    }
+  });
+</script>
+
+<style>
+  .shorts { height: 100dvh; display: flex; flex-direction: column; position: relative;
+    background: radial-gradient(120% 80% at 50% 0%, var(--paper-2) 0%, var(--paper) 60%); }
+
+  /* 상단바 */
+  .shorts__top { flex: none; position: relative; z-index: 3; }
+  .shorts__bar { display: flex; align-items: center; gap: .6rem; padding: .5rem .8rem; }
+  .shorts__icon { background: none; border: 0; color: var(--ink); cursor: pointer; padding: .3rem; display: inline-flex; border-radius: 999px; }
+  .shorts__icon:hover { background: color-mix(in srgb, var(--ink) 8%, transparent); }
+  .shorts__t { font-family: var(--font-serif); font-weight: 600; font-size: 1.15rem; }
+  .shorts__count { margin-left: auto; font-size: .82rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .shorts__count b { color: var(--ink); font-weight: 700; }
+  .shorts__progress { height: 2px; background: color-mix(in srgb, var(--ink) 8%, transparent); }
+  .shorts__progress-fill { display: block; height: 100%; width: 100%; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform .12s linear; }
+
+  /* 피드(스냅) */
+  .shorts__feed { flex: 1 1 auto; min-height: 0; overflow-y: auto; scroll-snap-type: y mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .shorts__feed::-webkit-scrollbar { display: none; }
+
+  .short { height: 100%; scroll-snap-align: start; scroll-snap-stop: always; display: grid; place-items: center; padding: .4rem 1rem 1.2rem; position: relative; }
+
+  /* 카드 — 상용 앱 톤(레이어드 + 그림자) */
+  .short__card {
+    width: 100%; max-width: 460px; height: 100%; max-height: 760px;
+    display: flex; flex-direction: column; overflow: hidden;
+    border-radius: 24px; background: var(--paper);
+    border: 1px solid var(--line);
+    box-shadow: 0 24px 60px -24px rgba(0,0,0,.32), 0 4px 14px -8px rgba(0,0,0,.18);
+  }
+
+  .short__media { position: relative; flex: 1 1 58%; min-height: 0; overflow: hidden; background: var(--accent-soft); }
+  .short__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .short__media-fallback { width: 100%; height: 100%; background: linear-gradient(135deg, var(--accent-soft), var(--paper-2)); }
+  .short__scrim { position: absolute; inset: auto 0 0 0; height: 38%; background: linear-gradient(to top, color-mix(in srgb, var(--paper) 92%, transparent), transparent); pointer-events: none; }
+  .short__chip {
+    position: absolute; top: .8rem; left: .8rem; z-index: 2;
+    font-size: .72rem; font-weight: 800; letter-spacing: .02em; color: #fff;
+    background: color-mix(in srgb, var(--accent) 92%, transparent);
+    padding: .32rem .7rem; border-radius: 999px;
+    box-shadow: 0 4px 12px -4px rgba(0,0,0,.4); backdrop-filter: blur(4px);
+  }
+
+  /* 본문 듣기 버튼(미디어 우상단) */
+  .short__listen { position: absolute; top: .8rem; right: .8rem; z-index: 2;
+    width: 48px; height: 48px; border-radius: 999px; border: 0; cursor: pointer;
+    background: color-mix(in srgb, var(--accent) 94%, transparent); color: #fff;
+    display: grid; place-items: center; box-shadow: 0 8px 20px -6px rgba(0,0,0,.45);
+    transition: transform .12s, filter .12s; }
+  .short__listen:hover { filter: brightness(1.06); }
+  .short__listen:active { transform: scale(.94); }
+  .short__listen .ic { display: grid; place-items: center; grid-area: 1 / 1; }
+  .short__listen .ic--pause, .short__listen .ic--load { display: none; }
+  .short__listen.is-playing .ic--play { display: none; }
+  .short__listen.is-playing .ic--pause { display: grid; }
+  .short__listen.is-loading .ic--play, .short__listen.is-loading .ic--pause { display: none; }
+  .short__listen.is-loading .ic--load { display: block; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.45); border-top-color: #fff; border-radius: 999px; animation: sh-spin .7s linear infinite; }
+  @keyframes sh-spin { to { transform: rotate(360deg); } }
+
+  /* 시트(텍스트 + 액션) */
+  .short__sheet { flex: 0 0 auto; display: flex; flex-direction: column; gap: 1rem; padding: 1.1rem 1.25rem 1.3rem; margin-top: -1.4rem; position: relative; z-index: 2; background: var(--paper); border-radius: 20px 20px 0 0; }
+  .short__body { display: flex; flex-direction: column; gap: .5rem; }
+  .short__title { font-size: 1.45rem; line-height: 1.32; margin: 0; letter-spacing: -.01em;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .short__desc { color: var(--ink-soft); font-size: .96rem; line-height: 1.6; margin: 0;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .short__rt { color: var(--muted); font-size: .78rem; font-weight: 600; }
+
+  .short__row { display: flex; align-items: center; gap: .55rem; }
+  .short__read { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
+    background: var(--accent); color: #fff; font-weight: 800; font-size: 1rem;
+    border-radius: 14px; padding: .9rem 1rem; box-shadow: 0 8px 20px -8px var(--accent); transition: filter .12s, transform .12s; }
+  .short__read:hover { color: #fff; filter: brightness(1.05); }
+  .short__read:active { transform: scale(.98); }
+  .short__act { flex: none; width: 52px; height: 52px; border-radius: 14px;
+    border: 1px solid var(--line); background: var(--paper-2); color: var(--ink-soft);
+    display: grid; place-items: center; cursor: pointer; transition: border-color .12s, color .12s, background .12s; }
+  .short__act:hover { border-color: var(--accent); color: var(--accent); }
+  .short__act.on { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+  .short__act.on svg { fill: color-mix(in srgb, var(--accent) 22%, transparent); }
+
+  /* 첫 카드 스와이프 힌트 */
+  .short__swipe { position: absolute; left: 50%; bottom: .35rem; transform: translateX(-50%);
+    display: inline-flex; align-items: center; gap: .3rem; color: var(--muted); font-size: .72rem; font-weight: 600;
+    animation: sh-bob 1.8s ease-in-out infinite; }
+  @keyframes sh-bob { 0%,100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, -4px); } }
+
+  /* 활성 카드 진입 애니메이션 */
+  @media (prefers-reduced-motion: no-preference) {
+    .short__card { opacity: .55; transform: scale(.975); transition: opacity .4s ease, transform .4s ease; }
+    .short.is-active .short__card { opacity: 1; transform: none; }
+    .short__body > * { opacity: 0; transform: translateY(8px); transition: opacity .45s ease, transform .45s ease; }
+    .short.is-active .short__title { opacity: 1; transform: none; transition-delay: .05s; }
+    .short.is-active .short__desc { opacity: 1; transform: none; transition-delay: .12s; }
+    .short.is-active .short__rt { opacity: 1; transform: none; transition-delay: .18s; }
+  }
+
+  /* 토스트 */
+  .shorts__toast { position: absolute; left: 50%; bottom: 1.4rem; transform: translateX(-50%) translateY(8px);
+    background: var(--ink); color: var(--paper); font-size: .85rem; font-weight: 600;
+    padding: .55rem 1.05rem; border-radius: 999px; opacity: 0; pointer-events: none; z-index: 5;
+    transition: opacity .2s, transform .2s; box-shadow: 0 10px 28px -8px rgba(0,0,0,.5); }
+  .shorts__toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 480px) {
+    .short { padding: .3rem .7rem .9rem; }
+    .short__card { max-height: none; border-radius: 20px; }
+    .short__title { font-size: 1.35rem; }
+  }
+</style>
+
+<!-- 데스크톱에서도 풀스크린 스냅 유지(app.css의 PC용 app-screen 스크롤 오버라이드 무력화) -->
+<style is:global>
+  @media (min-width: 900px) { body.app-screen { height: 100dvh; overflow: hidden; } }
+</style>

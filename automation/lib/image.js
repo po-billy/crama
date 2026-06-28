@@ -23,8 +23,9 @@ export async function generateHero({ prompt, slug, outDir, provider }) {
   else throw new Error('unknown image provider: ' + provider);
 
   const file = path.join(outDir, `${slug}-hero.webp`);
+  // 16:9로 통일 — 카드(.card__media 16/9)·썸네일(1280×720)과 동일 비율. gpt-image-1은 3:2 생성이라 위아래만 약간 크롭.
   await sharp(buf)
-    .resize({ width: 1200, withoutEnlargement: true })
+    .resize(1536, 864, { fit: 'cover', position: 'attention' })
     .webp({ quality: 80 })
     .toFile(file);
   return { file, publicPath: `/img/generated/${slug}-hero.webp` };

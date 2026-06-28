@@ -15,7 +15,7 @@ import TagList from '../components/TagList.astro';
 import AuthorBox from '../components/AuthorBox.astro';
 import ContentRail from '../components/ContentRail.astro';
 import { SITE, CATEGORIES, type CategorySlug } from '../consts';
-import { bylineLabel, resolveAuthorName } from '../data/personas';
+import { bylineLabel, resolveAuthorName, getPersona, REAL_AUTHOR } from '../data/personas';
 
 interface RelatedPost {
   href: string;
@@ -55,6 +55,15 @@ const slug = (Astro.url.pathname.match(/\/blog\/([^/]+)/) || [])[1];
 // 칼럼이면 작성자를 페르소나로 안전 해석(미지정·미등록 시 카테고리 기본 칼럼니스트로 대체)
 const resolvedAuthor = resolveAuthorName(author, category, format === 'column');
 const byline = bylineLabel(resolvedAuthor);
+// 저자 구조화데이터: 가이드(정보성)=실명 Person(엄희송, E-E-A-T) / 칼럼=가상 페르소나는 사람으로 위장하지 않고 Organization
+const authorLd = getPersona(resolvedAuthor)
+  ? { '@type': 'Organization', name: byline }
+  : {
+      '@type': 'Person',
+      name: REAL_AUTHOR.name,
+      url: new URL(`/authors/${REAL_AUTHOR.id}/`, SITE.url).href,
+      ...(REAL_AUTHOR.sameAs.length ? { sameAs: REAL_AUTHOR.sameAs } : {}),
+    };
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Article',
@@ -62,7 +71,7 @@ const jsonLd = {
   description,
   datePublished: pubDate.toISOString(),
   dateModified: (updatedDate ?? pubDate).toISOString(),
-  author: { '@type': 'Organization', name: byline },
+  author: authorLd,
   publisher: { '@type': 'Organization', name: SITE.name },
   articleSection: cat.name,
   ...(heroImage ? { image: new URL(heroImage, SITE.url).href } : {}),

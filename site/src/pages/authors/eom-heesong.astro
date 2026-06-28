@@ -1,0 +1,74 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import FormattedDate from '../../components/FormattedDate.astro';
+import { SITE, CATEGORIES } from '../../consts';
+import { REAL_AUTHOR } from '../../data/personas';
+
+const url = new URL(`/authors/${REAL_AUTHOR.id}/`, SITE.url).href;
+
+// 엄희송 명의 글 = 정보성(가이드) 글(칼럼 페르소나 제외)
+const posts = (await getCollection('blog'))
+  .filter((p) => !p.data.draft && p.data.format !== 'column')
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 12);
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfilePage',
+  mainEntity: {
+    '@type': 'Person',
+    name: REAL_AUTHOR.name,
+    jobTitle: REAL_AUTHOR.role,
+    description: REAL_AUTHOR.bio,
+    url,
+    ...(REAL_AUTHOR.sameAs.length ? { sameAs: REAL_AUTHOR.sameAs } : {}),
+    worksFor: { '@type': 'Organization', name: SITE.name, url: SITE.url },
+  },
+};
+---
+<BaseLayout title={`${REAL_AUTHOR.name} — ${SITE.name} 저자`} description={REAL_AUTHOR.bio} jsonLd={jsonLd}>
+  <div class="wrap measure author-page">
+    <header class="author-page__head">
+      <div class="author-page__avatar" aria-hidden="true">{REAL_AUTHOR.name.slice(0, 1)}</div>
+      <div>
+        <h1>{REAL_AUTHOR.name}</h1>
+        <p class="author-page__role">{REAL_AUTHOR.role} · {SITE.name}</p>
+      </div>
+    </header>
+    <p class="author-page__bio">{REAL_AUTHOR.bio}</p>
+    <p class="author-page__principle"><a href="/about/">편집 원칙 보기 →</a></p>
+
+    {posts.length > 0 && (
+      <section class="author-page__works">
+        <h2>{REAL_AUTHOR.name}이 쓴 글</h2>
+        <ul>
+          {posts.map((p) => (
+            <li>
+              <a href={`/blog/${p.id}/`}>{p.data.title}</a>
+              <span class="author-page__meta">{CATEGORIES[p.data.category].name} · <FormattedDate date={p.data.pubDate} /></span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .author-page { padding-block: clamp(2rem, 5vw, 3.5rem); }
+  .author-page__head { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.3rem; }
+  .author-page__avatar { width: 64px; height: 64px; flex: none; border-radius: 999px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-family: var(--font-serif); font-size: 1.7rem; font-weight: 700; }
+  .author-page__head h1 { margin: 0; font-size: clamp(1.6rem, 4vw, 2.1rem); }
+  .author-page__role { color: var(--muted); margin: 0.25rem 0 0; font-size: 0.95rem; }
+  .author-page__bio { font-size: 1.05rem; line-height: 1.85; color: var(--ink-soft); }
+  .author-page__principle { margin: 0.8rem 0 0; }
+  .author-page__principle a { color: var(--accent); font-weight: 600; }
+  .author-page__works { margin-top: 2.6rem; border-top: 1px solid var(--line); padding-top: 1.8rem; }
+  .author-page__works h2 { font-size: 1.3rem; margin: 0 0 1rem; }
+  .author-page__works ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 1rem; }
+  .author-page__works li { display: flex; flex-direction: column; gap: 0.15rem; }
+  .author-page__works a { font-weight: 600; color: var(--ink); }
+  .author-page__works a:hover { color: var(--accent); }
+  .author-page__meta { color: var(--muted); font-size: 0.82rem; }
+</style>

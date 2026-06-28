@@ -2,21 +2,27 @@
 // 저자/편집부 정보 박스 — 글 하단(E-E-A-T 신뢰 신호)
 // 칼럼 글은 작성자(author)가 칼럼니스트 페르소나면 그 프로필을, 아니면 편집부 소개를 보여준다.
 import { SITE } from '../consts';
-import { getPersona } from '../data/personas';
+import { getPersona, REAL_AUTHOR } from '../data/personas';
 interface Props { author?: string; }
 const { author = SITE.author } = Astro.props;
 const persona = getPersona(author);
+// 가이드(정보성) 글 = 실명 책임 저자(엄희송). 칼럼 = 페르소나.
+const isReal = !persona && (author === REAL_AUTHOR.name);
+const avatar = persona ? persona.initial : isReal ? REAL_AUTHOR.name.slice(0, 1) : 'C';
+const name = persona ? `Crama 편집부 · ${persona.name}` : isReal ? REAL_AUTHOR.name : author;
+const beat = persona ? persona.beat : isReal ? REAL_AUTHOR.role : '';
+const bio = persona ? persona.bio : isReal ? REAL_AUTHOR.bio : `${SITE.name}는 주식·재테크와 AI 트렌드를 깊이 있게 다루는 인사이트 매거진입니다. 흩어진 정보를 정리하고 맥락을 더해, 실전에 바로 쓰이는 원본 콘텐츠를 전합니다.`;
+const link = isReal ? `/authors/${REAL_AUTHOR.id}/` : '/about/';
+const linkLabel = isReal ? '저자 프로필 보기 →' : '편집 원칙 보기 →';
 ---
 <aside class="author-box">
-  <div class="author-box__avatar" aria-hidden="true">{persona ? persona.initial : 'C'}</div>
+  <div class="author-box__avatar" aria-hidden="true">{avatar}</div>
   <div>
     <p class="author-box__name">
-      {persona ? `Crama 편집부 · ${persona.name}` : author}
-      {persona && <span class="author-box__beat">{persona.beat}</span>}
+      {name}
+      {beat && <span class="author-box__beat">{beat}</span>}
     </p>
-    <p class="author-box__bio">
-      {persona ? persona.bio : `${SITE.name}는 주식·재테크와 AI 트렌드를 깊이 있게 다루는 인사이트 매거진입니다. 흩어진 정보를 정리하고 맥락을 더해, 실전에 바로 쓰이는 원본 콘텐츠를 전합니다.`}
-    </p>
-    <a class="author-box__link" href="/about/">편집 원칙 보기 →</a>
+    <p class="author-box__bio">{bio}</p>
+    <a class="author-box__link" href={link}>{linkLabel}</a>
   </div>
 </aside>

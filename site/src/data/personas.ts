@@ -50,6 +50,16 @@ export const PERSONAS: Record<string, Persona> = {
   },
 };
 
+// 실제 운영자(실명) — 정보성(가이드) 글의 책임 저자. 사람(Person) E-E-A-T 신호.
+// ⚠️ 허위 경력 금지: 사실(운영자/편집장)만. 링크드인 등이 생기면 sameAs 에 추가.
+export const REAL_AUTHOR = {
+  id: 'eom-heesong',
+  name: '엄희송',
+  role: '편집장 · 운영자',
+  bio: 'Crama를 운영하며 돈·재테크와 AI 트렌드를 직접 리서치·정리하고 사실관계를 검수합니다. 어려운 정보를 쉬운 말로 옮겨, 흐름을 먼저 읽는 사람을 만드는 것이 목표입니다.',
+  sameAs: ['https://www.linkedin.com/in/billy-hee-song-eum-a66776254/'] as string[], // 실재 인물 검증(E-E-A-T) — 링크드인 공개 프로필
+};
+
 // 카테고리별 기본 칼럼니스트 — 칼럼인데 작성자가 지정되지 않았거나
 // 알 수 없는 이름일 때 이 페르소나로 안전하게 대체한다(빈틈 방지).
 export const CATEGORY_DEFAULT_PERSONA: Record<CategorySlug, string> = {
@@ -71,7 +81,11 @@ export function resolveAuthorName(
   category: CategorySlug,
   isColumn: boolean,
 ): string {
-  if (!isColumn) return author || 'Crama 편집부';
+  // 정보성(가이드): 실명 책임 저자(엄희송)로 통일 — '편집부'/미지정도 실명 저자로 승격
+  if (!isColumn) {
+    if (!author || author === 'Crama 편집부' || author === REAL_AUTHOR.name) return REAL_AUTHOR.name;
+    return author;
+  }
   if (author && PERSONAS[author]) return author;
   return CATEGORY_DEFAULT_PERSONA[category];
 }

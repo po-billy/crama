@@ -98,7 +98,13 @@ import AppLayout from '../layouts/AppLayout.astro';
     sync('scarf', char, 'gear-scarf', '', head);
     sync('glasses', char, 'acc-glasses', '', null);
     sync('hat', char, 'acc-hat', '', null);
-    // z순서 보정 (기존 요소 이동 = 이미지 리로드 없음): outfit,scarf < head < glasses < hat
+    // z순서 보정 (기존 요소 이동 = 이미지 리로드 없음)
+    // 배경: wallpaper(맨 아래) < floor < char — 탭 순서와 무관하게 항상 고정
+    const wp = dress.querySelector(':scope > img.layer[data-slot="wallpaper"]');
+    const fl = dress.querySelector(':scope > img.layer[data-slot="floor"]');
+    if (wp) dress.insertBefore(wp, dress.firstChild);
+    if (fl) dress.insertBefore(fl, char);
+    // 캐릭터: outfit,scarf < head < glasses < hat
     const move = (s: string, before: Element | null) => { const el = char.querySelector(`:scope > img.layer[data-slot="${s}"]`); if (el) before ? char.insertBefore(el, before) : char.appendChild(el); };
     move('outfit', head); move('scarf', head); move('glasses', null); move('hat', null);
   }

@@ -227,8 +227,12 @@ hr {
   color: var(--ink-soft);
 }
 .nav a:hover { color: var(--accent); }
-/* PC(≥601px): 메뉴를 로고와 우측 아이콘 사이 가운데 정렬. 모바일(≤600px)은 별도 규칙 유지 */
-@media (min-width: 601px) { .nav { margin-inline: auto; } }
+/* PC(≥601px): 메뉴를 로고 옆 왼쪽에 붙이고, 아이콘은 우측 끝, 태그라인 숨김. 모바일(≤600px)은 별도 규칙 유지 */
+@media (min-width: 601px) {
+  .brand small { display: none; }        /* '트렌드를 읽다' 태그라인 PC 숨김 */
+  .nav { margin-inline: 0; }             /* 로고 옆 왼쪽에 붙임(컨테이너 gap 1.5rem) */
+  .header-actions { margin-left: auto; } /* 아이콘 3개는 우측 끝으로 */
+}
 .theme-toggle {
   background: none; border: 1px solid var(--line); color: var(--ink-soft);
   width: 2rem; height: 2rem; border-radius: 999px; cursor: pointer;

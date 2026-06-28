@@ -185,6 +185,25 @@
   color: #fff; background: var(--accent); border-radius: 999px; padding: 0.18rem 0.6rem; flex: none;
 }
 
+/* 카테고리 상단 완벽 가이드 스트립 — signup-strip 다크 톤(아이콘 + 텍스트 + 흰 알약 버튼) */
+.pillar-strip {
+  display: flex; align-items: center; gap: 0.7rem;
+  background: #161412; border: 1px solid #161412; border-radius: 10px;
+  padding: 0.6rem 0.9rem; margin: 0 0 2rem; color: #f1ece4; text-decoration: none;
+  transition: background .15s ease;
+}
+.pillar-strip:hover { background: #211d19; }
+.pillar-strip__ic { width: 34px; height: 34px; object-fit: contain; flex: none; }
+.pillar-strip__tx { flex: 1; min-width: 0; font-size: 0.92rem; color: #f1ece4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pillar-strip__tx strong { color: #e8956f; font-weight: 700; }
+.pillar-strip__btn { flex: none; background: #fff; color: #161412; font-weight: 700; border-radius: 999px; padding: 0.35rem 0.95rem; font-size: 0.85rem; white-space: nowrap; }
+.pillar-strip:hover .pillar-strip__btn { opacity: 0.9; }
+@media (max-width: 560px) {
+  .pillar-strip { gap: 0.55rem; padding: 0.55rem 0.7rem; }
+  .pillar-strip__tx { font-size: 0.8rem; }
+  .pillar-strip__btn { padding: 0.3rem 0.7rem; font-size: 0.78rem; }
+}
+
 /* ---------- 용어 사전 ---------- */
 .glossary-jump { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 1.5rem; }
 .glossary-jump__link {

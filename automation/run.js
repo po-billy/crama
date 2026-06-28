@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
+import sharp from 'sharp';
 import { research, writeArticle, imagePrompt } from './lib/claude.js';
 import { generateHero } from './lib/image.js';
 import { generateAudio } from './gen-audio.js';
@@ -83,6 +84,16 @@ async function main() {
     const hero = await generateHero({ prompt, slug, outDir: imgDir });
     heroImage = hero.publicPath;
     log(`   이미지 저장: ${hero.file}`);
+    // 썸네일 파생본(-hero-thumb.webp) — '주목 아티클' 목록이 사용. 누락 시 목록에서 엑박(404)
+    if (/-hero\.webp$/.test(hero.file)) {
+      try {
+        const thumbFile = hero.file.replace(/-hero\.webp$/, '-hero-thumb.webp');
+        await sharp(hero.file).resize({ width: 160, height: 160, fit: 'cover' }).webp({ quality: 72 }).toFile(thumbFile);
+        log(`   썸네일 저장: ${thumbFile}`);
+      } catch (e) {
+        log('   ⚠️ 썸네일 생성 실패(목록에서 엑박 가능): ' + (e.message || e));
+      }
+    }
   } catch (e) {
     log('   이미지 생성 실패(샘플 이미지로 대체):', e.message);
   }

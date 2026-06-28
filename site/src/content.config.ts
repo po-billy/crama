@@ -14,6 +14,8 @@ const blog = defineCollection({
     tags: z.array(z.string()).default([]),
     lang: z.enum(['ko', 'en']).default('ko'),
     heroImage: z.string().optional(),
+    thumb: z.string().optional(), // 카드용 유튜브식 썸네일(사진+텍스트 합성). 없으면 heroImage 사용
+    thumbTitle: z.string().optional(), // 썸네일 위 짧은 카피(\n 으로 2줄, 둘째 줄은 강조색)
     audio: z.string().optional(), // 발행 시 생성한 오디오(MP3) URL — 있으면 고품질 음성 재생(백그라운드 청취)
     author: z.string().default('Crama 편집부'),
     draft: z.boolean().default(false),

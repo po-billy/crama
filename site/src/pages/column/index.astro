@@ -25,6 +25,7 @@ const columns = (await getCollection('blog'))
           pubDate={p.data.pubDate}
           category={p.data.category as CategorySlug}
           heroImage={p.data.heroImage}
+          thumb={p.data.thumb}
           format={p.data.format}
         />
       ))}

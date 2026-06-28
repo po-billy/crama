@@ -124,18 +124,20 @@ export async function writeArticle({ brief, cluster, categoryName, lang = 'ko' }
   return { ...meta, body };
 }
 
-/** 이미지 생성용 영문 프롬프트 — 글 주제에 맞는 에디토리얼 일러스트 */
+/** 이미지 생성용 영문 프롬프트 — 글 주제에 맞는 실사 사진(유튜브 썸네일 배경용) */
 export async function imagePrompt({ title, categoryName }) {
   const resp = await client.messages.create({
     model: WRITE_MODEL,
     max_tokens: 300,
     system:
-      'You write concise English prompts for an editorial blog hero image. ' +
-      'Style: clean, modern editorial illustration, muted warm palette, no text, no logos, no charts with fake numbers.',
+      'You write concise English prompts for a PHOTOREALISTIC editorial photograph used as a thumbnail background. ' +
+      'Style: cinematic photorealism, natural lighting, shallow depth of field, cool modern color grade with deep navy/blue tones. ' +
+      'Keep the lower half relatively dark and uncluttered so bold headline text can be overlaid. ' +
+      'Strictly: a real-looking photo (not illustration, not 3D render, not cartoon), no text, no logos, no charts, no infographics, and AVOID orange/warm/terracotta tones.',
     messages: [
       {
         role: 'user',
-        content: `Article (${categoryName}): "${title}". Write ONE image prompt (max 40 words). Output only the prompt.`,
+        content: `Article (${categoryName}): "${title}". Describe ONE realistic photographic scene that fits the topic (a concrete subject/setting, e.g. a person, hands, an object, an interior). Max 45 words. Output only the prompt.`,
       },
     ],
   });

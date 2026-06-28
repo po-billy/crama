@@ -127,6 +127,18 @@ async function main() {
   log(`   제목: ${art.title}`);
   if (dryRun) { log('DRY RUN — 사이트에는 반영되지 않았습니다. git push 시 자동 배포됩니다.'); return; }
 
+  // ⑤-b 유튜브식 카드 썸네일(사진 배경 + 크라미 + 헤드라인) — 히어로가 webp(실사)일 때만, 실패해도 발행엔 영향 없음
+  try {
+    if (/\.webp$/.test(heroImage)) {
+      const { generateThumb, ensureThumbField } = await import('./gen-yt-thumb.js');
+      const r = await generateThumb(slug);
+      await ensureThumbField(slug, r.publicPath);
+      log(`⑤-b 카드 썸네일: ${r.pose} | ${r.lines.join(' / ')}`);
+    }
+  } catch (e) {
+    log('⑤-b 썸네일 생성 건너뜀: ' + (e.message || e));
+  }
+
   // ⑥ 오디오 자동 생성(Azure 키 있을 때) — 빌드 후 HTML에서 추출 → MP3+타임스탬프 → R2 → frontmatter audio:
   const audioOn = process.env.AZURE_SPEECH_KEY && !args.includes('--no-audio');
   if (audioOn) {

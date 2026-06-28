@@ -9,18 +9,20 @@ interface Props {
   pubDate: Date;
   category: CategorySlug;
   heroImage?: string;
+  thumb?: string;
   feature?: boolean;
   format?: 'guide' | 'column';
 }
-const { href, title, description, pubDate, category, heroImage, feature = false, format = 'guide' } = Astro.props;
+const { href, title, description, pubDate, category, heroImage, thumb, feature = false, format = 'guide' } = Astro.props;
 const cat = CATEGORIES[category];
 const isColumn = format === 'column';
+const cardImg = thumb || heroImage; // 카드용 유튜브식 썸네일 우선, 없으면 히어로
 ---
 {feature ? (
   <a href={href} class="feature card" data-format={format}>
     <div class="feature__media card__media">
       {isColumn && <span class="card__badge">칼럼</span>}
-      {heroImage && <img src={heroImage} alt="" loading="eager" />}
+      {cardImg && <img src={cardImg} alt="" loading="eager" />}
     </div>
     <div>
       <span class="eyebrow">{cat.name}</span>
@@ -33,7 +35,7 @@ const isColumn = format === 'column';
   <a href={href} class="card" data-format={format}>
     <div class="card__media">
       {isColumn && <span class="card__badge">칼럼</span>}
-      {heroImage && <img src={heroImage} alt="" loading="lazy" />}
+      {cardImg && <img src={cardImg} alt="" loading="lazy" />}
     </div>
     <span class="eyebrow">{cat.name}</span>
     <h3 class="card__title">{title}</h3>

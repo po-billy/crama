@@ -133,7 +133,7 @@ async function main() {
       const { generateThumb, ensureThumbField } = await import('./gen-yt-thumb.js');
       const r = await generateThumb(slug);
       await ensureThumbField(slug, r.publicPath);
-      log(`⑤-b 카드 썸네일: ${r.pose} | ${r.lines.join(' / ')}`);
+      log(`⑤-b 카드 썸네일: ${r.lines.join(' / ')}`);
     }
   } catch (e) {
     log('⑤-b 썸네일 생성 건너뜀: ' + (e.message || e));

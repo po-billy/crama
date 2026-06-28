@@ -130,14 +130,14 @@ export async function imagePrompt({ title, categoryName }) {
     model: WRITE_MODEL,
     max_tokens: 300,
     system:
-      'You write concise English prompts for a PHOTOREALISTIC editorial photograph used as a thumbnail background. ' +
-      'Style: cinematic photorealism, natural lighting, shallow depth of field, cool modern color grade with deep navy/blue tones. ' +
-      'Keep the lower half relatively dark and uncluttered so bold headline text can be overlaid. ' +
-      'Strictly: a real-looking photo (not illustration, not 3D render, not cartoon), no text, no logos, no charts, no infographics, and AVOID orange/warm/terracotta tones.',
+      'You write a concise English prompt for an AUTHENTIC documentary-style PHOTOGRAPH used as a thumbnail background. ' +
+      'Style: candid photojournalism, shot on a full-frame DSLR with a 35mm or 50mm lens, natural available light, realistic skin and material texture, subtle film grain, true-to-life cool/neutral color grade with deep navy shadows, slightly imperfect and unposed (not staged). ' +
+      'Keep the lower and left area darker and uncluttered so bold headline text can be overlaid. ' +
+      'Strictly avoid: 3D render, CGI, illustration, cartoon, glossy over-polished "AI look", oversaturation, plastic skin, text, logos, watermarks, charts, and any orange/warm/terracotta tones.',
     messages: [
       {
         role: 'user',
-        content: `Article (${categoryName}): "${title}". Describe ONE realistic photographic scene that fits the topic (a concrete subject/setting, e.g. a person, hands, an object, an interior). Max 45 words. Output only the prompt.`,
+        content: `Article (${categoryName}): "${title}". Describe ONE believable real-world photographic scene that fits the topic (a concrete subject/setting — a real person doing something, hands, an everyday object, an ordinary interior or street). Emphasize realism and ordinary detail. Max 45 words. Output only the prompt.`,
       },
     ],
   });

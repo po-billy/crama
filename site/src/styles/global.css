@@ -169,7 +169,8 @@ hr {
 @media (min-width: 1080px) {
   .detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) 17rem; gap: 2.4rem; align-items: start; padding-inline: 1.5rem; }
   .detail-layout > .wrap, .detail-layout > .app { max-width: none; margin: 0; padding-inline: 0; }
-  .detail-layout .measure, .detail-layout .poll-article, .detail-layout .aplayer { margin-inline: 0; } /* 본문 좌측 정렬 — 우측 레일과 균형 */
+  .detail-layout .measure, .detail-layout .poll-article { margin-inline: 0; } /* 본문 좌측 정렬 — 우측 레일과 균형 */
+  .detail-layout .wrap .aplayer { margin-inline: 0; } /* 오디오 플레이어도 동일 좌측 정렬 — 특이도↑로 컴포넌트 스코프 스타일(.aplayer margin:auto)보다 우선 */
   .crail { margin-top: 0; padding: 0; position: sticky; top: 88px; }
 }
 .crail__box { border-radius: 14px; padding: 1.1rem 1.15rem; background: var(--paper); }

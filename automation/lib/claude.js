@@ -130,14 +130,15 @@ export async function imagePrompt({ title, categoryName }) {
     model: WRITE_MODEL,
     max_tokens: 300,
     system:
-      'You write a concise English prompt for an AUTHENTIC documentary-style PHOTOGRAPH used as a thumbnail background. ' +
-      'Style: candid photojournalism, shot on a full-frame DSLR with a 35mm or 50mm lens, natural available light, realistic skin and material texture, subtle film grain, true-to-life cool/neutral color grade with deep navy shadows, slightly imperfect and unposed (not staged). ' +
+      'You write a concise English prompt for a NEWS/EDITORIAL thumbnail image (the kind used on news articles). ' +
+      'It should look like an authentic press photo or a clean conceptual still-life — NOT necessarily containing a person. Prefer a clear, symbolic real-world subject when fitting: an everyday object, document, money/cards, a building or street, tools, hands, or an ordinary interior. ' +
+      'Style: realistic photojournalism (full-frame DSLR, natural light, true-to-life texture, subtle grain) OR a restrained editorial photo-composite; cool/neutral color grade with deep navy shadows; slightly imperfect, not staged or glossy. ' +
       'Keep the lower and left area darker and uncluttered so bold headline text can be overlaid. ' +
-      'Strictly avoid: 3D render, CGI, illustration, cartoon, glossy over-polished "AI look", oversaturation, plastic skin, text, logos, watermarks, charts, and any orange/warm/terracotta tones.',
+      'Strictly avoid: 3D cartoon render, CGI, flat illustration, glossy over-polished "AI look", oversaturation, plastic skin, text, logos, watermarks, fake charts, and any orange/warm/terracotta tones.',
     messages: [
       {
         role: 'user',
-        content: `Article (${categoryName}): "${title}". Describe ONE believable real-world photographic scene that fits the topic (a concrete subject/setting — a real person doing something, hands, an everyday object, an ordinary interior or street). Emphasize realism and ordinary detail. Max 45 words. Output only the prompt.`,
+        content: `Article (${categoryName}): "${title}". Describe ONE believable news-style photographic scene that fits the topic. A person is OPTIONAL — a strong symbolic object/scene (document, money, keys, building, hands, interior) is often better. Emphasize realism and ordinary detail. Max 45 words. Output only the prompt.`,
       },
     ],
   });

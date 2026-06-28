@@ -26,6 +26,7 @@ const columns = (await getCollection('blog'))
           category={p.data.category as CategorySlug}
           heroImage={p.data.heroImage}
           thumb={p.data.thumb}
+          audio={!!p.data.audio}
           format={p.data.format}
         />
       ))}

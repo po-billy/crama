@@ -23,9 +23,26 @@ const guideCount = posts.length - columnCount;
   <div class="wrap">
     <header class="page-hero">
       <span class="eyebrow">{cat.tagline}</span>
-      <h1>{cat.name}</h1>
-      <p>{cat.description}</p>
+      <h1 class="page-hero__h1">{cat.name}<span class="hero-info">
+        <button class="hero-info__btn" type="button" aria-label={`${cat.name} 소개 보기`} aria-expanded="false" data-hero-info>
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><line x1="12" y1="11.5" x2="12" y2="16.5" /><circle cx="12" cy="8" r="1" fill="currentColor" stroke="none" /></svg>
+        </button>
+        <span class="hero-info__pop" role="tooltip">{cat.description}</span>
+      </span></h1>
     </header>
+
+    <script is:inline>
+      if (!window.__heroInfoBound) {
+        window.__heroInfoBound = true;
+        const closeAll = () => document.querySelectorAll('[data-hero-info][aria-expanded="true"]').forEach((b) => b.setAttribute('aria-expanded', 'false'));
+        document.addEventListener('click', (e) => {
+          const btn = e.target.closest && e.target.closest('[data-hero-info]');
+          if (btn) { e.stopPropagation(); const open = btn.getAttribute('aria-expanded') === 'true'; closeAll(); if (!open) btn.setAttribute('aria-expanded', 'true'); return; }
+          if (!(e.target.closest && e.target.closest('.hero-info__pop'))) closeAll();
+        });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAll(); });
+      }
+    </script>
 
     {PILLARS[slug] && (
       <a class="pillar-strip" href={`/blog/${PILLARS[slug]}/`}>

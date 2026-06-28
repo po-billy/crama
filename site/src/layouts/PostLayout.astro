@@ -117,14 +117,6 @@ const jsonLd = {
 
     <ListenButton audioSrc={audioSrc} />
 
-    {guide && (
-      <a class="guide-link measure" href={guide.href}>
-        <span class="guide-link__badge">가이드</span>
-        <span class="guide-link__text">이 글은 <strong>{guide.title}</strong>의 일부입니다</span>
-        <span class="guide-link__cta">전체 보기 →</span>
-      </a>
-    )}
-
     <TableOfContents headings={headings} />
 
     <div class:list={['prose', 'measure', { 'is-premium': premium }]}>

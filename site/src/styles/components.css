@@ -277,10 +277,51 @@
 @media (min-width: 1024px) { .wrap--home { max-width: 90rem; } }
 
 /* 홈 상단 배너 — 콘텐츠 풀폭 단일 와이드 배너 */
-.home-banner { margin-top: 1rem; }
+.home-banner { margin-top: 0; }
 @media (min-width: 1024px) {
-  .home-banner .rotator--banner .rotator__viewport { min-height: 400px; max-height: 400px; }
+  /* 배너 비율 900:272 (좌 텍스트패널 346 + 우 이미지 554) */
+  .home-banner .rotator--banner .rotator__viewport { aspect-ratio: 900 / 272; min-height: 0; max-height: none; }
 }
+
+/* ===== HERO: 좌측 배너 + 우측 CTA 스택(1행1개+2행2개), 하단 카테고리. 모바일은 세로 스택 =====
+   주의: .home-hero 는 하단(368행)에 레거시 정의(1fr 1fr)가 있어 충돌 → .home-top 으로 분리 */
+.home-top { margin-top: 1rem; display: flex; flex-direction: column; gap: 0.8rem; }
+@media (min-width: 1024px) {
+  /* 그리드로 배너:CTA = 2:1 강제. minmax(0,*)로 콘텐츠가 트랙을 밀어내지 못하게 (flex는 콘텐츠폭에 밀림) */
+  .home-top { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); align-items: stretch; gap: 1rem; }
+  .home-cta { grid-template-rows: 1.12fr 1fr; }
+}
+/* 모바일/태블릿 배너를 레퍼런스처럼 와이드·낮게 */
+@media (max-width: 1023px) {
+  .home-top .rotator--banner .rotator__viewport { aspect-ratio: 2.1 / 1; min-height: 0; max-height: none; }
+}
+/* CTA 스택: 1행 1개(풀폭) + 2행 2개 */
+.home-cta { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+.cta-card {
+  position: relative; overflow: hidden; text-decoration: none; color: var(--ink);
+  display: flex; flex-direction: column; align-items: flex-start;
+  min-height: 6.4rem; padding: 1.1rem 1.2rem; border-radius: 16px;
+  border: 1px solid var(--line); background: var(--paper-2);
+  transition: transform .12s ease, box-shadow .15s ease;
+}
+.cta-card:hover { transform: translateY(-2px); box-shadow: 0 12px 26px -16px rgba(0,0,0,.35); }
+.cta-card--main { grid-column: 1 / -1; }
+/* 아이콘=상단 좌측, 텍스트=하단 좌측 (margin-bottom:auto 로 본문을 바닥에 밀착) */
+.cta-card__ic { width: 2.1rem; height: 2.1rem; margin-bottom: auto; }
+.cta-card--main .cta-card__ic { width: 2.4rem; height: 2.4rem; }
+.cta-card b { font-size: 1.02rem; font-weight: 700; line-height: 1.25; }
+.cta-card--main b { font-size: 1.2rem; }
+.cta-card__sub { margin-top: 0.2rem; font-size: 0.82rem; color: var(--muted); }
+.cta-card__badge {
+  position: absolute; top: 1.05rem; right: 1.1rem; z-index: 2;
+  background: var(--accent-soft); color: var(--accent); font-size: 0.6rem; font-weight: 800; letter-spacing: .02em;
+  padding: 0.18rem 0.5rem; border-radius: 999px;
+}
+.cta-card__badge--new { background: color-mix(in srgb, #22c55e 16%, var(--paper)); color: #16a34a; }
+/* 플랫 솔리드 톤 (레이아웃엔 그라데이션 X — 그라데이션은 아이콘 내부에만) */
+.cta-card--main   { background: var(--accent-soft); border-color: transparent; }
+.cta-card--quiz   { background: color-mix(in srgb, #22c55e 10%, var(--paper)); }
+.cta-card--shorts { background: color-mix(in srgb, #f43f5e 9%, var(--paper)); }
 
 /* 배너 하단 원형 퀵메뉴 */
 .home-circles {
@@ -290,32 +331,34 @@
 .home-circles::-webkit-scrollbar { display: none; }
 .hcircle { flex: none; width: 5.2rem; text-align: center; text-decoration: none; scroll-snap-align: start; }
 .hcircle__img {
-  position: relative; width: 4rem; height: 4rem; margin: 0 auto; border-radius: 999px;
-  background: var(--paper-2);
-  display: grid; place-items: center; transition: border-color .15s ease, transform .1s ease;
+  position: relative; width: 3.4rem; height: 3.4rem; margin: 0 auto;
+  display: grid; place-items: center; transition: transform .12s ease;
 }
-.hcircle:hover .hcircle__img { border-color: var(--accent); transform: translateY(-2px); }
-.hcircle__img img { width: 82%; height: 82%; object-fit: contain; }
+.hcircle:hover .hcircle__img { transform: translateY(-2px); }
+.duoicon { display: block; flex: none; }
+.hcircle__svg { width: 2.7rem; height: 2.7rem; }
 .hcircle__badge {
   position: absolute; top: -4px; right: -6px; background: var(--accent); color: #fff;
   font-size: 0.52rem; font-weight: 700; letter-spacing: 0.02em; padding: 0.1rem 0.34rem; border-radius: 999px;
 }
 .hcircle__label { display: block; margin-top: 0.5rem; font-size: 0.74rem; color: var(--ink); line-height: 1.25; }
-/* 모바일: 한 화면에 ~5.5개만 보이게 해 "더 있다"는 걸 인지시키고 슬라이드 유도 */
+/* 모바일: 가로 스크롤 대신 5열 그리드로 카테고리를 모두 펼침(dropshot식) */
 @media (max-width: 640px) {
-  .hcircle { width: calc((100% - 2.5rem) / 5.5); }
-  .hcircle__img { width: 84%; max-width: 4rem; height: auto; aspect-ratio: 1; }
-  .hcircle__label { font-size: 0.68rem; }
-  /* 우측 끝을 살짝 페이드해 잘린 항목(=더 있음)을 강조 */
   .home-circles {
-    -webkit-mask-image: linear-gradient(90deg, #000 90%, transparent);
-    mask-image: linear-gradient(90deg, #000 90%, transparent);
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.1rem 0.4rem;
+    overflow: visible; scroll-snap-type: none; padding: 1.3rem 0 0.5rem;
+    -webkit-mask-image: none; mask-image: none;
   }
+  .hcircle { width: auto; }
+  .hcircle__img { width: 3rem; height: 3rem; }
+  .hcircle__svg { width: 2.3rem; height: 2.3rem; }
+  .hcircle__label { font-size: 0.66rem; }
 }
 @media (min-width: 1024px) {
   .home-circles { gap: 1rem; justify-content: center; padding-top: 1.8rem; }
   .hcircle { width: 6rem; }
-  .hcircle__img { width: 4.6rem; height: 4.6rem; }
+  .hcircle__img { width: 3.8rem; height: 3.8rem; }
+  .hcircle__svg { width: 3rem; height: 3rem; }
 }
 
 /* 주목할 아티클 — 배너 아래 섹션(PC 2열) */
@@ -349,8 +392,12 @@
 /* 좌측 — 콘텐츠 로테이터(배경 이미지 + 부드러운 크로스페이드) */
 .rotator__viewport {
   position: relative; border-radius: var(--radius); overflow: hidden; min-height: 280px;
-  background: #14100d;
+  background: #1b1b22;
+  touch-action: pan-y; /* 세로 스크롤은 허용, 가로 제스처는 JS 스와이프로 */
+  cursor: grab; user-select: none; -webkit-user-drag: none;
 }
+.rotator__viewport:active { cursor: grabbing; }
+.rotator__viewport img { -webkit-user-drag: none; user-select: none; }
 .rslide {
   position: absolute; inset: 0; overflow: hidden;
   display: flex; flex-direction: column; justify-content: center;
@@ -383,21 +430,31 @@
 /* 좌측 큰 세로 배너(밀리서재풍) — 우측 랭킹 높이를 꽉 채움, 하단 중앙 텍스트 */
 .rotator--banner { position: relative; display: flex; flex-direction: column; height: 100%; }
 .rotator--banner .rotator__viewport { flex: 1 1 auto; min-height: 540px; border-radius: 16px; }
-.rotator--banner .rslide { justify-content: flex-end; align-items: center; text-align: center; padding: 2rem 1.8rem 3.6rem; gap: 0.5rem; }
-.rotator--banner .rslide::after { background: none; }
-.rotator--banner .rslide__badge { position: absolute; top: 1rem; left: 1rem; z-index: 3; }
-.rotator--banner .rslide__title { font-size: clamp(1.55rem, 2.5vw, 2.2rem); font-weight: 700; text-shadow: 0 1px 14px rgba(0,0,0,0.3); }
-.rotator--banner .rslide__desc { font-size: clamp(0.92rem, 1.2vw, 1.02rem); max-width: 92%; text-shadow: 0 1px 10px rgba(0,0,0,0.3); }
-.rotator--banner .rslide__cta { font-size: 0.98rem; margin-top: 0.55rem; text-shadow: 0 1px 10px rgba(0,0,0,0.3); }
-.rotator--banner .rotator__dots { position: absolute; left: 0; right: 0; bottom: 1.1rem; margin-top: 0; z-index: 4; }
+/* 모바일/태블릿: 풀이미지 + 하단 좌측 텍스트 + 하단 어두운 그라데이션(가독). 뱃지·CTA·점 숨김 */
+.rotator--banner .rslide { justify-content: flex-end; align-items: flex-start; text-align: left; padding: 1.5rem 1.4rem; gap: 0; }
+.rotator--banner .rslide::after { background: linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.35) 32%, transparent 60%); }
+.rotator--banner .rslide__badge { display: none; }
+.rotator--banner .rslide__title { font-family: var(--font-sans); font-weight: 800; font-size: 1.0rem; line-height: 1.3; margin: 0; text-shadow: none; }
+.rotator--banner .rslide__desc { font-size: 0.86rem; line-height: 1.45; margin: 0.4rem 0 0; color: rgba(255,255,255,0.72); text-shadow: none; }
+.rotator--banner .rslide__cta { display: none; }
+.rotator--banner .rotator__dots { display: none; }
 
-/* PC: 배너 텍스트를 좌측 하단으로(밀리서재풍). 모바일/태블릿은 하단 중앙 유지 */
+/* PC: 좌측 텍스트 패널(346/900≈38.4%, 이미지 가림) + 우측 이미지(좌→우 그라데이션으로 노출).
+   모바일/태블릿은 풀이미지 + 하단 중앙 텍스트 유지 */
 @media (min-width: 1024px) {
-  .rotator--banner .rslide { justify-content: flex-end; align-items: flex-start; text-align: left; padding: 2.6rem 3.5rem 3.2rem; gap: 0.6rem; }
-  .rotator--banner .rslide__badge { top: 1.8rem; left: 3.5rem; }
-  .rotator--banner .rslide__title { max-width: 50%; }
-  .rotator--banner .rslide__desc { max-width: 46%; }
-  .rotator--banner .rotator__dots { left: 3.5rem; right: auto; justify-content: flex-start; }
+  /* 레퍼런스 좌측 포맷: 제목+서브 상단, CTA 하단(margin-top:auto), 뱃지 없음 */
+  .rotator--banner .rslide { justify-content: flex-start; align-items: flex-start; text-align: left; padding: 1.9rem 0 1.7rem 2.6rem; gap: 0; }
+  .rotator--banner .rslide__bg { object-position: right center; }
+  /* 좌 38.4% 솔리드 패널 → 62%까지 약한 그라데이션 → 우측 100% 이미지 */
+  .rotator--banner .rslide::after {
+    content: ''; position: absolute; inset: 0; z-index: 1;
+    background: linear-gradient(to right, var(--panel, #1b1b22) 0%, var(--panel, #1b1b22) 38.4%, transparent 62%);
+  }
+  .rotator--banner .rslide__badge { display: none; }
+  .rotator--banner .rslide__title { font-family: var(--font-sans); font-weight: 800; font-size: clamp(1.3rem, 1.6vw, 1.55rem); line-height: 1.32; margin: 0; max-width: 32%; color: #fff; text-shadow: none; }
+  .rotator--banner .rslide__desc { font-size: 0.9rem; line-height: 1.5; margin: 0.5rem 0 0; max-width: 32%; color: rgba(255,255,255,0.6); text-shadow: none; }
+  .rotator--banner .rslide__cta { display: block; margin-top: auto; font-size: 0.95rem; font-weight: 700; color: #fff; text-shadow: none; }
+  .rotator--banner .rotator__dots { display: none; }
 }
 .rotator__counter {
   position: absolute; right: 1rem; bottom: 1rem; z-index: 4;

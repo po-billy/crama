@@ -8,6 +8,7 @@ import { SITE, CATEGORIES, EDITOR_PICKS, PILLARS, GUIDE_EXTRA } from '../consts'
 import AudioPicks from '../components/AudioPicks.astro';
 import Curations from '../components/Curations.astro';
 import AchievementModal from '../components/AchievementModal.astro';
+import DuoIcon from '../components/DuoIcon.astro';
 
 const posts = (await getCollection('blog'))
   .filter((p) => !p.data.draft)
@@ -46,24 +47,24 @@ const ranking = picks;
 
 // 좌측 콘텐츠 로테이터 — 가이드/진단/도구/사전이 롤링(슬라이드는 추가만 하면 됨)
 const slides = [
-  { badge: '칼럼', title: '읽을거리, 천천히 읽는 머니 칼럼', desc: '정보를 넘어 이야기로 — 돈과 AI를 둘러싼 관점과 장면들.', href: '/column/', cta: '칼럼 보기', img: '/img/generated/lifestyle-inflation-trap-hero.webp', imgMobile: '/img/generated/lifestyle-inflation-trap-hero-m.webp' },
-  { badge: '도구', title: '바로 쓰는 금융 계산기', desc: '복리·대출·세금·환율·노후까지 23종, 입력하면 즉시 계산.', href: '/tools/', cta: '계산기 열기', img: '/img/generated/rotator-tools-hero.webp', imgMobile: '/img/generated/rotator-tools-hero-m.webp' },
-  { badge: '사전', title: '금융·AI 용어 사전', desc: '모르는 용어를 빠르게 찾고 관련 글로 이동.', href: '/glossary/', cta: '용어 보기', img: '/img/generated/rotator-glossary-hero.webp', imgMobile: '/img/generated/rotator-glossary-hero-m.webp' },
-  { badge: '가이드', title: '주식 투자 완벽 가이드', desc: '기본기·계좌·종목·운용까지, 처음이라면 여기서 시작하세요.', href: '/blog/stock-investing-complete-guide/', cta: '가이드 보기', img: '/img/generated/rotator-guide-hero.webp', imgMobile: '/img/generated/rotator-guide-hero-m.webp' },
-  { badge: '테스트', title: '나의 머니 캐릭터 테스트', desc: '10가지 질문으로 내 돈 성향을 캐릭터로 진단하고 맞춤 글을 추천받아요.', href: '/quiz/money-character/', cta: '캐릭터 찾기', img: '/img/generated/rotator-quiz-hero.webp', imgMobile: '/img/generated/rotator-quiz-hero-m.webp' },
+  { title: '정보가 아니라<br />이야기를 읽다', desc: '돈과 AI를 둘러싼 관점과 장면, 머니 칼럼', href: '/column/', cta: '자세히 보기', panel: '#36302a', img: '/img/generated/rotator-column-hero.webp', imgMobile: '/img/generated/rotator-column-hero-m.webp' },
+  { title: '복잡한 금융 계산,<br />입력하면 끝', desc: '복리·대출·세금·환율·노후까지 23종 계산기', href: '/tools/', cta: '자세히 보기', panel: '#1e2a3a', img: '/img/generated/rotator-tools-hero.webp', imgMobile: '/img/generated/rotator-tools-hero-m.webp' },
+  { title: '모르는 용어,<br />3초 만에 찾기', desc: '금융·AI 용어 사전, 관련 글로 바로 이동', href: '/glossary/', cta: '자세히 보기', panel: '#2a2440', img: '/img/generated/rotator-glossary-hero.webp', imgMobile: '/img/generated/rotator-glossary-hero-m.webp' },
+  { title: '주식, 처음이라면<br />여기서 시작', desc: '기본기·계좌·종목·운용까지 완벽 가이드', href: '/blog/stock-investing-complete-guide/', cta: '자세히 보기', panel: '#102a36', img: '/img/generated/rotator-guide-hero.webp', imgMobile: '/img/generated/rotator-guide-hero-m.webp' },
+  { title: '내 돈 성향은<br />어떤 캐릭터일까', desc: '10가지 질문으로 보는 머니 캐릭터 테스트', href: '/quiz/money-character/', cta: '자세히 보기', panel: '#2d1f3d', img: '/img/generated/rotator-quiz-hero.webp', imgMobile: '/img/generated/rotator-quiz-hero-m.webp' },
 ];
 
 // 배너 하단 원형 퀵메뉴 — 콘텐츠 + 테스트 바로가기
 const circles = [
-  { label: '머니 캐릭터 테스트', href: '/quiz/money-character/', icon: '/img/generated/quiz-grasshopper.webp', badge: 'NEW' },
-  { label: '투자 성향 진단', href: '/quiz/investor-type/', icon: '/img/generated/menu-quiz.webp' },
-  { label: '칼럼', href: '/column/', icon: '/img/generated/menu-column.webp' },
-  { label: '완벽 가이드', href: '/guides/', icon: '/img/generated/menu-guide.webp' },
-  { label: '계산기', href: '/tools/', icon: '/img/generated/menu-calc.webp' },
-  { label: '용어집', href: '/glossary/', icon: '/img/generated/menu-glossary.webp' },
-  { label: '주식·재테크', href: '/category/money/', icon: '/img/generated/menu-money.webp' },
-  { label: 'AI 트렌드', href: '/category/ai/', icon: '/img/generated/menu-ai.webp' },
-  { label: '부업·지원금', href: '/category/income/', icon: '/img/generated/menu-income.webp' },
+  { label: '머니 캐릭터 테스트', href: '/quiz/money-character/', name: 'quiz', badge: 'NEW' },
+  { label: '투자 성향 진단', href: '/quiz/investor-type/', name: 'diagnose' },
+  { label: '칼럼', href: '/column/', name: 'column' },
+  { label: '완벽 가이드', href: '/guides/', name: 'guide' },
+  { label: '계산기', href: '/tools/', name: 'calc' },
+  { label: '용어집', href: '/glossary/', name: 'glossary' },
+  { label: '주식·재테크', href: '/category/money/', name: 'money' },
+  { label: 'AI 트렌드', href: '/category/ai/', name: 'ai' },
+  { label: '부업·지원금', href: '/category/income/', name: 'income' },
 ];
 
 const latest = posts.filter((p) => !guideSlugs.includes(p.id)).slice(0, 8);
@@ -76,39 +77,21 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
 <BaseLayout spa title={SITE.title} description={SITE.description} image="/og-home.png">
   <AchievementModal />
   <div class="wrap wrap--home">
-    <aside class="signup-strip" id="signup-strip" hidden>
-      <img src="/img/generated/meerkat-baby-stand.webp" alt="" />
-      <span>읽을수록 <strong>밀웜</strong> 적립 · <strong>크라미</strong> 꾸미기</span>
-      <a class="signup-strip__btn" href="/login/">시작하기</a>
-      <button class="signup-strip__x" id="signup-strip-x" aria-label="닫기">×</button>
-    </aside>
-    <script is:inline>
-      (() => {
-        const el = document.getElementById('signup-strip');
-        if (!el) return;
-        let dismissed = false, hasSession = false;
-        try { dismissed = localStorage.getItem('crama:strip-x') === '1'; } catch (e) {}
-        try { hasSession = Object.keys(localStorage).some((k) => k.includes('-auth-token')); } catch (e) {}
-        if (!dismissed && !hasSession) el.hidden = false;
-        document.getElementById('signup-strip-x')?.addEventListener('click', () => { el.hidden = true; try { localStorage.setItem('crama:strip-x', '1'); } catch (e) {} });
-      })();
-    </script>
-
     <header class="home-masthead">
       <h1>주식·재테크와 AI 트렌드, <em>깊이 있게.</em></h1>
     </header>
 
+    <div class="home-top">
     <section class="home-banner">
       <section class="rotator rotator--banner" aria-label="추천 콘텐츠">
         <div class="rotator__viewport">
           {slides.map((s, i) => (
-            <a class={i === 0 ? 'rslide is-active' : 'rslide'} href={s.href} data-slide={i}>
+            <a class={i === 0 ? 'rslide is-active' : 'rslide'} href={s.href} data-slide={i} style={`--panel:${s.panel ?? '#1b1b22'}`}>
               <picture>
                 <source media="(min-width: 1024px)" srcset={s.img} />
                 <img class="rslide__bg" src={s.imgMobile ?? s.img} alt="" loading={i === 0 ? 'eager' : 'lazy'} fetchpriority={i === 0 ? 'high' : 'auto'} />
               </picture>
-              <span class="rslide__badge">{s.badge}</span>
-              <h2 class="rslide__title">{s.title}</h2>
+              <h2 class="rslide__title" set:html={s.title}></h2>
               <p class="rslide__desc">{s.desc}</p>
               <span class="rslide__cta">{s.cta} →</span>
             </a>
@@ -122,12 +105,30 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
         </div>
       </section>
     </section>
+    <div class="home-cta">
+      <a class="cta-card cta-card--main" href="/me/">
+        <DuoIcon name="start" class="cta-card__ic" />
+        <span class="cta-card__badge">많이 찾는</span>
+        <b>크라미 시작하기</b>
+        <span class="cta-card__sub">읽을수록 밀웜 적립 · 크라미 꾸미기</span>
+      </a>
+      <a class="cta-card cta-card--quiz" href="/quiz/money-character/">
+        <DuoIcon name="quiz" class="cta-card__ic" />
+        <span class="cta-card__badge cta-card__badge--new">NEW</span>
+        <b>머니 캐릭터 테스트</b>
+      </a>
+      <a class="cta-card cta-card--shorts" href="/shorts/">
+        <DuoIcon name="shorts" class="cta-card__ic" />
+        <b>오늘의 쇼츠 보기</b>
+      </a>
+    </div>
+    </div>
 
     <nav class="home-circles" aria-label="바로가기">
       {circles.map((c) => (
         <a class="hcircle" href={c.href}>
           <span class="hcircle__img">
-            <img src={c.icon} alt="" loading="lazy" />
+            <DuoIcon name={c.name} class="hcircle__svg" />
             {c.badge && <span class="hcircle__badge">{c.badge}</span>}
           </span>
           <span class="hcircle__label">{c.label}</span>
@@ -193,22 +194,26 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
         root.addEventListener('mouseenter', stop);
         root.addEventListener('mouseleave', start);
 
-        // 모바일: 손가락 좌우 스와이프로 슬라이드 넘기기
+        // PC 마우스 드래그 + 모바일 터치 스와이프 통합 (Pointer Events)
         const vp = root.querySelector('.rotator__viewport') || root;
-        let sx = 0, sy = 0, swiping = false, justSwiped = false;
-        vp.addEventListener('touchstart', (e) => { const t = e.touches[0]; sx = t.clientX; sy = t.clientY; swiping = true; stop(); }, { passive: true });
-        vp.addEventListener('touchend', (e) => {
-          if (!swiping) return; swiping = false;
-          const t = e.changedTouches[0];
-          const dx = t.clientX - sx, dy = t.clientY - sy;
+        let px = 0, py = 0, dragging = false, justDragged = false;
+        vp.addEventListener('pointerdown', (e) => {
+          if (e.button > 0) return; // 좌클릭/터치만
+          px = e.clientX; py = e.clientY; dragging = true; stop();
+        });
+        const endDrag = (e) => {
+          if (!dragging) return; dragging = false;
+          const dx = e.clientX - px, dy = e.clientY - py;
           if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.3) {
             show(cur + (dx < 0 ? 1 : -1));
-            justSwiped = true; setTimeout(() => { justSwiped = false; }, 350);
+            justDragged = true; setTimeout(() => { justDragged = false; }, 350);
           }
           start();
-        }, { passive: true });
-        // 스와이프 직후 발생하는 링크 클릭은 무시(원치 않는 페이지 이동 방지)
-        slides.forEach((s) => s.addEventListener('click', (e) => { if (justSwiped) { e.preventDefault(); e.stopPropagation(); } }));
+        };
+        window.addEventListener('pointerup', endDrag);
+        window.addEventListener('pointercancel', () => { if (dragging) { dragging = false; start(); } });
+        // 드래그 직후 발생하는 링크 클릭은 무시(원치 않는 페이지 이동 방지)
+        slides.forEach((s) => s.addEventListener('click', (e) => { if (justDragged) { e.preventDefault(); e.stopPropagation(); } }));
 
         window.__rotStop = stop;
         start();

@@ -6,42 +6,40 @@ import '../styles/app.css';
 <BaseLayout title="로그인 — Crama" description="크라마 로그인 / 회원가입">
   <div class="app login">
     <div class="login__hero">
-      <img class="login__mascot" src="/img/generated/meerkat-baby-wave.webp" alt="크라미" />
-      <h1>크라미 시작하기</h1>
-      <p class="app__sub">먼저 읽는 사람들 — 로그인하고 글 읽을 때마다 <strong>밀웜</strong>을 모아 나만의 <strong>크라미</strong>를 꾸며보세요.</p>
+      <a href="/" class="login__logo" aria-label="Crama 홈">Cr<span>a</span>ma</a>
     </div>
 
-    <!-- 친구 초대로 들어온 경우 -->
-    <div class="ref-banner" id="ref-banner" hidden>
-      <span>친구 초대 코드 <b id="ref-code"></b></span>
-      <span class="ref-banner__bonus">가입 시 둘 다 +20밀웜</span>
-    </div>
-
-    <div id="provider-view" class="stack">
-      <button class="btn btn--google" id="google">Google로 계속하기</button>
-      <button class="btn btn--line" id="to-email">이메일로 계속하기</button>
-    </div>
-
-    <form id="email-view" class="stack" style="display:none" autocomplete="on">
+    <form id="email-view" class="stack" autocomplete="on">
       <input class="field" type="email" id="email" placeholder="이메일" autocomplete="email" />
       <input class="field" type="password" id="password" placeholder="비밀번호 (6자 이상)" autocomplete="current-password" />
-      <button class="btn btn--primary" id="submit" type="submit"><span id="submit-label">로그인</span></button>
-      <div class="row-between">
-        <button class="muted-link" type="button" id="back">← 다른 방법</button>
-        <button class="muted-link" type="button" id="toggle-mode">회원가입하기</button>
+      <input class="field" type="password" id="password2" placeholder="비밀번호 확인" autocomplete="new-password" hidden />
+
+      <!-- 추천 코드 — 회원가입에서만, 비밀번호 확인 바로 아래. 초대정보+입력을 한 영역으로 -->
+      <div class="ref-box" id="ref-section" hidden>
+        <div class="ref-box__head">
+          <span class="ref-box__t">추천 코드</span>
+          <span class="ref-box__bonus">가입 시 둘 다 +20밀웜</span>
+        </div>
+        <input class="field" id="ref-input" placeholder="추천 코드가 있다면 입력 (예: BE1990)" maxlength="12" style="text-transform:uppercase" />
       </div>
+
+      <button class="btn btn--primary" id="submit" type="submit"><span id="submit-label">로그인</span></button>
     </form>
 
-    <!-- 추천 코드 직접 입력 -->
-    <div style="text-align:center;margin-top:1.2rem">
-      <button class="muted-link" id="ref-toggle">추천 코드가 있나요?</button>
-    </div>
-    <div class="ref-input-row" id="ref-input-row" hidden>
-      <input class="field" id="ref-input" placeholder="추천 코드 (예: BE1990)" maxlength="12" style="margin:0;text-transform:uppercase" />
-      <button class="btn btn--line" id="ref-apply" style="width:auto;padding-inline:1.1rem">적용</button>
-    </div>
+    <div class="divider"><span>또는</span></div>
 
-    <p class="login__trust">Google 계정 또는 이메일로 안전하게 로그인해요.<br />비밀번호는 우리가 저장하지 않고, 인증은 Supabase가 처리합니다.</p>
+    <button class="btn btn--google" id="google">
+      <svg class="gicon" width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+      </svg>
+      <span>Google로 계속하기</span>
+    </button>
+
+    <p class="login__foot"><span id="foot-q">아직 회원이 아니신가요?</span> <button class="muted-link" type="button" id="toggle-mode">회원가입</button></p>
+
     <p class="app__sub" id="cfg-warn" style="display:none;text-align:center">환경설정(.env) 후 사용할 수 있어요.</p>
   </div>
   <div class="toast" id="toast"></div>
@@ -56,32 +54,19 @@ import '../styles/app.css';
   if (!isSupabaseConfigured) $('cfg-warn').style.display = 'block';
   getUser().then((u) => { if (u) location.replace('/me/'); });
 
-  // 레퍼럴: localStorage(BaseHead가 ?ref= 저장) 또는 직접 입력
-  function showRef(code: string) {
-    if (!code) return;
-    $('ref-code').textContent = code;
-    $('ref-banner').hidden = false;
-  }
-  showRef((localStorage.getItem('crama:ref') || '').toUpperCase());
-
-  $('ref-toggle').onclick = () => { const r = $('ref-input-row'); r.hidden = !r.hidden; if (!r.hidden) ($('ref-input') as HTMLInputElement).focus(); };
-  $('ref-apply').onclick = () => {
-    const code = ($('ref-input') as HTMLInputElement).value.trim().toUpperCase();
-    if (!code) return;
-    localStorage.setItem('crama:ref', code);
-    showRef(code);
-    $('ref-input-row').hidden = true;
-    toast('추천 코드 적용됨 — 가입하면 보상받아요');
-  };
-
+  // 레퍼럴: BaseHead가 ?ref= 를 localStorage 저장. 비밀번호 확인/추천 코드는 '회원가입 모드'에서만 노출
+  const refCode = (localStorage.getItem('crama:ref') || '').toUpperCase();
   let signup = false;
-  $('to-email').onclick = () => { $('provider-view').style.display = 'none'; $('email-view').style.display = 'grid'; };
-  $('back').onclick = () => { $('email-view').style.display = 'none'; $('provider-view').style.display = 'grid'; };
-  $('toggle-mode').onclick = () => {
-    signup = !signup;
+  function syncMode() {
     $('submit-label').textContent = signup ? '회원가입' : '로그인';
-    ($('toggle-mode') as HTMLElement).textContent = signup ? '로그인하기' : '회원가입하기';
-  };
+    $('foot-q').textContent = signup ? '이미 계정이 있으신가요?' : '아직 회원이 아니신가요?';
+    ($('toggle-mode') as HTMLElement).textContent = signup ? '로그인' : '회원가입';
+    ($('password2') as HTMLInputElement).hidden = !signup;
+    $('ref-section').hidden = !signup;
+    if (signup && refCode) ($('ref-input') as HTMLInputElement).value = refCode; // 초대로 들어왔으면 자동 채움
+  }
+  syncMode();
+  $('toggle-mode').onclick = () => { signup = !signup; syncMode(); };
 
   $('google').onclick = async () => { const { error } = await signInOAuth('google'); if (error) toast(error); };
 
@@ -90,6 +75,11 @@ import '../styles/app.css';
     const email = ($('email') as HTMLInputElement).value.trim();
     const pw = ($('password') as HTMLInputElement).value;
     if (!email || pw.length < 6) return toast('이메일과 6자 이상 비밀번호를 입력해 주세요.');
+    if (signup) {
+      if (pw !== ($('password2') as HTMLInputElement).value) return toast('비밀번호가 일치하지 않아요.');
+      const code = ($('ref-input') as HTMLInputElement).value.trim().toUpperCase();
+      if (code) localStorage.setItem('crama:ref', code); // /me 에서 가입 보상 청구
+    }
     const btn = $('submit') as HTMLButtonElement;
     btn.disabled = true;
     const res = signup ? await signUpEmail(email, pw) : await signInEmail(email, pw);

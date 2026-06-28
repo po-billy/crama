@@ -30,13 +30,14 @@
 .btn--primary { background: var(--accent); color: #fff; }
 .btn--line { background: transparent; color: var(--ink); border-color: var(--line); }
 .btn--kakao { background: #fee500; color: #191600; }
-.btn--google { background: var(--paper-2); color: var(--ink); border-color: var(--line); }
+.btn--google { background: #fff; color: #1f1f1f; border: 1px solid #dadce0; font-weight: 600; }
+.btn--google .gicon { flex: none; }
 .btn:disabled { opacity: 0.6; cursor: default; }
 /* 사이트 전역 a:hover(color:accent)가 버튼 글자색을 덮어써 안 보이는 문제 방지 */
 .btn--primary:hover { color: #fff; background: color-mix(in srgb, var(--accent) 88%, #000); }
 .btn--line:hover { color: var(--ink); border-color: var(--accent); }
 .btn--kakao:hover { color: #191600; }
-.btn--google:hover { color: var(--ink); }
+.btn--google:hover { color: #1f1f1f; background: #f8f9fa; }
 
 /* 밀웜 배지/잔액 */
 .worm-badge {
@@ -114,9 +115,31 @@
 .admodal__bar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .8rem 1rem calc(.8rem + env(safe-area-inset-bottom)); }
 
 /* 로그인 페이지 */
-.login { max-width: 25rem; }
+.login {
+  max-width: 26rem; margin: 2rem auto 4rem;
+  background: var(--paper); border: 1px solid var(--line); border-radius: 18px;
+  padding: 2.4rem 2rem; box-shadow: 0 14px 46px -28px rgba(20,18,30,.3);
+}
+.login .btn { border-radius: 10px; padding: 0.95rem; font-size: 1rem; }
+.login .field { margin-bottom: 0; }
+.login .stack { gap: 0.7rem; }
+/* 또는 구분선 */
+.divider { display: flex; align-items: center; gap: 0.8rem; margin: 1.2rem 0; }
+.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+.divider span { color: var(--muted); font-size: 0.82rem; }
+/* 하단 전환 링크 */
+.login__foot { text-align: center; margin-top: 1.2rem; color: var(--muted); font-size: 0.9rem; }
+.login__foot .muted-link { font-size: 0.9rem; }
+/* 추천 코드 — 초대 보너스 표기 + 입력을 한 박스로 (회원가입에서만) */
+.ref-box { display: grid; gap: 0.5rem; padding: 0.85rem 0.9rem; border: 1px solid var(--line); border-radius: 12px; background: var(--accent-soft); }
+.ref-box[hidden] { display: none; } /* display:grid 가 [hidden] 을 덮어쓰는 문제 방지 */
+.ref-box__head { display: flex; align-items: center; justify-content: space-between; }
+.ref-box__t { font-weight: 700; font-size: 0.9rem; color: var(--ink); }
+.ref-box__bonus { color: var(--accent); font-weight: 800; font-size: 0.78rem; white-space: nowrap; }
+.ref-box .field { background: var(--paper); }
 .login__hero { text-align: center; margin-bottom: 1.5rem; }
-.login__mascot { width: 92px; height: 92px; object-fit: contain; display: block; margin: 0 auto .4rem; }
+.login__logo { display: inline-block; font-family: var(--font-serif); font-size: 1.9rem; font-weight: 700; letter-spacing: -0.02em; color: var(--ink); text-decoration: none; }
+.login__logo span { color: var(--accent); }
 .login h1 { font-size: 1.6rem; margin-bottom: .5rem; }
 .login .app__sub strong { color: var(--accent); }
 .ref-banner { display: flex; align-items: center; justify-content: space-between; gap: .6rem; flex-wrap: wrap;
@@ -334,9 +357,11 @@ body.app-screen { height: 100dvh; overflow: hidden; margin: 0; background: var(-
   font-size: 0.62rem; font-weight: 800; padding: 2px 6px; border-radius: 6px; }
 
 /* 폼 */
-.field { width: 100%; box-sizing: border-box; background: var(--paper-2); border: 1px solid var(--line);
-  border-radius: var(--radius); padding: 0.85rem 0.9rem; font-size: 1rem; color: var(--ink);
-  font-family: var(--font-sans); margin-bottom: 0.7rem; }
+.field { width: 100%; box-sizing: border-box; background: var(--paper); border: 1px solid var(--line);
+  border-radius: 10px; padding: 0.92rem 1rem; font-size: 1rem; color: var(--ink);
+  font-family: var(--font-sans); margin-bottom: 0.7rem; transition: border-color .12s ease, box-shadow .12s ease; }
+.field::placeholder { color: var(--muted); }
+.field:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .muted-link { background: none; border: 0; color: var(--accent); font-weight: 600; cursor: pointer; font-size: 0.9rem; }
 .stack { display: grid; gap: 0.8rem; }
 .row-between { display: flex; align-items: center; justify-content: space-between; }

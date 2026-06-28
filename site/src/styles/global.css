@@ -227,6 +227,8 @@ hr {
   color: var(--ink-soft);
 }
 .nav a:hover { color: var(--accent); }
+/* PC(≥601px): 메뉴를 로고와 우측 아이콘 사이 가운데 정렬. 모바일(≤600px)은 별도 규칙 유지 */
+@media (min-width: 601px) { .nav { margin-inline: auto; } }
 .theme-toggle {
   background: none; border: 1px solid var(--line); color: var(--ink-soft);
   width: 2rem; height: 2rem; border-radius: 999px; cursor: pointer;

@@ -49,6 +49,7 @@ import '../styles/app.css';
     <div class="me-badge-head">
       <h2>업적</h2>
       <span class="me-badge-count" id="badge-count"></span>
+      <button class="badge-share" id="badge-share" type="button">자랑하기</button>
     </div>
     <div class="badge-grid" id="badge-grid"></div>
     <button class="badge-toggle" id="badge-toggle">모든 업적 보기</button>
@@ -93,7 +94,10 @@ import '../styles/app.css';
       <span class="badge-modal__eyebrow">NEW · 업적 달성</span>
       <div class="badge-modal__medals" id="badge-modal-medals"></div>
       <p class="badge-modal__names" id="badge-modal-names"></p>
-      <button class="btn btn--primary" id="badge-modal-ok">좋아요!</button>
+      <div class="badge-modal__actions">
+        <button class="btn btn--line" id="badge-modal-share" type="button">자랑하기</button>
+        <button class="btn btn--primary" id="badge-modal-ok" type="button">좋아요!</button>
+      </div>
     </div>
   </div>
 </BaseLayout>
@@ -116,49 +120,51 @@ import '../styles/app.css';
   }
 
   // ── 업적 배지(메달리온) ──
-  type Badge = { id: string; cat: 'listen' | 'streak' | 'reads' | 'worms'; label: string; sub: string; gold?: boolean };
+  type Rank = 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond';
+  type Badge = { id: string; cat: 'listen' | 'streak' | 'reads' | 'worms'; label: string; sub: string; rank: Rank };
   const BADGES: Badge[] = [
-    { id: 'listen_5m', cat: 'listen', label: '첫 청취', sub: '5분' },
-    { id: 'listen_15m', cat: 'listen', label: '귀동냥', sub: '15분' },
-    { id: 'listen_30m', cat: 'listen', label: '워밍업', sub: '30분' },
-    { id: 'listen_1h', cat: 'listen', label: '애청자', sub: '1시간' },
-    { id: 'listen_5h', cat: 'listen', label: '단골 청취', sub: '5시간' },
-    { id: 'listen_20h', cat: 'listen', label: '귀가 즐거워', sub: '20시간' },
-    { id: 'listen_100h', cat: 'listen', label: '청취 마스터', sub: '100시간' },
-    { id: 'listen_300h', cat: 'listen', label: '청취 레전드', sub: '300시간' },
-    { id: 'listen_1000h', cat: 'listen', label: '천 시간의 귀', sub: '1000시간', gold: true },
-    { id: 'streak_1', cat: 'streak', label: '첫 출석', sub: '1일' },
-    { id: 'streak_3', cat: 'streak', label: '삼일째', sub: '3일' },
-    { id: 'streak_7', cat: 'streak', label: '일주일 개근', sub: '7일' },
-    { id: 'streak_14', cat: 'streak', label: '이주일 개근', sub: '14일' },
-    { id: 'streak_30', cat: 'streak', label: '한 달 개근', sub: '30일' },
-    { id: 'streak_60', cat: 'streak', label: '두 달 개근', sub: '60일' },
-    { id: 'streak_100', cat: 'streak', label: '백일의 약속', sub: '100일' },
-    { id: 'streak_200', cat: 'streak', label: '이백일 개근', sub: '200일' },
-    { id: 'streak_365', cat: 'streak', label: '일 년 개근', sub: '365일', gold: true },
-    { id: 'read_1', cat: 'reads', label: '첫 글', sub: '1편' },
-    { id: 'read_3', cat: 'reads', label: '세 편 완독', sub: '3편' },
-    { id: 'read_10', cat: 'reads', label: '독서가', sub: '10편' },
-    { id: 'read_30', cat: 'reads', label: '탐독가', sub: '30편' },
-    { id: 'read_50', cat: 'reads', label: '수집가', sub: '50편' },
-    { id: 'read_100', cat: 'reads', label: '백 편 완독', sub: '100편' },
-    { id: 'read_200', cat: 'reads', label: '정보 마스터', sub: '200편' },
-    { id: 'read_500', cat: 'reads', label: '지식 사냥꾼', sub: '500편' },
-    { id: 'read_1000', cat: 'reads', label: '천 편의 독서', sub: '1000편', gold: true },
-    { id: 'worm_10', cat: 'worms', label: '밀웜 줍기', sub: '10마리' },
-    { id: 'worm_50', cat: 'worms', label: '밀웜 모으기', sub: '50마리' },
-    { id: 'worm_100', cat: 'worms', label: '밀웜 한 줌', sub: '100마리' },
-    { id: 'worm_300', cat: 'worms', label: '밀웜 창고', sub: '300마리' },
-    { id: 'worm_1000', cat: 'worms', label: '밀웜 부자', sub: '1000마리' },
-    { id: 'worm_3000', cat: 'worms', label: '밀웜 재벌', sub: '3000마리' },
-    { id: 'worm_10000', cat: 'worms', label: '밀웜 큰손', sub: '10000마리', gold: true },
+    { id: 'listen_5m', cat: 'listen', label: '첫 청취', sub: '5분', rank: 'bronze' },
+    { id: 'listen_15m', cat: 'listen', label: '귀동냥', sub: '15분', rank: 'bronze' },
+    { id: 'listen_30m', cat: 'listen', label: '워밍업', sub: '30분', rank: 'bronze' },
+    { id: 'listen_1h', cat: 'listen', label: '애청자', sub: '1시간', rank: 'silver' },
+    { id: 'listen_5h', cat: 'listen', label: '단골 청취', sub: '5시간', rank: 'silver' },
+    { id: 'listen_20h', cat: 'listen', label: '귀가 즐거워', sub: '20시간', rank: 'gold' },
+    { id: 'listen_100h', cat: 'listen', label: '청취 마스터', sub: '100시간', rank: 'gold' },
+    { id: 'listen_300h', cat: 'listen', label: '청취 레전드', sub: '300시간', rank: 'platinum' },
+    { id: 'listen_1000h', cat: 'listen', label: '천 시간의 귀', sub: '1000시간', rank: 'diamond' },
+    { id: 'streak_1', cat: 'streak', label: '첫 출석', sub: '1일', rank: 'bronze' },
+    { id: 'streak_3', cat: 'streak', label: '삼일째', sub: '3일', rank: 'bronze' },
+    { id: 'streak_7', cat: 'streak', label: '일주일 개근', sub: '7일', rank: 'bronze' },
+    { id: 'streak_14', cat: 'streak', label: '이주일 개근', sub: '14일', rank: 'silver' },
+    { id: 'streak_30', cat: 'streak', label: '한 달 개근', sub: '30일', rank: 'silver' },
+    { id: 'streak_60', cat: 'streak', label: '두 달 개근', sub: '60일', rank: 'gold' },
+    { id: 'streak_100', cat: 'streak', label: '백일의 약속', sub: '100일', rank: 'gold' },
+    { id: 'streak_200', cat: 'streak', label: '이백일 개근', sub: '200일', rank: 'platinum' },
+    { id: 'streak_365', cat: 'streak', label: '일 년 개근', sub: '365일', rank: 'diamond' },
+    { id: 'read_1', cat: 'reads', label: '첫 글', sub: '1편', rank: 'bronze' },
+    { id: 'read_3', cat: 'reads', label: '세 편 완독', sub: '3편', rank: 'bronze' },
+    { id: 'read_10', cat: 'reads', label: '독서가', sub: '10편', rank: 'bronze' },
+    { id: 'read_30', cat: 'reads', label: '탐독가', sub: '30편', rank: 'silver' },
+    { id: 'read_50', cat: 'reads', label: '수집가', sub: '50편', rank: 'silver' },
+    { id: 'read_100', cat: 'reads', label: '백 편 완독', sub: '100편', rank: 'gold' },
+    { id: 'read_200', cat: 'reads', label: '정보 마스터', sub: '200편', rank: 'gold' },
+    { id: 'read_500', cat: 'reads', label: '지식 사냥꾼', sub: '500편', rank: 'platinum' },
+    { id: 'read_1000', cat: 'reads', label: '천 편의 독서', sub: '1000편', rank: 'diamond' },
+    { id: 'worm_10', cat: 'worms', label: '밀웜 줍기', sub: '10마리', rank: 'bronze' },
+    { id: 'worm_50', cat: 'worms', label: '밀웜 모으기', sub: '50마리', rank: 'bronze' },
+    { id: 'worm_100', cat: 'worms', label: '밀웜 한 줌', sub: '100마리', rank: 'silver' },
+    { id: 'worm_300', cat: 'worms', label: '밀웜 창고', sub: '300마리', rank: 'silver' },
+    { id: 'worm_1000', cat: 'worms', label: '밀웜 부자', sub: '1000마리', rank: 'gold' },
+    { id: 'worm_3000', cat: 'worms', label: '밀웜 재벌', sub: '3000마리', rank: 'platinum' },
+    { id: 'worm_10000', cat: 'worms', label: '밀웜 큰손', sub: '10000마리', rank: 'diamond' },
   ];
-  const CAT: Record<string, { bg: string; g: string }> = {
-    listen: { bg: 'linear-gradient(145deg,#26b9b6,#0e8a88)', g: 'head' },
-    streak: { bg: 'linear-gradient(145deg,#ff8f43,#f1640f)', g: 'flame' },
-    reads: { bg: 'linear-gradient(145deg,#41c771,#16a34a)', g: 'book' },
-    worms: { bg: 'linear-gradient(145deg,#ffc54d,#f59e0b)', g: 'star' },
+  const CAT: Record<string, { bg: string; g: string; emoji: string; accent: string; name: string }> = {
+    listen: { bg: 'linear-gradient(145deg,#26b9b6,#0e8a88)', g: 'head', emoji: '🎧', accent: '#13a3a0', name: '청취' },
+    streak: { bg: 'linear-gradient(145deg,#ff8f43,#f1640f)', g: 'flame', emoji: '🔥', accent: '#f1640f', name: '출석' },
+    reads: { bg: 'linear-gradient(145deg,#41c771,#16a34a)', g: 'book', emoji: '📖', accent: '#1aa34a', name: '독서' },
+    worms: { bg: 'linear-gradient(145deg,#ffc54d,#f59e0b)', g: 'star', emoji: '⭐', accent: '#f59e0b', name: '밀웜' },
   };
+  const RANK_KO: Record<Rank, string> = { bronze: '브론즈', silver: '실버', gold: '골드', platinum: '플래티넘', diamond: '다이아' };
   const GLYPH: Record<string, string> = {
     head: '<path d="M4 13v-1a8 8 0 0 1 16 0v1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="3" y="12.5" width="4.4" height="7.5" rx="2" fill="currentColor"/><rect x="16.6" y="12.5" width="4.4" height="7.5" rx="2" fill="currentColor"/>',
     flame: '<path d="M12 2c2.2 3.6 5.4 5 5.4 9.1A5.4 5.4 0 0 1 6.6 11C6.6 8.6 8 7.2 9 5.5c.5 1.3 1.5 1.9 2.3 1.2C12.1 6 12 4 12 2z" fill="currentColor"/>',
@@ -171,7 +177,7 @@ import '../styles/app.css';
   let badgeShowAll = false;
   function badgeCard(b: Badge): string {
     const c = CAT[b.cat]; const on = badgeEarned.has(b.id);
-    return `<div class="badge ${on ? '' : 'is-locked'} ${on && b.gold ? 'is-gold' : ''} ${badgeFresh.has(b.id) ? 'is-new' : ''}">
+    return `<div class="badge ${on ? '' : 'is-locked'} ${badgeFresh.has(b.id) ? 'is-new' : ''}" data-rank="${b.rank}">
       <div class="badge__medal" style="--bg:${c.bg}"><svg viewBox="0 0 24 24" aria-hidden="true">${GLYPH[c.g]}</svg></div>
       <span class="badge__label">${b.label}</span><span class="badge__sub">${b.sub}</span>
     </div>`;
@@ -197,20 +203,63 @@ import '../styles/app.css';
     badgeToggle.textContent = badgeShowAll ? '접기' : '모든 업적 보기';
     renderBadges();
   });
+  let lastUnlocked: Badge[] = [];
   function showBadgeUnlock(ids: string[]) {
     const byId = new Map(BADGES.map((b) => [b.id, b]));
     const items = ids.map((id) => byId.get(id)).filter(Boolean) as Badge[];
     if (!items.length) return;
+    lastUnlocked = items;
     $('badge-modal-medals').innerHTML = items.map((b) => {
       const c = CAT[b.cat];
-      return `<div class="badge-modal__medal" style="--bg:${c.bg}"><svg viewBox="0 0 24 24" aria-hidden="true">${GLYPH[c.g]}</svg></div>`;
+      return `<div class="badge-modal__medal" data-rank="${b.rank}" style="--bg:${c.bg}"><svg viewBox="0 0 24 24" aria-hidden="true">${GLYPH[c.g]}</svg></div>`;
     }).join('');
-    $('badge-modal-names').textContent = items.map((b) => b.label).join(' · ');
+    $('badge-modal-names').textContent = items.map((b) => `${b.label} · ${RANK_KO[b.rank]}`).join(' · ');
     $('badge-modal').hidden = false;
   }
   const closeBadgeModal = () => { $('badge-modal').hidden = true; };
   $('badge-modal-ok')?.addEventListener('click', closeBadgeModal);
   $('badge-modal')?.addEventListener('click', (e) => { if (e.target === e.currentTarget) closeBadgeModal(); });
+
+  // ── 업적 자랑하기(소셜 공유) — 캔버스 카드 이미지 + Web Share(카톡·인스타 등 공유시트), 미지원 시 클립보드 ──
+  async function makeShareCard(o: { emoji: string; title: string; sub: string; accent: string }): Promise<Blob | null> {
+    const W = 1080, H = 1080, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+    const x = cv.getContext('2d'); if (!x) return null;
+    const bg = x.createLinearGradient(0, 0, W, H); bg.addColorStop(0, '#1c1633'); bg.addColorStop(1, '#0e0b1c');
+    x.fillStyle = bg; x.fillRect(0, 0, W, H);
+    x.save(); const rg = x.createRadialGradient(W / 2, 430, 30, W / 2, 430, 380);
+    rg.addColorStop(0, o.accent); rg.addColorStop(1, 'rgba(0,0,0,0)'); x.globalAlpha = .45; x.fillStyle = rg;
+    x.beginPath(); x.arc(W / 2, 430, 380, 0, Math.PI * 2); x.fill(); x.restore();
+    x.beginPath(); x.arc(W / 2, 430, 175, 0, Math.PI * 2); x.fillStyle = o.accent; x.fill();
+    x.lineWidth = 8; x.strokeStyle = 'rgba(255,255,255,.85)'; x.stroke();
+    x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.font = '170px serif'; x.fillText(o.emoji, W / 2, 442);
+    x.fillStyle = '#fff'; x.font = 'bold 88px sans-serif'; x.fillText(o.title, W / 2, 716);
+    x.fillStyle = 'rgba(255,255,255,.72)'; x.font = '46px sans-serif'; x.fillText(o.sub, W / 2, 804);
+    x.fillStyle = o.accent; x.font = 'bold 42px sans-serif'; x.fillText('크라마에서 달성 · crama.app', W / 2, 968);
+    return await new Promise((res) => cv.toBlob((b) => res(b), 'image/png'));
+  }
+  async function shareAchievement(o: { emoji: string; title: string; sub: string; accent: string; text: string }) {
+    try {
+      const blob = await makeShareCard(o);
+      const file = blob ? new File([blob], 'crama-badge.png', { type: 'image/png' }) : null;
+      const nav = navigator as any;
+      if (file && nav.canShare && nav.canShare({ files: [file] })) { await nav.share({ files: [file], title: '크라마 업적', text: o.text }); return; }
+      if (nav.share) { await nav.share({ title: '크라마 업적', text: o.text, url: 'https://crama.app' }); return; }
+      await navigator.clipboard.writeText(o.text + ' https://crama.app'); toast('자랑 문구를 복사했어요!');
+    } catch (e) { /* 사용자 취소 등 */ }
+  }
+  function shareBadge(b: Badge) {
+    const c = CAT[b.cat];
+    shareAchievement({ emoji: c.emoji, title: b.label, sub: `${c.name} · ${b.sub} · ${RANK_KO[b.rank]}`, accent: c.accent, text: `크라마에서 '${b.label}' 업적을 달성했어요! ${c.emoji} 나도 도전 →` });
+  }
+  document.getElementById('badge-modal-share')?.addEventListener('click', () => { if (lastUnlocked[0]) shareBadge(lastUnlocked[0]); });
+  document.getElementById('badge-share')?.addEventListener('click', () => {
+    const ord: Rank[] = ['bronze', 'silver', 'gold', 'platinum', 'diamond'];
+    const got = BADGES.filter((b) => badgeEarned.has(b.id)).sort((a, b) => ord.indexOf(a.rank) - ord.indexOf(b.rank));
+    const top = got[got.length - 1];
+    if (!top) { toast('업적을 하나 달성하면 자랑할 수 있어요!'); return; }
+    shareBadge(top);
+  });
 
   // ── 캐릭터 장착 미리보기 ──
   const IMG = (id: string) => `/img/wardrobe/${id}.webp`;

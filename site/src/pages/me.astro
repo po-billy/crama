@@ -180,6 +180,7 @@ import '../styles/app.css';
     return `<div class="badge ${on ? '' : 'is-locked'} ${badgeFresh.has(b.id) ? 'is-new' : ''}" data-rank="${b.rank}">
       <div class="badge__medal" style="--bg:${c.bg}"><svg viewBox="0 0 24 24" aria-hidden="true">${GLYPH[c.g]}</svg></div>
       <span class="badge__label">${b.label}</span><span class="badge__sub">${b.sub}</span>
+      <span class="badge__rank">${RANK_KO[b.rank]}</span>
     </div>`;
   }
   function renderBadges(earned?: Set<string>, fresh?: Set<string>) {

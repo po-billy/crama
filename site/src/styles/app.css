@@ -138,9 +138,17 @@
 .badge[data-rank="platinum"], .badge-modal__medal[data-rank="platinum"] { --ring:#a3e7da; --ringc:rgba(163,231,218,.75); --glow:18px; }
 .badge[data-rank="diamond"],  .badge-modal__medal[data-rank="diamond"]  { --ring:#9bd2ff; --ringc:rgba(155,210,255,.9);  --glow:22px; }
 .badge:not(.is-locked) .badge__medal {
-  box-shadow: 0 0 0 2.5px var(--ring, transparent), inset 0 2px 3px rgba(255,255,255,.42),
+  box-shadow: 0 0 0 3px var(--ring, transparent), inset 0 2px 3px rgba(255,255,255,.42),
     inset 0 -4px 7px rgba(0,0,0,.18), 0 4px 10px rgba(0,0,0,.14), 0 0 var(--glow,0) var(--ringc, transparent);
 }
+/* 등급 칩(브론즈/실버/골드/플래티넘/다이아) — 색이 같은 단계라도 등급이 한눈에 */
+.badge__rank { font-size: .56rem; font-weight: 800; letter-spacing: .02em; line-height: 1; padding: .14rem .42rem; border-radius: 999px; margin-top: .15rem; }
+.badge[data-rank="bronze"]   .badge__rank { color: #6f4518; background: linear-gradient(145deg, #e8b878, #cd7f32); }
+.badge[data-rank="silver"]   .badge__rank { color: #3a424d; background: linear-gradient(145deg, #eef2f6, #c2cbd6); }
+.badge[data-rank="gold"]     .badge__rank { color: #6b4e08; background: linear-gradient(145deg, #ffe08a, #f0c23a); }
+.badge[data-rank="platinum"] .badge__rank { color: #155047; background: linear-gradient(145deg, #dffaf3, #a3e7da); }
+.badge[data-rank="diamond"]  .badge__rank { color: #174b78; background: linear-gradient(145deg, #e3f3ff, #9bd2ff); }
+.badge.is-locked .badge__rank { filter: grayscale(.65); opacity: .42; }
 /* 광택 스윕 — 플래티넘·다이아만(상위 등급 보상감) */
 .badge:not(.is-locked)[data-rank="platinum"] .badge__medal::after,
 .badge:not(.is-locked)[data-rank="diamond"] .badge__medal::after {

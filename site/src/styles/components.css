@@ -300,8 +300,8 @@
 .cta-card {
   position: relative; overflow: hidden; text-decoration: none; color: var(--ink);
   display: flex; flex-direction: column; align-items: flex-start;
-  min-height: 6.4rem; padding: 1.1rem 1.2rem; border-radius: 16px;
-  border: 1px solid var(--line); background: var(--paper-2);
+  min-height: 6.4rem; padding: 1.1rem 1.2rem; border-radius: 8px;
+  border: 1px solid var(--line);
   transition: transform .12s ease, box-shadow .15s ease;
 }
 .cta-card:hover { transform: translateY(-2px); box-shadow: 0 12px 26px -16px rgba(0,0,0,.35); }
@@ -318,10 +318,8 @@
   padding: 0.18rem 0.5rem; border-radius: 999px;
 }
 .cta-card__badge--new { background: color-mix(in srgb, #22c55e 16%, var(--paper)); color: #16a34a; }
-/* 플랫 솔리드 톤 (레이아웃엔 그라데이션 X — 그라데이션은 아이콘 내부에만) */
-.cta-card--main   { background: var(--accent-soft); border-color: transparent; }
-.cta-card--quiz   { background: color-mix(in srgb, #22c55e 10%, var(--paper)); }
-.cta-card--shorts { background: color-mix(in srgb, #f43f5e 9%, var(--paper)); }
+/* 배경 없는 아웃라인 카드 (그라데이션은 아이콘 내부에만) */
+.cta-card--main { border-color: transparent; }
 
 /* 배너 하단 원형 퀵메뉴 */
 .home-circles {

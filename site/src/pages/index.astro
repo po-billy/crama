@@ -7,7 +7,7 @@ import AdSlot from '../components/AdSlot.astro';
 import { SITE, CATEGORIES, EDITOR_PICKS, PILLARS, GUIDE_EXTRA } from '../consts';
 import AudioPicks from '../components/AudioPicks.astro';
 import Curations from '../components/Curations.astro';
-import AchievementModal from '../components/AchievementModal.astro';
+import InstallApp from '../components/InstallApp.astro';
 import DuoIcon from '../components/DuoIcon.astro';
 
 const posts = (await getCollection('blog'))
@@ -75,8 +75,8 @@ const byCategory = (slug: 'money' | 'ai' | 'income') =>
 const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.webp$/, '-hero-thumb.webp') : h);
 ---
 <BaseLayout spa title={SITE.title} description={SITE.description} image="/og-home.png">
-  <AchievementModal />
   <div class="wrap wrap--home">
+    <InstallApp />
     <header class="home-masthead">
       <h1>주식·재테크와 AI 트렌드, <em>깊이 있게.</em></h1>
     </header>
@@ -154,6 +154,52 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
           </li>
         ))}
       </ol>
+    </section>
+
+    <!-- 모바일 전용 — 주목할 아티클 스와이프 카드(상단 dot 인디케이터) -->
+    <section class="rankc" aria-label="주목할 아티클">
+      <div class="rankc__head">
+        <h2>오늘 이건 꼭 📌</h2>
+        <div class="rankc__dots" id="rankc-dots" aria-hidden="true">
+          {ranking.map((_, i) => <span class={i === 0 ? 'is-on' : ''}></span>)}
+        </div>
+      </div>
+      <div class="rankc__track" id="rankc-track">
+        {ranking.map((p) => (
+          <a class="rankc__card" href={`/blog/${p.id}/`}>
+            {p.data.heroImage && <img class="rankc__img" src={p.data.heroImage} alt="" loading="lazy" />}
+            <div class="rankc__body">
+              <span class="rankc__cat">{CATEGORIES[p.data.category].name}</span>
+              <h3 class="rankc__title">{p.data.title}</h3>
+              <p class="rankc__desc">{p.data.description}</p>
+              <span class="rankc__cta">이 글 읽어보기 →</span>
+            </div>
+          </a>
+        ))}
+      </div>
+      <script is:inline>
+        function __rankcInit() {
+          const track = document.getElementById('rankc-track');
+          const dots = document.querySelectorAll('#rankc-dots span');
+          if (!track || !dots.length || track.__bound) return;
+          track.__bound = true;
+          let raf;
+          track.addEventListener('scroll', () => {
+            cancelAnimationFrame(raf);
+            raf = requestAnimationFrame(() => {
+              const center = track.scrollLeft + track.clientWidth / 2;
+              const cards = track.children; let best = 0, bd = Infinity;
+              for (let i = 0; i < cards.length; i++) {
+                const c = cards[i], cc = c.offsetLeft + c.offsetWidth / 2, d = Math.abs(cc - center);
+                if (d < bd) { bd = d; best = i; }
+              }
+              dots.forEach((dt, i) => dt.classList.toggle('is-on', i === best));
+            });
+          }, { passive: true });
+        }
+        if (!window.__rankcBound) { window.__rankcBound = true; document.addEventListener('astro:page-load', __rankcInit); }
+        if (document.readyState !== 'loading') __rankcInit(); else document.addEventListener('DOMContentLoaded', __rankcInit, { once: true });
+      </script>
     </section>
 
     <AudioPicks />

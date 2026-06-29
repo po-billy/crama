@@ -293,7 +293,7 @@
 }
 /* 모바일/태블릿 배너를 레퍼런스처럼 와이드·낮게 */
 @media (max-width: 1023px) {
-  .home-top .rotator--banner .rotator__viewport { aspect-ratio: 2.1 / 1; min-height: 0; max-height: none; }
+  .home-top .rotator--banner .rotator__viewport { aspect-ratio: 1.8 / 1; min-height: 0; max-height: none; }
 }
 /* CTA 스택: 1행 1개(풀폭) + 2행 2개 */
 .home-cta { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
@@ -366,6 +366,28 @@
 @media (min-width: 1024px) {
   .home-rank .ranked-list { display: grid; grid-template-columns: 1fr 1fr; column-gap: 2.6rem; }
 }
+
+/* 모바일 전용 — 주목할 아티클 스와이프 카드 캐러셀(상단 dot 인디케이터) */
+.rankc { display: none; }
+@media (max-width: 767px) {
+  .home-rank { display: none; }
+  .rankc { display: block; margin-top: 2.2rem; }
+}
+.rankc__head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+.rankc__head h2 { font-size: 1.3rem; margin: 0; }
+.rankc__dots { display: flex; gap: 6px; flex: none; }
+.rankc__dots span { width: 7px; height: 7px; border-radius: 50%; background: var(--line); transition: background .25s, width .25s; }
+.rankc__dots span.is-on { background: var(--accent); width: 18px; border-radius: 999px; }
+.rankc__track { display: flex; gap: 1rem; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; margin-inline: -1.5rem; padding: .25rem 1.5rem; }
+.rankc__track::-webkit-scrollbar { display: none; }
+.rankc__card { flex: 0 0 85%; scroll-snap-align: start; background: var(--paper); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 16px rgba(0, 0, 0, .05); }
+.rankc__img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; display: block; }
+.rankc__body { padding: 1.1rem 1.2rem 1.3rem; }
+.rankc__cat { font-size: .74rem; font-weight: 800; color: var(--accent); letter-spacing: .02em; }
+.rankc__title { font-family: var(--font-serif); font-size: 1.25rem; line-height: 1.32; margin: .35rem 0 .5rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.rankc__desc { color: var(--ink-soft); font-size: .92rem; line-height: 1.55; margin: 0 0 1.1rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.rankc__cta { display: block; text-align: center; background: var(--accent); color: #fff; font-weight: 700; border-radius: 10px; padding: .8rem; font-size: .95rem; }
+.rankc__card:hover .rankc__cta { color: #fff; }
 
 /* ---------- 홈 히어로(레거시: 일부 화면에서 재사용) ---------- */
 .home-hero { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: stretch; margin-top: 2rem; }

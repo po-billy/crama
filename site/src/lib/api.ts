@@ -73,6 +73,13 @@ export async function getProfile() {
   return data;
 }
 
+// 업적 배지: 현재 지표로 새 배지 해금 + 보유 전체 반환(is_new=이번에 해금)
+export async function checkBadges(): Promise<{ badge_id: string; is_new: boolean }[]> {
+  const sb = getSupabase();
+  const { data } = await sb.rpc('check_badges');
+  return (data as { badge_id: string; is_new: boolean }[]) ?? [];
+}
+
 export async function updateNickname(nickname: string) {
   const user = await getUser();
   if (!user) return { error: 'no_user' };

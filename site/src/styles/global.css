@@ -48,7 +48,7 @@
 html {
   -webkit-text-size-adjust: 100%;
   scroll-behavior: smooth;
-  overflow-x: hidden; /* 모바일 가로 흔들림(가로 오버플로우) 방지 — 루트에만 적용해 헤더 sticky 유지 */
+  overflow-x: clip; /* 모바일 가로 흔들림 방지. hidden은 루트를 스크롤 컨테이너로 만들어 position:fixed(FAB·투표 마스코트)가 모바일에서 스크롤 따라 올라오는 버그 → clip은 스크롤 컨테이너를 안 만들어 fixed 유지 */
 }
 
 body {

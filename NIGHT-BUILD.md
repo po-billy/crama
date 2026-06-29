@@ -76,5 +76,5 @@ git checkout main && git merge dev && git push origin main
 ---
 
 ## 5) 즉시 써먹기 — 스레드 초안 7개
-`automation/output/threads-batch.txt` 에 7개 완성본 있음(복붙용). 오늘부터 하루 1개씩 올리면 1주일치.
-재생성: `cd automation && node gen-threads.js --batch 7`
+**`automation/THREADS-READY.md`** 에 7개 완성본 있음(복붙용, 커밋됨). 오늘부터 하루 1개씩 올리면 1주일치.
+재생성: `cd automation && node gen-threads.js --batch 7` (→ `output/threads-batch.txt`)

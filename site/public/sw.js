@@ -32,3 +32,29 @@ self.addEventListener('fetch', (e) => {
       .catch(() => caches.match(req).then((m) => m || caches.match('/offline.html'))),
   );
 });
+
+// ── Web Push: 알림 표시 ──
+self.addEventListener('push', (e) => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (err) {}
+  const title = d.title || 'Crama';
+  e.waitUntil(self.registration.showNotification(title, {
+    body: d.body || '',
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    tag: d.tag || 'crama-brief',
+    data: { url: d.url || '/' },
+  }));
+});
+
+// ── Web Push: 알림 클릭 → 해당 글 열기(이미 열린 탭 있으면 포커스) ──
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || '/';
+  e.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+      for (const c of list) { if ('focus' in c) { if (c.navigate) c.navigate(url); return c.focus(); } }
+      return self.clients.openWindow(url);
+    }),
+  );
+});

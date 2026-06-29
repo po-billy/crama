@@ -68,6 +68,9 @@ export const GUIDE_EXTRA = [
   'domestic-stock-beginners-guide',
 ] as const;
 
+// Web Push 공개키(VAPID) — 클라이언트 구독용. 공개키라 커밋 안전(비밀키는 automation/.env)
+export const VAPID_PUBLIC_KEY = 'BJXQcoA8xVdqQn6E5v_RqFZWZ6CokyEyaYQ_s3KnaYyIZg4GFRntAozu6LrGoB9Jp4Tfd17Zo4tDMNnHGH-WljQ';
+
 // 헤더 내비게이션
 export const NAV = [
   { label: '주식·재테크', href: '/category/money/' },

@@ -156,6 +156,8 @@ async function main() {
   const url = `https://crama.app/blog/${slug}/`;
   // 배포 후 자동 색인(GitHub Actions)이 '실제 라이브된 뒤' 폴링·제출하도록 발행 URL 을 파일로 남긴다.
   try { await fs.writeFile(path.join(__dirname, 'last-url.txt'), url, 'utf8'); } catch (e) {}
+  // 배포 라이브 확인 후 Web Push 발송용 — 제목/URL 기록(send-brief.js가 사용)
+  try { await fs.writeFile(path.join(__dirname, 'last-brief.json'), JSON.stringify({ title: art.title, url }), 'utf8'); } catch (e) {}
   if (process.env.INDEXNOW_AUTO === '1') {
     try {
       const { submit } = await import('./lib/indexnow.js');

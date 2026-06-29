@@ -45,8 +45,15 @@ jobs:
 
       # 배포 후 자동 색인: Vercel 빌드가 끝나 URL 이 실제 200 으로 뜬 뒤에만 IndexNow(네이버·빙·얀덱스) 제출.
       # (배포 전에 쏘면 404 가 푸시되므로 라이브 확인될 때까지 폴링)
-      - name: Ping IndexNow after deploy
+      - name: Ping IndexNow + Web Push after deploy
         working-directory: automation
+        env:
+          VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+          VAPID_SUBJECT: ${{ vars.VAPID_SUBJECT || 'mailto:gmlthd94@gmail.com' }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
         run: |
           URL=$(cat last-url.txt 2>/dev/null || true)
           if [ -z "$URL" ]; then echo "발행 URL 없음 — 스킵"; exit 0; fi
@@ -57,4 +64,9 @@ jobs:
             if [ "$code" = "200" ]; then live=1; echo "라이브 확인 ($code)"; break; fi
             echo "  대기 중 ($code) ${i}/30…"; sleep 20
           done
-          if [ "$live" = "1" ]; then node indexnow.js "$URL"; else echo "타임아웃(10분) — 404 푸시 방지 위해 스킵"; fi
+          if [ "$live" = "1" ]; then
+            node indexnow.js "$URL"
+            node send-brief.js || echo "푸시 발송 스킵/실패(글은 정상)"
+          else
+            echo "타임아웃(10분) — 색인/푸시 스킵"
+          fi

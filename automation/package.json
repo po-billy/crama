@@ -20,6 +20,7 @@
     "microsoft-cognitiveservices-speech-sdk": "^1.42.0",
     "node-html-parser": "^8.0.2",
     "pg": "^8.22.0",
-    "sharp": "^0.35.1"
+    "sharp": "^0.35.1",
+    "web-push": "^3.6.7"
   }
 }

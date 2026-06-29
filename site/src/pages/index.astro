@@ -141,23 +141,79 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
     </nav>
 
     <section class="home-rank">
-      <div class="section-head"><h2>주목할 아티클</h2><a href="/category/money/">재테크 글 전체 보기</a></div>
-      <ol class="ranked-list">
-        {ranking.map((p, i) => (
-          <li>
-            <a class="ranked" href={`/blog/${p.id}/`}>
-              <span class="ranked__num">{i + 1}</span>
-              {p.data.heroImage && (
-                <div class="ranked__thumb"><img src={thumb(p.data.heroImage)} alt="" loading="lazy" width="60" height="60" /></div>
-              )}
-              <div class="ranked__body">
-                <h3 class="ranked__title">{p.data.title}</h3>
-                <div class="ranked__meta">{CATEGORIES[p.data.category].name} · <FormattedDate date={p.data.pubDate} /></div>
-              </div>
-            </a>
-          </li>
-        ))}
-      </ol>
+      <div class="section-head">
+        <div class="section-head__t">
+          <h2>주목할 아티클</h2>
+          <p class="section-head__dek">에디터가 고른, 지금 꼭 읽을 8편</p>
+        </div>
+        <a href="/category/money/">재테크 글 전체 보기 →</a>
+      </div>
+      <div class="rankf" id="rankf">
+        <!-- 큰 대표 영역(활성 글) -->
+        <a class="rankf__feature" id="rankf-feature" href={`/blog/${ranking[0].id}/`}>
+          <div class="rankf__media">
+            <img id="rankf-img" src={ranking[0].data.heroImage} alt="" />
+            <span class="rankf__grad" aria-hidden="true"></span>
+          </div>
+          <div class="rankf__cap">
+            <span class="rankf__num" id="rankf-num">1</span>
+            <span class="rankf__cat" id="rankf-cat">{CATEGORIES[ranking[0].data.category].name}</span>
+            <h3 class="rankf__title" id="rankf-title">{ranking[0].data.title}</h3>
+            <p class="rankf__desc" id="rankf-desc">{ranking[0].data.description}</p>
+            <span class="rankf__cta">이어서 읽기 →</span>
+          </div>
+        </a>
+        <!-- 1~8 랭킹 리스트(썸네일) -->
+        <ol class="rankf__list" id="rankf-list">
+          {ranking.map((p, i) => (
+            <li>
+              <a class={i === 0 ? 'rankf__item is-active' : 'rankf__item'} href={`/blog/${p.id}/`}
+                data-img={p.data.heroImage ?? ''} data-title={p.data.title} data-desc={p.data.description}
+                data-cat={CATEGORIES[p.data.category].name}>
+                <span class="rankf__rank">{i + 1}</span>
+                <span class="rankf__thumb">{p.data.heroImage && <img src={thumb(p.data.heroImage)} alt="" loading="lazy" width="48" height="48" />}</span>
+                <span class="rankf__name">{p.data.title}</span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </div>
+      <script is:inline>
+        function __rankfInit() {
+          const root = document.getElementById('rankf');
+          if (!root || root.__bound) return;
+          root.__bound = true;
+          const items = Array.from(root.querySelectorAll('.rankf__item'));
+          if (!items.length) return;
+          const feature = document.getElementById('rankf-feature');
+          const img = document.getElementById('rankf-img');
+          const num = document.getElementById('rankf-num');
+          const cat = document.getElementById('rankf-cat');
+          const title = document.getElementById('rankf-title');
+          const desc = document.getElementById('rankf-desc');
+          let cur = 0, timer;
+          function setActive(i) {
+            i = (i + items.length) % items.length;
+            if (i === cur) return;
+            const el = items[i];
+            items.forEach((it, k) => it.classList.toggle('is-active', k === i));
+            if (el.dataset.img) img.src = el.dataset.img;
+            num.textContent = String(i + 1);
+            cat.textContent = el.dataset.cat || '';
+            title.textContent = el.dataset.title || '';
+            desc.textContent = el.dataset.desc || '';
+            feature.setAttribute('href', el.getAttribute('href') || '#');
+            cur = i;
+          }
+          const start = () => { clearInterval(timer); timer = setInterval(() => setActive(cur + 1), 4000); };
+          const stop = () => clearInterval(timer);
+          items.forEach((it, i) => it.addEventListener('mouseenter', () => { setActive(i); stop(); }));
+          root.addEventListener('mouseleave', start);
+          start();
+        }
+        if (!window.__rankfBound) { window.__rankfBound = true; document.addEventListener('astro:page-load', __rankfInit); }
+        if (document.readyState !== 'loading') __rankfInit(); else document.addEventListener('DOMContentLoaded', __rankfInit, { once: true });
+      </script>
     </section>
 
     <!-- 모바일 전용 — 주목할 아티클 스와이프 카드(상단 dot 인디케이터) -->

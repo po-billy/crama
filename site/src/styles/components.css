@@ -365,6 +365,31 @@
   .home-rank .ranked-list { display: grid; grid-template-columns: 1fr 1fr; column-gap: 2.6rem; }
 }
 
+/* PC '주목할 아티클' — 큰 대표 영역 + 1~8 랭킹 리스트(자동 순환·호버 교체) */
+.rankf { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 1.5rem; align-items: stretch; }
+.rankf__feature { position: relative; display: block; border-radius: 16px; overflow: hidden; min-height: 380px; color: #fff; background: var(--paper-2); }
+.rankf__media { position: absolute; inset: 0; }
+.rankf__media img { width: 100%; height: 100%; object-fit: cover; }
+.rankf__grad { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,.9) 0%, rgba(0,0,0,.45) 38%, rgba(0,0,0,0) 66%); }
+.rankf__cap { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; padding: 1.6rem 1.7rem; }
+.rankf__num { display: inline-block; font-family: var(--font-serif); font-weight: 700; font-size: 1.05rem; background: var(--accent); color: #fff; width: 1.9rem; height: 1.9rem; line-height: 1.9rem; text-align: center; border-radius: 8px; margin-bottom: .55rem; }
+.rankf__cat { display: block; font-size: .76rem; font-weight: 800; color: #fff; opacity: .85; margin-bottom: .3rem; letter-spacing: .02em; }
+.rankf__title { font-family: var(--font-serif); font-size: 1.6rem; line-height: 1.3; margin: 0 0 .5rem; color: #fff; text-shadow: 0 1px 12px rgba(0,0,0,.5); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.rankf__desc { color: rgba(255,255,255,.85); font-size: .94rem; line-height: 1.55; margin: 0 0 .9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.rankf__cta { font-weight: 800; font-size: .9rem; color: #fff; }
+.rankf__feature:hover .rankf__cta { text-decoration: underline; }
+.rankf__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .15rem; }
+.rankf__item { display: flex; align-items: center; gap: .85rem; width: 100%; padding: .55rem .55rem; border-radius: 12px; color: var(--ink); transition: background .15s; }
+.rankf__item:hover, .rankf__item.is-active { background: var(--paper-2); color: inherit; }
+.rankf__item.is-active { box-shadow: inset 3px 0 0 var(--accent); }
+.rankf__rank { flex: none; width: 1.6rem; text-align: center; font-family: var(--font-serif); font-weight: 700; font-size: 1.05rem; color: var(--muted); }
+.rankf__item.is-active .rankf__rank { color: var(--accent); }
+.rankf__thumb { flex: none; width: 48px; height: 48px; border-radius: 8px; overflow: hidden; background: var(--paper-2); }
+.rankf__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.rankf__name { font-size: .94rem; font-weight: 600; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.rankf__item.is-active .rankf__name { color: var(--accent); }
+@media (max-width: 880px) { .rankf__feature { min-height: 320px; } .rankf__title { font-size: 1.4rem; } }
+
 /* 모바일 전용 — 주목할 아티클 스와이프(뉴닉 '오늘 이것만 보면 끝' 형) */
 .rankc { display: none; }
 @media (max-width: 767px) {

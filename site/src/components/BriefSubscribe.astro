@@ -1,0 +1,120 @@
+---
+// 매일 브리핑 받기 — Web Push 구독 CTA.
+//   Android/데스크톱: (미설치면 설치 유도) → 알림 권한 → 구독
+//   iOS: 홈화면 설치 PWA(16.4+)에서만 가능 → 미설치면 안내 모달
+//   구독정보는 Supabase push_subscriptions 에 저장(익명 허용).
+import { VAPID_PUBLIC_KEY } from '../consts';
+const SU = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
+const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
+---
+<button class="cta-card cta-card--brief" id="brief-cta" type="button">
+  <span class="cta-card__ic brief-ic" aria-hidden="true">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+  </span>
+  <b id="brief-label">매일 브리핑 받기</b>
+  <span class="cta-card__sub" id="brief-sub">새 글 나오면 알림으로</span>
+</button>
+
+<div class="ios-guide" id="brief-ios-guide" hidden>
+  <div class="ios-guide__panel">
+    <button class="ios-guide__x" id="brief-ios-x" aria-label="닫기">×</button>
+    <h3>iPhone은 먼저 홈 화면에 추가</h3>
+    <ol>
+      <li><b>Safari</b>로 이 페이지를 열어주세요</li>
+      <li>하단 <b>공유</b> 버튼을 눌러주세요</li>
+      <li><b>홈 화면에 추가</b>를 선택해주세요</li>
+      <li>추가된 앱에서 다시 <b>매일 브리핑 받기</b>를 누르면 알림이 켜져요</li>
+    </ol>
+    <p class="ios-guide__tip">iOS는 홈 화면에 추가한 앱에서만 알림을 받을 수 있어요(16.4 이상).</p>
+  </div>
+</div>
+
+<div class="brief-toast" id="brief-toast" role="status" aria-live="polite"></div>
+
+<style>
+  .cta-card--brief { cursor: pointer; font-family: var(--font-sans); text-align: left; background: none; }
+  .brief-ic { color: var(--accent); }
+  .cta-card--brief.is-on .brief-ic { color: #22c55e; }
+
+  .ios-guide { position: fixed; inset: 0; z-index: 400; display: flex; align-items: flex-end; justify-content: center; background: rgba(0,0,0,0.55); }
+  .ios-guide[hidden] { display: none; }
+  .ios-guide__panel { position: relative; width: 100%; max-width: 26rem; background: var(--paper); color: var(--ink); border-radius: 18px 18px 0 0; padding: 1.6rem 1.4rem calc(1.6rem + env(safe-area-inset-bottom)); }
+  .ios-guide__x { position: absolute; top: 0.7rem; right: 0.9rem; background: none; border: 0; font-size: 1.6rem; line-height: 1; color: var(--muted); cursor: pointer; }
+  .ios-guide__panel h3 { font-family: var(--font-serif); font-size: 1.2rem; margin: 0 0 1rem; color: var(--ink); }
+  .ios-guide__panel ol { margin: 0; padding-left: 1.2rem; display: grid; gap: 0.55rem; color: var(--ink-soft); font-size: 0.96rem; line-height: 1.5; }
+  .ios-guide__panel b { color: var(--accent); }
+  .ios-guide__tip { margin: 1rem 0 0; font-size: 0.82rem; color: var(--muted); }
+  @media (min-width: 640px) { .ios-guide { align-items: center; padding: 1rem; } .ios-guide__panel { border-radius: 18px; } }
+
+  .brief-toast { position: fixed; left: 50%; bottom: 1.5rem; transform: translateX(-50%); z-index: 410;
+    background: var(--ink); color: var(--paper); padding: 0.7rem 1.1rem; border-radius: 999px; font-size: 0.9rem;
+    opacity: 0; transition: opacity .2s; pointer-events: none; max-width: calc(100vw - 2rem); }
+  .brief-toast.show { opacity: 1; }
+</style>
+
+<script define:vars={{ VAPID_PUBLIC_KEY, SU, AK }}>
+  (() => {
+    const btn = document.getElementById('brief-cta');
+    if (!btn || btn.dataset.bound) return;
+    btn.dataset.bound = '1';
+    const label = document.getElementById('brief-label');
+    const sub = document.getElementById('brief-sub');
+    const guide = document.getElementById('brief-ios-guide');
+    const toastEl = document.getElementById('brief-toast');
+    const toast = (m) => { if (!toastEl) return; toastEl.textContent = m; toastEl.classList.add('show'); setTimeout(() => toastEl.classList.remove('show'), 2600); };
+
+    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+    const supported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+
+    const b64ToU8 = (b64) => {
+      const pad = '='.repeat((4 - (b64.length % 4)) % 4);
+      const s = (b64 + pad).replace(/-/g, '+').replace(/_/g, '/');
+      const raw = atob(s);
+      return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
+    };
+    const setOn = () => { label.textContent = '알림 받는 중'; sub.textContent = '새 글 브리핑이 도착해요'; btn.classList.add('is-on'); };
+
+    // 이미 구독+권한이면 켜짐 표시
+    (async () => {
+      if (!supported) return;
+      try { const reg = await navigator.serviceWorker.ready; const s = await reg.pushManager.getSubscription(); if (s && Notification.permission === 'granted') setOn(); } catch (e) {}
+    })();
+
+    async function subscribe() {
+      let reg; try { reg = await navigator.serviceWorker.ready; } catch (e) { toast('잠시 후 다시 시도해 주세요'); return; }
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') { toast('알림 권한이 필요해요'); return; }
+      let s = await reg.pushManager.getSubscription();
+      if (!s) s = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToU8(VAPID_PUBLIC_KEY) });
+      const j = s.toJSON();
+      if (SU && AK) {
+        try {
+          await fetch(SU + '/rest/v1/push_subscriptions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', apikey: AK, Authorization: 'Bearer ' + AK, Prefer: 'resolution=ignore-duplicates,return=minimal' },
+            body: JSON.stringify({ endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth }),
+          });
+        } catch (e) {}
+      }
+      setOn();
+      toast('매일 브리핑 알림을 켰어요');
+    }
+
+    btn.addEventListener('click', async () => {
+      if (!supported) { toast('이 브라우저는 알림을 지원하지 않아요'); return; }
+      if (isIOS && !standalone) { guide.hidden = false; return; } // iOS는 설치 먼저
+      // Android/데스크톱: 미설치면 설치 유도(설치 안 해도 브라우저 푸시는 가능)
+      if (!standalone && window.__deferredInstall) {
+        try { window.__deferredInstall.prompt(); await window.__deferredInstall.userChoice; } catch (e) {}
+        window.__deferredInstall = null;
+      }
+      await subscribe();
+    });
+
+    if (guide) {
+      document.getElementById('brief-ios-x').onclick = () => { guide.hidden = true; };
+      guide.onclick = (e) => { if (e.target === guide) guide.hidden = true; };
+    }
+  })();
+</script>

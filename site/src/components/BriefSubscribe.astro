@@ -73,12 +73,14 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
       const raw = atob(s);
       return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
     };
-    const setOn = () => { label.textContent = '알림 받는 중'; sub.textContent = '새 글 브리핑이 도착해요'; btn.classList.add('is-on'); };
+    let subscribed = false;
+    const setOn = () => { subscribed = true; label.textContent = '알림 받는 중'; sub.textContent = '탭하면 끄기'; btn.classList.add('is-on'); };
+    const setOff = () => { subscribed = false; label.textContent = '매일 브리핑 받기'; sub.textContent = '새 글 나오면 알림으로'; btn.classList.remove('is-on'); };
 
     // 이미 구독+권한이면 켜짐 표시
     (async () => {
       if (!supported) return;
-      try { const reg = await navigator.serviceWorker.ready; const s = await reg.pushManager.getSubscription(); if (s && Notification.permission === 'granted') setOn(); } catch (e) {}
+      try { const reg = await navigator.serviceWorker.ready; const s = await reg.pushManager.getSubscription(); if (s && Notification.permission === 'granted') setOn(); else setOff(); } catch (e) {}
     })();
 
     async function subscribe() {
@@ -94,13 +96,13 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
       if (!SU || !AK) { toast('구독 설정(env) 누락'); console.error('[push] SU/AK empty', { SU: !!SU, AK: !!AK }); return; }
       let res;
       try {
-        res = await fetch(SU + '/rest/v1/push_subscriptions', {
+        res = await fetch(SU + '/rest/v1/rpc/subscribe_push', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', apikey: AK, Authorization: 'Bearer ' + AK, Prefer: 'return=minimal' },
-          body: JSON.stringify({ endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth }),
+          headers: { 'Content-Type': 'application/json', apikey: AK, Authorization: 'Bearer ' + AK },
+          body: JSON.stringify({ p_endpoint: j.endpoint, p_p256dh: j.keys.p256dh, p_auth: j.keys.auth }),
         });
       } catch (e) { toast('네트워크 오류로 저장 실패'); console.error('[push] insert net', e); return; }
-      if (!res.ok && res.status !== 409) {
+      if (!res.ok) {
         const t = await res.text().catch(() => '');
         toast('구독 저장 실패 (' + res.status + ')');
         console.error('[push] insert fail', res.status, t);
@@ -110,8 +112,23 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
       toast('매일 브리핑 알림을 켰어요');
     }
 
+    async function unsubscribe() {
+      let reg; try { reg = await navigator.serviceWorker.ready; } catch (e) { setOff(); return; }
+      const s = await reg.pushManager.getSubscription();
+      if (s) {
+        const ep = s.endpoint;
+        try { await s.unsubscribe(); } catch (e) {}
+        if (SU && AK) {
+          try { await fetch(SU + '/rest/v1/rpc/unsubscribe_push', { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: AK, Authorization: 'Bearer ' + AK }, body: JSON.stringify({ p_endpoint: ep }) }); } catch (e) {}
+        }
+      }
+      setOff();
+      toast('알림을 껐어요');
+    }
+
     btn.addEventListener('click', async () => {
       if (!supported) { toast('이 브라우저는 알림을 지원하지 않아요'); return; }
+      if (subscribed) { await unsubscribe(); return; } // 켜짐이면 끄기(토글)
       if (isIOS && !standalone) { guide.hidden = false; return; } // iOS는 설치 먼저
       // Android/데스크톱: 미설치면 설치 유도(설치 안 해도 브라우저 푸시는 가능)
       if (!standalone && window.__deferredInstall) {

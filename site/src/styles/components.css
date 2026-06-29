@@ -396,7 +396,7 @@
   .home-rank { display: none; }
   .rankc { display: block; margin-top: 2.2rem; }
 }
-.rankc__panel { background: var(--paper-2); border: 1px solid var(--line); border-radius: 18px; padding: 1.1rem 1.1rem 1.3rem; }
+.rankc__panel { background: var(--paper-2); border-radius: 18px; padding: 1.1rem 1.1rem 1.3rem; }
 .rankc__head { position: relative; display: flex; align-items: center; justify-content: center; min-height: 38px; margin-bottom: .85rem; }
 .rankc__label { font-weight: 700; font-size: 1.02rem; color: var(--ink); }
 .rankc__audio { position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 38px; height: 38px; border-radius: 50%; background: var(--ink); color: var(--paper); display: grid; place-items: center; }

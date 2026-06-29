@@ -32,7 +32,7 @@ export async function generateHero({ prompt, slug, outDir, provider }) {
 }
 
 async function openai(prompt) {
-  const model = process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1';
+  const model = process.env.OPENAI_IMAGE_MODEL || 'gpt-image-2';
   const res = await fetch('https://api.openai.com/v1/images/generations', {
     method: 'POST',
     headers: {

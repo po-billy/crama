@@ -96,7 +96,7 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
       try {
         res = await fetch(SU + '/rest/v1/push_subscriptions', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', apikey: AK, Authorization: 'Bearer ' + AK, Prefer: 'resolution=ignore-duplicates,return=minimal' },
+          headers: { 'Content-Type': 'application/json', apikey: AK, Authorization: 'Bearer ' + AK, Prefer: 'return=minimal' },
           body: JSON.stringify({ endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth }),
         });
       } catch (e) { toast('네트워크 오류로 저장 실패'); console.error('[push] insert net', e); return; }

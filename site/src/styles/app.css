@@ -112,7 +112,14 @@
 .me-badge-head { display: flex; align-items: baseline; gap: .6rem; margin: 0 0 1rem; }
 .me-badge-head h2 { font-size: 1.2rem; margin: 0; }
 .me-badge-count { font-size: .85rem; color: var(--muted); font-weight: 600; }
-.badge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(82px, 1fr)); gap: 1.1rem .5rem; margin-bottom: 2.2rem; }
+.badge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(82px, 1fr)); gap: 1.1rem .5rem; margin-bottom: 1rem; }
+.badge-toggle {
+  display: block; margin: 0 auto 2.2rem; padding: .5rem 1.1rem;
+  font-size: .82rem; font-weight: 600; color: var(--ink-soft);
+  background: transparent; border: 1px solid var(--line); border-radius: 999px; cursor: pointer;
+  transition: border-color .15s, color .15s;
+}
+.badge-toggle:hover { border-color: var(--accent); color: var(--accent); }
 .badge { display: flex; flex-direction: column; align-items: center; text-align: center; gap: .4rem; }
 .badge__medal {
   position: relative; width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center; color: #fff;

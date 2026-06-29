@@ -51,6 +51,7 @@ import '../styles/app.css';
       <span class="me-badge-count" id="badge-count"></span>
     </div>
     <div class="badge-grid" id="badge-grid"></div>
+    <button class="badge-toggle" id="badge-toggle">모든 업적 보기</button>
 
     <!-- 밀웜 모으기 -->
     <h2 style="margin:0 0 0.8rem; font-size:1.2rem">밀웜 모으기</h2>
@@ -103,22 +104,54 @@ import '../styles/app.css';
   const $ = (id: string) => document.getElementById(id)!;
   const toast = (m: string) => { const t = $('toast'); t.textContent = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200); };
   const wormSvg = () => '<svg width="15" height="15" viewBox="0 0 24 24"><circle cx="5" cy="16.5" r="3.6" fill="var(--accent)" opacity=".92"/><circle cx="9" cy="14.5" r="4" fill="var(--accent)"/><circle cx="13" cy="12" r="4.1" fill="var(--accent)"/><circle cx="16.6" cy="9.6" r="3.7" fill="var(--accent)"/><circle cx="19.5" cy="7.6" r="3.1" fill="var(--accent)"/><circle cx="20.6" cy="6.7" r=".85" fill="#1a1a1a"/></svg>';
+  // 들은 시간 — 시·분·초(초 단위 정밀 집계 반영)
+  function fmtHMS(sec: number): string {
+    sec = Math.max(0, Math.floor(sec));
+    const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+    const p: string[] = [];
+    if (h) p.push(h + '시간');
+    if (h || m) p.push(m + '분');
+    p.push(s + '초');
+    return p.join(' ');
+  }
 
   // ── 업적 배지(메달리온) ──
   type Badge = { id: string; cat: 'listen' | 'streak' | 'reads' | 'worms'; label: string; sub: string; gold?: boolean };
   const BADGES: Badge[] = [
-    { id: 'listen_1h', cat: 'listen', label: '첫 청취', sub: '1시간' },
-    { id: 'listen_5h', cat: 'listen', label: '애청자', sub: '5시간' },
+    { id: 'listen_5m', cat: 'listen', label: '첫 청취', sub: '5분' },
+    { id: 'listen_15m', cat: 'listen', label: '귀동냥', sub: '15분' },
+    { id: 'listen_30m', cat: 'listen', label: '워밍업', sub: '30분' },
+    { id: 'listen_1h', cat: 'listen', label: '애청자', sub: '1시간' },
+    { id: 'listen_5h', cat: 'listen', label: '단골 청취', sub: '5시간' },
     { id: 'listen_20h', cat: 'listen', label: '귀가 즐거워', sub: '20시간' },
-    { id: 'listen_100h', cat: 'listen', label: '청취 마스터', sub: '100시간', gold: true },
+    { id: 'listen_100h', cat: 'listen', label: '청취 마스터', sub: '100시간' },
+    { id: 'listen_300h', cat: 'listen', label: '청취 레전드', sub: '300시간' },
+    { id: 'listen_1000h', cat: 'listen', label: '천 시간의 귀', sub: '1000시간', gold: true },
+    { id: 'streak_1', cat: 'streak', label: '첫 출석', sub: '1일' },
+    { id: 'streak_3', cat: 'streak', label: '삼일째', sub: '3일' },
     { id: 'streak_7', cat: 'streak', label: '일주일 개근', sub: '7일' },
+    { id: 'streak_14', cat: 'streak', label: '이주일 개근', sub: '14일' },
     { id: 'streak_30', cat: 'streak', label: '한 달 개근', sub: '30일' },
-    { id: 'streak_100', cat: 'streak', label: '백일의 약속', sub: '100일', gold: true },
+    { id: 'streak_60', cat: 'streak', label: '두 달 개근', sub: '60일' },
+    { id: 'streak_100', cat: 'streak', label: '백일의 약속', sub: '100일' },
+    { id: 'streak_200', cat: 'streak', label: '이백일 개근', sub: '200일' },
+    { id: 'streak_365', cat: 'streak', label: '일 년 개근', sub: '365일', gold: true },
+    { id: 'read_1', cat: 'reads', label: '첫 글', sub: '1편' },
+    { id: 'read_3', cat: 'reads', label: '세 편 완독', sub: '3편' },
     { id: 'read_10', cat: 'reads', label: '독서가', sub: '10편' },
+    { id: 'read_30', cat: 'reads', label: '탐독가', sub: '30편' },
     { id: 'read_50', cat: 'reads', label: '수집가', sub: '50편' },
-    { id: 'read_200', cat: 'reads', label: '정보 마스터', sub: '200편', gold: true },
-    { id: 'worm_100', cat: 'worms', label: '밀웜 모으기', sub: '100마리' },
-    { id: 'worm_1000', cat: 'worms', label: '밀웜 부자', sub: '1000마리', gold: true },
+    { id: 'read_100', cat: 'reads', label: '백 편 완독', sub: '100편' },
+    { id: 'read_200', cat: 'reads', label: '정보 마스터', sub: '200편' },
+    { id: 'read_500', cat: 'reads', label: '지식 사냥꾼', sub: '500편' },
+    { id: 'read_1000', cat: 'reads', label: '천 편의 독서', sub: '1000편', gold: true },
+    { id: 'worm_10', cat: 'worms', label: '밀웜 줍기', sub: '10마리' },
+    { id: 'worm_50', cat: 'worms', label: '밀웜 모으기', sub: '50마리' },
+    { id: 'worm_100', cat: 'worms', label: '밀웜 한 줌', sub: '100마리' },
+    { id: 'worm_300', cat: 'worms', label: '밀웜 창고', sub: '300마리' },
+    { id: 'worm_1000', cat: 'worms', label: '밀웜 부자', sub: '1000마리' },
+    { id: 'worm_3000', cat: 'worms', label: '밀웜 재벌', sub: '3000마리' },
+    { id: 'worm_10000', cat: 'worms', label: '밀웜 큰손', sub: '10000마리', gold: true },
   ];
   const CAT: Record<string, { bg: string; g: string }> = {
     listen: { bg: 'linear-gradient(145deg,#26b9b6,#0e8a88)', g: 'head' },
@@ -132,17 +165,38 @@ import '../styles/app.css';
     book: '<path d="M12 6.4C9.8 5.1 6.8 4.8 4 5.3v12.3c2.8-.5 5.8-.2 8 1.1 2.2-1.3 5.2-1.6 8-1.1V5.3c-2.8-.5-5.8-.2-8 1.1z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M12 6.4V18.8" fill="none" stroke="currentColor" stroke-width="1.7"/>',
     star: '<path d="M12 2.6l2.7 5.5 6 .9-4.4 4.2 1 6-5.3-2.8-5.3 2.8 1-6L3.3 9l6-.9z" fill="currentColor"/>',
   };
-  function renderBadges(earned: Set<string>, fresh: Set<string>) {
-    const grid = $('badge-grid'); if (!grid) return;
-    grid.innerHTML = BADGES.map((b) => {
-      const c = CAT[b.cat]; const on = earned.has(b.id);
-      return `<div class="badge ${on ? '' : 'is-locked'} ${on && b.gold ? 'is-gold' : ''} ${fresh.has(b.id) ? 'is-new' : ''}">
-        <div class="badge__medal" style="--bg:${c.bg}"><svg viewBox="0 0 24 24" aria-hidden="true">${GLYPH[c.g]}</svg></div>
-        <span class="badge__label">${b.label}</span><span class="badge__sub">${b.sub}</span>
-      </div>`;
-    }).join('');
-    const cnt = $('badge-count'); if (cnt) cnt.textContent = `${earned.size} / ${BADGES.length}`;
+  const CAT_ORDER = ['listen', 'streak', 'reads', 'worms'] as const;
+  let badgeEarned = new Set<string>();
+  let badgeFresh = new Set<string>();
+  let badgeShowAll = false;
+  function badgeCard(b: Badge): string {
+    const c = CAT[b.cat]; const on = badgeEarned.has(b.id);
+    return `<div class="badge ${on ? '' : 'is-locked'} ${on && b.gold ? 'is-gold' : ''} ${badgeFresh.has(b.id) ? 'is-new' : ''}">
+      <div class="badge__medal" style="--bg:${c.bg}"><svg viewBox="0 0 24 24" aria-hidden="true">${GLYPH[c.g]}</svg></div>
+      <span class="badge__label">${b.label}</span><span class="badge__sub">${b.sub}</span>
+    </div>`;
   }
+  function renderBadges(earned?: Set<string>, fresh?: Set<string>) {
+    if (earned) badgeEarned = earned;
+    if (fresh) badgeFresh = fresh;
+    const grid = $('badge-grid'); if (!grid) return;
+    // 기본: 카테고리별 '대표' 1개(획득한 것 중 최고 단계, 없으면 다음 목표=최저 잠금). 전체보기: 모든 단계
+    const list = badgeShowAll
+      ? BADGES
+      : CAT_ORDER.map((cat) => {
+          const tiers = BADGES.filter((b) => b.cat === cat); // 오름차순
+          const got = tiers.filter((b) => badgeEarned.has(b.id));
+          return got.length ? got[got.length - 1] : tiers[0];
+        });
+    grid.innerHTML = list.map(badgeCard).join('');
+    const cnt = $('badge-count'); if (cnt) cnt.textContent = `${badgeEarned.size} / ${BADGES.length}`;
+  }
+  const badgeToggle = document.getElementById('badge-toggle');
+  badgeToggle?.addEventListener('click', () => {
+    badgeShowAll = !badgeShowAll;
+    badgeToggle.textContent = badgeShowAll ? '접기' : '모든 업적 보기';
+    renderBadges();
+  });
   function showBadgeUnlock(ids: string[]) {
     const byId = new Map(BADGES.map((b) => [b.id, b]));
     const items = ids.map((id) => byId.get(id)).filter(Boolean) as Badge[];
@@ -316,8 +370,7 @@ import '../styles/app.css';
     $('bal').textContent = String(bal);
     $('streak').textContent = String(s.streak);
     const ls = Number((profile as any)?.listen_seconds || 0);
-    const lm = Math.floor(ls / 60), lh = Math.floor(lm / 60);
-    $('listen-time').textContent = lh > 0 ? `${lh}시간 ${lm % 60}분` : `${lm}분`;
+    $('listen-time').textContent = fmtHMS(ls);
     try { localStorage.setItem('crama:bal', String(bal)); localStorage.setItem('crama:streak', String(s.streak)); } catch {}
 
     // 업적 배지 — 현재 지표로 해금 판정 + 그리드 렌더(새로 따면 토스트)

@@ -361,11 +361,13 @@ hr {
 
 /* 섹션 헤더 */
 .section-head {
-  display: flex; align-items: baseline; justify-content: space-between;
+  display: flex; align-items: flex-end; justify-content: space-between;
   flex-wrap: wrap; gap: 0.2rem 1rem;
   margin: 3.5rem 0 1.6rem; padding-bottom: 0.8rem; border-bottom: 2px solid var(--ink);
 }
+.section-head__t { min-width: 0; }            /* 제목+부제 묶음 — 좁은 화면에서 링크는 아래로 줄바꿈 */
 .section-head h2 { font-size: 1.55rem; margin: 0; }
+.section-head__dek { color: var(--muted); font-size: 0.9rem; font-weight: 500; line-height: 1.4; margin: 0.3rem 0 0; }
 .section-head a { font-size: 0.9rem; color: var(--muted); white-space: nowrap; }
 .section-head a:hover { color: var(--accent); }
 

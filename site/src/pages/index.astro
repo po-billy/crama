@@ -8,6 +8,7 @@ import { SITE, CATEGORIES, EDITOR_PICKS, PILLARS, GUIDE_EXTRA } from '../consts'
 import AudioPicks from '../components/AudioPicks.astro';
 import Curations from '../components/Curations.astro';
 import InstallApp from '../components/InstallApp.astro';
+import BriefSubscribe from '../components/BriefSubscribe.astro';
 import DuoIcon from '../components/DuoIcon.astro';
 
 const posts = (await getCollection('blog'))
@@ -71,6 +72,13 @@ const latest = posts.filter((p) => !guideSlugs.includes(p.id)).slice(0, 8);
 const byCategory = (slug: 'money' | 'ai' | 'income') =>
   posts.filter((p) => p.data.category === slug).slice(0, 4);
 
+// 홈 섹션 제목 — 구어체·풍부하게(카테고리명은 consts 그대로, 홈에서만 다른 카피)
+const catHome = {
+  money: { title: '내 돈, 어떻게 굴릴까?', dek: '주식부터 절세까지 — 재테크 한 수씩' },
+  ai: { title: 'AI, 먼저 보고 가요', dek: '지금 알아야 할 흐름만 콕 집어서' },
+  income: { title: '월급 밖에서 버는 법', dek: '부업부터 정부 지원금까지, 받을 건 다 챙겨요' },
+} as const;
+
 // 작은 썸네일(160px) 경로 — 랭킹/리스트의 48~90px 썸네일에 풀사이즈 hero 대신 사용(이미지 용량 절감)
 const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.webp$/, '-hero-thumb.webp') : h);
 ---
@@ -112,11 +120,7 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
         <b>크라미 시작하기</b>
         <span class="cta-card__sub">읽을수록 밀웜 적립 · 크라미 꾸미기</span>
       </a>
-      <a class="cta-card cta-card--quiz" href="/quiz/money-character/">
-        <DuoIcon name="quiz" class="cta-card__ic" />
-        <span class="cta-card__badge cta-card__badge--new">NEW</span>
-        <b>머니 캐릭터 테스트</b>
-      </a>
+      <BriefSubscribe />
       <a class="cta-card cta-card--shorts" href="/shorts/">
         <DuoIcon name="shorts" class="cta-card__ic" />
         <b>오늘의 쇼츠 보기</b>
@@ -280,7 +284,10 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
     {guidePosts.length > 0 && (
       <section class="guides">
         <div class="section-head">
-          <h2>주제별 완벽 가이드</h2>
+          <div class="section-head__t">
+            <h2>처음이라면, 여기서부터</h2>
+            <p class="section-head__dek">주제별로 기초부터 끝까지 한 번에 정리했어요</p>
+          </div>
           <a class="guides__hint" href="/guides/">전체 보기 →</a>
         </div>
         <div class="guides__viewport">
@@ -331,8 +338,11 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
 
     <section>
       <div class="section-head">
-        <h2>최신 글</h2>
-        <a href="/category/ai/">최신 글 전체 보기</a>
+        <div class="section-head__t">
+          <h2>방금 올라온 새 글</h2>
+          <p class="section-head__dek">가장 따끈한 돈·AI 이야기부터</p>
+        </div>
+        <a href="/category/ai/">전체 보기 →</a>
       </div>
       <div class="card-grid">
         {latest.map((p) => <PostCard {...toCard(p)} />)}
@@ -344,7 +354,10 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
     {(['money', 'ai', 'income'] as const).map((slug) => (
       <section>
         <div class="section-head">
-          <h2>{CATEGORIES[slug].name}</h2>
+          <div class="section-head__t">
+            <h2>{catHome[slug].title}</h2>
+            <p class="section-head__dek">{catHome[slug].dek}</p>
+          </div>
           <a href={`/category/${slug}/`}>{CATEGORIES[slug].tagline} →</a>
         </div>
         <div class="card-grid">

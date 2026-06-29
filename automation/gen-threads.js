@@ -40,16 +40,47 @@ async function pickArticle(slugArg) {
   return best;
 }
 
+async function recentArticles(n) {
+  const files = (await fs.readdir(BLOG_DIR)).filter((f) => f.endsWith('.mdx'));
+  const list = [];
+  for (const f of files) {
+    const fmd = parseFm(await fs.readFile(path.join(BLOG_DIR, f), 'utf8'));
+    if (!fmd) continue;
+    list.push({ t: Date.parse(fmd.pubDate) || 0, slug: f.replace(/\.mdx$/, ''), ...fmd });
+  }
+  return list.sort((a, b) => b.t - a.t).slice(0, n);
+}
+
 async function main() {
-  const slugArg = process.argv[2];
-  const art = await pickArticle(slugArg);
+  const args = process.argv.slice(2);
+  const outDir = path.join(__dirname, 'output');
+  await fs.mkdir(outDir, { recursive: true });
+
+  // --batch [N] : 최근 N개 글(기본 7)의 드래프트를 한 파일로 — 즉시 게시용 탄약
+  const bi = args.indexOf('--batch');
+  if (bi !== -1) {
+    const n = parseInt(args[bi + 1], 10) || 7;
+    const arts = await recentArticles(n);
+    const blocks = [];
+    for (const a of arts) {
+      const url = `https://crama.app/blog/${a.slug}/`;
+      console.log('[threads] 생성:', a.title);
+      const draft = await generateThreadsDraft({ title: a.title, description: a.description, url });
+      if (draft) blocks.push(`### ${a.title}\n\n${draft}`);
+    }
+    const out = path.join(outDir, 'threads-batch.txt');
+    const body = blocks.join('\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n');
+    await fs.writeFile(out, body + '\n', 'utf8');
+    console.log(`\n[threads] ${blocks.length}개 드래프트 저장: ${out}`);
+    return;
+  }
+
+  const art = await pickArticle(args[0]);
   if (!art) throw new Error('대상 글을 찾지 못했습니다.');
   const url = `https://crama.app/blog/${art.slug}/`;
   console.log('[threads] 대상 글:', art.title);
   const draft = await generateThreadsDraft({ title: art.title, description: art.description, url });
   if (!draft) throw new Error('드래프트 생성 실패(API 키 확인).');
-  const outDir = path.join(__dirname, 'output');
-  await fs.mkdir(outDir, { recursive: true });
   const out = path.join(outDir, 'threads-draft.txt');
   await fs.writeFile(out, draft + '\n', 'utf8');
   console.log('\n──────── 스레드 초안 ────────\n' + draft + '\n────────────────────────────\n');

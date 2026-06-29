@@ -379,9 +379,25 @@
 .rankf__cta { font-weight: 800; font-size: .9rem; color: #fff; }
 .rankf__feature:hover .rankf__cta { text-decoration: underline; }
 .rankf__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .15rem; }
-.rankf__item { display: flex; align-items: center; gap: .85rem; width: 100%; padding: .55rem .55rem; border-radius: 12px; color: var(--ink); transition: background .15s; }
+.rankf__item { position: relative; display: flex; align-items: center; gap: .85rem; width: 100%; padding: .55rem .6rem; border-radius: 12px; color: var(--ink); transition: background .15s; }
 .rankf__item:hover, .rankf__item.is-active { background: var(--paper-2); color: inherit; }
-.rankf__item.is-active { box-shadow: inset 3px 0 0 var(--accent); }
+/* 활성 = 조준 표적(락온) — 네 모서리 코너 브래킷 */
+.rankf__item.is-active::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none; border-radius: 12px;
+  --tc: var(--accent); --tk: 2px; --tl: 14px;
+  background:
+    linear-gradient(var(--tc), var(--tc)) 0 0 / var(--tl) var(--tk) no-repeat,
+    linear-gradient(var(--tc), var(--tc)) 0 0 / var(--tk) var(--tl) no-repeat,
+    linear-gradient(var(--tc), var(--tc)) 100% 0 / var(--tl) var(--tk) no-repeat,
+    linear-gradient(var(--tc), var(--tc)) 100% 0 / var(--tk) var(--tl) no-repeat,
+    linear-gradient(var(--tc), var(--tc)) 0 100% / var(--tl) var(--tk) no-repeat,
+    linear-gradient(var(--tc), var(--tc)) 0 100% / var(--tk) var(--tl) no-repeat,
+    linear-gradient(var(--tc), var(--tc)) 100% 100% / var(--tl) var(--tk) no-repeat,
+    linear-gradient(var(--tc), var(--tc)) 100% 100% / var(--tk) var(--tl) no-repeat;
+  animation: rankf-lock .22s ease-out;
+}
+@keyframes rankf-lock { from { opacity: 0; transform: scale(1.07); } to { opacity: 1; transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .rankf__item.is-active::after { animation: none; } }
 .rankf__rank { flex: none; width: 1.6rem; text-align: center; font-family: var(--font-serif); font-weight: 700; font-size: 1.05rem; color: var(--muted); }
 .rankf__item.is-active .rankf__rank { color: var(--accent); }
 .rankf__thumb { flex: none; width: 48px; height: 48px; border-radius: 8px; overflow: hidden; background: var(--paper-2); }

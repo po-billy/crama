@@ -85,6 +85,16 @@ import '../styles/app.css';
       </div>
     </div>
   </div>
+
+  <!-- 새 업적 해금 모달(확 보이는 알림) -->
+  <div class="badge-modal" id="badge-modal" hidden>
+    <div class="badge-modal__panel">
+      <span class="badge-modal__eyebrow">NEW · 업적 달성</span>
+      <div class="badge-modal__medals" id="badge-modal-medals"></div>
+      <p class="badge-modal__names" id="badge-modal-names"></p>
+      <button class="btn btn--primary" id="badge-modal-ok">좋아요!</button>
+    </div>
+  </div>
 </BaseLayout>
 
 <script>
@@ -133,6 +143,20 @@ import '../styles/app.css';
     }).join('');
     const cnt = $('badge-count'); if (cnt) cnt.textContent = `${earned.size} / ${BADGES.length}`;
   }
+  function showBadgeUnlock(ids: string[]) {
+    const byId = new Map(BADGES.map((b) => [b.id, b]));
+    const items = ids.map((id) => byId.get(id)).filter(Boolean) as Badge[];
+    if (!items.length) return;
+    $('badge-modal-medals').innerHTML = items.map((b) => {
+      const c = CAT[b.cat];
+      return `<div class="badge-modal__medal" style="--bg:${c.bg}"><svg viewBox="0 0 24 24" aria-hidden="true">${GLYPH[c.g]}</svg></div>`;
+    }).join('');
+    $('badge-modal-names').textContent = items.map((b) => b.label).join(' · ');
+    $('badge-modal').hidden = false;
+  }
+  const closeBadgeModal = () => { $('badge-modal').hidden = true; };
+  $('badge-modal-ok')?.addEventListener('click', closeBadgeModal);
+  $('badge-modal')?.addEventListener('click', (e) => { if (e.target === e.currentTarget) closeBadgeModal(); });
 
   // ── 캐릭터 장착 미리보기 ──
   const IMG = (id: string) => `/img/wardrobe/${id}.webp`;
@@ -299,9 +323,9 @@ import '../styles/app.css';
     // 업적 배지 — 현재 지표로 해금 판정 + 그리드 렌더(새로 따면 토스트)
     try {
       const rows = await checkBadges();
-      renderBadges(new Set(rows.map((r) => r.badge_id)), new Set(rows.filter((r) => r.is_new).map((r) => r.badge_id)));
-      const fresh = rows.filter((r) => r.is_new).length;
-      if (fresh) toast(`새 업적 ${fresh}개 달성!`);
+      const freshIds = rows.filter((r) => r.is_new).map((r) => r.badge_id);
+      renderBadges(new Set(rows.map((r) => r.badge_id)), new Set(freshIds));
+      if (freshIds.length) showBadgeUnlock(freshIds);
     } catch (e) {}
 
     // 친구 초대 링크

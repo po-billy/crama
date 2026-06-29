@@ -28,3 +28,13 @@ returns void language sql security definer set search_path = public as $fn$
   delete from public.push_subscriptions where endpoint = p_endpoint;
 $fn$;
 grant execute on function public.unsubscribe_push(text) to anon, authenticated;
+
+-- 발송 성과 기록(발송 수). 클릭(CTR)은 UTM→GA4 로 집계. 클라이언트 접근 불가(RLS, 정책 없음).
+create table if not exists public.push_sends (
+  id uuid primary key default gen_random_uuid(),
+  slug text, title text,
+  sent int not null default 0,
+  dead int not null default 0,
+  created_at timestamptz not null default now()
+);
+alter table public.push_sends enable row level security;

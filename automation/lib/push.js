@@ -44,7 +44,7 @@ function pgConn() {
   return null;
 }
 
-export async function sendBrief({ title, description, image, url }) {
+export async function sendBrief({ hook, slug, title, description, image, url }) {
   const { VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT } = process.env;
   if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) return { ok: false, reason: 'no-vapid' };
   const conn = pgConn();
@@ -56,7 +56,7 @@ export async function sendBrief({ title, description, image, url }) {
   let sent = 0, dead = 0;
   try {
     const { rows } = await client.query('select endpoint, p256dh, auth from public.push_subscriptions');
-    const payload = JSON.stringify({ title: title || '오늘의 브리핑', body: description || '', image: image || undefined, url, tag: 'crama-brief' });
+    const payload = JSON.stringify({ title: hook || title || '오늘의 브리핑', body: description || title || '', image: image || undefined, url, tag: 'crama-brief' });
     for (const s of rows) {
       try {
         await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload);
@@ -68,6 +68,8 @@ export async function sendBrief({ title, description, image, url }) {
         }
       }
     }
+    // 발송 성과 기록(발송 수). 클릭은 UTM→GA4 로 집계.
+    try { await client.query('insert into public.push_sends (slug, title, sent, dead) values ($1,$2,$3,$4)', [slug || null, hook || title || null, sent, dead]); } catch (e) {}
   } finally {
     await client.end();
   }

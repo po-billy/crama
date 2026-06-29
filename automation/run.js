@@ -4,7 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
 import sharp from 'sharp';
-import { research, writeArticle, imagePrompt } from './lib/claude.js';
+import { research, writeArticle, imagePrompt, generatePushHook } from './lib/claude.js';
 import { generateHero } from './lib/image.js';
 import { generateAudio } from './gen-audio.js';
 import {
@@ -156,10 +156,13 @@ async function main() {
   const url = `https://crama.app/blog/${slug}/`;
   // 배포 후 자동 색인(GitHub Actions)이 '실제 라이브된 뒤' 폴링·제출하도록 발행 URL 을 파일로 남긴다.
   try { await fs.writeFile(path.join(__dirname, 'last-url.txt'), url, 'utf8'); } catch (e) {}
-  // 배포 라이브 확인 후 Web Push 발송용 — 제목/설명/이미지/URL 기록(send-brief.js가 사용)
+  // 배포 라이브 확인 후 Web Push 발송용 — 후킹훅/제목/설명/이미지/UTM URL 기록(send-brief.js가 사용)
   try {
     const heroAbs = heroImage && heroImage.startsWith('/') ? 'https://crama.app' + heroImage : heroImage;
-    await fs.writeFile(path.join(__dirname, 'last-brief.json'), JSON.stringify({ title: art.title, description: art.description || '', image: heroAbs, url }), 'utf8');
+    const hook = await generatePushHook({ title: art.title, description: art.description || '' });
+    const pushUrl = url + '?utm_source=push&utm_medium=web_push&utm_campaign=daily_brief';
+    log(`   푸시 후킹 카피: ${hook}`);
+    await fs.writeFile(path.join(__dirname, 'last-brief.json'), JSON.stringify({ hook, slug, title: art.title, description: art.description || '', image: heroAbs, url: pushUrl }), 'utf8');
   } catch (e) {}
   if (process.env.INDEXNOW_AUTO === '1') {
     try {

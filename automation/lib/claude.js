@@ -6,6 +6,27 @@ const RESEARCH_MODEL = process.env.RESEARCH_MODEL || 'claude-opus-4-8';
 const WRITE_MODEL = process.env.WRITE_MODEL || 'claude-sonnet-4-6';
 
 /**
+ * 푸시 알림용 후킹 한 줄 카피 — 클릭 유도(궁금증 유발), 낚시·과장 금지.
+ */
+export async function generatePushHook({ title, description }) {
+  try {
+    const resp = await client.messages.create({
+      model: WRITE_MODEL,
+      max_tokens: 120,
+      system:
+        '너는 푸시 알림 카피라이터다. 주어진 글을 열어보고 싶게 만드는 후킹한 한 줄을 만든다. ' +
+        '궁금증을 유발하되 낚시·과장·허위는 금지. 28자 이내, 이모지는 0~1개만, 따옴표 없이 한 줄만 출력.',
+      messages: [{ role: 'user', content: `제목: ${title}\n요약: ${description || ''}\n\n이 글의 푸시 알림 후킹 카피 한 줄:` }],
+    });
+    const txt = (resp.content?.find((c) => c.type === 'text')?.text || '')
+      .trim().replace(/^["'`]+|["'`]+$/g, '').split('\n')[0].trim();
+    return txt || title;
+  } catch (e) {
+    return title; // 실패 시 제목 폴백
+  }
+}
+
+/**
  * 1) 리서치 — web_search 로 상위 콘텐츠 트렌드·검색의도·커버리지 갭 분석.
  *    원문 복제 금지, 구조/각도/키워드만 추출.
  */

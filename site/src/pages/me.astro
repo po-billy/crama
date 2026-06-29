@@ -34,6 +34,15 @@ import '../styles/app.css';
       <a class="btn btn--line" href="/saved/">내 스크랩</a>
     </div>
 
+    <!-- 내 기록: 들은 시간 -->
+    <div class="me-stat">
+      <span class="me-stat__ic" aria-hidden="true">🎧</span>
+      <div class="me-stat__body">
+        <span class="me-stat__label">지금까지 들은 시간</span>
+        <b class="me-stat__val" id="listen-time">—</b>
+      </div>
+    </div>
+
     <!-- 밀웜 모으기 -->
     <h2 style="margin:0 0 0.8rem; font-size:1.2rem">밀웜 모으기</h2>
     <div class="panel" id="earn-list">
@@ -233,6 +242,9 @@ import '../styles/app.css';
     $('email').textContent = user.email ?? '';
     $('bal').textContent = String(bal);
     $('streak').textContent = String(s.streak);
+    const ls = Number((profile as any)?.listen_seconds || 0);
+    const lm = Math.floor(ls / 60), lh = Math.floor(lm / 60);
+    $('listen-time').textContent = lh > 0 ? `${lh}시간 ${lm % 60}분` : `${lm}분`;
     try { localStorage.setItem('crama:bal', String(bal)); localStorage.setItem('crama:streak', String(s.streak)); } catch {}
 
     // 친구 초대 링크

@@ -40,6 +40,62 @@ const { spa, ...props } = Astro.props;
         };
       }
     </script>
+
+    <!-- 누적 청취 시간 집계 — 전역 플레이어 재생 중 1초씩 누적, 60초마다/이탈 시 flush(REST, supabase-js 미로드) -->
+    <script is:inline define:vars={{ SU: import.meta.env.PUBLIC_SUPABASE_URL ?? '', AK: import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '' }}>
+      (() => {
+        if (window.__listenBound) return; window.__listenBound = true;
+        const KEY = 'crama:listen:pending';
+        const getP = () => { try { return parseInt(localStorage.getItem(KEY) || '0', 10) || 0; } catch (e) { return 0; } };
+        const setP = (v) => { try { localStorage.setItem(KEY, String(v)); } catch (e) {} };
+        const token = () => {
+          try {
+            for (const k of Object.keys(localStorage)) {
+              if (k.includes('-auth-token')) {
+                const v = JSON.parse(localStorage.getItem(k) || 'null');
+                return v && (v.access_token || (v.currentSession && v.currentSession.access_token));
+              }
+            }
+          } catch (e) {}
+          return null;
+        };
+        let flushing = false;
+        async function flush() {
+          const pend = getP();
+          if (flushing || pend <= 0 || !SU || !AK) return;
+          const tk = token(); if (!tk) return; // 비로그인: 보류했다가 로그인 시 합산
+          flushing = true;
+          try {
+            const res = await fetch(SU + '/rest/v1/rpc/add_listen_seconds', {
+              method: 'POST', keepalive: true,
+              headers: { apikey: AK, Authorization: 'Bearer ' + tk, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ secs: pend }),
+            });
+            if (res.ok) setP(0);
+          } catch (e) {} finally { flushing = false; }
+        }
+        function bind() {
+          const C = window.__cramaCtl ? window.__cramaCtl() : window.__cramaPlayer;
+          if (!C || !C.audio) return false;
+          const a = C.audio; let ticker = null, n = 0;
+          const startTick = () => { if (ticker || a.paused) return; ticker = setInterval(() => {
+            setP(getP() + 1);
+            if (++n >= 60) { n = 0; flush(); }
+          }, 1000); };
+          const stopTick = () => { if (ticker) { clearInterval(ticker); ticker = null; } n = 0; flush(); };
+          a.addEventListener('play', startTick);
+          a.addEventListener('playing', startTick);
+          a.addEventListener('pause', stopTick);
+          a.addEventListener('ended', stopTick);
+          if (!a.paused) startTick();
+          return true;
+        }
+        if (!bind()) { const t = setInterval(() => { if (bind()) clearInterval(t); }, 1000); setTimeout(() => clearInterval(t), 30000); }
+        document.addEventListener('visibilitychange', () => { if (document.hidden) flush(); });
+        window.addEventListener('pagehide', flush);
+        setTimeout(flush, 2500); // 로그인 페이지 진입 시 보류분 합산
+      })();
+    </script>
     {spa && (
       <script is:inline>
         if (!window.__cramaGA) {

@@ -98,8 +98,15 @@
 .nick-input { width: 9rem; max-width: 100%; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: .3rem .5rem; font-size: 1.05rem; font-family: var(--font-serif); color: var(--ink); }
 
 /* 버튼 묶음 */
-.me-actions { display: flex; gap: .6rem; margin-bottom: 2rem; }
+.me-actions { display: flex; gap: .6rem; margin-bottom: .9rem; }
 .me-actions .btn { flex: 1; }
+
+/* 내 기록: 들은 시간 */
+.me-stat { display: flex; align-items: center; gap: .85rem; border: 1px solid var(--line); background: var(--paper-2); border-radius: 12px; padding: .85rem 1.1rem; margin-bottom: 2rem; }
+.me-stat__ic { font-size: 1.4rem; flex: none; line-height: 1; }
+.me-stat__body { display: flex; flex-direction: column; gap: .1rem; }
+.me-stat__label { font-size: .82rem; color: var(--muted); }
+.me-stat__val { font-family: var(--font-serif); font-size: 1.15rem; color: var(--ink); }
 
 /* 로그아웃 — 맨 아래 (이탈 방지) */
 .me-logout-btn { margin-top: 2.5rem; color: var(--muted); }

@@ -4,6 +4,7 @@ create or replace function public.check_badges()
 returns table(badge_id text, is_new boolean)
 language plpgsql security definer set search_path = public
 as $bd$
+#variable_conflict use_column
 declare
   v_uid uuid := auth.uid();
   v_listen bigint;

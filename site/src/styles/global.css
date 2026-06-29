@@ -104,6 +104,7 @@ hr {
   justify-content: flex-start;
   gap: 1.5rem;
   padding-block: 1.05rem;
+  position: relative; /* nav 햄버거 드롭다운 기준 */
 }
 /* 헤더도 홈 와이드(1440)에 맞춰 정렬 — PC 전용 */
 @media (min-width: 1024px) { .site-header .site-header__inner { max-width: 90rem; } }
@@ -220,13 +221,23 @@ hr {
   color: var(--muted);
   margin-top: 0.15rem;
 }
-.nav { order: 2; margin-left: auto; display: flex; align-items: center; gap: 1.4rem; }
-.nav a {
-  font-size: 0.94rem;
-  font-weight: 500;
-  color: var(--ink-soft);
+/* 카테고리 메뉴 = 햄버거 드롭다운 (전 화면) */
+.nav {
+  position: absolute; top: calc(100% - 0.2rem); right: 0; z-index: 60;
+  display: none; flex-direction: column; align-items: stretch; gap: 0.1rem;
+  background: var(--paper); border: 1px solid var(--line); border-radius: 12px;
+  box-shadow: 0 16px 48px -22px rgba(20, 18, 30, 0.4); padding: 0.4rem; min-width: 12rem;
 }
-.nav a:hover { color: var(--accent); }
+.nav.is-open { display: flex; }
+.nav a {
+  padding: 0.62rem 0.85rem; border-radius: 8px; white-space: nowrap;
+  font-size: 0.95rem; font-weight: 500; color: var(--ink-soft);
+}
+.nav a:hover { background: var(--paper-2); color: var(--accent); }
+.nav-toggle {
+  background: none; border: 0; cursor: pointer; color: var(--ink);
+  display: inline-flex; align-items: center; padding: 0.25rem; line-height: 0;
+}
 /* PC(≥601px): 메뉴를 로고 옆 왼쪽에 붙이고, 아이콘은 우측 끝, 태그라인 숨김. 모바일(≤600px)은 별도 규칙 유지 */
 @media (min-width: 601px) {
   .brand small { display: none; }        /* '트렌드를 읽다' 태그라인 PC 숨김 */
@@ -487,30 +498,11 @@ hr {
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 @media (max-width: 600px) {
-  /* 헤더: 윗줄=브랜드+검색·테마, 아랫줄=메뉴(가로 스크롤) */
-  .site-header__inner { flex-wrap: wrap; gap: 0.3rem 1rem; padding-block: 0.7rem; }
+  /* 헤더: 햄버거 드롭다운이라 nav는 별도 행 불필요 */
+  .site-header__inner { gap: 0.8rem; padding-block: 0.7rem; }
   .brand { font-size: 1.35rem; }
   .brand small { display: none; }
-  .header-actions { order: 2; margin-left: auto; } /* 로고 줄 오른쪽 끝에 고정 */
-  /* 메뉴가 많아져도 안 깨지게 — 한 줄 가로 스크롤 스트립 */
-  .nav {
-    order: 3; width: 100%; margin-left: 0; gap: 1.15rem; font-size: 0.92rem;
-    justify-content: flex-start; align-items: center;
-    padding-top: 0.55rem; border-top: 1px solid var(--line);
-    flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden;
-    -webkit-overflow-scrolling: touch; scrollbar-width: none;
-  }
-  .nav::-webkit-scrollbar { display: none; }
-  .nav > * { flex: 0 0 auto; white-space: nowrap; } /* 항목이 줄지 않고 가로로 스크롤 */
-
-  /* 컴팩트(스크롤) 시: 브랜드 숨기고 메뉴 + 검색·테마를 한 줄로 합침 */
-  .site-header.is-compact .brand { display: none; }
-  .site-header.is-compact .site-header__inner { flex-wrap: nowrap; gap: 0.8rem; padding-block: 0.45rem; }
-  .site-header.is-compact .nav {
-    order: 2; width: auto; flex: 1 1 auto; min-width: 0;
-    border-top: none; padding-top: 0;
-  }
-  .site-header.is-compact .header-actions { order: 3; flex: none; margin-left: 0; }
+  .header-actions { margin-left: auto; }
 
   .home-masthead { padding: 1.2rem 0 0.4rem; }
   .home-masthead h1 { font-size: clamp(1.3rem, 6vw, 1.7rem); }

@@ -1,8 +1,9 @@
 {
   "name": "Crama — 트렌드를 읽다",
   "short_name": "Crama",
+  "id": "/",
   "description": "주식·재테크와 AI 트렌드를 깊이 있게 읽는 인사이트 매거진.",
-  "start_url": "/",
+  "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
   "background_color": "#fcfcfd",

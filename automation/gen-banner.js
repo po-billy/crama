@@ -47,6 +47,6 @@ const buf = await genImage(`${scene}. ${PRESET}`);
 await fs.mkdir(OUT, { recursive: true });
 // PC(≈2.34:1, 홈 배너 표시비율에 맞춤 — 크롭 최소화) — 좌측 여백에 헤드라인 오버레이
 await sharp(buf).resize(1500, 640, { fit: 'cover', position: 'right' }).webp({ quality: 82 }).toFile(path.join(OUT, `${slug}-hero.webp`));
-// 모바일(≈2.1:1, dropshot식 와이드 배너)
-await sharp(buf).resize(1040, 495, { fit: 'cover', position: 'right' }).webp({ quality: 82 }).toFile(path.join(OUT, `${slug}-hero-m.webp`));
+// 모바일(≈1.8:1, dropshot식 세로 여유 배너)
+await sharp(buf).resize(1040, 578, { fit: 'cover', position: 'right' }).webp({ quality: 82 }).toFile(path.join(OUT, `${slug}-hero-m.webp`));
 console.log(`완료 → /img/generated/${slug}-hero.webp (PC) + ${slug}-hero-m.webp (모바일)`);

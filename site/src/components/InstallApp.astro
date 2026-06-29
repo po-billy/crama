@@ -1,0 +1,90 @@
+---
+// 홈 화면에 추가 배너 — Android/데스크톱(Chromium)은 실제 설치 프롬프트,
+// iOS Safari는 직접 트리거 API가 없어 안내 모달로 유도.
+// 이미 설치(standalone)·닫음(localStorage)·설치 불가 환경이면 숨김.
+---
+<aside class="install-strip" id="install-cta" hidden>
+  <span class="install-strip__ic" aria-hidden="true">📲</span>
+  <span class="install-strip__txt"><b>홈 화면에 추가</b> — 앱처럼 빠르게, 오디오도 바로</span>
+  <button class="install-strip__btn" id="install-btn" type="button">추가</button>
+  <button class="install-strip__x" id="install-x" type="button" aria-label="닫기">×</button>
+</aside>
+
+<div class="ios-guide" id="ios-guide" hidden>
+  <div class="ios-guide__panel">
+    <button class="ios-guide__x" id="ios-guide-x" aria-label="닫기">×</button>
+    <h3>iPhone 홈 화면에 추가</h3>
+    <ol>
+      <li><b>Safari</b>로 이 페이지를 열어주세요</li>
+      <li>하단 <b>공유</b> 버튼<span aria-hidden="true"> ⬆️</span>을 눌러주세요</li>
+      <li><b>홈 화면에 추가</b>를 선택해주세요</li>
+      <li><b>추가</b>를 누르면 앱처럼 쓸 수 있어요</li>
+    </ol>
+    <p class="ios-guide__tip">오디오는 Safari 탭에서 재생하면 가장 안정적이에요.</p>
+  </div>
+</div>
+
+<style>
+  .install-strip {
+    display: flex; align-items: center; gap: 0.6rem; margin: 1rem 0 0;
+    background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+    border-radius: 12px; padding: 0.7rem 0.7rem 0.7rem 1rem;
+  }
+  .install-strip[hidden] { display: none; }
+  .install-strip__ic { font-size: 1.2rem; flex: none; }
+  .install-strip__txt { flex: 1; min-width: 0; font-size: 0.9rem; color: var(--ink-soft); line-height: 1.4; }
+  .install-strip__txt b { color: var(--ink); }
+  .install-strip__btn {
+    flex: none; background: var(--accent); color: #fff; border: 0; border-radius: 999px;
+    padding: 0.45rem 1.05rem; font-size: 0.88rem; font-weight: 700; cursor: pointer; font-family: var(--font-sans);
+  }
+  .install-strip__x { flex: none; background: none; border: 0; font-size: 1.35rem; line-height: 1; color: var(--muted); cursor: pointer; padding: 0 0.2rem; }
+
+  .ios-guide { position: fixed; inset: 0; z-index: 400; display: flex; align-items: flex-end; justify-content: center; background: rgba(0,0,0,0.55); }
+  .ios-guide[hidden] { display: none; }
+  .ios-guide__panel { position: relative; width: 100%; max-width: 26rem; background: var(--paper); color: var(--ink); border-radius: 18px 18px 0 0; padding: 1.6rem 1.4rem calc(1.6rem + env(safe-area-inset-bottom)); }
+  .ios-guide__x { position: absolute; top: 0.7rem; right: 0.9rem; background: none; border: 0; font-size: 1.6rem; line-height: 1; color: var(--muted); cursor: pointer; }
+  .ios-guide__panel h3 { font-family: var(--font-serif); font-size: 1.2rem; margin: 0 0 1rem; color: var(--ink); }
+  .ios-guide__panel ol { margin: 0; padding-left: 1.2rem; display: grid; gap: 0.55rem; color: var(--ink-soft); font-size: 0.96rem; line-height: 1.5; }
+  .ios-guide__panel b { color: var(--accent); }
+  .ios-guide__tip { margin: 1rem 0 0; font-size: 0.82rem; color: var(--muted); }
+  @media (min-width: 640px) { .ios-guide { align-items: center; padding: 1rem; } .ios-guide__panel { border-radius: 18px; } }
+</style>
+
+<script is:inline>
+  (() => {
+    const KEY = 'crama:install-x';
+    if (!window.__installBound) {
+      window.__installBound = true;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault(); window.__deferredInstall = e;
+        const c = document.getElementById('install-cta');
+        try { if (c && localStorage.getItem(KEY) !== '1') c.hidden = false; } catch (err) {}
+      });
+      window.addEventListener('appinstalled', () => { window.__deferredInstall = null; document.getElementById('install-cta')?.setAttribute('hidden', ''); });
+    }
+    function init() {
+      const cta = document.getElementById('install-cta');
+      const btn = document.getElementById('install-btn');
+      if (!cta || !btn) return;
+      let dismissed = false; try { dismissed = localStorage.getItem(KEY) === '1'; } catch (e) {}
+      const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+      const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+      cta.hidden = !(!dismissed && !standalone && (isIOS || window.__deferredInstall));
+      btn.onclick = async () => {
+        const d = window.__deferredInstall;
+        if (d) { // Android/데스크톱: 실제 설치
+          d.prompt();
+          try { const r = await d.userChoice; if (r.outcome === 'accepted') cta.hidden = true; } catch (e) {}
+          window.__deferredInstall = null; return;
+        }
+        if (isIOS) document.getElementById('ios-guide').hidden = false; // iOS: 안내
+      };
+      document.getElementById('install-x').onclick = () => { cta.hidden = true; try { localStorage.setItem(KEY, '1'); } catch (e) {} };
+      const g = document.getElementById('ios-guide');
+      if (g) { document.getElementById('ios-guide-x').onclick = () => { g.hidden = true; }; g.onclick = (e) => { if (e.target === g) g.hidden = true; }; }
+    }
+    if (!window.__installPL) { window.__installPL = true; document.addEventListener('astro:page-load', init); }
+    if (document.readyState !== 'loading') init(); else document.addEventListener('DOMContentLoaded', init);
+  })();
+</script>

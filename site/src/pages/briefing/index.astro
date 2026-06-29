@@ -1,0 +1,119 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import FormattedDate from '../../components/FormattedDate.astro';
+import BriefSubscribe from '../../components/BriefSubscribe.astro';
+import { CATEGORIES, type CategorySlug } from '../../consts';
+
+const posts = (await getCollection('blog'))
+  .filter((p) => !p.data.draft)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const today = posts[0];
+const recent = posts.slice(1, 13);
+const todayAudio = today ? !!today.data.audio : false;
+---
+<BaseLayout
+  title="오늘의 브리핑 — 매일 아침 3분 | 크라마"
+  description="매일 아침, 오늘 꼭 알아야 할 돈·AI·생활경제를 3분 브리핑으로. 먼저 읽는 사람들의 데일리 브리핑, 크라마(Crama)."
+>
+  <div class="wrap">
+    <header class="page-hero brief-hero">
+      <span class="eyebrow">Daily Briefing</span>
+      <h1>매일 아침, <strong>3분 브리핑</strong></h1>
+      <p>오늘 꼭 알아야 할 <b>돈·AI·생활경제</b>를 딱 3분에. <br class="brief-hero__br" />읽거나, 출근길에 들으세요. 정보의 시차를 0으로.</p>
+    </header>
+
+    <!-- 구독(푸시) CTA -->
+    <section class="brief-sub">
+      <BriefSubscribe />
+    </section>
+
+    {today && (
+      <section class="brief-section">
+        <div class="section-head"><h2>오늘의 브리핑</h2></div>
+        <a class="brief-today" href={`/blog/${today.id}/`}>
+          {today.data.heroImage && (
+            <div class="brief-today__media"><img src={today.data.heroImage} alt="" loading="eager" /></div>
+          )}
+          <div class="brief-today__body">
+            <span class="brief-today__tag">
+              {CATEGORIES[today.data.category as CategorySlug]?.name}<span aria-hidden="true"> · </span><FormattedDate date={today.data.pubDate} />
+            </span>
+            <h3>{today.data.title}</h3>
+            <p>{today.data.description}</p>
+            <span class="brief-today__cta">{todayAudio ? '▶ 3분 듣기' : '읽어보기'} →</span>
+          </div>
+        </a>
+      </section>
+    )}
+
+    <!-- 왜 매일 브리핑 -->
+    <section class="brief-why">
+      <div class="brief-why__item"><b>먼저</b><span>남보다 한발 빠르게</span></div>
+      <div class="brief-why__item"><b>3분</b><span>핵심만, 짧게</span></div>
+      <div class="brief-why__item"><b>매일 아침</b><span>출근길 루틴으로</span></div>
+    </section>
+
+    {recent.length > 0 && (
+      <section class="brief-section">
+        <div class="section-head"><h2>지난 브리핑</h2></div>
+        <div class="card-grid">
+          {recent.map((p) => (
+            <PostCard
+              href={`/blog/${p.id}/`}
+              title={p.data.title}
+              description={p.data.description}
+              pubDate={p.data.pubDate}
+              category={p.data.category as CategorySlug}
+              heroImage={p.data.heroImage}
+              thumb={p.data.thumb}
+              audio={!!p.data.audio}
+              format={p.data.format}
+            />
+          ))}
+        </div>
+      </section>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .brief-hero strong { color: var(--accent); }
+  .brief-sub { margin: 0 0 2.5rem; }
+  .brief-section { margin-bottom: 2.6rem; }
+
+  /* 오늘의 브리핑 — 가로 피처 카드 */
+  .brief-today {
+    display: grid; grid-template-columns: 300px 1fr; gap: 1.4rem; align-items: stretch;
+    border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--paper-2);
+    text-decoration: none; color: inherit; transition: border-color .15s, box-shadow .15s, transform .15s;
+  }
+  .brief-today:hover { border-color: var(--accent); box-shadow: 0 14px 34px -22px rgba(20,18,30,.4); transform: translateY(-2px); color: inherit; }
+  .brief-today__media { background: var(--paper); }
+  .brief-today__media img { width: 100%; height: 100%; object-fit: cover; display: block; min-height: 180px; }
+  .brief-today__body { padding: 1.3rem 1.4rem; display: flex; flex-direction: column; gap: .5rem; justify-content: center; }
+  .brief-today__tag { font-size: .78rem; font-weight: 700; color: var(--accent); letter-spacing: .01em; }
+  .brief-today__body h3 { margin: 0; font-family: var(--font-serif); font-size: 1.5rem; line-height: 1.3; }
+  .brief-today__body p { margin: 0; color: var(--muted); font-size: .95rem; line-height: 1.55;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .brief-today__cta { margin-top: .3rem; font-weight: 700; color: var(--accent); font-size: .95rem; }
+
+  /* 왜 브리핑 — 3칸 가치 스트립 */
+  .brief-why {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 0 0 2.8rem;
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 1.4rem 0;
+  }
+  .brief-why__item { text-align: center; }
+  .brief-why__item b { display: block; font-family: var(--font-serif); font-size: 1.4rem; color: var(--ink); }
+  .brief-why__item span { font-size: .85rem; color: var(--muted); }
+
+  @media (max-width: 640px) {
+    .brief-today { grid-template-columns: 1fr; }
+    .brief-today__media img { min-height: 0; aspect-ratio: 16/9; }
+    .brief-today__body { padding: 1.1rem 1.2rem; }
+    .brief-today__body h3 { font-size: 1.25rem; }
+    .brief-hero__br { display: none; }
+  }
+</style>

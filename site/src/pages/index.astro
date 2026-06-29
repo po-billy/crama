@@ -277,9 +277,12 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
 
     <script is:inline>
       function __rotInit() {
-        if (window.__rotStop) { window.__rotStop(); window.__rotStop = null; }
         const root = document.querySelector('.rotator');
-        if (!root) return;
+        // 같은 DOM에 두 번 초기화 금지(초기 즉시호출 + astro:page-load 동시 실행 → 리스너·타이머 중복 → 검은화면 깜빡임).
+        if (!root || root.dataset.rotBound) return;
+        root.dataset.rotBound = '1';
+        // 이전(SPA 전 페이지)의 인터벌만 정리하고 새로 시작
+        if (window.__rotStop) { window.__rotStop(); window.__rotStop = null; }
         const slides = Array.from(root.querySelectorAll('.rslide'));
         const dots = Array.from(root.querySelectorAll('.rotator__dot'));
         let cur = 0, timer, fadeTimer;

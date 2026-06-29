@@ -27,6 +27,31 @@ export async function generatePushHook({ title, description }) {
 }
 
 /**
+ * 스레드(Threads) 배포용 드래프트 — "오늘의 이슈, 돈으로 읽다" 보이스. 복붙용(자동 게시 X).
+ */
+export async function generateThreadsDraft({ title, description, url }) {
+  try {
+    const resp = await client.messages.create({
+      model: WRITE_MODEL,
+      max_tokens: 700,
+      system:
+        '너는 스레드(Threads) 카피라이터다. 크라마의 보이스: "오늘의 이슈를 돈 관점으로 풀어준다". ' +
+        '주어진 글을 스레드에 바로 올릴 한국어 포스트로 바꾼다. 규칙: ' +
+        '1) 첫 줄은 스크롤을 멈추게 하는 훅(궁금증·숫자·반전). ' +
+        '2) 3~6줄, 한 줄씩 짧게, 줄바꿈을 적극 사용. ' +
+        '3) 핵심을 "이게 내 돈에 무슨 의미인지"로 풀 것. ' +
+        '4) 낚시·과장·허위 금지, 사실 기반. ' +
+        '5) 마지막에 "전문 👉 " + 링크 한 줄, 그 아래 해시태그 2~3개. ' +
+        '6) 이모지 절제(0~3개). 머리말/따옴표 없이 포스트 본문만 출력.',
+      messages: [{ role: 'user', content: `제목: ${title}\n요약: ${description || ''}\n링크: ${url}\n\n스레드 포스트 초안:` }],
+    });
+    return (resp.content?.find((c) => c.type === 'text')?.text || '').trim();
+  } catch (e) {
+    return '';
+  }
+}
+
+/**
  * 1) 리서치 — web_search 로 상위 콘텐츠 트렌드·검색의도·커버리지 갭 분석.
  *    원문 복제 금지, 구조/각도/키워드만 추출.
  */

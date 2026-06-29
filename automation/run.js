@@ -4,7 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
 import sharp from 'sharp';
-import { research, writeArticle, imagePrompt, generatePushHook } from './lib/claude.js';
+import { research, writeArticle, imagePrompt, generatePushHook, generateThreadsDraft } from './lib/claude.js';
 import { generateHero } from './lib/image.js';
 import { generateAudio } from './gen-audio.js';
 import {
@@ -163,6 +163,17 @@ async function main() {
     const pushUrl = url + '?utm_source=push&utm_medium=web_push&utm_campaign=daily_brief';
     log(`   푸시 후킹 카피: ${hook}`);
     await fs.writeFile(path.join(__dirname, 'last-brief.json'), JSON.stringify({ hook, slug, title: art.title, description: art.description || '', image: heroAbs, url: pushUrl }), 'utf8');
+  } catch (e) {}
+  // ⑦-b 스레드 배포 드래프트 자동 생성(복붙용, 외부 자동게시는 안 함) — output/threads-<slug>.txt
+  try {
+    const draft = await generateThreadsDraft({ title: art.title, description: art.description || '', url });
+    if (draft) {
+      const outDir = path.join(__dirname, 'output');
+      await fs.mkdir(outDir, { recursive: true });
+      await fs.writeFile(path.join(outDir, `threads-${slug}.txt`), draft + '\n', 'utf8');
+      await fs.writeFile(path.join(outDir, 'threads-latest.txt'), draft + '\n', 'utf8');
+      log(`⑦-b 스레드 드래프트: output/threads-${slug}.txt`);
+    }
   } catch (e) {}
   if (process.env.INDEXNOW_AUTO === '1') {
     try {

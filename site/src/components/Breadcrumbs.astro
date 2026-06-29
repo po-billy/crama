@@ -4,6 +4,10 @@ interface Crumb { label: string; href?: string; }
 interface Props { items: Crumb[]; }
 const { items } = Astro.props;
 
+// 현재 페이지 URL — 마지막 항목(링크 없는 현재 페이지)의 item 으로 사용해
+// Search Console "Missing field 'item'" 경고를 없앤다(모든 ListItem 에 item 부여).
+const here = new URL(Astro.url.pathname, Astro.site ?? SITE.url).href;
+
 // BreadcrumbList 구조화 데이터(리치 결과)
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -12,7 +16,7 @@ const jsonLd = {
     '@type': 'ListItem',
     position: i + 1,
     name: c.label,
-    ...(c.href ? { item: new URL(c.href, SITE.url).href } : {}),
+    item: c.href ? new URL(c.href, SITE.url).href : here,
   })),
 };
 ---

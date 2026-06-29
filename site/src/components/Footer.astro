@@ -3,136 +3,158 @@ import { SITE } from '../consts';
 import SubscribeBox from './SubscribeBox.astro';
 import PodcastLinks from './PodcastLinks.astro';
 const year = new Date().getFullYear();
+const EMAIL = 'gmlthd94@gmail.com';
 ---
 <footer class="site-footer">
-  <div class="wrap">
-    <!-- 브랜드 매니페스토 + 뉴스레터 -->
-    <div class="foot-top">
-      <div class="foot-brand">
-        <a class="foot-logo" href="/" aria-label="Crama 홈">Cr<span class="foot-logo__dot">a</span>ma</a>
-        <p class="foot-mani">트렌드를 <strong>먼저</strong> 읽는 사람들. 부의 격차는 돈이 아니라 <strong>정보의 시차</strong>에서 시작됩니다. 크라마는 그 시차를 0으로 좁힙니다.</p>
-        <div class="foot-pod"><PodcastLinks /></div>
-        <a class="foot-jocohunt" href="https://jocohunt.com/p/tu87yztf" target="_blank" rel="noopener" title="조코헌트 주간 1위 — 자세히 보기">
-          <img src="https://jocohunt.com/images/badges/top1-light.svg" alt="Weekly #1 on jocoHunt" width="195" height="44" loading="lazy" />
-        </a>
-      </div>
-      <div class="foot-news">
-        <SubscribeBox />
-      </div>
+  <!-- 뉴스레터 슬림 밴드 -->
+  <div class="foot-news"><div class="wrap"><SubscribeBox /></div></div>
+
+  <div class="wrap foot-grid">
+    <!-- 브랜드 -->
+    <div class="foot-brand">
+      <a class="foot-logo" href="/" aria-label="Crama 홈">Cr<span class="foot-logo__dot">a</span>ma</a>
+      <p class="foot-mani">트렌드를 <strong>먼저</strong> 읽는 사람들.<br />정보의 시차를 0으로 좁힙니다.</p>
+      <div class="foot-pod"><PodcastLinks /></div>
     </div>
 
     <!-- 링크 컬럼 -->
     <nav class="foot-cols" aria-label="푸터 메뉴">
       <div class="foot-col">
-        <h3>둘러보기</h3>
+        <h3>콘텐츠</h3>
         <a href="/column/">칼럼</a>
-        <a href="/guides/">가이드</a>
-        <a href="/tools/">금융 계산기</a>
-        <a href="/glossary/">용어사전</a>
-      </div>
-      <div class="foot-col">
-        <h3>주제</h3>
         <a href="/category/money/">주식·재테크</a>
         <a href="/category/ai/">AI 트렌드</a>
         <a href="/category/income/">부업·지원금</a>
       </div>
       <div class="foot-col">
-        <h3>크라마</h3>
+        <h3>도구·학습</h3>
+        <a href="/guides/">완벽 가이드</a>
+        <a href="/tools/">금융 계산기</a>
+        <a href="/glossary/">용어사전</a>
+        <a href="/quiz/money-character/">머니 캐릭터 테스트</a>
+      </div>
+      <div class="foot-col">
+        <h3>크라미</h3>
+        <a href="/me/">크라미 시작하기</a>
+        <a href="/vote/">빼꼼 투표</a>
+        <a href="/shorts/">오늘의 쇼츠</a>
+        <a href="/membership/">멤버십</a>
+      </div>
+      <div class="foot-col">
+        <h3>회사</h3>
         <a href="/about/">소개</a>
         <a href="/contact/">문의하기</a>
         <a href="/contact/">제휴·광고</a>
-      </div>
-      <div class="foot-col">
-        <h3>정책</h3>
-        <a href="/privacy/">개인정보처리방침</a>
-        <a href="/terms/">이용약관</a>
         <a href="/rss.xml">RSS</a>
       </div>
     </nav>
 
-    <!-- 하단 바 -->
-    <div class="foot-bottom">
-      <div class="foot-copy">© {year} {SITE.name}. {SITE.tagline}.</div>
-      <p class="foot-disc">콘텐츠는 정보 제공을 목적으로 하며 특정 상품·종목의 매매를 권유하지 않습니다. 투자 등 최종 판단과 책임은 이용자 본인에게 있습니다. · 문의 <a href="mailto:gmlthd94@gmail.com">gmlthd94@gmail.com</a></p>
+    <!-- 문의 / CTA -->
+    <div class="foot-support">
+      <h3>문의</h3>
+      <p class="foot-support__line">보통 1영업일 내 답변드려요</p>
+      <a class="foot-support__email" href={`mailto:${EMAIL}`}>{EMAIL}</a>
+      <a class="foot-cta" href="/contact/">
+        <span class="foot-cta__main">1:1 문의하기 <span class="foot-cta__arr" aria-hidden="true">›</span></span>
+        <span class="foot-cta__sub">궁금한 점이 있으신가요?</span>
+      </a>
     </div>
+  </div>
+
+  <!-- 하단 중앙 — 정책 · 면책 · 카피라이트 -->
+  <div class="wrap foot-legal">
+    <div class="foot-legal__links">
+      <a href="/privacy/">개인정보 처리방침</a><span aria-hidden="true">|</span>
+      <a href="/terms/">이용약관</a><span aria-hidden="true">|</span>
+      <a href="/contact/">제휴·협력 문의</a>
+    </div>
+    <p class="foot-legal__disc">콘텐츠는 정보 제공을 목적으로 하며 특정 상품·종목의 매매를 권유하지 않습니다. 투자 등 최종 판단과 책임은 이용자 본인에게 있습니다.</p>
+    <p class="foot-copy">© {year} {SITE.name}. ALL RIGHTS RESERVED.</p>
   </div>
 </footer>
 
 <style is:global>
   footer.site-footer {
+    --ft-bg: #2d323b;
+    --ft-line: rgba(255, 255, 255, 0.1);
+    --ft-head: rgba(255, 255, 255, 0.42);
+    --ft-link: rgba(255, 255, 255, 0.78);
+    --ft-muted: rgba(255, 255, 255, 0.5);
     margin-top: 5rem; border-top: none;
-    background: #17151f; color: #cdcad6; font-size: 0.9rem;
-    padding-block: 3.4rem 2rem; position: relative;
-  }
-  footer.site-footer::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent);
+    background: var(--ft-bg); color: var(--ft-link); font-size: 0.9rem;
   }
 
-  /* 상단: 브랜드 / 뉴스레터 */
-  .site-footer .foot-top {
-    display: grid; grid-template-columns: 1.15fr 1fr; gap: 3rem;
-    padding-bottom: 2.6rem; border-bottom: 1px solid rgba(255,255,255,0.09);
+  /* 뉴스레터 밴드 */
+  .site-footer .foot-news { border-bottom: 1px solid var(--ft-line); padding-block: 2rem; }
+
+  /* 메인 그리드: 브랜드 | 링크 | 문의 */
+  .site-footer .foot-grid {
+    display: grid; grid-template-columns: 1.4fr 2.7fr 1.3fr; gap: 3rem;
+    padding-block: 3rem 2.6rem;
   }
-  .site-footer .foot-brand { max-width: 30rem; }
   .site-footer .foot-logo {
-    font-family: var(--font-serif); font-size: 2.05rem; font-weight: 700; color: #fff;
+    font-family: var(--font-serif); font-size: 1.95rem; font-weight: 700; color: #fff;
     letter-spacing: -0.01em; text-decoration: none; display: inline-block; line-height: 1;
   }
   .site-footer .foot-logo__dot { color: var(--accent); }
-  .site-footer .foot-mani { margin: 0.85rem 0 1.4rem; line-height: 1.7; color: rgba(255,255,255,0.6); font-size: 0.95rem; }
-  .site-footer .foot-mani strong { color: #b3a7ff; font-weight: 600; }
+  .site-footer .foot-mani { margin: 0.9rem 0 1.3rem; line-height: 1.65; color: var(--ft-muted); font-size: 0.9rem; }
+  .site-footer .foot-mani strong { color: #fff; font-weight: 600; }
   .site-footer .foot-pod { margin-top: 0.2rem; }
-  .site-footer .foot-jocohunt { display: inline-block; margin-top: 1rem; opacity: .92; transition: opacity .15s; }
-  .site-footer .foot-jocohunt:hover { opacity: 1; }
-  .site-footer .foot-jocohunt img { height: 40px; width: auto; display: block; }
 
   /* 링크 4컬럼 */
-  .site-footer .foot-cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; padding: 2.5rem 0; }
+  .site-footer .foot-cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.6rem; }
   .site-footer .foot-col h3 {
-    font-size: 0.74rem; letter-spacing: 0.09em; text-transform: uppercase;
-    color: rgba(255,255,255,0.38); margin: 0 0 0.85rem; font-weight: 700;
+    font-size: 0.95rem; color: #fff; margin: 0 0 1rem; font-weight: 700; letter-spacing: -0.01em;
   }
   .site-footer .foot-col a {
-    display: block; color: rgba(255,255,255,0.78); text-decoration: none;
-    padding: 0.32rem 0; font-size: 0.92rem; transition: color .15s, transform .15s;
+    display: block; color: var(--ft-link); text-decoration: none;
+    padding: 0.36rem 0; font-size: 0.9rem; transition: color .15s;
   }
-  .site-footer .foot-col a:hover { color: #fff; transform: translateX(2px); }
+  .site-footer .foot-col a:hover { color: #fff; }
 
-  /* 하단 바 */
-  .site-footer .foot-bottom {
-    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start;
-    gap: 0.8rem 2rem; padding-top: 1.9rem; border-top: 1px solid rgba(255,255,255,0.09);
+  /* 문의 / CTA */
+  .site-footer .foot-support h3 { font-size: 0.95rem; color: #fff; margin: 0 0 0.7rem; font-weight: 700; }
+  .site-footer .foot-support__line { margin: 0 0 0.5rem; color: var(--ft-muted); font-size: 0.85rem; }
+  .site-footer .foot-support__email { display: inline-block; color: #fff; font-weight: 600; font-size: 0.95rem; margin-bottom: 1.1rem; }
+  .site-footer .foot-support__email:hover { color: var(--accent); }
+  .site-footer .foot-cta {
+    display: block; background: rgba(255, 255, 255, 0.06); border: 1px solid var(--ft-line);
+    border-radius: 12px; padding: 0.95rem 1.1rem; text-decoration: none; transition: background .15s, border-color .15s;
   }
-  .site-footer .foot-copy { color: rgba(255,255,255,0.72); font-family: var(--font-serif); font-size: 0.95rem; }
-  .site-footer .foot-disc { margin: 0; max-width: 47rem; font-size: 0.78rem; line-height: 1.6; color: rgba(255,255,255,0.42); }
-  .site-footer .foot-disc a { color: rgba(255,255,255,0.7); }
-  .site-footer .foot-disc a:hover { color: #b3a7ff; }
+  .site-footer .foot-cta:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.22); }
+  .site-footer .foot-cta__main { display: flex; align-items: center; justify-content: space-between; color: #fff; font-weight: 700; font-size: 1rem; }
+  .site-footer .foot-cta__arr { color: var(--ft-muted); font-size: 1.2rem; }
+  .site-footer .foot-cta__sub { display: block; color: var(--ft-muted); font-size: 0.82rem; margin-top: 0.25rem; }
 
-  /* 뉴스레터 박스 다크 보정 + 푸터 안에서는 단일 컬럼(2단 그리드의 칸 눌림·알약 줄바꿈 방지) */
+  /* 하단 중앙 정렬 */
+  .site-footer .foot-legal { text-align: center; padding-block: 2rem 2.4rem; border-top: 1px solid var(--ft-line); }
+  .site-footer .foot-legal__links { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 0.7rem; font-size: 0.86rem; }
+  .site-footer .foot-legal__links a { color: var(--ft-link); }
+  .site-footer .foot-legal__links a:hover { color: #fff; }
+  .site-footer .foot-legal__links span { color: rgba(255, 255, 255, 0.22); }
+  .site-footer .foot-legal__disc { max-width: 52rem; margin: 1rem auto 0; font-size: 0.76rem; line-height: 1.6; color: rgba(255, 255, 255, 0.4); }
+  .site-footer .foot-copy { margin: 0.9rem 0 0; font-size: 0.78rem; letter-spacing: 0.04em; color: rgba(255, 255, 255, 0.35); }
+
+  /* 뉴스레터 박스 다크 보정 */
   .site-footer .subscribe {
-    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 14px; padding: 1.5rem 1.6rem;
-    grid-template-columns: 1fr; gap: 1rem; margin-bottom: 0; align-items: stretch;
+    background: transparent; border: 0; border-radius: 0; padding: 0;
+    grid-template-columns: 1.1fr 1fr; gap: 1.4rem; margin-bottom: 0; align-items: center;
   }
-  .site-footer .subscribe__contact { white-space: nowrap; align-self: start; }
   .site-footer .subscribe__title { color: #fff; }
-  .site-footer .subscribe__sub { color: rgba(255,255,255,0.58); }
-  .site-footer .subscribe__contact { background: transparent; color: rgba(255,255,255,0.78); border-color: rgba(255,255,255,0.24); }
-  .site-footer .subscribe__contact:hover { background: rgba(255,255,255,0.05); color: #b3a7ff; border-color: #b3a7ff; }
+  .site-footer .subscribe__sub { color: var(--ft-muted); }
+  .site-footer .subscribe__contact { background: transparent; color: var(--ft-link); border-color: rgba(255, 255, 255, 0.24); white-space: nowrap; }
+  .site-footer .subscribe__contact:hover { background: rgba(255, 255, 255, 0.05); color: #fff; border-color: rgba(255, 255, 255, 0.4); }
   .site-footer .subscribe__row input[type='email'] {
-    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.18); color: #fff;
+    background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.18); color: #fff;
   }
-  .site-footer .subscribe__row input[type='email']::placeholder { color: rgba(255,255,255,0.4); }
+  .site-footer .subscribe__row input[type='email']::placeholder { color: rgba(255, 255, 255, 0.4); }
+  .site-footer .podlinks__label { color: var(--ft-muted); }
 
-  /* 팟캐스트 라벨 다크 보정 */
-  .site-footer .podlinks__label { color: rgba(255,255,255,0.58); }
-
-  @media (max-width: 820px) {
-    .site-footer .foot-top { grid-template-columns: 1fr; gap: 2.2rem; }
-    .site-footer .foot-cols { grid-template-columns: 1fr 1fr; gap: 1.8rem 1.5rem; }
+  @media (max-width: 1000px) {
+    .site-footer .foot-grid { grid-template-columns: 1fr; gap: 2.4rem; }
   }
-  @media (max-width: 600px) {
-    footer.site-footer { padding-block: 2.6rem 1.6rem; }
-    .site-footer .foot-bottom { flex-direction: column; }
+  @media (max-width: 760px) {
+    .site-footer .foot-news .subscribe { grid-template-columns: 1fr; gap: 1rem; align-items: stretch; }
+    .site-footer .foot-cols { grid-template-columns: 1fr 1fr; gap: 1.6rem 1.2rem; }
   }
 </style>

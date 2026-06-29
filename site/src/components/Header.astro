@@ -3,6 +3,9 @@ import { SITE, NAV } from '../consts';
 ---
 <header class="site-header">
   <div class="wrap site-header__inner">
+    <button class="nav-toggle" id="nav-toggle" type="button" aria-label="메뉴" aria-expanded="false" aria-controls="nav">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
     <a href="/" class="brand" aria-label={`${SITE.name} 홈`}>
       Cr<span>a</span>ma
       <small>{SITE.tagline}</small>
@@ -13,9 +16,6 @@ import { SITE, NAV } from '../consts';
       <a href="/me/" class="search-link" aria-label="내 계정" title="내 계정" style="display:inline-flex;align-items:center">
         <span id="me-ava"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.6 3.2-5.5 7-5.5s7 1.9 7 5.5"/></svg></span>
       </a>
-      <button class="nav-toggle" id="nav-toggle" type="button" aria-label="메뉴" aria-expanded="false" aria-controls="nav">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-      </button>
     </div>
     <nav class="nav" id="nav" aria-label="주요 메뉴">
       {NAV.map((item) => (

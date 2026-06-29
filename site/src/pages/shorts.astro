@@ -10,7 +10,6 @@ const posts = (await getCollection('blog'))
   .slice(0, 40);
 
 const estMin = (p) => Math.max(1, Math.round((p.body || '').length / 600));
-const thumb = (h?: string) => h; // 풀사이즈 hero 사용(전면 비주얼)
 ---
 <AppLayout title="쇼츠 — Crama" description="돈·AI 인사이트를 한 장씩 넘겨 보는 쇼츠">
   <div class="shorts">
@@ -29,41 +28,51 @@ const thumb = (h?: string) => h; // 풀사이즈 hero 사용(전면 비주얼)
     <div class="shorts__feed" id="sh-feed">
       {posts.map((p, i) => (
         <section class="short" data-short data-slug={p.id} data-audio={p.data.audio ?? ''} data-title={p.data.title}>
-          <div class="short__card">
+          <div class="short__frame">
             <div class="short__media">
-              {p.data.heroImage
-                ? <img src={thumb(p.data.heroImage)} alt="" loading={i < 2 ? 'eager' : 'lazy'} fetchpriority={i === 0 ? 'high' : 'auto'} />
-                : <div class="short__media-fallback" aria-hidden="true"></div>}
-              <span class="short__chip">{CATEGORIES[p.data.category].name} · {p.data.format === 'column' ? '칼럼' : '가이드'}</span>
-              {p.data.audio && (
-                <button class="short__listen" type="button" data-listen aria-label="본문 듣기">
-                  <span class="ic ic--play"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
-                  <span class="ic ic--pause"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><rect x="6.5" y="5" width="3.6" height="14" rx="1.2"/><rect x="13.9" y="5" width="3.6" height="14" rx="1.2"/></svg></span>
-                  <span class="ic ic--load" aria-hidden="true"></span>
-                </button>
-              )}
+              {p.data.heroImage ? (
+                <>
+                  <img class="short__bg" src={p.data.heroImage} alt="" aria-hidden="true" loading={i < 2 ? 'eager' : 'lazy'} />
+                  <img class="short__fg" src={p.data.heroImage} alt="" loading={i < 2 ? 'eager' : 'lazy'} fetchpriority={i === 0 ? 'high' : 'auto'} />
+                </>
+              ) : <div class="short__media-fallback" aria-hidden="true"></div>}
               <span class="short__scrim" aria-hidden="true"></span>
             </div>
-            <div class="short__sheet">
-              <div class="short__body">
-                <h2 class="short__title">{p.data.title}</h2>
-                <p class="short__desc">{p.data.description}</p>
-                <span class="short__rt">약 {estMin(p)}분 읽기</span>
-              </div>
-              <div class="short__row">
-                <a class="short__read" href={`/blog/${p.id}/`}>이어서 읽기
-                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-                </a>
-                <button class="short__act" type="button" data-bm={p.id} aria-label="저장">
-                  <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12v16l-6-4-6 4z"/></svg>
+
+            <!-- 우측 액션 레일 (우리 기능: 저장·듣기·공유) -->
+            <div class="short__rail">
+              <button class="srail__btn" type="button" data-bm={p.id} aria-label="저장">
+                <span class="srail__ic"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12v16l-6-4-6 4z"/></svg></span>
+                <span class="srail__lbl">저장</span>
+              </button>
+              {p.data.audio && (
+                <button class="srail__btn srail__btn--listen" type="button" data-listen aria-label="본문 듣기">
+                  <span class="srail__ic">
+                    <span class="ic ic--play"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
+                    <span class="ic ic--pause"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><rect x="6.5" y="5" width="3.6" height="14" rx="1.2"/><rect x="13.9" y="5" width="3.6" height="14" rx="1.2"/></svg></span>
+                    <span class="ic ic--load" aria-hidden="true"></span>
+                  </span>
+                  <span class="srail__lbl">듣기</span>
                 </button>
-                <button class="short__act" type="button" data-share data-title={p.data.title} data-url={`/blog/${p.id}/`} aria-label="공유">
-                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.8l7.4-4.3M8.3 13.2l7.4 4.3"/></svg>
-                </button>
-              </div>
+              )}
+              <button class="srail__btn" type="button" data-share data-title={p.data.title} data-url={`/blog/${p.id}/`} aria-label="공유">
+                <span class="srail__ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.8l7.4-4.3M8.3 13.2l7.4 4.3"/></svg></span>
+                <span class="srail__lbl">공유</span>
+              </button>
             </div>
+
+            <!-- 하단 정보 (카테고리·제목·요약·이어 읽기) -->
+            <div class="short__info">
+              <span class="short__chip">{CATEGORIES[p.data.category].name} · {p.data.format === 'column' ? '칼럼' : '가이드'} · 약 {estMin(p)}분</span>
+              <h2 class="short__title">{p.data.title}</h2>
+              <p class="short__desc">{p.data.description}</p>
+              <a class="short__read" href={`/blog/${p.id}/`}>이어서 읽기
+                <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+              </a>
+            </div>
+
+            {i === 0 && <span class="short__swipe" aria-hidden="true">위로 넘겨 다음 글<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg></span>}
           </div>
-          {i === 0 && <span class="short__swipe" aria-hidden="true">위로 넘겨 다음 글<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg></span>}
         </section>
       ))}
     </div>
@@ -208,113 +217,91 @@ const thumb = (h?: string) => h; // 풀사이즈 hero 사용(전면 비주얼)
 </script>
 
 <style>
-  .shorts { height: 100dvh; display: flex; flex-direction: column; position: relative;
-    background: radial-gradient(120% 80% at 50% 0%, var(--paper-2) 0%, var(--paper) 60%); }
+  /* 유튜브 쇼츠형 — 다크 풀블리드 9:16 + 우측 액션레일 + 하단 정보 오버레이 */
+  .shorts { height: 100dvh; display: flex; flex-direction: column; position: relative; background: #0a0a0c; color: #fff; }
 
   /* 상단바 */
-  .shorts__top { flex: none; position: relative; z-index: 3; }
-  .shorts__bar { display: flex; align-items: center; gap: .6rem; padding: .5rem .8rem; }
-  .shorts__icon { background: none; border: 0; color: var(--ink); cursor: pointer; padding: .3rem; display: inline-flex; border-radius: 999px; }
-  .shorts__icon:hover { background: color-mix(in srgb, var(--ink) 8%, transparent); }
-  .shorts__t { font-family: var(--font-serif); font-weight: 600; font-size: 1.15rem; }
-  .shorts__count { margin-left: auto; font-size: .82rem; color: var(--muted); font-variant-numeric: tabular-nums; }
-  .shorts__count b { color: var(--ink); font-weight: 700; }
-  .shorts__progress { height: 2px; background: color-mix(in srgb, var(--ink) 8%, transparent); }
+  .shorts__top { flex: none; position: relative; z-index: 5; }
+  .shorts__bar { display: flex; align-items: center; gap: .6rem; padding: .55rem .9rem; }
+  .shorts__icon { background: none; border: 0; color: #fff; cursor: pointer; padding: .3rem; display: inline-flex; border-radius: 999px; }
+  .shorts__icon:hover { background: rgba(255,255,255,.14); }
+  .shorts__t { font-family: var(--font-serif); font-weight: 600; font-size: 1.12rem; color: #fff; }
+  .shorts__count { margin-left: auto; font-size: .82rem; color: rgba(255,255,255,.6); font-variant-numeric: tabular-nums; }
+  .shorts__count b { color: #fff; font-weight: 700; }
+  .shorts__progress { height: 2px; background: rgba(255,255,255,.14); }
   .shorts__progress-fill { display: block; height: 100%; width: 100%; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform .12s linear; }
 
   /* 피드(스냅) */
   .shorts__feed { flex: 1 1 auto; min-height: 0; overflow-y: auto; scroll-snap-type: y mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   .shorts__feed::-webkit-scrollbar { display: none; }
+  .short { height: 100%; scroll-snap-align: start; scroll-snap-stop: always; display: grid; place-items: center; position: relative; }
 
-  .short { height: 100%; scroll-snap-align: start; scroll-snap-stop: always; display: grid; place-items: center; padding: .4rem 1rem 1.2rem; position: relative; }
+  /* 9:16 프레임 — PC는 중앙 정렬(검은 여백), 모바일은 풀스크린 */
+  .short__frame { position: relative; width: 100%; height: 100%; max-width: min(440px, calc((100dvh - 50px) * 9 / 16)); margin-inline: auto; overflow: hidden; background: #000; }
+  @media (min-width: 600px) { .short__frame { border-radius: 14px; } }
 
-  /* 카드 — 상용 앱 톤(레이어드 + 그림자) */
-  .short__card {
-    width: 100%; max-width: 460px; height: 100%; max-height: 760px;
-    display: flex; flex-direction: column; overflow: hidden;
-    border-radius: 24px; background: var(--paper);
-    border: 1px solid var(--line);
-    box-shadow: 0 24px 60px -24px rgba(0,0,0,.32), 0 4px 14px -8px rgba(0,0,0,.18);
-  }
+  .short__media { position: absolute; inset: 0; }
+  .short__bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(1.18); filter: blur(26px) brightness(.5); }
+  .short__fg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+  .short__media-fallback { position: absolute; inset: 0; background: linear-gradient(150deg, #2a2440, #102a36); }
+  .short__scrim { position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(to top, rgba(0,0,0,.82) 0%, rgba(0,0,0,.34) 30%, rgba(0,0,0,0) 52%); }
 
-  .short__media { position: relative; flex: 1 1 58%; min-height: 0; overflow: hidden; background: var(--accent-soft); }
-  .short__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .short__media-fallback { width: 100%; height: 100%; background: linear-gradient(135deg, var(--accent-soft), var(--paper-2)); }
-  .short__scrim { position: absolute; inset: auto 0 0 0; height: 38%; background: linear-gradient(to top, color-mix(in srgb, var(--paper) 92%, transparent), transparent); pointer-events: none; }
-  .short__chip {
-    position: absolute; top: .8rem; left: .8rem; z-index: 2;
-    font-size: .72rem; font-weight: 800; letter-spacing: .02em; color: #fff;
-    background: color-mix(in srgb, var(--accent) 92%, transparent);
-    padding: .32rem .7rem; border-radius: 999px;
-    box-shadow: 0 4px 12px -4px rgba(0,0,0,.4); backdrop-filter: blur(4px);
-  }
+  /* 우측 액션 레일 */
+  .short__rail { position: absolute; right: .5rem; bottom: 6.5rem; z-index: 3; display: flex; flex-direction: column; gap: 1.05rem; }
+  .srail__btn { background: none; border: 0; cursor: pointer; color: #fff; display: flex; flex-direction: column; align-items: center; gap: .25rem; padding: 0; }
+  .srail__ic { position: relative; width: 48px; height: 48px; border-radius: 999px; background: rgba(255,255,255,.16); backdrop-filter: blur(6px); display: grid; place-items: center; transition: transform .12s, background .12s; }
+  .srail__btn:hover .srail__ic { background: rgba(255,255,255,.28); }
+  .srail__btn:active .srail__ic { transform: scale(.92); }
+  .srail__lbl { font-size: .7rem; font-weight: 700; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.5); }
+  .srail__btn.on .srail__ic { background: var(--accent); }
+  .srail__btn.on svg { fill: rgba(255,255,255,.28); }
 
-  /* 본문 듣기 버튼(미디어 우상단) */
-  .short__listen { position: absolute; top: .8rem; right: .8rem; z-index: 2;
-    width: 48px; height: 48px; border-radius: 999px; border: 0; cursor: pointer;
-    background: color-mix(in srgb, var(--accent) 94%, transparent); color: #fff;
-    display: grid; place-items: center; box-shadow: 0 8px 20px -6px rgba(0,0,0,.45);
-    transition: transform .12s, filter .12s; }
-  .short__listen:hover { filter: brightness(1.06); }
-  .short__listen:active { transform: scale(.94); }
-  .short__listen .ic { display: grid; place-items: center; grid-area: 1 / 1; }
-  .short__listen .ic--pause, .short__listen .ic--load { display: none; }
-  .short__listen.is-playing .ic--play { display: none; }
-  .short__listen.is-playing .ic--pause { display: grid; }
-  .short__listen.is-loading .ic--play, .short__listen.is-loading .ic--pause { display: none; }
-  .short__listen.is-loading .ic--load { display: block; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.45); border-top-color: #fff; border-radius: 999px; animation: sh-spin .7s linear infinite; }
+  /* 듣기 아이콘 토글(재생/일시정지/로딩) */
+  .srail__btn--listen .ic { position: absolute; inset: 0; display: grid; place-items: center; }
+  .srail__btn--listen .ic--pause, .srail__btn--listen .ic--load { display: none; }
+  .srail__btn--listen.is-playing .srail__ic { background: var(--accent); }
+  .srail__btn--listen.is-playing .ic--play { display: none; }
+  .srail__btn--listen.is-playing .ic--pause { display: grid; }
+  .srail__btn--listen.is-loading .ic--play, .srail__btn--listen.is-loading .ic--pause { display: none; }
+  .srail__btn--listen.is-loading .ic--load { display: block; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 999px; animation: sh-spin .7s linear infinite; }
   @keyframes sh-spin { to { transform: rotate(360deg); } }
 
-  /* 시트(텍스트 + 액션) */
-  .short__sheet { flex: 0 0 auto; display: flex; flex-direction: column; gap: 1rem; padding: 1.1rem 1.25rem 1.3rem; margin-top: -1.4rem; position: relative; z-index: 2; background: var(--paper); border-radius: 20px 20px 0 0; }
-  .short__body { display: flex; flex-direction: column; gap: .5rem; }
-  .short__title { font-size: 1.45rem; line-height: 1.32; margin: 0; letter-spacing: -.01em;
+  /* 하단 정보 오버레이 */
+  .short__info { position: absolute; left: 0; right: 4.4rem; bottom: 0; z-index: 3; padding: 1rem 1rem 1.5rem; display: flex; flex-direction: column; gap: .5rem; }
+  .short__chip { align-self: flex-start; font-size: .7rem; font-weight: 800; letter-spacing: .01em; color: #fff;
+    background: color-mix(in srgb, var(--accent) 90%, transparent); padding: .28rem .65rem; border-radius: 999px; }
+  .short__title { font-size: 1.3rem; line-height: 1.32; margin: 0; color: #fff; text-shadow: 0 1px 10px rgba(0,0,0,.55);
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-  .short__desc { color: var(--ink-soft); font-size: .96rem; line-height: 1.6; margin: 0;
-    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-  .short__rt { color: var(--muted); font-size: .78rem; font-weight: 600; }
-
-  .short__row { display: flex; align-items: center; gap: .55rem; }
-  .short__read { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
-    background: var(--accent); color: #fff; font-weight: 800; font-size: 1rem;
-    border-radius: 14px; padding: .9rem 1rem; box-shadow: 0 8px 20px -8px var(--accent); transition: filter .12s, transform .12s; }
-  .short__read:hover { color: #fff; filter: brightness(1.05); }
-  .short__read:active { transform: scale(.98); }
-  .short__act { flex: none; width: 52px; height: 52px; border-radius: 14px;
-    border: 1px solid var(--line); background: var(--paper-2); color: var(--ink-soft);
-    display: grid; place-items: center; cursor: pointer; transition: border-color .12s, color .12s, background .12s; }
-  .short__act:hover { border-color: var(--accent); color: var(--accent); }
-  .short__act.on { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
-  .short__act.on svg { fill: color-mix(in srgb, var(--accent) 22%, transparent); }
+  .short__desc { color: rgba(255,255,255,.85); font-size: .9rem; line-height: 1.5; margin: 0; text-shadow: 0 1px 8px rgba(0,0,0,.5);
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .short__read { align-self: flex-start; margin-top: .3rem; display: inline-flex; align-items: center; gap: .35rem;
+    background: var(--accent); color: #fff; font-weight: 800; font-size: .92rem; border-radius: 999px; padding: .6rem 1.2rem;
+    transition: filter .12s, transform .12s; }
+  .short__read:hover { color: #fff; filter: brightness(1.08); }
+  .short__read:active { transform: scale(.97); }
 
   /* 첫 카드 스와이프 힌트 */
-  .short__swipe { position: absolute; left: 50%; bottom: .35rem; transform: translateX(-50%);
-    display: inline-flex; align-items: center; gap: .3rem; color: var(--muted); font-size: .72rem; font-weight: 600;
+  .short__swipe { position: absolute; left: 50%; bottom: .55rem; transform: translateX(-50%); z-index: 3;
+    display: inline-flex; align-items: center; gap: .3rem; color: rgba(255,255,255,.85); font-size: .72rem; font-weight: 600;
     animation: sh-bob 1.8s ease-in-out infinite; }
   @keyframes sh-bob { 0%,100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, -4px); } }
 
-  /* 활성 카드 진입 애니메이션 */
+  /* 활성 진입 — 텍스트 페이드업 */
   @media (prefers-reduced-motion: no-preference) {
-    .short__card { opacity: .55; transform: scale(.975); transition: opacity .4s ease, transform .4s ease; }
-    .short.is-active .short__card { opacity: 1; transform: none; }
-    .short__body > * { opacity: 0; transform: translateY(8px); transition: opacity .45s ease, transform .45s ease; }
-    .short.is-active .short__title { opacity: 1; transform: none; transition-delay: .05s; }
-    .short.is-active .short__desc { opacity: 1; transform: none; transition-delay: .12s; }
-    .short.is-active .short__rt { opacity: 1; transform: none; transition-delay: .18s; }
+    .short__info > * { opacity: 0; transform: translateY(8px); transition: opacity .45s ease, transform .45s ease; }
+    .short.is-active .short__chip { opacity: 1; transform: none; transition-delay: .04s; }
+    .short.is-active .short__title { opacity: 1; transform: none; transition-delay: .08s; }
+    .short.is-active .short__desc { opacity: 1; transform: none; transition-delay: .14s; }
+    .short.is-active .short__read { opacity: 1; transform: none; transition-delay: .2s; }
   }
 
   /* 토스트 */
-  .shorts__toast { position: absolute; left: 50%; bottom: 1.4rem; transform: translateX(-50%) translateY(8px);
-    background: var(--ink); color: var(--paper); font-size: .85rem; font-weight: 600;
-    padding: .55rem 1.05rem; border-radius: 999px; opacity: 0; pointer-events: none; z-index: 5;
+  .shorts__toast { position: absolute; left: 50%; bottom: 1.5rem; transform: translateX(-50%) translateY(8px);
+    background: #fff; color: #111; font-size: .85rem; font-weight: 700;
+    padding: .55rem 1.05rem; border-radius: 999px; opacity: 0; pointer-events: none; z-index: 6;
     transition: opacity .2s, transform .2s; box-shadow: 0 10px 28px -8px rgba(0,0,0,.5); }
   .shorts__toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-  @media (max-width: 480px) {
-    .short { padding: .3rem .7rem .9rem; }
-    .short__card { max-height: none; border-radius: 20px; }
-    .short__title { font-size: 1.35rem; }
-  }
 </style>
 
 <!-- 데스크톱에서도 풀스크린 스냅 유지(app.css의 PC용 app-screen 스크롤 오버라이드 무력화) -->

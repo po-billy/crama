@@ -171,16 +171,21 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
         <div class="rankc__track" id="rankc-track">
           {ranking.map((p) => (
             <a class="rankc__slide" href={`/blog/${p.id}/`}>
-              {p.data.heroImage
-                ? <img class="rankc__img" src={p.data.heroImage} alt="" loading="lazy" />
-                : <span class="rankc__img rankc__img--ph" aria-hidden="true"></span>}
-              <h3 class="rankc__t">{p.data.title}</h3>
-              <p class="rankc__d">{p.data.description}</p>
+              <div class="rankc__media">
+                {p.data.heroImage
+                  ? <img class="rankc__img" src={p.data.heroImage} alt="" loading="lazy" />
+                  : <span class="rankc__img rankc__img--ph" aria-hidden="true"></span>}
+                <div class="rankc__overlay">
+                  <h3 class="rankc__t">{p.data.title}</h3>
+                  <p class="rankc__d">{p.data.description}</p>
+                </div>
+              </div>
               <span class="rankc__cta">이어서 읽어보기</span>
             </a>
           ))}
         </div>
       </div>
+      <a class="rankc__all" href="/category/money/">크라마 아티클 전체보기</a>
       <script is:inline>
         function __rankcInit() {
           const track = document.getElementById('rankc-track');

@@ -384,12 +384,21 @@
 .rankc__track { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
 .rankc__track::-webkit-scrollbar { display: none; }
 .rankc__slide { flex: 0 0 100%; scroll-snap-align: start; display: block; color: inherit; }
-.rankc__img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 12px; display: block; background: var(--paper); }
+.rankc__media { position: relative; aspect-ratio: 4 / 3; border-radius: 14px; overflow: hidden; background: var(--paper); }
+.rankc__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
 .rankc__img--ph { background: linear-gradient(135deg, var(--accent-soft), var(--paper)); }
-.rankc__t { font-family: var(--font-serif); font-size: 1.32rem; line-height: 1.32; margin: .95rem 0 .5rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.rankc__d { color: var(--ink-soft); font-size: .94rem; line-height: 1.55; margin: 0 0 1.1rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.rankc__cta { display: block; text-align: center; background: var(--accent); color: #fff; font-weight: 800; border-radius: 12px; padding: .95rem; font-size: 1rem; }
+/* 이미지→텍스트 자연스러운 연결(상단 배너형 그라데이션) */
+.rankc__media::after { content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(to top, rgba(0, 0, 0, .9) 0%, rgba(0, 0, 0, .55) 24%, rgba(0, 0, 0, .1) 48%, rgba(0, 0, 0, 0) 64%); }
+.rankc__overlay { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; padding: 1.1rem 1.1rem 1.15rem; }
+.rankc__t { font-family: var(--font-serif); font-size: 1.34rem; line-height: 1.3; margin: 0 0 .35rem; color: #fff; text-shadow: 0 1px 12px rgba(0, 0, 0, .55);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.rankc__d { color: rgba(255, 255, 255, .85); font-size: .9rem; line-height: 1.5; margin: 0; text-shadow: 0 1px 8px rgba(0, 0, 0, .5);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.rankc__cta { display: block; text-align: center; background: var(--accent); color: #fff; font-weight: 800; border-radius: 12px; padding: .95rem; font-size: 1rem; margin-top: .9rem; }
 .rankc__slide:hover .rankc__cta { color: #fff; }
+.rankc__all { display: block; text-align: center; margin-top: .7rem; padding: .95rem; border-radius: 14px; background: var(--paper-2); border: 1px solid var(--line); color: var(--ink-soft); font-weight: 700; font-size: .95rem; }
+.rankc__all:hover { color: var(--accent); border-color: var(--accent); }
 
 /* ---------- 홈 히어로(레거시: 일부 화면에서 재사용) ---------- */
 .home-hero { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: stretch; margin-top: 2rem; }

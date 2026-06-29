@@ -42,6 +42,7 @@ self.addEventListener('push', (e) => {
     body: d.body || '',
     icon: '/icon-192.png',
     badge: '/icon-192.png',
+    image: d.image || undefined,
     tag: d.tag || 'crama-brief',
     data: { url: d.url || '/' },
   }));

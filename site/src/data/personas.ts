@@ -87,6 +87,8 @@ export function resolveAuthorName(
     return author;
   }
   if (author && PERSONAS[author]) return author;
+  // 실명 책임 저자(엄희송)는 칼럼에도 허용 — 실존 인물이라 Person으로 렌더(가짜 페르소나 위장 아님)
+  if (author === REAL_AUTHOR.name) return REAL_AUTHOR.name;
   return CATEGORY_DEFAULT_PERSONA[category];
 }
 

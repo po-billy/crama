@@ -38,6 +38,12 @@ const siteJsonLd = {
       url: SITE.url,
       logo: new URL('/icon-512.png', SITE.url).href,
       description: SITE.description,
+      // 브랜드 엔티티 강화(동음이의 분리 + 지식패널 신호). 소셜 핸들 확정 시 인스타·스레드·유튜브 추가.
+      sameAs: [
+        'https://open.spotify.com/show/033DHRPU1sMJr3RdugoqTG',
+        'https://podcasts.apple.com/podcast/id6783594375',
+        'https://jocohunt.com/p/tu87yztf',
+      ],
     },
     {
       '@type': 'WebSite',

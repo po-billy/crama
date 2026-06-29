@@ -523,9 +523,9 @@
     background: linear-gradient(to right, var(--panel, #1b1b22) 0%, var(--panel, #1b1b22) 38.4%, transparent 62%);
   }
   .rotator--banner .rslide__badge { display: none; }
-  .rotator--banner .rslide__title { font-family: var(--font-sans); font-weight: 800; font-size: clamp(1.3rem, 1.6vw, 1.55rem); line-height: 1.32; margin: 0; max-width: 32%; color: #fff; text-shadow: none; }
-  .rotator--banner .rslide__desc { font-size: 0.9rem; line-height: 1.5; margin: 0.5rem 0 0; max-width: 32%; color: rgba(255,255,255,0.6); text-shadow: none; }
-  .rotator--banner .rslide__cta { display: block; margin-top: auto; font-size: 0.95rem; font-weight: 700; color: #fff; text-shadow: none; }
+  .rotator--banner .rslide__title { font-family: var(--font-sans); font-weight: 800; font-size: clamp(1.3rem, 1.6vw, 1.55rem); line-height: 1.32; margin: 0; max-width: 32%; color: var(--rtext, #fff); text-shadow: none; }
+  .rotator--banner .rslide__desc { font-size: 0.9rem; line-height: 1.5; margin: 0.5rem 0 0; max-width: 32%; color: color-mix(in srgb, var(--rtext, #fff) 62%, transparent); text-shadow: none; }
+  .rotator--banner .rslide__cta { display: block; margin-top: auto; font-size: 0.95rem; font-weight: 700; color: var(--rtext, #fff); text-shadow: none; }
   .rotator--banner .rotator__dots { display: none; }
 }
 .rotator__counter {

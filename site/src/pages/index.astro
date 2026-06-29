@@ -48,11 +48,11 @@ const ranking = picks;
 
 // 좌측 콘텐츠 로테이터 — 가이드/진단/도구/사전이 롤링(슬라이드는 추가만 하면 됨)
 const slides = [
-  { title: '정보가 아니라<br />이야기를 읽다', desc: '돈과 AI를 둘러싼 관점과 장면, 머니 칼럼', href: '/column/', cta: '자세히 보기', panel: '#36302a', img: '/img/generated/rotator-column-hero.webp', imgMobile: '/img/generated/rotator-column-hero-m.webp' },
-  { title: '복잡한 금융 계산,<br />입력하면 끝', desc: '복리·대출·세금·환율·노후까지 23종 계산기', href: '/tools/', cta: '자세히 보기', panel: '#1e2a3a', img: '/img/generated/rotator-tools-hero.webp', imgMobile: '/img/generated/rotator-tools-hero-m.webp' },
-  { title: '모르는 용어,<br />3초 만에 찾기', desc: '금융·AI 용어 사전, 관련 글로 바로 이동', href: '/glossary/', cta: '자세히 보기', panel: '#2a2440', img: '/img/generated/rotator-glossary-hero.webp', imgMobile: '/img/generated/rotator-glossary-hero-m.webp' },
-  { title: '주식, 처음이라면<br />여기서 시작', desc: '기본기·계좌·종목·운용까지 완벽 가이드', href: '/blog/stock-investing-complete-guide/', cta: '자세히 보기', panel: '#102a36', img: '/img/generated/rotator-guide-hero.webp', imgMobile: '/img/generated/rotator-guide-hero-m.webp' },
-  { title: '내 돈 성향은<br />어떤 캐릭터일까', desc: '10가지 질문으로 보는 머니 캐릭터 테스트', href: '/quiz/money-character/', cta: '자세히 보기', panel: '#2d1f3d', img: '/img/generated/rotator-quiz-hero.webp', imgMobile: '/img/generated/rotator-quiz-hero-m.webp' },
+  { title: '정보가 아니라<br />이야기를 읽다', desc: '돈과 AI를 둘러싼 관점과 장면, 머니 칼럼', href: '/column/', cta: '자세히 보기', panel: '#ffdac1', ink: '#2a201b', img: '/img/generated/rotator-column-hero.webp', imgMobile: '/img/generated/rotator-column-hero-m.webp' },
+  { title: '복잡한 금융 계산,<br />입력하면 끝', desc: '복리·대출·세금·환율·노후까지 23종 계산기', href: '/tools/', cta: '자세히 보기', panel: '#ffffff', ink: '#1b1b22', img: '/img/generated/rotator-tools-hero.webp', imgMobile: '/img/generated/rotator-tools-hero-m.webp' },
+  { title: '모르는 용어,<br />3초 만에 찾기', desc: '금융·AI 용어 사전, 관련 글로 바로 이동', href: '/glossary/', cta: '자세히 보기', panel: '#17151f', ink: '#ffffff', img: '/img/generated/rotator-glossary-hero.webp', imgMobile: '/img/generated/rotator-glossary-hero-m.webp' },
+  { title: '주식, 처음이라면<br />여기서 시작', desc: '기본기·계좌·종목·운용까지 완벽 가이드', href: '/blog/stock-investing-complete-guide/', cta: '자세히 보기', panel: '#ffffff', ink: '#1b1b22', img: '/img/generated/rotator-guide-hero.webp', imgMobile: '/img/generated/rotator-guide-hero-m.webp' },
+  { title: '내 돈 성향은<br />어떤 캐릭터일까', desc: '10가지 질문으로 보는 머니 캐릭터 테스트', href: '/quiz/money-character/', cta: '자세히 보기', panel: '#17151f', ink: '#ffffff', img: '/img/generated/rotator-quiz-hero.webp', imgMobile: '/img/generated/rotator-quiz-hero-m.webp' },
 ];
 
 // 배너 하단 원형 퀵메뉴 — 콘텐츠 + 테스트 바로가기
@@ -95,7 +95,7 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
       <section class="rotator rotator--banner" aria-label="추천 콘텐츠">
         <div class="rotator__viewport">
           {slides.map((s, i) => (
-            <a class={i === 0 ? 'rslide is-active' : 'rslide'} href={s.href} data-slide={i} style={`--panel:${s.panel ?? '#1b1b22'}`}>
+            <a class={i === 0 ? 'rslide is-active' : 'rslide'} href={s.href} data-slide={i} style={`--panel:${s.panel ?? '#1b1b22'}; --rtext:${s.ink ?? '#fff'}`}>
               <picture>
                 <source media="(min-width: 1024px)" srcset={s.img} />
                 <img class="rslide__bg" src={s.imgMobile ?? s.img} alt="" loading={i === 0 ? 'eager' : 'lazy'} fetchpriority={i === 0 ? 'high' : 'auto'} />

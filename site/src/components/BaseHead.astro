@@ -170,7 +170,7 @@ const siteJsonLd = {
 <script is:inline>
   (() => {
     const saved = localStorage.getItem('theme');
-    const dark = saved ? saved === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    const dark = saved === 'dark'; // 화이트가 기본, 수동으로 다크 선택 시에만 적용
     if (dark) document.documentElement.dataset.theme = 'dark';
   })();
 </script>

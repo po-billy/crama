@@ -103,6 +103,6 @@ export const NAV: NavItem[] = [
 export const NOTICE = {
   enabled: true,
   key: '2026-07-benefits',
-  text: '🔍 청년도약계좌 7/3 마감 — 놓치기 전에 내 혜택 한눈에 확인하기',
-  href: '/benefits/',
+  text: '🗓️ 청년미래적금 자격조회 7/3 마감 · 재산세 7월 — 이달 챙길 돈 한눈에',
+  href: '/blog/july-2026-money-calendar/',
 } as const;

@@ -62,15 +62,19 @@ const upcoming = EVENTS
   <div class="pc-page">
     <!-- ━━ 히어로 ━━ -->
     <header class="pc-hero">
-      <div class="pc-hero__text">
-        <span class="pc-hero__badge">서비스</span>
-        <h1>놓치면 손해,<br/>한눈에 챙기세요</h1>
-        <p>세금 납부부터 지원금 신청까지 — 2026년 핵심 일정을 내 캘린더에.</p>
-        <button type="button" id="pc-ics-btn" class="pc-hero__ics">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-          내 캘린더에 연동하기
-        </button>
+      <span class="pc-hero__badge">서비스</span>
+      <h1 class="pc-hero__title">놓치면 손해인 일정,<br/><em>한 곳에서</em> 챙기세요</h1>
+      <p class="pc-hero__lead">세금 납부부터 지원금 신청까지<br/>2026년 핵심 정책 일정을 내 캘린더에 연동하세요.</p>
+      <div class="pc-hero__stats">
+        <div class="pc-hero__stat"><span class="pc-hero__stat-num">{EVENTS.length}</span><span class="pc-hero__stat-label">일정 수록</span></div>
+        <div class="pc-hero__stat"><span class="pc-hero__stat-num">6</span><span class="pc-hero__stat-label">분야 커버</span></div>
+        <div class="pc-hero__stat"><span class="pc-hero__stat-num">0원</span><span class="pc-hero__stat-label">완전 무료</span></div>
       </div>
+      <button type="button" id="pc-ics-btn" class="pc-hero__ics">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        내 캘린더에 연동하기
+      </button>
+      <p class="pc-hero__note">Google Calendar, Apple Calendar 등에 바로 연동됩니다.</p>
     </header>
 
     <!-- ━━ 다가오는 일정 카드 ━━ -->
@@ -374,17 +378,33 @@ const upcoming = EVENTS
     .pc-page { max-width: 56rem; margin: 0 auto; padding: 0 1rem 3rem; }
 
     /* ── 히어로 ── */
-    .pc-hero { padding: 2.5rem 0 1.5rem; }
-    .pc-hero__badge { display: inline-block; padding: 0.25rem 0.7rem; background: var(--accent-soft); color: var(--accent); font-size: 0.75rem; font-weight: 700; border-radius: 20px; letter-spacing: 0.05em; margin-bottom: 0.8rem; }
-    .pc-hero h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 4vw, 2rem); line-height: 1.3; margin: 0 0 0.6rem; }
-    .pc-hero p { color: var(--muted); font-size: 0.95rem; margin: 0 0 1.2rem; line-height: 1.6; }
-    .pc-hero__ics {
-      display: inline-flex; align-items: center; gap: 0.5rem;
-      padding: 0.7rem 1.4rem; background: var(--ink); color: var(--paper);
-      border-radius: 10px; font: inherit; font-size: 0.9rem; font-weight: 700;
-      border: none; cursor: pointer; transition: filter 0.15s;
+    .pc-hero { text-align: center; padding: 3rem 0 2rem; }
+    .pc-hero__badge {
+      display: inline-block; padding: 0.3rem 0.8rem; background: var(--accent-soft);
+      color: var(--accent); font-size: 0.78rem; font-weight: 700; border-radius: 20px;
+      letter-spacing: 0.05em; margin-bottom: 1.2rem;
     }
-    .pc-hero__ics:hover { filter: brightness(1.15); }
+    .pc-hero__title {
+      font-family: var(--font-serif); font-size: clamp(1.8rem, 5vw, 2.6rem);
+      line-height: 1.3; letter-spacing: -0.02em; margin: 0 0 1.2rem;
+    }
+    .pc-hero__title em { font-style: normal; color: var(--accent); }
+    .pc-hero__lead { color: var(--muted); font-size: 1.05rem; line-height: 1.7; margin: 0 0 2rem; }
+    .pc-hero__stats {
+      display: flex; justify-content: center; gap: 2rem; margin: 0 0 2rem;
+      padding: 1.2rem; background: var(--paper-2); border-radius: 12px;
+    }
+    .pc-hero__stat { text-align: center; }
+    .pc-hero__stat-num { display: block; font-size: 1.4rem; font-weight: 800; color: var(--ink); }
+    .pc-hero__stat-label { font-size: 0.78rem; color: var(--muted); }
+    .pc-hero__ics {
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+      width: 100%; max-width: 20rem; padding: 1rem; background: var(--ink); color: var(--paper);
+      border-radius: 12px; font: inherit; font-size: 1.05rem; font-weight: 700;
+      border: none; cursor: pointer; transition: all 0.15s;
+    }
+    .pc-hero__ics:hover { filter: brightness(1.15); transform: translateY(-1px); }
+    .pc-hero__note { font-size: 0.75rem; color: var(--muted); margin-top: 1rem; opacity: 0.7; }
 
     .pc-section-title { font-size: 1rem; font-weight: 700; margin: 0 0 0.8rem; color: var(--ink); }
 

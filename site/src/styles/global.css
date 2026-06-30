@@ -430,6 +430,9 @@ hr {
 .svc-widget:hover { border-color: var(--accent); box-shadow: 0 4px 16px rgba(108,92,231,.1); transform: translateY(-2px); }
 .svc-widget__icon { font-size: 1.6rem; display: flex; align-items: center; justify-content: center; }
 .svc-widget__icon .duoicon { width: 28px; height: 28px; }
+/* 서비스 아이콘 공통 사이즈 */
+.svc-ico { width: 28px; height: 28px; flex: none; }
+.svc-ico--lg { width: 36px; height: 36px; }
 .svc-widget__label { font-size: 0.78rem; color: var(--muted); font-weight: 500; }
 .svc-widget__val { font-size: 0.95rem; color: var(--accent); }
 @media (max-width: 480px) { .svc-widgets { grid-template-columns: repeat(3, 1fr); gap: 0.4rem; } .svc-widget { padding: 1rem 0.4rem; } }

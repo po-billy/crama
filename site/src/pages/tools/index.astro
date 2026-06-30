@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import DuoIcon from '../../components/DuoIcon.astro';
 const groups = [
   {
     title: '지원금·정책',
@@ -67,15 +68,15 @@ const total = groups.reduce((n, g) => n + g.tools.length, 0);
     </header>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.8rem;margin:1.5rem 0 2.5rem;padding:1.5rem;background:var(--paper-2);border-radius:14px;">
       <a href="/benefits/" style="display:flex;align-items:center;gap:.6rem;padding:.8rem 1rem;border:1px solid var(--line);border-radius:10px;background:var(--paper);text-decoration:none;color:var(--ink);transition:border-color .12s;">
-        <span style="font-size:1.3rem;">💰</span>
+        <DuoIcon name="benefits" class="svc-ico" />
         <div><strong style="font-size:.88rem;">내 혜택 찾기</strong><br/><span style="font-size:.75rem;color:var(--muted);">지원금 자동 매칭</span></div>
       </a>
       <a href="/checkup/" style="display:flex;align-items:center;gap:.6rem;padding:.8rem 1rem;border:1px solid var(--line);border-radius:10px;background:var(--paper);text-decoration:none;color:var(--ink);transition:border-color .12s;">
-        <span style="font-size:1.3rem;">🩺</span>
+        <DuoIcon name="checkup" class="svc-ico" />
         <div><strong style="font-size:.88rem;">재무 건강 체크업</strong><br/><span style="font-size:.75rem;color:var(--muted);">5분 종합 진단</span></div>
       </a>
       <a href="/policy-calendar/" style="display:flex;align-items:center;gap:.6rem;padding:.8rem 1rem;border:1px solid var(--line);border-radius:10px;background:var(--paper);text-decoration:none;color:var(--ink);transition:border-color .12s;">
-        <span style="font-size:1.3rem;">📅</span>
+        <DuoIcon name="calendar" class="svc-ico" />
         <div><strong style="font-size:.88rem;">정책 캘린더</strong><br/><span style="font-size:.75rem;color:var(--muted);">마감일 한눈에</span></div>
       </a>
     </div>

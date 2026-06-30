@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import DuoIcon from '../components/DuoIcon.astro';
 import { CATEGORIES } from '../consts';
 ---
 <BaseLayout title="페이지를 찾을 수 없어요 (404)" description="요청하신 페이지를 찾을 수 없습니다.">
@@ -24,16 +25,16 @@ import { CATEGORIES } from '../consts';
     <div style="margin-top:2.5rem; padding-top:2rem; border-top:1px solid var(--line);">
       <p style="font-weight:600; margin-bottom:1rem; font-size:0.95rem;">혹시 이런 서비스를 찾으셨나요?</p>
       <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:0.6rem; max-width:480px; margin:0 auto;">
-        <a href="/benefits/" style="display:flex;flex-direction:column;align-items:center;gap:0.3rem;padding:1rem;border:1px solid var(--line);border-radius:12px;text-decoration:none;color:var(--ink);background:var(--paper);transition:border-color .12s;">
-          <span style="font-size:1.4rem;">💰</span>
+        <a href="/benefits/" style="display:flex;flex-direction:column;align-items:center;gap:0.4rem;padding:1rem;border:1px solid var(--line);border-radius:12px;text-decoration:none;color:var(--ink);background:var(--paper);transition:border-color .12s;">
+          <DuoIcon name="benefits" class="svc-ico" />
           <strong style="font-size:0.85rem;">내 혜택 찾기</strong>
         </a>
-        <a href="/checkup/" style="display:flex;flex-direction:column;align-items:center;gap:0.3rem;padding:1rem;border:1px solid var(--line);border-radius:12px;text-decoration:none;color:var(--ink);background:var(--paper);transition:border-color .12s;">
-          <span style="font-size:1.4rem;">🩺</span>
+        <a href="/checkup/" style="display:flex;flex-direction:column;align-items:center;gap:0.4rem;padding:1rem;border:1px solid var(--line);border-radius:12px;text-decoration:none;color:var(--ink);background:var(--paper);transition:border-color .12s;">
+          <DuoIcon name="checkup" class="svc-ico" />
           <strong style="font-size:0.85rem;">재무 체크업</strong>
         </a>
-        <a href="/policy-calendar/" style="display:flex;flex-direction:column;align-items:center;gap:0.3rem;padding:1rem;border:1px solid var(--line);border-radius:12px;text-decoration:none;color:var(--ink);background:var(--paper);transition:border-color .12s;">
-          <span style="font-size:1.4rem;">📅</span>
+        <a href="/policy-calendar/" style="display:flex;flex-direction:column;align-items:center;gap:0.4rem;padding:1rem;border:1px solid var(--line);border-radius:12px;text-decoration:none;color:var(--ink);background:var(--paper);transition:border-color .12s;">
+          <DuoIcon name="calendar" class="svc-ico" />
           <strong style="font-size:0.85rem;">정책 캘린더</strong>
         </a>
       </div>

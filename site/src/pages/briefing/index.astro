@@ -4,6 +4,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/PostCard.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
 import BriefSubscribe from '../../components/BriefSubscribe.astro';
+import DuoIcon from '../../components/DuoIcon.astro';
 import { CATEGORIES, type CategorySlug } from '../../consts';
 const SU = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
 const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
@@ -93,17 +94,17 @@ const todayAudio = today ? !!today.data.audio : false;
       <div class="section-head"><h2>브리핑 너머, 더 챙기세요</h2></div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.7rem;margin-top:1rem;">
         <a href="/benefits/" style="display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:1.2rem;border:1px solid var(--line);border-radius:14px;text-decoration:none;color:var(--ink);background:var(--paper);transition:border-color .12s,box-shadow .12s;">
-          <span style="font-size:1.6rem;">💰</span>
+          <DuoIcon name="benefits" class="svc-ico" />
           <strong style="font-size:.92rem;">내 혜택 찾기</strong>
           <span style="font-size:.78rem;color:var(--muted);text-align:center;">나에게 해당되는 지원금을 3분 만에</span>
         </a>
         <a href="/checkup/" style="display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:1.2rem;border:1px solid var(--line);border-radius:14px;text-decoration:none;color:var(--ink);background:var(--paper);transition:border-color .12s,box-shadow .12s;">
-          <span style="font-size:1.6rem;">🩺</span>
+          <DuoIcon name="checkup" class="svc-ico" />
           <strong style="font-size:.92rem;">재무 건강 체크업</strong>
           <span style="font-size:.78rem;color:var(--muted);text-align:center;">내 돈 상태를 5분 만에 진단</span>
         </a>
         <a href="/policy-calendar/" style="display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:1.2rem;border:1px solid var(--line);border-radius:14px;text-decoration:none;color:var(--ink);background:var(--paper);transition:border-color .12s,box-shadow .12s;">
-          <span style="font-size:1.6rem;">📅</span>
+          <DuoIcon name="calendar" class="svc-ico" />
           <strong style="font-size:.92rem;">정책 캘린더</strong>
           <span style="font-size:.78rem;color:var(--muted);text-align:center;">놓치면 손해인 일정 한눈에</span>
         </a>

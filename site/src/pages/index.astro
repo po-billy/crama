@@ -88,6 +88,29 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
 <BaseLayout spa title={SITE.title} description={SITE.description} image="/og-home.png">
   <div class="wrap wrap--home">
     <InstallApp />
+
+    {/* 마감 임박 혜택 알림 배너 — 빌드 시점 기준 30일 이내 마감 */}
+    {(() => {
+      const DEADLINES = [
+        { date: '2026-07-03', title: '청년도약계좌 신청 마감', href: '/benefits/' },
+        { date: '2026-05-31', title: '종합소득세 신고 마감', href: '/policy-calendar/' },
+        { date: '2026-12-31', title: 'IRP·연금저축 납입 마감', href: '/policy-calendar/' },
+      ];
+      const now = new Date();
+      const soon = DEADLINES
+        .map(d => ({ ...d, dday: Math.ceil((new Date(d.date).getTime() - now.getTime()) / 86400000) }))
+        .filter(d => d.dday > 0 && d.dday <= 30)
+        .sort((a, b) => a.dday - b.dday);
+      const item = soon[0];
+      return item ? (
+        <a href={item.href} class="deadline-banner">
+          <span class="deadline-banner__dday">D-{item.dday}</span>
+          <span class="deadline-banner__title">{item.title}</span>
+          <span class="deadline-banner__cta">확인하기 →</span>
+        </a>
+      ) : null;
+    })()}
+
     <header class="home-masthead">
       <h1>주식·재테크와 AI 트렌드, <em>깊이 있게.</em></h1>
     </header>

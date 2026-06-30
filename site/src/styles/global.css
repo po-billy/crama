@@ -203,6 +203,14 @@ hr {
 .crail__cta p strong { color: var(--accent); }
 .crail__cta-btn { display: inline-block; background: var(--accent); color: #fff; font-weight: 700; font-size: .85rem; border-radius: var(--radius); padding: .55rem 1.1rem; }
 .crail__cta-btn:hover { color: #fff; opacity: .92; }
+.crail__svc { padding: .8rem !important; }
+.crail__svc-link {
+  display: flex; align-items: center; gap: .5rem;
+  padding: .5rem .7rem; border-radius: 8px; font-size: .85rem; font-weight: 500;
+  color: var(--ink-soft); text-decoration: none; transition: background .1s;
+}
+.crail__svc-link:hover { background: var(--paper-2); color: var(--accent); }
+.crail__svc-link span { font-size: 1rem; flex: none; }
 .brand {
   font-family: var(--font-serif);
   font-weight: 600;

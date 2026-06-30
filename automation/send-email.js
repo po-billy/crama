@@ -127,9 +127,24 @@ function buildHtml({ hook, title, description, image, url, slug }) {
 
 </table>
 
+<!-- 서비스 바로가기 -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
+  <tr><td style="padding:20px 0 0;text-align:center;">
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto;">
+      <tr>
+        <td style="padding:0 8px;"><a href="https://crama.app/benefits/?utm_source=email&utm_medium=newsletter&utm_campaign=daily_brief" style="color:#6c5ce7;font-size:12px;font-weight:600;text-decoration:none;">💰 내 혜택</a></td>
+        <td style="color:#e2e8f0;">·</td>
+        <td style="padding:0 8px;"><a href="https://crama.app/checkup/?utm_source=email&utm_medium=newsletter&utm_campaign=daily_brief" style="color:#6c5ce7;font-size:12px;font-weight:600;text-decoration:none;">🩺 체크업</a></td>
+        <td style="color:#e2e8f0;">·</td>
+        <td style="padding:0 8px;"><a href="https://crama.app/policy-calendar/?utm_source=email&utm_medium=newsletter&utm_campaign=daily_brief" style="color:#6c5ce7;font-size:12px;font-weight:600;text-decoration:none;">📅 캘린더</a></td>
+      </tr>
+    </table>
+  </td></tr>
+</table>
+
 <!-- 푸터 -->
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
-  <tr><td style="padding:24px 0 0;text-align:center;">
+  <tr><td style="padding:16px 0 0;text-align:center;">
     <p style="margin:0;font-size:12px;color:#94a3b8;line-height:1.8;">
       <a href="https://crama.app" style="color:#64748b;text-decoration:none;font-weight:600;">crama.app</a>
       &nbsp;·&nbsp; 먼저 읽는 사람들<br/>

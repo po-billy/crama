@@ -32,7 +32,7 @@ import { SITE, NAV } from '../consts';
             </div>
           </div>
         ) : (
-          <a href={item.href}>{item.label}</a>
+          <a href={item.href} class={item.href === '/briefing/' ? 'nav-cta' : ''}>{item.label}</a>
         )
       )}
     </nav>

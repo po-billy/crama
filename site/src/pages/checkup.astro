@@ -81,25 +81,8 @@ const faqLd = {
         <button class="ck-cta ck-cta--ghost" type="button" id="ck-retry">다시 진단하기</button>
       </div>
 
-      <!-- 서비스 크로스 연결 -->
-      <div class="ck-cross">
-        <a href="/benefits/" class="ck-cross__card">
-          <span class="ck-cross__icon">💰</span>
-          <div>
-            <strong>내 혜택 찾기</strong>
-            <p>지금 받을 수 있는 지원금·공제를 찾아보세요</p>
-          </div>
-          <span class="ck-cross__arrow">→</span>
-        </a>
-        <a href="/policy-calendar/" class="ck-cross__card">
-          <span class="ck-cross__icon">📅</span>
-          <div>
-            <strong>정책 캘린더</strong>
-            <p>놓치면 손해인 마감일을 확인하세요</p>
-          </div>
-          <span class="ck-cross__arrow">→</span>
-        </a>
-      </div>
+      <!-- 맞춤 서비스 추천 (점수 기반) -->
+      <div class="ck-cross" id="ck-smart-reco"></div>
 
       <div class="ck-result__note">
         <p>※ 이 결과는 일반적인 재무 건강 기준으로 산출한 <strong>참고용 진단</strong>입니다. 전문 재무 상담을 대체하지 않습니다.</p>
@@ -317,6 +300,16 @@ const faqLd = {
         } else {
           $('ck-tips').innerHTML = '<div class="ck-tip" style="text-align:center;"><p>모든 항목이 양호해요! 현재 습관을 유지하세요. 🎉</p></div>';
         }
+
+        // 맞춤 서비스 추천
+        var recos = [];
+        recos.push({ icon: '💰', title: '내 혜택 찾기', desc: r.scores.saving < 20 ? '저축을 도와줄 정부 지원금이 있을 수 있어요' : '지금 받을 수 있는 지원금을 확인하세요', href: '/benefits/' });
+        if (r.scores.debt < 15) recos.push({ icon: '📅', title: '정책 캘린더', desc: '대출 금리 변동·세금 납부 마감일을 놓치지 마세요', href: '/policy-calendar/' });
+        else recos.push({ icon: '📅', title: '정책 캘린더', desc: '절세·지원금 마감일을 한눈에', href: '/policy-calendar/' });
+        $('ck-smart-reco').innerHTML = '<p style="font-size:.85rem;font-weight:600;color:var(--muted);margin:0 0 .5rem;">체크업 결과 맞춤 추천</p>' +
+          recos.map(function (r) {
+            return '<a href="' + r.href + '" class="ck-cross__card"><span class="ck-cross__icon">' + r.icon + '</span><div><strong>' + r.title + '</strong><p>' + r.desc + '</p></div><span class="ck-cross__arrow">→</span></a>';
+          }).join('');
 
         // GA4
         try { if (window.gtag) gtag('event', 'checkup_result', { score: r.total, grade: r.grade, loggedIn: ckLoggedIn }); } catch (e) {}

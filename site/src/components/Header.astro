@@ -72,7 +72,9 @@ import DuoIcon from './DuoIcon.astro';
     };
     t.addEventListener('click', (e) => { e.stopPropagation(); set(!nav.classList.contains('is-open')); });
     nav.addEventListener('click', (e) => { if (e.target.closest('a')) set(false); });
-    document.addEventListener('click', (e) => { if (!nav.contains(e.target) && !t.contains(e.target)) set(false); });
+    // nav 가 '열려 있을 때만' 바깥 클릭으로 닫는다. (닫혀 있을 때도 set(false)를 부르면
+    // set()이 t.focus()로 햄버거에 포커스를 뺏어가, 모바일에서 모든 입력창 클릭이 막히던 버그)
+    document.addEventListener('click', (e) => { if (nav.classList.contains('is-open') && !nav.contains(e.target) && !t.contains(e.target)) set(false); });
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && nav.classList.contains('is-open')) { set(false); return; }
       if (!nav.classList.contains('is-open') || !focusables.length) return;

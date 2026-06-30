@@ -105,7 +105,7 @@ const faqLd = {
       </div>
 
       <div class="bf-result__actions">
-        <button class="bf-cta" type="button" id="bf-share-result">결과 공유하기</button>
+        <button class="bf-cta" type="button" id="bf-share-result">공유하기</button>
         <button class="bf-cta bf-cta--ghost" type="button" id="bf-save">프로필 저장</button>
       </div>
 
@@ -522,7 +522,7 @@ const faqLd = {
         try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
         Object.assign(profile, { age: 28, income: 3000, employment: 'employed', housing: 'rent', region: 'seoul', familySize: 1, hasChildren: false, childAge: null, isNewlywed: false, isPregnant: false });
         var note = document.querySelector('.bf-result__saved-note'); if (note) note.remove();
-        showSection('bf-flow'); step = 0; renderStep();
+        showSection('bf-hero'); // 초기화 = 페이지 첫 화면으로
       });
 
       $('bf-save').addEventListener('click', function () {
@@ -533,13 +533,10 @@ const faqLd = {
       });
 
       $('bf-share-result').addEventListener('click', async function () {
-        var results = match(profile);
-        var total = results.reduce(function (s, b) { return s + b.amountValue; }, 0);
-        var text = '방금 확인해봤는데 나한테 해당되는 지원금이 ' + results.length + '건, 약 ' + total.toLocaleString() + '만원이래.\n너도 몰라서 못 받는 거 있을 수 있어. 3분이면 확인됨 →';
         var url = location.origin + '/benefits/';
         try {
-          if (navigator.share) await navigator.share({ title: '내 혜택 찾기 결과', text: text, url: url });
-          else { await navigator.clipboard.writeText(text + '\n' + url); alert('결과를 복사했어요! 친구에게 공유해 보세요.'); }
+          if (navigator.share) await navigator.share({ title: '내 혜택 찾기 · 크라마', url: url });
+          else { await navigator.clipboard.writeText(url); alert('링크를 복사했어요!'); }
         } catch (_) {}
       });
 

@@ -8,7 +8,6 @@ import { SITE, CATEGORIES, EDITOR_PICKS, PILLARS, GUIDE_EXTRA } from '../consts'
 import AudioPicks from '../components/AudioPicks.astro';
 import Curations from '../components/Curations.astro';
 import BriefSubscribe from '../components/BriefSubscribe.astro';
-import SubscribeBox from '../components/SubscribeBox.astro';
 import DuoIcon from '../components/DuoIcon.astro';
 
 const posts = (await getCollection('blog'))
@@ -306,10 +305,6 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
     <AudioPicks />
 
     <Curations />
-
-    <div class="wrap" style="max-width:600px;margin:2rem auto;">
-      <SubscribeBox />
-    </div>
 
     <script is:inline>
       function __rotInit() {

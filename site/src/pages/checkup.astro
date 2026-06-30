@@ -70,6 +70,12 @@ const faqLd = {
 
     <!-- ━━ 결과 ━━ -->
     <section class="ck-result" id="ck-result" hidden>
+      <!-- 내 입력값 요약 바 (탭 → 수정 바텀시트) -->
+      <button type="button" class="ck-condbar" id="ck-cond-open">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
+        <span class="ck-condbar__text" id="ck-cond-summary">내 입력값</span>
+        <span class="ck-condbar__edit">수정<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></span>
+      </button>
       <div class="ck-result__card" id="ck-card">
         <p class="ck-result__eyebrow">재무 건강 체크업</p>
         <div class="ck-result__gauge">
@@ -101,6 +107,20 @@ const faqLd = {
 
       <div class="ck-result__note">
         <p>※ 이 결과는 일반적인 재무 건강 기준으로 산출한 <strong>참고용 진단</strong>입니다. 전문 재무 상담을 대체하지 않습니다.</p>
+      </div>
+
+      <!-- 입력값 수정 바텀시트 모달 -->
+      <div class="ck-sheet" id="ck-cond-sheet" hidden>
+        <div class="ck-sheet__backdrop" id="ck-cond-backdrop"></div>
+        <div class="ck-sheet__panel" role="dialog" aria-modal="true" aria-label="입력값 수정">
+          <div class="ck-sheet__handle"></div>
+          <div class="ck-sheet__head">
+            <h3>입력값 수정</h3>
+            <button type="button" class="ck-sheet__x" id="ck-cond-close" aria-label="닫기"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+          </div>
+          <div id="ck-cond-body"></div>
+          <button type="button" class="ck-sheet__apply" id="ck-cond-apply">이 값으로 다시 진단</button>
+        </div>
       </div>
     </section>
   </div>
@@ -339,12 +359,61 @@ const faqLd = {
 
         // GA4
         try { if (window.gtag) gtag('event', 'checkup_result', { score: r.total, grade: r.grade, loggedIn: ckLoggedIn }); } catch (e) {}
+        updateCkBar();
       }
+
+      // ── 내 입력값 요약 바 + 수정 바텀시트 ──
+      var ckInsTemp = false;
+      function updateCkBar() {
+        var el = $('ck-cond-summary'); if (!el) return;
+        el.textContent = '월 소득 ' + data.monthlyIncome + '만 · 저축 ' + data.monthlySaving + '만 · 비상금 ' + data.emergencyFund + '만';
+      }
+      function ckRow(label, key, extra) {
+        return '<div class="ck-cond-row"><label class="ck-cond-label" for="ckc-' + key + '">' + label + '</label>' +
+          '<input type="number" id="ckc-' + key + '" class="ck-cond-input" inputmode="numeric" value="' + data[key] + '" ' + (extra || '') + ' /></div>';
+      }
+      function renderCkForm() {
+        ckInsTemp = data.hasInsurance;
+        $('ck-cond-body').innerHTML =
+          ckRow('월 소득 (만원)', 'monthlyIncome', 'min="0"') +
+          ckRow('월 저축액 (만원)', 'monthlySaving', 'min="0"') +
+          ckRow('비상 자금 (만원)', 'emergencyFund', 'min="0"') +
+          ckRow('총 부채 (만원)', 'totalDebt', 'min="0"') +
+          ckRow('월 상환액 (만원)', 'monthlyDebtPay', 'min="0"') +
+          '<div class="ck-cond-row"><span class="ck-cond-label">보험·안전장치</span><div class="ck-cond-chips" id="ckc-ins">' +
+            '<button type="button" class="ck-cond-chip' + (data.hasInsurance ? ' is-on' : '') + '" data-val="yes">있어요</button>' +
+            '<button type="button" class="ck-cond-chip' + (!data.hasInsurance ? ' is-on' : '') + '" data-val="no">없어요</button></div></div>' +
+          ckRow('투자 비중 (%)', 'investRatio', 'min="0" max="100"');
+        $('ckc-ins').addEventListener('click', function (ev) {
+          var b = ev.target.closest('.ck-cond-chip'); if (!b) return;
+          ckInsTemp = (b.dataset.val === 'yes');
+          this.querySelectorAll('.ck-cond-chip').forEach(function (c) { c.classList.toggle('is-on', c === b); });
+        });
+      }
+      function openCk() { renderCkForm(); $('ck-cond-sheet').hidden = false; document.body.style.overflow = 'hidden'; }
+      function closeCk() { $('ck-cond-sheet').hidden = true; document.body.style.overflow = ''; }
+      function applyCk() {
+        ['monthlyIncome', 'monthlySaving', 'emergencyFund', 'totalDebt', 'monthlyDebtPay', 'investRatio'].forEach(function (k) {
+          var el = $('ckc-' + k); if (el) data[k] = parseFloat(el.value) || 0;
+        });
+        data.investRatio = Math.max(0, Math.min(100, data.investRatio));
+        data.hasInsurance = ckInsTemp;
+        closeCk();
+        showResults();
+        try { localStorage.setItem('crama:checkup:data', JSON.stringify(data)); } catch (e) {}
+        window.scrollTo(0, 0);
+      }
+      (function () {
+        var o = $('ck-cond-open'); if (o) o.addEventListener('click', openCk);
+        var c = $('ck-cond-close'); if (c) c.addEventListener('click', closeCk);
+        var b = $('ck-cond-backdrop'); if (b) b.addEventListener('click', closeCk);
+        var a = $('ck-cond-apply'); if (a) a.addEventListener('click', applyCk);
+      })();
 
       // ── 네비게이션 ──
       function showSection(id) {
         ['ck-hero', 'ck-flow', 'ck-result'].forEach(function (s) { $(s).hidden = s !== id; });
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo(0, 0);
       }
 
       // 30초 미리보기
@@ -500,6 +569,31 @@ const faqLd = {
     /* display:flex 가 UA의 [hidden]{display:none} 을 덮어써, 숨겨야 할 flow 가 인트로 히어로 아래 유령으로 깔리고
        그 sticky 하단 푸터(z-index:10)가 프리뷰 입력창·시작 버튼을 덮어 탭/키보드를 가로채던 문제 방지 */
     .ck-flow[hidden] { display: none; }
+
+    /* ── 내 입력값 요약 바 + 수정 바텀시트 ── */
+    .ck-condbar { display: flex; align-items: center; gap: 0.5rem; width: 100%; padding: 0.7rem 0.9rem; margin: 0 0 1.2rem; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; font: inherit; color: var(--ink-soft); cursor: pointer; text-align: left; position: sticky; top: 0.5rem; z-index: 20; box-shadow: 0 2px 12px rgba(0,0,0,.05); touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+    .ck-condbar > svg { flex: none; color: var(--accent); }
+    .ck-condbar__text { flex: 1; font-size: 0.86rem; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ck-condbar__edit { display: inline-flex; align-items: center; gap: 0.1rem; flex: none; font-size: 0.82rem; font-weight: 700; color: var(--accent); }
+    .ck-sheet { position: fixed; inset: 0; z-index: 100; display: flex; align-items: flex-end; }
+    .ck-sheet[hidden] { display: none; }
+    .ck-sheet__backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.45); animation: ck-fade 0.15s ease; }
+    .ck-sheet__panel { position: relative; width: 100%; max-width: 36rem; margin: 0 auto; background: var(--paper); border-radius: 20px 20px 0 0; padding: 0.6rem 1.2rem calc(1.4rem + env(safe-area-inset-bottom, 0)); box-shadow: 0 -8px 30px rgba(0,0,0,0.18); animation: ck-slide-up 0.22s cubic-bezier(.16,.84,.44,1); max-height: 88vh; overflow-y: auto; }
+    @keyframes ck-fade { from { opacity: 0; } }
+    @keyframes ck-slide-up { from { transform: translateY(100%); } }
+    .ck-sheet__handle { width: 2.4rem; height: 0.28rem; background: var(--line); border-radius: 99px; margin: 0.2rem auto 0.9rem; }
+    .ck-sheet__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.8rem; }
+    .ck-sheet__head h3 { font-size: 1.05rem; font-weight: 800; margin: 0; }
+    .ck-sheet__x { background: none; border: none; color: var(--muted); cursor: pointer; padding: 0.3rem; display: grid; place-items: center; touch-action: manipulation; }
+    .ck-sheet__apply { width: 100%; margin-top: 1rem; padding: 0.95rem; background: var(--accent); color: #fff; border: none; border-radius: 12px; font: inherit; font-size: 1rem; font-weight: 700; cursor: pointer; touch-action: manipulation; }
+    .ck-sheet__apply:hover { filter: brightness(1.1); }
+    .ck-cond-row { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1rem; }
+    .ck-cond-label { font-size: 0.82rem; font-weight: 700; color: var(--ink-soft); }
+    .ck-cond-input { width: 100%; padding: 0.7rem 0.9rem; font: inherit; font-size: 16px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); -webkit-appearance: none; appearance: none; box-sizing: border-box; }
+    .ck-cond-input:focus { outline: none; border-color: var(--accent); }
+    .ck-cond-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .ck-cond-chip { padding: 0.5rem 0.9rem; border: 1px solid var(--line); border-radius: 99px; background: var(--paper); font: inherit; font-size: 0.85rem; font-weight: 600; color: var(--ink-soft); cursor: pointer; touch-action: manipulation; }
+    .ck-cond-chip.is-on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
     .ck-flow__top { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1.5rem; padding: 0.5rem 0; position: sticky; top: 0; z-index: 10; background: var(--paper); }
     .ck-flow__back { background: none; border: none; cursor: pointer; color: var(--ink); padding: 0.5rem; min-width: 2.5rem; min-height: 2.5rem; display: flex; align-items: center; justify-content: center; }
     .ck-flow__step { font-size: 0.82rem; color: var(--muted); font-weight: 600; white-space: nowrap; }

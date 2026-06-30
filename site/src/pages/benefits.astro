@@ -493,7 +493,7 @@ const faqLd = {
         ['bf-hero', 'bf-flow', 'bf-result'].forEach(function (s) {
           $(s).hidden = s !== id;
         });
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo(0, 0);
       }
 
       $('bf-start').addEventListener('click', function () {
@@ -610,7 +610,7 @@ const faqLd = {
         profile.isPregnant = !!(($('cond-pregnant') || {}).checked);
         closeCond();
         showResults();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo(0, 0);
       }
       (function () {
         var o = $('bf-cond-open'); if (o) o.addEventListener('click', openCond);

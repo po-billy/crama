@@ -467,8 +467,9 @@ hr {
   display: flex; align-items: flex-end; justify-content: center;
   background: rgba(0,0,0,0);
   transition: background 0.3s ease;
+  pointer-events: none;
 }
-.welcome-sheet.is-visible { background: rgba(0,0,0,0.4); }
+.welcome-sheet.is-visible { background: rgba(0,0,0,0.4); pointer-events: auto; }
 .welcome-sheet__inner {
   position: relative; width: 100%; max-width: 28rem;
   padding: 2rem 1.5rem 1.5rem; background: var(--paper);

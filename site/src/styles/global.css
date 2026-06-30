@@ -574,7 +574,7 @@ hr {
   padding: 2rem 2.2rem; margin-bottom: 3rem; transition: transform 0.15s, box-shadow 0.15s;
   overflow: hidden; position: relative;
 }
-.bf-banner:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(108,92,231,.25); }
+.bf-banner:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(108,92,231,.25); color: #fff; }
 .bf-banner__badge {
   display: inline-block; padding: 0.2rem 0.6rem; background: rgba(255,255,255,0.2);
   border-radius: 12px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 0.8rem;

@@ -76,6 +76,26 @@ const regionsJson = JSON.stringify(REGIONS);
         <p>프로필이 저장됐어요. 다음에 방문하면 바로 결과를 보여드릴게요.</p>
       </div>
 
+      <!-- 서비스 크로스 연결 -->
+      <div class="bf-cross">
+        <a href="/checkup/" class="bf-cross__card">
+          <span class="bf-cross__icon">🩺</span>
+          <div>
+            <strong>재무 건강 체크업</strong>
+            <p>내 돈 관리가 건강한지 5분 만에 진단해 보세요</p>
+          </div>
+          <span class="bf-cross__arrow">→</span>
+        </a>
+        <a href="/policy-calendar/" class="bf-cross__card">
+          <span class="bf-cross__icon">📅</span>
+          <div>
+            <strong>정책 캘린더 2026</strong>
+            <p>놓치면 손해인 신청 마감일을 한눈에</p>
+          </div>
+          <span class="bf-cross__arrow">→</span>
+        </a>
+      </div>
+
       <div class="bf-result__note">
         <p>※ 이 결과는 공개된 자격 요건을 기반으로 한 <strong>예상 결과</strong>입니다. 실제 수급 여부는 각 기관에서 최종 확인하세요.</p>
         <p>데이터 기준: 2026년 6월 · 정책 변경 시 업데이트됩니다.</p>
@@ -548,6 +568,20 @@ const regionsJson = JSON.stringify(REGIONS);
       font-size: 0.8rem; color: var(--muted); line-height: 1.7;
     }
     .bf-result__note p { margin: 0.3rem 0; }
+
+    /* ── 크로스 연결 ── */
+    .bf-cross { display: flex; flex-direction: column; gap: 0.6rem; margin: 1.5rem 0; }
+    .bf-cross__card {
+      display: flex; align-items: center; gap: 0.8rem; padding: 1rem 1.2rem;
+      border: 1px solid var(--line); border-radius: 12px; background: var(--paper);
+      text-decoration: none; color: var(--ink); transition: border-color 0.12s, box-shadow 0.12s;
+    }
+    .bf-cross__card:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+    .bf-cross__icon { font-size: 1.5rem; flex: none; }
+    .bf-cross__card div { flex: 1; }
+    .bf-cross__card strong { font-size: 0.95rem; display: block; }
+    .bf-cross__card p { font-size: 0.82rem; color: var(--muted); margin: 0.2rem 0 0; }
+    .bf-cross__arrow { font-size: 1.2rem; color: var(--accent); flex: none; font-weight: 700; }
 
     /* ── 반응형 ── */
     @media (max-width: 480px) {

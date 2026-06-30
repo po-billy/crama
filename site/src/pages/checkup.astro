@@ -70,6 +70,26 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <button class="ck-cta ck-cta--ghost" type="button" id="ck-retry">다시 진단하기</button>
       </div>
 
+      <!-- 서비스 크로스 연결 -->
+      <div class="ck-cross">
+        <a href="/benefits/" class="ck-cross__card">
+          <span class="ck-cross__icon">💰</span>
+          <div>
+            <strong>내 혜택 찾기</strong>
+            <p>지금 받을 수 있는 지원금·공제를 찾아보세요</p>
+          </div>
+          <span class="ck-cross__arrow">→</span>
+        </a>
+        <a href="/policy-calendar/" class="ck-cross__card">
+          <span class="ck-cross__icon">📅</span>
+          <div>
+            <strong>정책 캘린더</strong>
+            <p>놓치면 손해인 마감일을 확인하세요</p>
+          </div>
+          <span class="ck-cross__arrow">→</span>
+        </a>
+      </div>
+
       <div class="ck-result__note">
         <p>※ 이 결과는 일반적인 재무 건강 기준으로 산출한 <strong>참고용 진단</strong>입니다. 전문 재무 상담을 대체하지 않습니다.</p>
       </div>
@@ -384,6 +404,20 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .ck-result__actions .ck-cta { flex: 1; }
     .ck-result__note { margin-top: 1.5rem; padding: 1rem; background: var(--paper-2); border-radius: 10px; font-size: 0.8rem; color: var(--muted); }
     .ck-result__note p { margin: 0; }
+
+    /* 크로스 연결 */
+    .ck-cross { display: flex; flex-direction: column; gap: 0.6rem; margin: 1.5rem 0; }
+    .ck-cross__card {
+      display: flex; align-items: center; gap: 0.8rem; padding: 1rem 1.2rem;
+      border: 1px solid var(--line); border-radius: 12px; background: var(--paper);
+      text-decoration: none; color: var(--ink); transition: border-color 0.12s, box-shadow 0.12s;
+    }
+    .ck-cross__card:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+    .ck-cross__icon { font-size: 1.5rem; flex: none; }
+    .ck-cross__card div { flex: 1; }
+    .ck-cross__card strong { font-size: 0.95rem; display: block; }
+    .ck-cross__card p { font-size: 0.82rem; color: var(--muted); margin: 0.2rem 0 0; }
+    .ck-cross__arrow { font-size: 1.2rem; color: var(--accent); flex: none; font-weight: 700; }
 
     @media (max-width: 480px) {
       .ck-result__actions { flex-direction: column; }

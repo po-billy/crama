@@ -117,6 +117,26 @@ const currentMonth = now.getMonth() + 1;
         })}
       </div>
 
+      <!-- 서비스 크로스 연결 -->
+      <div class="pc-cross">
+        <a href="/benefits/" class="pc-cross__card">
+          <span class="pc-cross__icon">💰</span>
+          <div>
+            <strong>내 혜택 찾기</strong>
+            <p>나에게 해당되는 지원금을 찾아보세요</p>
+          </div>
+          <span class="pc-cross__arrow">→</span>
+        </a>
+        <a href="/checkup/" class="pc-cross__card">
+          <span class="pc-cross__icon">🩺</span>
+          <div>
+            <strong>재무 건강 체크업</strong>
+            <p>내 돈 관리 상태를 진단받아 보세요</p>
+          </div>
+          <span class="pc-cross__arrow">→</span>
+        </a>
+      </div>
+
       <div class="pc-note">
         <p>※ 일정은 2026년 기준이며, 정부 발표에 따라 변경될 수 있습니다. 정확한 일정은 각 기관 공식 사이트에서 확인하세요.</p>
       </div>
@@ -213,6 +233,19 @@ const currentMonth = now.getMonth() + 1;
 
     .pc-note { margin-top: 2rem; padding: 1rem; background: var(--paper-2); border-radius: 10px; font-size: 0.8rem; color: var(--muted); }
     .pc-note p { margin: 0; }
+
+    .pc-cross { display: flex; flex-direction: column; gap: 0.6rem; margin: 2rem 0 1.5rem; }
+    .pc-cross__card {
+      display: flex; align-items: center; gap: 0.8rem; padding: 1rem 1.2rem;
+      border: 1px solid var(--line); border-radius: 12px; background: var(--paper);
+      text-decoration: none; color: var(--ink); transition: border-color 0.12s, box-shadow 0.12s;
+    }
+    .pc-cross__card:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+    .pc-cross__icon { font-size: 1.5rem; flex: none; }
+    .pc-cross__card div { flex: 1; }
+    .pc-cross__card strong { font-size: 0.95rem; display: block; }
+    .pc-cross__card p { font-size: 0.82rem; color: var(--muted); margin: 0.2rem 0 0; }
+    .pc-cross__arrow { font-size: 1.2rem; color: var(--accent); flex: none; font-weight: 700; }
 
     @media (max-width: 640px) {
       .pc-event__date { width: 2rem; }

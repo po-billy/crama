@@ -351,6 +351,26 @@ hr {
 }
 .card__read::before { content: '✓ '; }
 
+/* 서비스 허브 위젯 (홈) */
+.svc-hub { margin-bottom: 3rem; }
+.svc-hub__head { margin-bottom: 0.8rem; }
+.svc-hub__badge {
+  display: inline-block; padding: 0.25rem 0.7rem; background: var(--accent-soft);
+  color: var(--accent); font-size: 0.75rem; font-weight: 700; border-radius: 16px; letter-spacing: 0.04em;
+}
+.svc-widgets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.7rem; }
+.svc-widget {
+  display: flex; flex-direction: column; align-items: center; gap: 0.3rem;
+  padding: 1.3rem 0.8rem; border: 1px solid var(--line); border-radius: 14px;
+  background: var(--paper); text-decoration: none; color: var(--ink);
+  transition: border-color 0.12s, box-shadow 0.12s, transform 0.12s;
+}
+.svc-widget:hover { border-color: var(--accent); box-shadow: 0 4px 16px rgba(108,92,231,.1); transform: translateY(-2px); }
+.svc-widget__icon { font-size: 1.6rem; }
+.svc-widget__label { font-size: 0.78rem; color: var(--muted); font-weight: 500; }
+.svc-widget__val { font-size: 0.95rem; color: var(--accent); }
+@media (max-width: 480px) { .svc-widgets { grid-template-columns: repeat(3, 1fr); gap: 0.4rem; } .svc-widget { padding: 1rem 0.4rem; } }
+
 /* 혜택 찾기 배너 (홈) */
 .bf-banner {
   display: block; text-decoration: none; color: #fff; border-radius: 16px;

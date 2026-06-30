@@ -402,14 +402,55 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
       </section>
     )}
 
-    <a href="/benefits/" class="bf-banner">
-      <div class="bf-banner__inner">
-        <span class="bf-banner__badge">서비스</span>
-        <p class="bf-banner__title">나에게 해당되는 혜택,<br/><em>진짜로</em> 찾아드려요</p>
-        <p class="bf-banner__desc">3분이면 지원금·대출·공제를 한눈에</p>
-        <span class="bf-banner__cta">내 혜택 찾기 →</span>
+    <!-- 서비스 허브 (개인화 + 서비스 소개) -->
+    <div class="svc-hub" id="svc-hub">
+      <!-- 프로필 저장된 사용자: 맞춤 위젯 -->
+      <div class="svc-hub__personal" id="svc-personal" hidden>
+        <div class="svc-hub__head">
+          <span class="svc-hub__badge">나의 서비스</span>
+        </div>
+        <div class="svc-widgets">
+          <a href="/benefits/" class="svc-widget" id="svc-w-benefits">
+            <span class="svc-widget__icon">💰</span>
+            <span class="svc-widget__label">내 혜택</span>
+            <strong class="svc-widget__val" id="svc-benefit-count">-</strong>
+          </a>
+          <a href="/checkup/" class="svc-widget">
+            <span class="svc-widget__icon">🩺</span>
+            <span class="svc-widget__label">재무 건강</span>
+            <strong class="svc-widget__val">체크업 →</strong>
+          </a>
+          <a href="/policy-calendar/" class="svc-widget">
+            <span class="svc-widget__icon">📅</span>
+            <span class="svc-widget__label">정책 캘린더</span>
+            <strong class="svc-widget__val">일정 보기</strong>
+          </a>
+        </div>
       </div>
-    </a>
+      <!-- 프로필 없는 사용자: 서비스 소개 배너 -->
+      <a href="/benefits/" class="bf-banner" id="svc-banner">
+        <div class="bf-banner__inner">
+          <span class="bf-banner__badge">서비스</span>
+          <p class="bf-banner__title">나에게 해당되는 혜택,<br/><em>진짜로</em> 찾아드려요</p>
+          <p class="bf-banner__desc">3분이면 지원금·대출·공제를 한눈에</p>
+          <span class="bf-banner__cta">내 혜택 찾기 →</span>
+        </div>
+      </a>
+    </div>
+    <script is:inline>
+      (() => {
+        try {
+          var profile = localStorage.getItem('crama:benefits:profile');
+          if (!profile) return;
+          var p = JSON.parse(profile);
+          document.getElementById('svc-personal').hidden = false;
+          document.getElementById('svc-banner').hidden = true;
+          // 간이 매칭 (전체 수 표시용)
+          var count = document.getElementById('svc-benefit-count');
+          if (count) count.textContent = '확인하기';
+        } catch (e) {}
+      })();
+    </script>
 
     <section>
       <div class="section-head">

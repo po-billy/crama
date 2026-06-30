@@ -1,0 +1,392 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="재무 건강 체크업 — 내 돈 상태를 5분 만에 진단"
+  description="비상금·저축률·부채·보험·투자 5가지 항목으로 재무 건강을 종합 진단하고, 맞춤 개선 가이드를 받아보세요."
+>
+  <div class="ck">
+    <!-- ━━ 인트로 ━━ -->
+    <section class="ck-hero" id="ck-hero">
+      <span class="ck-hero__badge">서비스</span>
+      <h1 class="ck-hero__title">내 돈,<br/>건강한 걸까?</h1>
+      <p class="ck-hero__lead">
+        5가지 항목만 체크하면<br/>
+        재무 건강 등급과 맞춤 개선 포인트를 알려드려요.
+      </p>
+      <div class="ck-hero__gauge">
+        <div class="ck-gauge">
+          <svg viewBox="0 0 200 120" class="ck-gauge__svg">
+            <path d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke="var(--line)" stroke-width="12" stroke-linecap="round"/>
+            <path d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke="url(#ck-grad)" stroke-width="12" stroke-linecap="round" stroke-dasharray="251" stroke-dashoffset="100" class="ck-gauge__fill"/>
+            <defs><linearGradient id="ck-grad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#ef4444"/><stop offset="50%" stop-color="#eab308"/><stop offset="100%" stop-color="#22c55e"/></linearGradient></defs>
+          </svg>
+          <span class="ck-gauge__label">?점</span>
+        </div>
+      </div>
+      <button class="ck-cta" type="button" id="ck-start">체크업 시작하기 →</button>
+      <p class="ck-hero__note">입력 정보는 기기에만 저장됩니다.</p>
+    </section>
+
+    <!-- ━━ 입력 단계 ━━ -->
+    <section class="ck-flow" id="ck-flow" hidden>
+      <div class="ck-flow__top">
+        <button class="ck-flow__back" type="button" id="ck-back" aria-label="이전">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5m7-7-7 7 7 7"/></svg>
+        </button>
+        <div class="ck-progress"><span class="ck-progress__bar" id="ck-bar"></span></div>
+        <span class="ck-flow__step" id="ck-step-label"></span>
+      </div>
+      <div id="ck-step"></div>
+      <div class="ck-flow__footer">
+        <button class="ck-cta ck-cta--next" type="button" id="ck-next">다음 →</button>
+      </div>
+    </section>
+
+    <!-- ━━ 결과 ━━ -->
+    <section class="ck-result" id="ck-result" hidden>
+      <div class="ck-result__card" id="ck-card">
+        <p class="ck-result__eyebrow">재무 건강 체크업</p>
+        <div class="ck-result__gauge">
+          <svg viewBox="0 0 200 120" class="ck-gauge__svg">
+            <path d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke="var(--line)" stroke-width="14" stroke-linecap="round"/>
+            <path d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke="url(#ck-grad2)" stroke-width="14" stroke-linecap="round" stroke-dasharray="251" id="ck-result-arc"/>
+            <defs><linearGradient id="ck-grad2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#ef4444"/><stop offset="50%" stop-color="#eab308"/><stop offset="100%" stop-color="#22c55e"/></linearGradient></defs>
+          </svg>
+          <div class="ck-result__score">
+            <span class="ck-result__num" id="ck-score-num">0</span>
+            <span class="ck-result__grade" id="ck-grade">-</span>
+          </div>
+        </div>
+        <p class="ck-result__msg" id="ck-msg"></p>
+      </div>
+
+      <div class="ck-bars" id="ck-bars"></div>
+
+      <div class="ck-tips" id="ck-tips"></div>
+
+      <div class="ck-result__actions">
+        <button class="ck-cta" type="button" id="ck-share">결과 공유하기</button>
+        <button class="ck-cta ck-cta--ghost" type="button" id="ck-retry">다시 진단하기</button>
+      </div>
+
+      <div class="ck-result__note">
+        <p>※ 이 결과는 일반적인 재무 건강 기준으로 산출한 <strong>참고용 진단</strong>입니다. 전문 재무 상담을 대체하지 않습니다.</p>
+      </div>
+    </section>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+
+      // ── 입력 데이터 ──
+      var data = { monthlyIncome: 300, monthlySaving: 50, emergencyFund: 300, totalDebt: 0, monthlyDebtPay: 0, hasInsurance: false, investRatio: 0 };
+
+      var STEPS = [
+        { key: 'income', title: '소득과 저축', q: '월 소득과 저축 금액을 알려주세요' },
+        { key: 'emergency', title: '비상금', q: '비상 자금이 얼마나 있나요?' },
+        { key: 'debt', title: '부채', q: '현재 빚이 있다면 알려주세요' },
+        { key: 'protection', title: '보장', q: '보험이나 안전장치가 있나요?' },
+        { key: 'invest', title: '투자', q: '저축 중 투자 비중은 어느 정도인가요?' },
+      ];
+      var step = 0;
+
+      function renderStep() {
+        var s = STEPS[step];
+        $('ck-bar').style.width = ((step + 1) / STEPS.length * 100) + '%';
+        $('ck-step-label').textContent = (step + 1) + ' / ' + STEPS.length;
+        $('ck-back').style.visibility = step === 0 ? 'hidden' : '';
+        var wrap = $('ck-step');
+        var html = '<p class="ck-step__q">' + s.q + '</p>';
+
+        if (s.key === 'income') {
+          html += field('월 소득 (만원)', 'monthlyIncome', data.monthlyIncome, 0, 5000, 10) +
+                  field('월 저축액 (만원)', 'monthlySaving', data.monthlySaving, 0, 3000, 5) +
+                  '<p class="ck-hint">저축률: <strong id="ck-save-rate">' + Math.round(data.monthlySaving / Math.max(data.monthlyIncome, 1) * 100) + '%</strong></p>';
+        } else if (s.key === 'emergency') {
+          html += field('비상 자금 (만원)', 'emergencyFund', data.emergencyFund, 0, 10000, 50) +
+                  '<p class="ck-hint">권장: 월 소득의 3~6배 (' + (data.monthlyIncome * 3) + '~' + (data.monthlyIncome * 6) + '만원)</p>';
+        } else if (s.key === 'debt') {
+          html += field('총 부채 잔액 (만원)', 'totalDebt', data.totalDebt, 0, 100000, 100) +
+                  field('월 상환액 (만원)', 'monthlyDebtPay', data.monthlyDebtPay, 0, 1000, 5) +
+                  '<p class="ck-hint">DSR(총부채원리금상환비율): <strong id="ck-dsr">' + Math.round(data.monthlyDebtPay / Math.max(data.monthlyIncome, 1) * 100) + '%</strong> <span style="font-size:0.82rem;color:var(--muted);">(40% 이하 권장)</span></p>';
+        } else if (s.key === 'protection') {
+          var opts = [
+            { val: 'yes', label: '있어요', icon: '🛡️' },
+            { val: 'no', label: '없어요', icon: '❌' },
+          ];
+          html += '<div class="ck-opts" id="opts-insurance">' +
+            opts.map(function (o) {
+              return '<button type="button" class="ck-opt' + ((data.hasInsurance ? 'yes' : 'no') === o.val ? ' is-on' : '') + '" data-val="' + o.val + '"><span class="ck-opt__icon">' + o.icon + '</span><span>' + o.label + '</span></button>';
+            }).join('') + '</div>' +
+            '<p class="ck-hint" style="margin-top:1rem;">실손보험, 종신보험, 화재보험 등 기본 보장이 있는지</p>';
+        } else if (s.key === 'invest') {
+          html += '<div class="ck-field">' +
+            '<label class="ck-label">저축 중 투자 비중 (%)</label>' +
+            '<input type="range" id="rng-invest" class="ck-range" min="0" max="100" step="5" value="' + data.investRatio + '" />' +
+            '<div class="ck-range-labels"><span>0% (전액 예금)</span><span>50%</span><span>100% (전액 투자)</span></div>' +
+            '<p class="ck-invest-val" id="ck-invest-val">' + data.investRatio + '%</p>' +
+            '</div>';
+        }
+
+        wrap.innerHTML = html;
+        bindEvents();
+      }
+
+      function field(label, key, val, min, max, step) {
+        return '<div class="ck-field"><label class="ck-label">' + label + '<input type="number" class="ck-input" data-key="' + key + '" value="' + val + '" min="' + min + '" max="' + max + '" step="' + step + '" inputmode="numeric" /></label></div>';
+      }
+
+      function bindEvents() {
+        var s = STEPS[step];
+        document.querySelectorAll('.ck-input').forEach(function (inp) {
+          inp.addEventListener('input', function () {
+            data[this.dataset.key] = parseFloat(this.value) || 0;
+            // 실시간 힌트 갱신
+            var sr = $('ck-save-rate'); if (sr) sr.textContent = Math.round(data.monthlySaving / Math.max(data.monthlyIncome, 1) * 100) + '%';
+            var dsr = $('ck-dsr'); if (dsr) dsr.textContent = Math.round(data.monthlyDebtPay / Math.max(data.monthlyIncome, 1) * 100) + '%';
+          });
+        });
+
+        if (s.key === 'protection') {
+          $('opts-insurance').addEventListener('click', function (ev) {
+            var btn = ev.target.closest('.ck-opt'); if (!btn) return;
+            data.hasInsurance = btn.dataset.val === 'yes';
+            this.querySelectorAll('.ck-opt').forEach(function (c) { c.classList.toggle('is-on', (c.dataset.val === 'yes') === data.hasInsurance); });
+          });
+        }
+
+        if (s.key === 'invest') {
+          $('rng-invest').addEventListener('input', function () {
+            data.investRatio = parseInt(this.value); $('ck-invest-val').textContent = data.investRatio + '%';
+          });
+        }
+      }
+
+      // ── 점수 계산 ──
+      function calculate() {
+        var scores = {};
+        var tips = [];
+
+        // 1. 저축률 (25점)
+        var saveRate = data.monthlySaving / Math.max(data.monthlyIncome, 1);
+        if (saveRate >= 0.3) scores.saving = 25;
+        else if (saveRate >= 0.2) scores.saving = 20;
+        else if (saveRate >= 0.1) scores.saving = 12;
+        else scores.saving = 5;
+        if (saveRate < 0.2) tips.push({ area: '저축률', icon: '💰', text: '월 소득의 최소 20%를 저축하는 것이 좋아요. 현재 ' + Math.round(saveRate * 100) + '%입니다.', link: '/blog/personal-finance-beginners-guide/', linkLabel: '돈 관리 기본 가이드' });
+
+        // 2. 비상금 (25점)
+        var emMonths = data.emergencyFund / Math.max(data.monthlyIncome, 1);
+        if (emMonths >= 6) scores.emergency = 25;
+        else if (emMonths >= 3) scores.emergency = 18;
+        else if (emMonths >= 1) scores.emergency = 10;
+        else scores.emergency = 3;
+        if (emMonths < 3) tips.push({ area: '비상금', icon: '🏦', text: '비상금은 최소 월 소득 3배가 권장돼요. 현재 ' + emMonths.toFixed(1) + '개월분입니다.', link: '/blog/emergency-fund-guide/', linkLabel: '비상금 만들기 가이드' });
+
+        // 3. 부채 (20점)
+        var dsr = data.monthlyDebtPay / Math.max(data.monthlyIncome, 1);
+        if (dsr <= 0) scores.debt = 20;
+        else if (dsr <= 0.2) scores.debt = 17;
+        else if (dsr <= 0.4) scores.debt = 10;
+        else scores.debt = 3;
+        if (dsr > 0.4) tips.push({ area: '부채', icon: '📉', text: 'DSR이 ' + Math.round(dsr * 100) + '%로 높아요. 40% 이하로 관리하는 것이 안전합니다.', link: '/tools/dsr/', linkLabel: 'DSR 계산기' });
+
+        // 4. 보장 (15점)
+        scores.protection = data.hasInsurance ? 15 : 3;
+        if (!data.hasInsurance) tips.push({ area: '보장', icon: '🛡️', text: '기본 보장(실손보험 등)이 없으면 갑작스러운 의료비에 취약해요.', link: '/blog/insurance-basics-guide/', linkLabel: '보험 기초 가이드' });
+
+        // 5. 투자 (15점)
+        var inv = data.investRatio;
+        if (inv >= 20 && inv <= 70) scores.invest = 15;
+        else if (inv > 0 && inv < 20) scores.invest = 10;
+        else if (inv > 70) scores.invest = 8;
+        else scores.invest = 4;
+        if (inv === 0) tips.push({ area: '투자', icon: '📈', text: '저축의 일부라도 투자로 돌리면 인플레이션을 이길 수 있어요.', link: '/blog/stock-investing-complete-guide/', linkLabel: '주식 투자 가이드' });
+
+        var total = scores.saving + scores.emergency + scores.debt + scores.protection + scores.invest;
+        var grade = total >= 85 ? 'A+' : total >= 75 ? 'A' : total >= 65 ? 'B+' : total >= 55 ? 'B' : total >= 40 ? 'C' : total >= 25 ? 'D' : 'F';
+
+        var messages = {
+          'A+': '훌륭해요! 재무적으로 매우 건강한 상태입니다.',
+          'A': '잘 관리하고 계세요. 조금만 보완하면 최상급!',
+          'B+': '양호해요. 한두 가지만 개선하면 크게 달라질 거예요.',
+          'B': '괜찮은 편이지만, 점검할 부분이 있어요.',
+          'C': '주의가 필요해요. 아래 개선 포인트를 확인해 보세요.',
+          'D': '재무 건강이 위험 신호를 보내고 있어요.',
+          'F': '지금 바로 재무 점검이 필요합니다.',
+        };
+
+        return { scores: scores, total: total, grade: grade, message: messages[grade], tips: tips };
+      }
+
+      // ── 결과 렌더 ──
+      function showResults() {
+        var r = calculate();
+
+        // 게이지 애니메이션
+        var arc = $('ck-result-arc');
+        var offset = 251 - (251 * r.total / 100);
+        arc.style.strokeDashoffset = offset;
+
+        $('ck-score-num').textContent = r.total;
+        $('ck-grade').textContent = r.grade;
+        $('ck-grade').className = 'ck-result__grade ck-grade--' + r.grade.replace('+', 'p').toLowerCase();
+        $('ck-msg').textContent = r.message;
+
+        // 항목별 바
+        var areas = [
+          { key: 'saving', label: '저축률', max: 25 },
+          { key: 'emergency', label: '비상금', max: 25 },
+          { key: 'debt', label: '부채 관리', max: 20 },
+          { key: 'protection', label: '보장', max: 15 },
+          { key: 'invest', label: '투자', max: 15 },
+        ];
+        $('ck-bars').innerHTML = areas.map(function (a) {
+          var pct = Math.round(r.scores[a.key] / a.max * 100);
+          var color = pct >= 80 ? '#22c55e' : pct >= 50 ? '#eab308' : '#ef4444';
+          return '<div class="ck-bar-row">' +
+            '<span class="ck-bar-row__label">' + a.label + '</span>' +
+            '<div class="ck-bar-row__track"><div class="ck-bar-row__fill" style="width:' + pct + '%;background:' + color + ';"></div></div>' +
+            '<span class="ck-bar-row__val">' + r.scores[a.key] + '/' + a.max + '</span>' +
+          '</div>';
+        }).join('');
+
+        // 개선 팁
+        if (r.tips.length > 0) {
+          $('ck-tips').innerHTML = '<h3 class="ck-tips__title">개선 포인트</h3>' +
+            r.tips.map(function (t) {
+              return '<div class="ck-tip">' +
+                '<span class="ck-tip__icon">' + t.icon + '</span>' +
+                '<div class="ck-tip__body">' +
+                  '<p class="ck-tip__area">' + t.area + '</p>' +
+                  '<p class="ck-tip__text">' + t.text + '</p>' +
+                  (t.link ? '<a class="ck-tip__link" href="' + t.link + '">' + t.linkLabel + ' →</a>' : '') +
+                '</div></div>';
+            }).join('');
+        } else {
+          $('ck-tips').innerHTML = '<div class="ck-tip" style="text-align:center;"><p>모든 항목이 양호해요! 현재 습관을 유지하세요. 🎉</p></div>';
+        }
+
+        // GA4
+        try { if (window.gtag) gtag('event', 'checkup_result', { score: r.total, grade: r.grade }); } catch (e) {}
+      }
+
+      // ── 네비게이션 ──
+      function showSection(id) {
+        ['ck-hero', 'ck-flow', 'ck-result'].forEach(function (s) { $(s).hidden = s !== id; });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      $('ck-start').addEventListener('click', function () { showSection('ck-flow'); step = 0; renderStep(); });
+      $('ck-back').addEventListener('click', function () { if (step > 0) { step--; renderStep(); } else showSection('ck-hero'); });
+      $('ck-next').addEventListener('click', function () { if (step < STEPS.length - 1) { step++; renderStep(); } else { showSection('ck-result'); showResults(); } });
+      $('ck-retry').addEventListener('click', function () { showSection('ck-flow'); step = 0; renderStep(); });
+      $('ck-share').addEventListener('click', async function () {
+        var r = calculate();
+        var text = '나의 재무 건강 등급: ' + r.grade + ' (' + r.total + '점/100) — 크라마 재무 건강 체크업';
+        var url = location.origin + '/checkup/';
+        try {
+          if (navigator.share) await navigator.share({ title: '재무 건강 체크업', text: text, url: url });
+          else { await navigator.clipboard.writeText(text + '\n' + url); alert('결과를 복사했어요!'); }
+        } catch (_) {}
+      });
+    })();
+  </script>
+
+  <style>
+    .ck { max-width: 36rem; margin: 0 auto; padding: 0 1rem; }
+
+    /* ── 히어로 ── */
+    .ck-hero { text-align: center; padding: 3rem 0 2rem; }
+    .ck-hero__badge { display: inline-block; padding: 0.3rem 0.8rem; background: var(--accent-soft); color: var(--accent); font-size: 0.78rem; font-weight: 700; border-radius: 20px; letter-spacing: 0.05em; margin-bottom: 1rem; }
+    .ck-hero__title { font-family: var(--font-serif); font-size: clamp(1.8rem, 5vw, 2.6rem); line-height: 1.3; margin: 0 0 1rem; }
+    .ck-hero__lead { color: var(--muted); font-size: 1.05rem; line-height: 1.7; margin: 0 0 1.5rem; }
+    .ck-hero__note { font-size: 0.75rem; color: var(--muted); margin-top: 1rem; opacity: 0.7; }
+    .ck-hero__gauge { margin: 0 auto 2rem; max-width: 180px; }
+
+    /* ── 게이지 ── */
+    .ck-gauge { position: relative; }
+    .ck-gauge__svg { width: 100%; display: block; }
+    .ck-gauge__fill { transition: stroke-dashoffset 1s ease; }
+    .ck-gauge__label { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); font-size: 1.6rem; font-weight: 800; color: var(--muted); }
+
+    /* ── CTA ── */
+    .ck-cta { display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 1rem; font: inherit; font-size: 1.05rem; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; background: var(--ink); color: var(--paper); transition: all 0.15s; }
+    .ck-cta:hover { filter: brightness(1.15); transform: translateY(-1px); }
+    .ck-cta--ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+    .ck-cta--next { max-width: 18rem; margin: 0 auto; }
+
+    /* ── 플로우 ── */
+    .ck-flow { padding: 1rem 0 2rem; }
+    .ck-flow__top { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 2rem; }
+    .ck-flow__back { background: none; border: none; cursor: pointer; color: var(--ink); padding: 0.2rem; }
+    .ck-flow__step { font-size: 0.82rem; color: var(--muted); font-weight: 600; white-space: nowrap; }
+    .ck-progress { flex: 1; height: 6px; background: var(--paper-2); border-radius: 99px; overflow: hidden; }
+    .ck-progress__bar { display: block; height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.35s ease; }
+    .ck-step__q { font-family: var(--font-serif); font-size: 1.3rem; font-weight: 600; margin: 0 0 1.5rem; }
+    .ck-flow__footer { margin-top: 2rem; text-align: center; }
+
+    /* ── 필드 ── */
+    .ck-field { margin-bottom: 1.2rem; }
+    .ck-label { display: block; font-size: 0.88rem; font-weight: 600; color: var(--ink-soft); }
+    .ck-input { display: block; width: 100%; padding: 0.75rem 1rem; font: inherit; font-size: 1.1rem; border: 2px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); margin-top: 0.3rem; transition: border-color 0.15s; }
+    .ck-input:focus { outline: none; border-color: var(--accent); }
+    .ck-hint { font-size: 0.85rem; color: var(--muted); margin: 0.5rem 0 0; }
+    .ck-hint strong { color: var(--accent); }
+
+    .ck-range { width: 100%; margin-top: 0.5rem; accent-color: var(--accent); }
+    .ck-range-labels { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--muted); }
+    .ck-invest-val { text-align: center; font-size: 1.8rem; font-weight: 800; color: var(--accent); margin: 0.5rem 0 0; }
+
+    /* ── 옵션 ── */
+    .ck-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+    .ck-opt { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; padding: 1.2rem; border: 2px solid var(--line); border-radius: 12px; background: var(--paper); cursor: pointer; transition: all 0.15s; font: inherit; color: var(--ink); }
+    .ck-opt:hover { border-color: var(--accent); }
+    .ck-opt.is-on { border-color: var(--accent); background: var(--accent-soft); font-weight: 700; }
+    .ck-opt__icon { font-size: 1.6rem; }
+
+    /* ── 결과 ── */
+    .ck-result { padding: 0 0 3rem; }
+    .ck-result__card { text-align: center; padding: 2rem 1rem; background: var(--paper-2); border-radius: 16px; margin-bottom: 1.5rem; }
+    .ck-result__eyebrow { font-size: 0.8rem; color: var(--muted); font-weight: 600; margin: 0 0 0.5rem; letter-spacing: 0.05em; }
+    .ck-result__gauge { max-width: 200px; margin: 0 auto 0.5rem; position: relative; }
+    .ck-result__score { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); text-align: center; }
+    .ck-result__num { display: block; font-size: 2.2rem; font-weight: 800; color: var(--ink); }
+    .ck-result__grade { display: inline-block; padding: 0.2rem 0.7rem; border-radius: 6px; font-size: 0.9rem; font-weight: 800; }
+    .ck-grade--ap, .ck-grade--a { background: #dcfce7; color: #16a34a; }
+    .ck-grade--bp, .ck-grade--b { background: #fef9c3; color: #a16207; }
+    .ck-grade--c { background: #ffedd5; color: #c2410c; }
+    .ck-grade--d, .ck-grade--f { background: #fee2e2; color: #dc2626; }
+    .ck-result__msg { font-size: 1rem; color: var(--ink-soft); margin: 0.8rem 0 0; font-weight: 500; }
+
+    /* ── 항목별 바 ── */
+    .ck-bars { margin-bottom: 1.5rem; }
+    .ck-bar-row { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.6rem; }
+    .ck-bar-row__label { font-size: 0.82rem; font-weight: 600; color: var(--ink-soft); width: 4.5rem; flex: none; }
+    .ck-bar-row__track { flex: 1; height: 10px; background: var(--paper-2); border-radius: 99px; overflow: hidden; }
+    .ck-bar-row__fill { height: 100%; border-radius: 99px; transition: width 0.8s ease; }
+    .ck-bar-row__val { font-size: 0.78rem; font-weight: 700; color: var(--muted); width: 3rem; text-align: right; flex: none; }
+
+    /* ── 개선 팁 ── */
+    .ck-tips__title { font-size: 1rem; font-weight: 700; margin: 0 0 0.8rem; }
+    .ck-tip { display: flex; gap: 0.8rem; padding: 1rem 1.2rem; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 0.6rem; background: var(--paper); }
+    .ck-tip__icon { font-size: 1.4rem; flex: none; margin-top: 0.1rem; }
+    .ck-tip__body { flex: 1; }
+    .ck-tip__area { font-size: 0.82rem; font-weight: 700; color: var(--accent); margin: 0 0 0.2rem; }
+    .ck-tip__text { font-size: 0.9rem; color: var(--ink-soft); line-height: 1.55; margin: 0 0 0.4rem; }
+    .ck-tip__link { font-size: 0.85rem; font-weight: 600; color: var(--accent); text-decoration: none; }
+    .ck-tip__link:hover { text-decoration: underline; }
+
+    /* ── 하단 ── */
+    .ck-result__actions { display: flex; gap: 0.8rem; margin-top: 1.5rem; }
+    .ck-result__actions .ck-cta { flex: 1; }
+    .ck-result__note { margin-top: 1.5rem; padding: 1rem; background: var(--paper-2); border-radius: 10px; font-size: 0.8rem; color: var(--muted); }
+    .ck-result__note p { margin: 0; }
+
+    @media (max-width: 480px) {
+      .ck-result__actions { flex-direction: column; }
+    }
+  </style>
+</BaseLayout>

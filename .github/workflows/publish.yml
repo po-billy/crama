@@ -34,18 +34,28 @@ jobs:
           WRITE_MODEL: ${{ vars.WRITE_MODEL }}
           RESEARCH_MODEL: ${{ vars.RESEARCH_MODEL }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          AZURE_SPEECH_KEY: ${{ secrets.AZURE_SPEECH_KEY }}
+          AZURE_SPEECH_REGION: ${{ vars.AZURE_SPEECH_REGION || 'koreacentral' }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ vars.R2_BUCKET }}
+          R2_PUBLIC_BASE: ${{ vars.R2_PUBLIC_BASE }}
+          R2_AUDIO_BUCKET: ${{ vars.R2_AUDIO_BUCKET }}
+          R2_AUDIO_PUBLIC_BASE: ${{ vars.R2_AUDIO_PUBLIC_BASE }}
         run: node run.js --no-poll ${{ github.event.inputs.category && format('--category={0}', github.event.inputs.category) || '' }}
       - name: Commit & push
         run: |
           git config user.name "crama-bot"
           git config user.email "bot@crama.app"
           git add -A
+          TITLE=$(node -e "try{const b=require('./automation/last-brief.json');console.log(b.title)}catch{console.log('자동 글')}" 2>/dev/null || echo "자동 글")
           git commit -m "post: automated article ($(date +%F))" || echo "변경 없음"
           git push
+          echo "ARTICLE_TITLE=$TITLE" >> $GITHUB_ENV
 
-      # 배포 후 자동 색인: Vercel 빌드가 끝나 URL 이 실제 200 으로 뜬 뒤에만 IndexNow(네이버·빙·얀덱스) 제출.
-      # (배포 전에 쏘면 404 가 푸시되므로 라이브 확인될 때까지 폴링)
-      - name: Ping IndexNow + Web Push after deploy
+      # 배포 후 자동 색인 + 알림
+      - name: Deploy notification + IndexNow + Push + Email
         working-directory: automation
         env:
           VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
@@ -55,9 +65,21 @@ jobs:
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
           SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
           URL=$(cat last-url.txt 2>/dev/null || true)
           if [ -z "$URL" ]; then echo "발행 URL 없음 — 스킵"; exit 0; fi
+
+          # Slack: 발행 시작 알림
+          node -e "
+            import('./lib/slack.js').then(s=>s.notify(
+              ':rocket: *자동 발행 완료*\n' +
+              '*제목:* ${ARTICLE_TITLE}\n' +
+              '*URL:* $URL\n' +
+              '배포 대기 중…'
+            )).catch(()=>{})
+          " || true
+
           echo "Vercel 배포 대기: $URL"
           live=0
           for i in $(seq 1 30); do
@@ -65,10 +87,31 @@ jobs:
             if [ "$code" = "200" ]; then live=1; echo "라이브 확인 ($code)"; break; fi
             echo "  대기 중 ($code) ${i}/30…"; sleep 20
           done
+
+          RESULT=""
+
           if [ "$live" = "1" ]; then
-            node indexnow.js "$URL"
-            node send-brief.js || echo "푸시 발송 스킵/실패(글은 정상)"
-            node send-email.js || echo "이메일 발송 스킵/실패(글은 정상)"
+            # IndexNow
+            IDX=$(node indexnow.js "$URL" 2>&1) || true
+            RESULT="$RESULT\n:mag: *IndexNow:* $IDX"
+
+            # Web Push
+            PUSH=$(node send-brief.js 2>&1) || true
+            RESULT="$RESULT\n:bell: *Web Push:* $PUSH"
+
+            # Email
+            EMAIL=$(node send-email.js 2>&1) || true
+            RESULT="$RESULT\n:email: *이메일:* $EMAIL"
           else
-            echo "타임아웃(10분) — 색인/푸시/이메일 스킵"
+            RESULT=":warning: 배포 타임아웃(10분) — 색인/푸시/이메일 스킵"
           fi
+
+          # Slack: 최종 결과 알림
+          node -e "
+            import('./lib/slack.js').then(s=>s.notify(
+              ':white_check_mark: *배포 완료 리포트*\n' +
+              '${ARTICLE_TITLE}\n' +
+              '$URL\n' +
+              '$(echo -e $RESULT)'
+            )).catch(()=>{})
+          " || true

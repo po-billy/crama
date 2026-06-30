@@ -62,7 +62,7 @@ const faqLd = {
         <div class="ck-result__gauge">
           <svg viewBox="0 0 200 120" class="ck-gauge__svg">
             <path d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke="var(--line)" stroke-width="14" stroke-linecap="round"/>
-            <path d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke="url(#ck-grad2)" stroke-width="14" stroke-linecap="round" stroke-dasharray="251" id="ck-result-arc"/>
+            <path d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke="url(#ck-grad2)" stroke-width="14" stroke-linecap="round" stroke-dasharray="251" stroke-dashoffset="251" class="ck-gauge__fill" id="ck-result-arc"/>
             <defs><linearGradient id="ck-grad2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#ef4444"/><stop offset="50%" stop-color="#eab308"/><stop offset="100%" stop-color="#22c55e"/></linearGradient></defs>
           </svg>
           <div class="ck-result__score">
@@ -433,7 +433,7 @@ const faqLd = {
       text-align: center; padding: 1.5rem; margin-top: 0.5rem;
       border: 2px solid var(--accent); border-radius: 16px; background: var(--paper);
     }
-    .ck-gate__icon { font-size: 1.8rem; display: block; margin-bottom: 0.4rem; }
+    .ck-gate__icon { display: flex; justify-content: center; margin-bottom: 0.4rem; }
     .ck-gate__title { font-weight: 700; font-size: 1rem; margin: 0 0 0.4rem; }
     .ck-gate__desc { font-size: 0.88rem; color: var(--ink-soft); margin: 0 0 1rem; }
     .ck-gate__btn {

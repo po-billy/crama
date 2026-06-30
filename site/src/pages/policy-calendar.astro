@@ -110,12 +110,7 @@ const currentMonth = now.getMonth() + 1;
         </div>
       </div>
 
-      <!-- 레거시 카테고리 필터 제거 — 새 필터 패널로 대체 -->
-      <div class="pc-filters" style="display:none;">
-        {Object.entries(CATS).map(([k, v]) => (
-          <button class="pc-filter" data-cat={k}>{v.icon} {v.name}</button>
-        ))}
-      </div>
+      <!-- 카테고리 필터는 상단 pc-filter-panel로 대체됨 -->
 
       <!-- 월별 타임라인 -->
       <div class="pc-timeline">

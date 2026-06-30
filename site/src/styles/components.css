@@ -753,6 +753,7 @@
 }
 .svc-inline__card:hover { border-color: var(--accent); box-shadow: 0 2px 12px rgba(0,0,0,.06); }
 .svc-inline__icon { flex: none; display: flex; align-items: center; justify-content: center; }
+.svc-inline__icon .duoicon, .svc-inline__icon .svc-ico--sm { width: 22px; height: 22px; }
 .svc-inline__card div { flex: 1; }
 .svc-inline__card strong { font-size: 0.95rem; display: block; }
 .svc-inline__card p { font-size: 0.82rem; color: var(--muted); margin: 0.2rem 0 0; }

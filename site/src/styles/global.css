@@ -411,6 +411,7 @@ hr {
 .deadline-banner__title { flex: 1; font-weight: 600; }
 .deadline-banner__cta { font-weight: 700; color: rgba(255,255,255,0.7); white-space: nowrap; }
 [data-theme='dark'] .deadline-banner { background: #fff; color: #1b1b22; }
+[data-theme='dark'] .deadline-banner__dday { background: #b91c1c; }
 [data-theme='dark'] .deadline-banner__cta { color: rgba(0,0,0,0.5); }
 
 /* 서비스 허브 위젯 (홈) */

@@ -343,6 +343,14 @@ hr {
 }
 .card__audio::before { content: '·'; margin-right: 0.5rem; color: var(--muted); font-weight: 400; }
 
+/* 읽음 뱃지 */
+.card__read {
+  font-size: 0.72rem; font-weight: 600; color: var(--muted);
+  background: var(--paper-2); border-radius: 4px; padding: 0.1rem 0.4rem;
+  margin-left: auto;
+}
+.card__read::before { content: '✓ '; }
+
 /* 큰 피처드 카드 */
 .feature {
   display: grid;

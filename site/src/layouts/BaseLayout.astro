@@ -155,5 +155,27 @@ const { spa, ...props } = Astro.props;
     <BackToTop />
     <CookieConsent />
     <CalcEnhance />
+    <script is:inline>
+      // 읽은 글 카드에 '읽음' 뱃지 표시
+      (() => {
+        function markRead() {
+          try {
+            const list = JSON.parse(localStorage.getItem('crama:read') || '[]');
+            if (!list.length) return;
+            const set = new Set(list);
+            document.querySelectorAll('.card[data-slug]').forEach(function (el) {
+              if (set.has(el.dataset.slug) && !el.querySelector('.card__read')) {
+                var b = document.createElement('span');
+                b.className = 'card__read';
+                b.textContent = '읽음';
+                el.querySelector('.card__meta')?.appendChild(b);
+              }
+            });
+          } catch (e) {}
+        }
+        if (!window.__readBound) { window.__readBound = true; document.addEventListener('astro:page-load', markRead); }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', markRead); else markRead();
+      })();
+    </script>
   </body>
 </html>

@@ -671,6 +671,25 @@
 }
 .tag:hover { border-color: var(--accent); color: var(--accent); }
 
+/* ---------- 이전/다음 글 네비게이션 ---------- */
+.post-nav {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+  margin: 2.5rem auto 0; padding-top: 1.5rem; border-top: 1px solid var(--line);
+}
+.post-nav__link {
+  display: flex; flex-direction: column; gap: 0.3rem;
+  padding: 1rem 1.2rem; border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--paper-2); text-decoration: none; color: var(--ink);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.post-nav__link:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+.post-nav__next { text-align: right; }
+.post-nav__label { font-size: 0.78rem; font-weight: 600; color: var(--muted); letter-spacing: 0.02em; }
+.post-nav__title { font-size: 0.95rem; font-weight: 600; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+@media (max-width: 640px) {
+  .post-nav { grid-template-columns: 1fr; }
+}
+
 /* ---------- 글 하단 푸터(공유·태그·저자) ---------- */
 .article-footer { margin: 2.5rem auto 0; padding-top: 1.5rem; border-top: 1px solid var(--line); }
 

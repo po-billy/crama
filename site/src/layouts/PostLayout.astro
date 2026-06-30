@@ -45,10 +45,13 @@ interface Props {
   nextHref?: string;    // 오디오 '이어 듣기' 다음 글(전역 시간순) — 기본
   nextHrefCat?: string; // 같은 카테고리 내 시간순 — '범위: 카테고리' 옵션용
   guide?: { title: string; href: string };
+  prevNav?: { href: string; title: string };
+  nextNav?: { href: string; title: string };
 }
 const {
   title, description, pubDate, updatedDate, category, author, format = 'guide', heroImage,
   readingTime, premium = false, audioSrc, tags = [], headings = [], related = [], nextHref = '', nextHrefCat = '', guide,
+  prevNav, nextNav,
 } = Astro.props;
 
 const cat = CATEGORIES[category];
@@ -160,6 +163,23 @@ const jsonLd = {
       <SubscribeBox />
     </div>
 
+    {(prevNav || nextNav) && (
+      <nav class="post-nav measure" aria-label="이전/다음 글">
+        {prevNav ? (
+          <a class="post-nav__link post-nav__prev" href={prevNav.href}>
+            <span class="post-nav__label">← 다음 글</span>
+            <span class="post-nav__title">{prevNav.title}</span>
+          </a>
+        ) : <span />}
+        {nextNav ? (
+          <a class="post-nav__link post-nav__next" href={nextNav.href}>
+            <span class="post-nav__label">이전 글 →</span>
+            <span class="post-nav__title">{nextNav.title}</span>
+          </a>
+        ) : <span />}
+      </nav>
+    )}
+
     {related.length > 0 && (
       <section class="wrap" style="padding-inline:0;">
         <div class="section-head"><h2>이어 읽기</h2></div>
@@ -172,6 +192,23 @@ const jsonLd = {
   <ContentRail excludeSlug={slug} />
   </div>
 </BaseLayout>
+
+<script is:inline>
+  // 읽은 글 기록 (localStorage) — 카드에 '읽음' 뱃지 표시용
+  (() => {
+    const m = location.pathname.match(/\/blog\/([^/]+)/);
+    if (!m) return;
+    try {
+      const KEY = 'crama:read';
+      const list = JSON.parse(localStorage.getItem(KEY) || '[]');
+      if (!list.includes(m[1])) {
+        list.push(m[1]);
+        if (list.length > 500) list.splice(0, list.length - 500);
+        localStorage.setItem(KEY, JSON.stringify(list));
+      }
+    } catch (e) {}
+  })();
+</script>
 
 <script>
   // 밀웜 적립 — 글당 1회(서버 캡). 어뷰징 방지: 단순 스크롤이 아니라

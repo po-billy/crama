@@ -30,20 +30,35 @@ const nextIn = (list) => {
 const nextHrefAll = nextIn([...all].sort(byTime));
 const nextHrefCat = nextIn(all.filter((p) => p.data.category === post.data.category).sort(byTime));
 
-// 같은 카테고리 관련글 3개
+// 관련글 — 태그 겹침 점수 + 같은 카테고리 우선(단순 최신순보다 정확한 추천)
+const postTags = new Set(post.data.tags ?? []);
 const related = all
-  .filter((p) => p.id !== post.id && p.data.category === post.data.category)
-  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-  .slice(0, 3)
-  .map((p) => ({
-    href: `/blog/${p.id}/`,
-    title: p.data.title,
-    description: p.data.description,
-    pubDate: p.data.pubDate,
-    category: p.data.category as CategorySlug,
-    heroImage: p.data.heroImage,
-    format: p.data.format,
+  .filter((p) => p.id !== post.id)
+  .map((p) => {
+    const sameCat = p.data.category === post.data.category ? 2 : 0;
+    const tagOverlap = (p.data.tags ?? []).filter((t: string) => postTags.has(t)).length;
+    return { post: p, score: sameCat + tagOverlap };
+  })
+  .filter((r) => r.score > 0)
+  .sort((a, b) => b.score - a.score || b.post.data.pubDate.valueOf() - a.post.data.pubDate.valueOf())
+  .slice(0, 4)
+  .map((r) => ({
+    href: `/blog/${r.post.id}/`,
+    title: r.post.data.title,
+    description: r.post.data.description,
+    pubDate: r.post.data.pubDate,
+    category: r.post.data.category as CategorySlug,
+    heroImage: r.post.data.heroImage,
+    format: r.post.data.format,
   }));
+
+// 이전/다음 글 네비게이션 (시간순 기준, 같은 카테고리 내)
+const catPosts = all.filter((p) => p.data.category === post.data.category).sort(byTime);
+const catIdx = catPosts.findIndex((p) => p.id === post.id);
+const prevPost = catIdx > 0 ? catPosts[catIdx - 1] : null;       // 더 새로운 글
+const nextPost = catIdx >= 0 && catIdx < catPosts.length - 1 ? catPosts[catIdx + 1] : null; // 더 오래된 글
+const prevNav = prevPost ? { href: `/blog/${prevPost.id}/`, title: prevPost.data.title } : undefined;
+const nextNav = nextPost ? { href: `/blog/${nextPost.id}/`, title: nextPost.data.title } : undefined;
 
 // 이 글이 속한 필러(허브) 가이드 — 자기 자신이 아니면 백링크 제공(양방향 링크)
 const pillarSlug = PILLARS[post.data.category];
@@ -68,6 +83,8 @@ const guide = pillarPost ? { title: pillarPost.data.title, href: `/blog/${pillar
   nextHref={nextHrefAll}
   nextHrefCat={nextHrefCat}
   guide={guide}
+  prevNav={prevNav}
+  nextNav={nextNav}
 >
   <Content />
 </PostLayout>

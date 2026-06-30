@@ -569,6 +569,10 @@ hr {
 .svc-step__body strong { font-size: 0.92rem; font-weight: 700; line-height: 1.25; }
 .svc-step__body small { font-size: 0.75rem; color: var(--muted); }
 .svc-step__arrow { flex: none; color: var(--accent); font-weight: 700; font-size: 1.05rem; }
+
+/* 서비스 결과 '다음 단계' 공통 라벨 (혜택·체크업·캘린더 출구 일관화 → 하나의 여정) */
+.svc-next-label { font-size: 0.95rem; font-weight: 800; color: var(--ink); margin: 1.6rem 0 0.7rem; }
+.svc-next-label span { color: var(--muted); font-weight: 600; font-size: 0.82rem; }
 @media (min-width: 641px) {
   .welcome-sheet { align-items: center; }
   .welcome-sheet__inner { border-radius: 20px; margin-bottom: 0; }

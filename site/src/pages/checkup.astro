@@ -356,7 +356,7 @@ const faqLd = {
         recos.push({ icon: '💰', title: '내 혜택 찾기', desc: r.scores.saving < 20 ? '저축을 도와줄 정부 지원금이 있을 수 있어요' : '지금 받을 수 있는 지원금을 확인하세요', href: '/benefits/' });
         if (r.scores.debt < 15) recos.push({ icon: '📅', title: '정책 캘린더', desc: '대출 금리 변동·세금 납부 마감일을 놓치지 마세요', href: '/policy-calendar/' });
         else recos.push({ icon: '📅', title: '정책 캘린더', desc: '절세·지원금 마감일을 한눈에', href: '/policy-calendar/' });
-        $('ck-smart-reco').innerHTML = '<p style="font-size:.85rem;font-weight:600;color:var(--muted);margin:0 0 .5rem;">체크업 결과 맞춤 추천</p>' +
+        $('ck-smart-reco').innerHTML = '<p class="svc-next-label">이제 뭘 할까요? <span>결과 맞춤 추천</span></p>' +
           recos.map(function (r) {
             return '<a href="' + r.href + '" class="ck-cross__card"><span class="ck-cross__icon">' + r.icon + '</span><div><strong>' + r.title + '</strong><p>' + r.desc + '</p></div><span class="ck-cross__arrow">→</span></a>';
           }).join('');

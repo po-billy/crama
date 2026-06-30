@@ -142,8 +142,8 @@ const faqLd = {
                   '<p class="ck-hint">DSR(총부채원리금상환비율): <strong id="ck-dsr">' + Math.round(data.monthlyDebtPay / Math.max(data.monthlyIncome, 1) * 100) + '%</strong> <span style="font-size:0.82rem;color:var(--muted);">(40% 이하 권장)</span></p>';
         } else if (s.key === 'protection') {
           var opts = [
-            { val: 'yes', label: '있어요', icon: '🛡️' },
-            { val: 'no', label: '없어요', icon: '❌' },
+            { val: 'yes', label: '있어요', icon: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#dcfce7"/><path d="M12 4C9.2 4 6 6.5 6 10.5c0 5 6 9.5 6 9.5s6-4.5 6-9.5C18 6.5 14.8 4 12 4z" fill="#22c55e"/><path d="M9.5 10.5l2 2 3.5-3.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
+            { val: 'no', label: '없어요', icon: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#fee2e2"/><circle cx="12" cy="12" r="6" stroke="#ef4444" stroke-width="2"/><path d="M9 9l6 6M15 9l-6 6" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/></svg>' },
           ];
           html += '<div class="ck-opts" id="opts-insurance">' +
             opts.map(function (o) {
@@ -496,16 +496,21 @@ const faqLd = {
     .ck-cta--next { max-width: 18rem; margin: 0 auto; }
 
     /* ── 플로우 ── */
-    .ck-flow { padding: 1rem 0 2rem; max-width: 36rem; margin: 0 auto; }
+    .ck-flow { padding: 1rem 0 0; max-width: 36rem; margin: 0 auto; display: flex; flex-direction: column; min-height: calc(100vh - 4rem); }
     .ck-flow__top { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1.5rem; padding: 0.5rem 0; position: sticky; top: 0; z-index: 10; background: var(--paper); }
     .ck-flow__back { background: none; border: none; cursor: pointer; color: var(--ink); padding: 0.5rem; min-width: 2.5rem; min-height: 2.5rem; display: flex; align-items: center; justify-content: center; }
     .ck-flow__step { font-size: 0.82rem; color: var(--muted); font-weight: 600; white-space: nowrap; }
     .ck-progress { flex: 1; height: 6px; background: var(--paper-2); border-radius: 99px; overflow: hidden; }
     .ck-progress__bar { display: block; height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.35s ease; }
-    #ck-step { animation: ck-fade-in 0.25s ease; }
+    #ck-step { animation: ck-fade-in 0.25s ease; flex: 1; }
     @keyframes ck-fade-in { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: translateX(0); } }
     .ck-step__q { font-family: var(--font-serif); font-size: clamp(1.05rem, 4vw, 1.3rem); font-weight: 600; margin: 0 0 1.5rem; }
-    .ck-flow__footer { margin-top: 2rem; text-align: center; padding-bottom: env(safe-area-inset-bottom, 0); }
+    .ck-flow__footer {
+      position: sticky; bottom: 0; z-index: 10;
+      background: linear-gradient(to top, var(--paper) 60%, transparent);
+      padding: 1.5rem 0 calc(1rem + env(safe-area-inset-bottom, 0)); text-align: center;
+      margin-top: auto;
+    }
 
     /* ── 필드 ── */
     .ck-field { margin-bottom: 1.2rem; }
@@ -549,7 +554,8 @@ const faqLd = {
     }
     .ck-opt:hover { border-color: var(--accent); }
     .ck-opt.is-on { border-color: var(--accent); background: var(--accent-soft); font-weight: 700; }
-    .ck-opt__icon { font-size: 1.6rem; pointer-events: none; }
+    .ck-opt__icon { pointer-events: none; line-height: 0; }
+    .ck-opt__icon svg { width: 2rem; height: 2rem; }
 
     /* ── 결과 ── */
     .ck-result { padding: 0 0 3rem; }

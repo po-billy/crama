@@ -1,46 +1,44 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 
-// 2026년 주요 정책·세금·지원금 일정
+// 2026년 주요 정책·세금·지원금 일정 — 대상·분야·지역 필터 지원
+// target: 대상 (all=전체, youth=청년, worker=직장인, self=자영업·프리랜서, parent=부모, student=학생)
+// field: 분야 (tax=세금, saving=저축·금융, housing=주거, job=취업·창업, family=출산·육아, invest=투자)
+// ageGroup: 연령대 (all=전체, 20s, 30s, 40s, 50plus)
+// region: 지역 (all=전국)
 const EVENTS = [
-  // 1월
-  { month: 1, day: 15, title: '연말정산 간소화 서비스 오픈', cat: 'tax', desc: '홈택스에서 소득·세액공제 자료 확인', url: 'https://www.hometax.go.kr' },
-  { month: 1, day: 25, title: '부가가치세 확정신고 마감', cat: 'tax', desc: '전년 2기분 부가세 신고·납부', url: 'https://www.hometax.go.kr' },
-  // 2월
-  { month: 2, day: 28, title: '연말정산 환급 시작', cat: 'tax', desc: '근로소득 연말정산 환급금 지급 시작', url: '' },
-  // 3월
-  { month: 3, day: 2, title: '근로·자녀장려금 반기 신청', cat: 'benefit', desc: '상반기분 장려금 신청 (~3/15)', url: 'https://www.hometax.go.kr' },
-  { month: 3, day: 31, title: '건강보험료 정산', cat: 'tax', desc: '전년도 소득 기준 건보료 정산·추가 납부', url: '' },
-  // 4월
-  { month: 4, day: 25, title: '부가가치세 예정신고 마감', cat: 'tax', desc: '1기 부가세 예정 신고·납부', url: 'https://www.hometax.go.kr' },
-  // 5월
-  { month: 5, day: 1, title: '종합소득세 신고 시작', cat: 'tax', desc: '프리랜서·N잡러 종소세 신고 (~5/31)', url: 'https://www.hometax.go.kr', relatedSlug: 'freelancer-tax-guide' },
-  { month: 5, day: 1, title: '근로·자녀장려금 정기 신청', cat: 'benefit', desc: '전년 귀속 장려금 신청 (~5/31)', url: 'https://www.hometax.go.kr' },
-  { month: 5, day: 31, title: '종합소득세 신고 마감', cat: 'tax', desc: '기한 내 미신고 시 가산세 부과', url: 'https://www.hometax.go.kr', important: true },
-  // 6월
-  { month: 6, day: 1, title: '재산세(건축물) 납부', cat: 'tax', desc: '건축물분 재산세 납부 (~6/30)', url: '' },
-  { month: 6, day: 16, title: '청년도약계좌 신규 신청', cat: 'benefit', desc: '출생연도 5부제 (~7/3)', url: 'https://www.kinfa.or.kr', relatedSlug: 'youth-leap-account-guide-2026', important: true },
-  // 7월
-  { month: 7, day: 3, title: '청년도약계좌 신청 마감', cat: 'benefit', desc: '하반기 신규 가입 마감', url: 'https://www.kinfa.or.kr', important: true },
-  { month: 7, day: 25, title: '부가가치세 확정신고 마감', cat: 'tax', desc: '1기분 부가세 확정 신고·납부', url: 'https://www.hometax.go.kr' },
-  { month: 7, day: 31, title: '재산세(주택 1기) 납부 마감', cat: 'tax', desc: '주택분 재산세 1기 납부', url: '' },
-  // 8월
-  { month: 8, day: 31, title: '주민세 납부 마감', cat: 'tax', desc: '개인분 주민세 납부 (~8/31)', url: '' },
-  // 9월
-  { month: 9, day: 1, title: '근로·자녀장려금 지급', cat: 'benefit', desc: '5월 신청분 장려금 지급 시작', url: '' },
-  { month: 9, day: 15, title: '국가장학금 2학기 신청', cat: 'benefit', desc: '2학기 국가장학금 신청 마감', url: 'https://www.kosaf.go.kr' },
-  { month: 9, day: 30, title: '재산세(주택 2기) 납부 마감', cat: 'tax', desc: '주택분 재산세 2기 납부', url: '' },
-  // 10월
-  { month: 10, day: 25, title: '부가가치세 예정신고 마감', cat: 'tax', desc: '2기 부가세 예정 신고·납부', url: 'https://www.hometax.go.kr' },
-  // 11월
-  { month: 11, day: 15, title: '종합부동산세 고지', cat: 'tax', desc: '종부세 고지서 발송·납부 (~12/15)', url: '' },
-  { month: 11, day: 30, title: '건강보험 피부양자 요건 점검', cat: 'tax', desc: '연소득 2천만원 초과 시 지역가입 전환', url: '' },
-  // 12월
-  { month: 12, day: 1, title: 'IRP·연금저축 납입 마감 임박', cat: 'invest', desc: '세액공제 한도(900만원) 채우기 (~12/31)', url: '', relatedSlug: 'irp-pension-tax-deduction', important: true },
-  { month: 12, day: 15, title: '종합부동산세 납부 마감', cat: 'tax', desc: '기한 내 미납부 시 가산세', url: '', important: true },
-  { month: 12, day: 31, title: 'ISA 계좌 납입 마감', cat: 'invest', desc: '올해 비과세 한도를 채우려면 연내 납입', url: '', relatedSlug: 'isa-account-guide-2026' },
-  { month: 12, day: 31, title: '연말정산 준비 완료', cat: 'tax', desc: '기부금·의료비·교육비 영수증 챙기기', url: '' },
+  { month: 1, day: 15, title: '연말정산 간소화 서비스 오픈', cat: 'tax', desc: '홈택스에서 소득·세액공제 자료 확인', url: 'https://www.hometax.go.kr', target: 'worker', field: 'tax', ageGroup: 'all', region: 'all' },
+  { month: 1, day: 25, title: '부가가치세 확정신고 마감', cat: 'tax', desc: '전년 2기분 부가세 신고·납부', url: 'https://www.hometax.go.kr', target: 'self', field: 'tax', ageGroup: 'all', region: 'all' },
+  { month: 2, day: 28, title: '연말정산 환급 시작', cat: 'tax', desc: '근로소득 연말정산 환급금 지급 시작', url: '', target: 'worker', field: 'tax', ageGroup: 'all', region: 'all' },
+  { month: 3, day: 2, title: '근로·자녀장려금 반기 신청', cat: 'benefit', desc: '상반기분 장려금 신청 (~3/15)', url: 'https://www.hometax.go.kr', target: 'all', field: 'tax', ageGroup: 'all', region: 'all' },
+  { month: 3, day: 31, title: '건강보험료 정산', cat: 'tax', desc: '전년도 소득 기준 건보료 정산·추가 납부', url: '', target: 'all', field: 'tax', ageGroup: 'all', region: 'all' },
+  { month: 4, day: 25, title: '부가가치세 예정신고 마감', cat: 'tax', desc: '1기 부가세 예정 신고·납부', url: 'https://www.hometax.go.kr', target: 'self', field: 'tax', ageGroup: 'all', region: 'all' },
+  { month: 5, day: 1, title: '종합소득세 신고 시작', cat: 'tax', desc: '프리랜서·N잡러 종소세 신고 (~5/31)', url: 'https://www.hometax.go.kr', relatedSlug: 'freelancer-tax-guide', target: 'self', field: 'tax', ageGroup: 'all', region: 'all' },
+  { month: 5, day: 1, title: '근로·자녀장려금 정기 신청', cat: 'benefit', desc: '전년 귀속 장려금 신청 (~5/31)', url: 'https://www.hometax.go.kr', target: 'all', field: 'tax', ageGroup: 'all', region: 'all' },
+  { month: 5, day: 31, title: '종합소득세 신고 마감', cat: 'tax', desc: '기한 내 미신고 시 가산세 부과', url: 'https://www.hometax.go.kr', important: true, target: 'self', field: 'tax', ageGroup: 'all', region: 'all' },
+  { month: 6, day: 1, title: '재산세(건축물) 납부', cat: 'tax', desc: '건축물분 재산세 납부 (~6/30)', url: '', target: 'all', field: 'tax', ageGroup: 'all', region: 'all' },
+  { month: 6, day: 16, title: '청년도약계좌 신규 신청', cat: 'benefit', desc: '출생연도 5부제 (~7/3)', url: 'https://www.kinfa.or.kr', relatedSlug: 'youth-leap-account-guide-2026', important: true, target: 'youth', field: 'saving', ageGroup: '20s', region: 'all' },
+  { month: 7, day: 3, title: '청년도약계좌 신청 마감', cat: 'benefit', desc: '하반기 신규 가입 마감', url: 'https://www.kinfa.or.kr', important: true, target: 'youth', field: 'saving', ageGroup: '20s', region: 'all' },
+  { month: 7, day: 25, title: '부가가치세 확정신고 마감', cat: 'tax', desc: '1기분 부가세 확정 신고·납부', url: 'https://www.hometax.go.kr', target: 'self', field: 'tax', ageGroup: 'all', region: 'all' },
+  { month: 7, day: 31, title: '재산세(주택 1기) 납부 마감', cat: 'tax', desc: '주택분 재산세 1기 납부', url: '', target: 'all', field: 'tax', ageGroup: 'all', region: 'all' },
+  { month: 8, day: 31, title: '주민세 납부 마감', cat: 'tax', desc: '개인분 주민세 납부 (~8/31)', url: '', target: 'all', field: 'tax', ageGroup: 'all', region: 'all' },
+  { month: 9, day: 1, title: '근로·자녀장려금 지급', cat: 'benefit', desc: '5월 신청분 장려금 지급 시작', url: '', target: 'all', field: 'tax', ageGroup: 'all', region: 'all' },
+  { month: 9, day: 15, title: '국가장학금 2학기 신청', cat: 'benefit', desc: '2학기 국가장학금 신청 마감', url: 'https://www.kosaf.go.kr', target: 'student', field: 'saving', ageGroup: '20s', region: 'all' },
+  { month: 9, day: 30, title: '재산세(주택 2기) 납부 마감', cat: 'tax', desc: '주택분 재산세 2기 납부', url: '', target: 'all', field: 'tax', ageGroup: 'all', region: 'all' },
+  { month: 10, day: 25, title: '부가가치세 예정신고 마감', cat: 'tax', desc: '2기 부가세 예정 신고·납부', url: 'https://www.hometax.go.kr', target: 'self', field: 'tax', ageGroup: 'all', region: 'all' },
+  { month: 11, day: 15, title: '종합부동산세 고지', cat: 'tax', desc: '종부세 고지서 발송·납부 (~12/15)', url: '', target: 'all', field: 'tax', ageGroup: 'all', region: 'all' },
+  { month: 11, day: 30, title: '건강보험 피부양자 요건 점검', cat: 'tax', desc: '연소득 2천만원 초과 시 지역가입 전환', url: '', target: 'all', field: 'tax', ageGroup: 'all', region: 'all' },
+  { month: 12, day: 1, title: 'IRP·연금저축 납입 마감 임박', cat: 'invest', desc: '세액공제 한도(900만원) 채우기 (~12/31)', url: '', relatedSlug: 'irp-pension-tax-deduction', important: true, target: 'worker', field: 'invest', ageGroup: 'all', region: 'all' },
+  { month: 12, day: 15, title: '종합부동산세 납부 마감', cat: 'tax', desc: '기한 내 미납부 시 가산세', url: '', important: true, target: 'all', field: 'tax', ageGroup: 'all', region: 'all' },
+  { month: 12, day: 31, title: 'ISA 계좌 납입 마감', cat: 'invest', desc: '올해 비과세 한도를 채우려면 연내 납입', url: '', relatedSlug: 'isa-account-guide-2026', target: 'all', field: 'invest', ageGroup: 'all', region: 'all' },
+  { month: 12, day: 31, title: '연말정산 준비 완료', cat: 'tax', desc: '기부금·의료비·교육비 영수증 챙기기', url: '', target: 'worker', field: 'tax', ageGroup: 'all', region: 'all' },
 ];
+
+// 필터 옵션
+const TARGETS = { all: '전체', youth: '청년', worker: '직장인', self: '자영업·프리랜서', parent: '부모', student: '학생' };
+const FIELDS = { all: '전체', tax: '세금', saving: '저축·금융', housing: '주거', job: '취업·창업', family: '출산·육아', invest: '투자' };
+const AGE_GROUPS = { all: '전체', '20s': '20대', '30s': '30대', '40s': '40대', '50plus': '50대 이상' };
+const eventsJson = JSON.stringify(EVENTS);
 
 const CATS: Record<string, { name: string; color: string; icon: string }> = {
   tax: { name: '세금', color: '#ef4444', icon: '📋' },
@@ -61,25 +59,59 @@ const currentMonth = now.getMonth() + 1;
     </header>
 
     <div class="pc">
-      <!-- 구독 + 뷰 토글 -->
-      <div class="pc-toolbar">
-        <a href="/policy-calendar.ics" class="pc-subscribe" download>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-          내 캘린더에 추가
-        </a>
-        <div class="pc-views" role="group" aria-label="보기 방식">
-          <button class="pc-view is-on" type="button" data-view="timeline" title="타임라인">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
-          </button>
-          <button class="pc-view" type="button" data-view="grid" title="캘린더">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-          </button>
+      <!-- 검색 + 필터 패널 -->
+      <div class="pc-search-bar">
+        <input type="search" class="pc-search" id="pc-search" placeholder="정책명으로 검색" aria-label="정책 검색" />
+      </div>
+
+      <div class="pc-filter-panel">
+        <div class="pc-filter-row">
+          <span class="pc-filter-label">대상별</span>
+          <div class="pc-filter-chips" data-filter="target">
+            {Object.entries(TARGETS).map(([k, v]) => (
+              <button type="button" class={`pc-chip ${k === 'all' ? 'is-on' : ''}`} data-val={k}>{v}</button>
+            ))}
+          </div>
+        </div>
+        <div class="pc-filter-row">
+          <span class="pc-filter-label">분야별</span>
+          <div class="pc-filter-chips" data-filter="field">
+            {Object.entries(FIELDS).map(([k, v]) => (
+              <button type="button" class={`pc-chip ${k === 'all' ? 'is-on' : ''}`} data-val={k}>{v}</button>
+            ))}
+          </div>
+        </div>
+        <div class="pc-filter-row">
+          <span class="pc-filter-label">연령별</span>
+          <div class="pc-filter-chips" data-filter="ageGroup">
+            {Object.entries(AGE_GROUPS).map(([k, v]) => (
+              <button type="button" class={`pc-chip ${k === 'all' ? 'is-on' : ''}`} data-val={k}>{v}</button>
+            ))}
+          </div>
         </div>
       </div>
 
-      <!-- 카테고리 필터 -->
-      <div class="pc-filters">
-        <button class="pc-filter is-on" data-cat="all">전체</button>
+      <!-- 결과 수 + 도구 -->
+      <div class="pc-toolbar">
+        <span class="pc-result-count" id="pc-count"></span>
+        <div style="display:flex;gap:.4rem;align-items:center;">
+          <a href="/policy-calendar.ics" class="pc-subscribe" download>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            캘린더 구독
+          </a>
+          <div class="pc-views" role="group" aria-label="보기 방식">
+            <button class="pc-view is-on" type="button" data-view="timeline" title="타임라인">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+            </button>
+            <button class="pc-view" type="button" data-view="grid" title="캘린더">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 레거시 카테고리 필터 제거 — 새 필터 패널로 대체 -->
+      <div class="pc-filters" style="display:none;">
         {Object.entries(CATS).map(([k, v]) => (
           <button class="pc-filter" data-cat={k}>{v.icon} {v.name}</button>
         ))}
@@ -106,8 +138,9 @@ const currentMonth = now.getMonth() + 1;
                   const eventDate = new Date(2026, ev.month - 1, ev.day);
                   const dday = Math.ceil((eventDate.getTime() - now.getTime()) / 86400000);
                   const ddayLabel = dday > 0 ? `D-${dday}` : dday === 0 ? 'D-Day' : '';
+                  const globalIdx = EVENTS.indexOf(ev);
                   return (
-                    <div class={`pc-event ${ev.important ? 'is-important' : ''}`} data-cat={ev.cat}>
+                    <div class={`pc-event ${ev.important ? 'is-important' : ''}`} data-cat={ev.cat} data-idx={globalIdx}>
                       <div class="pc-event__date">
                         <span class="pc-event__day">{ev.day}</span>
                       </div>
@@ -173,21 +206,57 @@ const currentMonth = now.getMonth() + 1;
     </div>
   </div>
 
-  <script is:inline>
+  <script is:inline define:vars={{ eventsJson }}>
     (() => {
-      // 카테고리 필터
-      var filters = document.querySelector('.pc-filters');
-      if (filters) filters.addEventListener('click', function (ev) {
-        var btn = ev.target.closest('.pc-filter'); if (!btn) return;
-        var cat = btn.dataset.cat;
-        filters.querySelectorAll('.pc-filter').forEach(function (f) { f.classList.toggle('is-on', f.dataset.cat === cat); });
-        document.querySelectorAll('.pc-event').forEach(function (e) { e.hidden = cat !== 'all' && e.dataset.cat !== cat; });
+      var ALL_EVENTS = JSON.parse(eventsJson);
+      var activeFilters = { target: 'all', field: 'all', ageGroup: 'all' };
+      var searchQuery = '';
+
+      // 필터 칩 이벤트
+      document.querySelectorAll('.pc-filter-chips').forEach(function (group) {
+        group.addEventListener('click', function (ev) {
+          var btn = ev.target.closest('.pc-chip'); if (!btn) return;
+          var filterKey = group.dataset.filter;
+          activeFilters[filterKey] = btn.dataset.val;
+          group.querySelectorAll('.pc-chip').forEach(function (c) { c.classList.toggle('is-on', c.dataset.val === btn.dataset.val); });
+          applyFilters();
+        });
+      });
+
+      // 검색
+      var searchInput = document.getElementById('pc-search');
+      var searchTimer;
+      searchInput.addEventListener('input', function () {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(function () {
+          searchQuery = searchInput.value.trim().toLowerCase();
+          applyFilters();
+        }, 150);
+      });
+
+      function applyFilters() {
+        var count = 0;
+        document.querySelectorAll('.pc-event').forEach(function (el) {
+          var idx = parseInt(el.dataset.idx);
+          var ev = ALL_EVENTS[idx];
+          if (!ev) { el.hidden = true; return; }
+          var show = true;
+          if (activeFilters.target !== 'all' && ev.target !== activeFilters.target && ev.target !== 'all') show = false;
+          if (activeFilters.field !== 'all' && ev.field !== activeFilters.field && ev.field !== 'all') show = false;
+          if (activeFilters.ageGroup !== 'all' && ev.ageGroup !== activeFilters.ageGroup && ev.ageGroup !== 'all') show = false;
+          if (searchQuery && ev.title.toLowerCase().indexOf(searchQuery) === -1 && ev.desc.toLowerCase().indexOf(searchQuery) === -1) show = false;
+          el.hidden = !show;
+          if (show) count++;
+        });
         // 이벤트 없는 월 숨기기
         document.querySelectorAll('.pc-month').forEach(function (m) {
           var visible = m.querySelectorAll('.pc-event:not([hidden])');
           m.hidden = visible.length === 0;
         });
-      });
+        var countEl = document.getElementById('pc-count');
+        if (countEl) countEl.textContent = count + '건 표시 중';
+      }
+      applyFilters(); // 초기 카운트
 
       // 이번 달로 스크롤
       var cur = document.querySelector('.pc-month.is-current');
@@ -360,6 +429,30 @@ const currentMonth = now.getMonth() + 1;
 
     .pc-note { margin-top: 2rem; padding: 1rem; background: var(--paper-2); border-radius: 10px; font-size: 0.8rem; color: var(--muted); }
     .pc-note p { margin: 0; }
+
+    /* 검색 + 필터 패널 */
+    .pc-search-bar { margin-bottom: .8rem; }
+    .pc-search {
+      width: 100%; padding: .7rem 1rem; font: inherit; font-size: .95rem;
+      border: 2px solid var(--line); border-radius: 10px; background: var(--paper);
+      color: var(--ink); transition: border-color .15s;
+    }
+    .pc-search:focus { outline: none; border-color: var(--accent); }
+    .pc-search::placeholder { color: var(--muted); }
+
+    .pc-filter-panel { margin-bottom: 1rem; }
+    .pc-filter-row { display: flex; align-items: flex-start; gap: .5rem; margin-bottom: .5rem; }
+    .pc-filter-label { font-size: .75rem; font-weight: 700; color: var(--muted); min-width: 3rem; padding-top: .35rem; flex: none; }
+    .pc-filter-chips { display: flex; flex-wrap: wrap; gap: .3rem; }
+    .pc-chip {
+      padding: .3rem .7rem; border: 1px solid var(--line); border-radius: 16px;
+      background: var(--paper); font: inherit; font-size: .78rem; font-weight: 500;
+      color: var(--ink-soft); cursor: pointer; transition: all .12s; white-space: nowrap;
+    }
+    .pc-chip:hover { border-color: var(--accent); }
+    .pc-chip.is-on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+    .pc-result-count { font-size: .82rem; font-weight: 600; color: var(--muted); }
 
     /* 툴바 */
     .pc-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }

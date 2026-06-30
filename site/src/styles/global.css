@@ -401,17 +401,17 @@ hr {
 
 /* 마감 임박 배너 (홈) */
 .deadline-banner {
-  display: flex; align-items: center; gap: 0.6rem; justify-content: center;
-  padding: 0.6rem 1rem; margin-bottom: 1rem; border-radius: 10px;
-  background: #fef2f2; border: 1px solid #fecaca; text-decoration: none; color: #991b1b;
-  font-size: 0.88rem; font-weight: 500; transition: background 0.12s;
+  display: flex; align-items: center; gap: 0.7rem; justify-content: center;
+  padding: 0.7rem 1.2rem; margin-bottom: 1rem; border-radius: 10px;
+  background: #1b1b22; text-decoration: none; color: #fff;
+  font-size: 0.88rem; font-weight: 500; transition: opacity 0.12s;
 }
-[data-theme='dark'] .deadline-banner { background: #2a1515; border-color: #5c2020; color: #fca5a5; }
-.deadline-banner:hover { background: #fee2e2; }
-.deadline-banner__dday { font-weight: 800; font-size: 0.9rem; padding: 0.15rem 0.5rem; background: #dc2626; color: #fff; border-radius: 6px; }
-.deadline-banner__title { flex: 1; }
-.deadline-banner__cta { font-weight: 700; color: #dc2626; white-space: nowrap; }
-[data-theme='dark'] .deadline-banner__cta { color: #fca5a5; }
+.deadline-banner:hover { opacity: 0.9; color: #fff; }
+.deadline-banner__dday { font-weight: 800; font-size: 0.82rem; padding: 0.2rem 0.55rem; background: #dc2626; color: #fff; border-radius: 6px; letter-spacing: 0.02em; }
+.deadline-banner__title { flex: 1; font-weight: 600; }
+.deadline-banner__cta { font-weight: 700; color: rgba(255,255,255,0.7); white-space: nowrap; }
+[data-theme='dark'] .deadline-banner { background: #fff; color: #1b1b22; }
+[data-theme='dark'] .deadline-banner__cta { color: rgba(0,0,0,0.5); }
 
 /* 서비스 허브 위젯 (홈) */
 .svc-hub { margin-bottom: 3rem; }

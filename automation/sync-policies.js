@@ -2,10 +2,12 @@
 // 소스: 청약홈(주거·날짜O), 기업마당(자영업/창업·날짜O). 온통청년은 YOUTH_API_KEY 발급 후 fetchYouth() 추가.
 // 복지서비스(4600건·마감없음)는 캘린더가 아니라 혜택찾기(Supabase) 단계에서 처리.
 // 실행: cd automation && node sync-policies.js
-import 'dotenv/config';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+// 로컬은 .env 로드(있으면), CI/GitHub Actions는 env가 주입되므로 dotenv 미설치여도 동작
+try { await import('dotenv/config'); } catch {}
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.join(__dirname, '..', 'site', 'src', 'data', 'policy-events.json');

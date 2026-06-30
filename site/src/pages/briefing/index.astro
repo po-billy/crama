@@ -4,6 +4,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/PostCard.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
 import BriefSubscribe from '../../components/BriefSubscribe.astro';
+import SubscribeBox from '../../components/SubscribeBox.astro';
 import { CATEGORIES, type CategorySlug } from '../../consts';
 
 const posts = (await getCollection('blog'))
@@ -28,6 +29,11 @@ const todayAudio = today ? !!today.data.audio : false;
     <!-- 구독(푸시) CTA -->
     <section class="brief-sub">
       <BriefSubscribe />
+    </section>
+
+    <!-- 메일로도 받기 -->
+    <section class="brief-news">
+      <SubscribeBox />
     </section>
 
     {today && (
@@ -81,7 +87,8 @@ const todayAudio = today ? !!today.data.audio : false;
 
 <style>
   .brief-hero strong { color: var(--accent); }
-  .brief-sub { margin: 0 0 2.5rem; }
+  .brief-sub { margin: 0 0 1.6rem; }
+  .brief-news { margin: 0 0 2.6rem; padding: 1.4rem 1.4rem .4rem; border: 1px solid var(--line); border-radius: 14px; background: var(--paper-2); }
   .brief-section { margin-bottom: 2.6rem; }
 
   /* 오늘의 브리핑 — 가로 피처 카드 */

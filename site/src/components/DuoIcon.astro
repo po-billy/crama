@@ -26,7 +26,7 @@ const G: Record<string, [string, string]> = {
   calendar: ['#3b82f6', '#6366f1'],
 };
 const [c1, c2] = G[name] ?? G.start;
-const gid = `di-${name}`;
+const gid = `di-${name}-${Math.random().toString(36).slice(2, 8)}`;
 const u = `url(#${gid})`;
 ---
 <svg class={`duoicon ${cls}`} viewBox="0 0 24 24" width="24" height="24" fill="none" aria-hidden="true">

@@ -558,7 +558,7 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
     </div>
 
     <!-- ━━ 첫 방문 웰컴 바텀시트 ━━ -->
-    <div class="welcome-sheet" id="welcome-sheet" hidden>
+    <div class="welcome-sheet" id="welcome-sheet" style="display:none">
       <div class="welcome-sheet__inner">
         <button class="welcome-sheet__close" id="welcome-close" aria-label="닫기">×</button>
         <p class="welcome-sheet__hello">처음이시죠? 반가워요 👋</p>
@@ -616,16 +616,21 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
     if (!sheet) return;
     // 5초 후 표시
     setTimeout(function () {
-      sheet.hidden = false;
-      requestAnimationFrame(function () { sheet.classList.add('is-visible'); });
+      sheet.style.display = '';
+      // 다음 프레임에서 is-visible 추가해야 트랜지션 동작
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () { sheet.classList.add('is-visible'); });
+      });
     }, 5000);
     function dismiss() {
       sheet.classList.remove('is-visible');
-      setTimeout(function () { sheet.hidden = true; }, 300);
+      setTimeout(function () { sheet.style.display = 'none'; }, 350);
       try { localStorage.setItem(KEY, '1'); } catch (e) {}
     }
+    // 닫기 버튼 + 나중에 + 배경 클릭
     document.getElementById('welcome-close').addEventListener('click', dismiss);
     document.getElementById('welcome-skip').addEventListener('click', dismiss);
+    sheet.addEventListener('click', function (e) { if (e.target === sheet) dismiss(); });
   })();
 </script>
 

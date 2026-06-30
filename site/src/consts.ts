@@ -94,6 +94,7 @@ export const NAV: NavItem[] = [
     { label: '가이드', href: '/guides/', icon: 'guide' },
     { label: '퀴즈', href: '/quiz/', icon: 'quiz' },
     { label: '빼꼼 투표', href: '/vote/', icon: 'vote' },
+    { label: '앱 설치', href: '/install/', icon: 'start' },
     { label: '소개', href: '/about/', icon: 'start' },
   ]},
 ];

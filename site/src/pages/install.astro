@@ -1,0 +1,287 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout title="앱 설치 — Crama" description="크라마를 홈 화면에 추가하면 앱처럼 빠르게 실행하고 오디오도 바로 들을 수 있어요.">
+  <div class="inst">
+    <header class="inst-hero">
+      <span class="inst-hero__badge">설치</span>
+      <h1 class="inst-hero__title">크라마를<br/>앱처럼 쓰세요</h1>
+      <p class="inst-hero__lead">홈 화면에 추가하면 브라우저 없이 바로 실행되고,<br/>오디오 브리핑도 백그라운드에서 재생할 수 있어요.</p>
+    </header>
+
+    <!-- 플랫폼 탭 -->
+    <div class="inst-tabs" id="inst-tabs">
+      <button class="inst-tab is-on" type="button" data-tab="android">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V7H6v11zM3.5 7C2.67 7 2 7.67 2 8.5v7c0 .83.67 1.5 1.5 1.5S5 16.33 5 15.5v-7C5 7.67 4.33 7 3.5 7zm17 0c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5zm-4.97-5.84l1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48C13.85.55 12.95.05 12 .05s-1.85.5-2.64 1.08L7.88.65c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.3 1.3C7.17 3.6 6.2 5.2 6.2 7h11.6c0-1.8-.97-3.4-2.27-4.84zM10 5H9V4h1v1zm5 0h-1V4h1v1z"/></svg>
+        Android
+      </button>
+      <button class="inst-tab" type="button" data-tab="ios">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+        iPhone / iPad
+      </button>
+      <button class="inst-tab" type="button" data-tab="windows">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3 12V6.5l8-1.1V12H3zm0 .5h8v6.6l-8-1.1V12.5zM11.5 5.3l9.5-1.3v8.5h-9.5V5.3zM21 12.5v8.5l-9.5-1.3v-7.2H21z"/></svg>
+        Windows
+      </button>
+      <button class="inst-tab" type="button" data-tab="mac">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+        Mac
+      </button>
+    </div>
+
+    <!-- Android -->
+    <div class="inst-panel is-on" id="panel-android">
+      <div class="inst-steps">
+        <div class="inst-step">
+          <span class="inst-step__num">1</span>
+          <div class="inst-step__body">
+            <h3><b>Chrome</b>으로 crama.app 접속</h3>
+            <p>Chrome 브라우저에서 열어야 설치 프롬프트가 나타나요.</p>
+          </div>
+        </div>
+        <div class="inst-step">
+          <span class="inst-step__num">2</span>
+          <div class="inst-step__body">
+            <h3>주소창 옆 <b>설치</b> 아이콘 또는 <b>메뉴(⋮) → 앱 설치</b></h3>
+            <p>Chrome이 자동으로 "홈 화면에 추가" 프롬프트를 띄워줍니다.</p>
+          </div>
+        </div>
+        <div class="inst-step">
+          <span class="inst-step__num">3</span>
+          <div class="inst-step__body">
+            <h3><b>설치</b>를 누르면 완료</h3>
+            <p>홈 화면에 크라마 아이콘이 생기고, 앱처럼 실행됩니다.</p>
+          </div>
+        </div>
+      </div>
+      <button class="inst-direct" id="inst-pwa-btn" type="button" hidden>바로 설치하기</button>
+    </div>
+
+    <!-- iOS -->
+    <div class="inst-panel" id="panel-ios">
+      <div class="inst-steps">
+        <div class="inst-step">
+          <span class="inst-step__num">1</span>
+          <div class="inst-step__body">
+            <h3><b>Safari</b>로 crama.app 접속</h3>
+            <p>Chrome이 아닌 Safari에서만 홈 화면 추가가 가능해요.</p>
+          </div>
+        </div>
+        <div class="inst-step">
+          <span class="inst-step__num">2</span>
+          <div class="inst-step__body">
+            <h3>하단 <b>공유 버튼</b> <span style="font-size:1.1em">⬆️</span> 탭</h3>
+            <p>Safari 하단 바의 공유 아이콘을 눌러주세요.</p>
+          </div>
+        </div>
+        <div class="inst-step">
+          <span class="inst-step__num">3</span>
+          <div class="inst-step__body">
+            <h3><b>홈 화면에 추가</b> 선택</h3>
+            <p>스크롤해서 "홈 화면에 추가"를 찾아 눌러주세요.</p>
+          </div>
+        </div>
+        <div class="inst-step">
+          <span class="inst-step__num">4</span>
+          <div class="inst-step__body">
+            <h3>오른쪽 상단 <b>추가</b> 탭</h3>
+            <p>홈 화면에 크라마 아이콘이 생깁니다.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Windows -->
+    <div class="inst-panel" id="panel-windows">
+      <div class="inst-steps">
+        <div class="inst-step">
+          <span class="inst-step__num">1</span>
+          <div class="inst-step__body">
+            <h3><b>Chrome</b> 또는 <b>Edge</b>로 crama.app 접속</h3>
+            <p>PWA 설치를 지원하는 브라우저가 필요해요.</p>
+          </div>
+        </div>
+        <div class="inst-step">
+          <span class="inst-step__num">2</span>
+          <div class="inst-step__body">
+            <h3>주소창 오른쪽 <b>설치 아이콘</b> 클릭</h3>
+            <p>또는 메뉴(⋯) → "Crama 설치" 또는 "앱으로 설치"를 클릭하세요.</p>
+          </div>
+        </div>
+        <div class="inst-step">
+          <span class="inst-step__num">3</span>
+          <div class="inst-step__body">
+            <h3><b>설치</b> 클릭</h3>
+            <p>작업표시줄에 크라마가 고정되고, 독립 창으로 실행됩니다.</p>
+          </div>
+        </div>
+      </div>
+      <button class="inst-direct" id="inst-pwa-btn-win" type="button" hidden>바로 설치하기</button>
+    </div>
+
+    <!-- Mac -->
+    <div class="inst-panel" id="panel-mac">
+      <div class="inst-steps">
+        <div class="inst-step">
+          <span class="inst-step__num">1</span>
+          <div class="inst-step__body">
+            <h3><b>Chrome</b>으로 crama.app 접속</h3>
+            <p>Safari에서는 PWA 설치가 제한적이에요. Chrome을 추천합니다.</p>
+          </div>
+        </div>
+        <div class="inst-step">
+          <span class="inst-step__num">2</span>
+          <div class="inst-step__body">
+            <h3>주소창 오른쪽 <b>설치 아이콘</b> 클릭</h3>
+            <p>또는 메뉴(⋯) → "Crama 설치"를 클릭하세요.</p>
+          </div>
+        </div>
+        <div class="inst-step">
+          <span class="inst-step__num">3</span>
+          <div class="inst-step__body">
+            <h3><b>설치</b> 클릭</h3>
+            <p>Dock에 크라마가 추가되고, 독립 앱으로 실행됩니다.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 설치 혜택 -->
+    <div class="inst-perks">
+      <h2>설치하면 뭐가 달라지나요?</h2>
+      <div class="inst-perks__grid">
+        <div class="inst-perk">
+          <span class="inst-perk__icon">🚀</span>
+          <h3>즉시 실행</h3>
+          <p>브라우저 열 필요 없이 앱 아이콘으로 바로</p>
+        </div>
+        <div class="inst-perk">
+          <span class="inst-perk__icon">🎧</span>
+          <h3>백그라운드 오디오</h3>
+          <p>다른 앱 쓰면서도 브리핑 오디오 재생</p>
+        </div>
+        <div class="inst-perk">
+          <span class="inst-perk__icon">🔔</span>
+          <h3>푸시 알림</h3>
+          <p>새 브리핑·마감 임박 혜택을 바로 받기</p>
+        </div>
+        <div class="inst-perk">
+          <span class="inst-perk__icon">📱</span>
+          <h3>풀스크린</h3>
+          <p>주소창 없이 깔끔한 전체 화면</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    (() => {
+      // 탭 전환
+      var tabs = document.querySelectorAll('.inst-tab');
+      var panels = document.querySelectorAll('.inst-panel');
+      tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+          var t = tab.dataset.tab;
+          tabs.forEach(function (b) { b.classList.toggle('is-on', b.dataset.tab === t); });
+          panels.forEach(function (p) { p.classList.toggle('is-on', p.id === 'panel-' + t); });
+        });
+      });
+
+      // 자동 감지 — 현재 플랫폼 탭 활성화
+      var ua = navigator.userAgent;
+      var auto = /iPhone|iPad|iPod/.test(ua) ? 'ios' : /Mac/.test(ua) && !/Chrome/.test(ua) ? 'mac' : /Windows/.test(ua) ? 'windows' : 'android';
+      var autoTab = document.querySelector('[data-tab="' + auto + '"]');
+      if (autoTab) autoTab.click();
+
+      // PWA 바로 설치 버튼
+      function bindPWA(btnId) {
+        var btn = document.getElementById(btnId);
+        if (!btn) return;
+        if (window.__deferredInstall) btn.hidden = false;
+        window.addEventListener('beforeinstallprompt', function (e) {
+          e.preventDefault(); window.__deferredInstall = e;
+          btn.hidden = false;
+        });
+        btn.addEventListener('click', async function () {
+          var d = window.__deferredInstall; if (!d) return;
+          d.prompt();
+          try { await d.userChoice; } catch (e) {}
+          window.__deferredInstall = null;
+          btn.hidden = true;
+        });
+      }
+      bindPWA('inst-pwa-btn');
+      bindPWA('inst-pwa-btn-win');
+    })();
+  </script>
+
+  <style>
+    .inst { max-width: 38rem; margin: 0 auto; padding: 0 1rem 3rem; }
+
+    .inst-hero { text-align: center; padding: 3rem 0 2rem; }
+    .inst-hero__badge { display: inline-block; padding: 0.3rem 0.8rem; background: var(--accent-soft); color: var(--accent); font-size: 0.78rem; font-weight: 700; border-radius: 20px; letter-spacing: 0.05em; margin-bottom: 1rem; }
+    .inst-hero__title { font-family: var(--font-serif); font-size: clamp(1.6rem, 5vw, 2.2rem); line-height: 1.3; margin: 0 0 1rem; }
+    .inst-hero__lead { color: var(--muted); font-size: 1rem; line-height: 1.7; margin: 0; }
+
+    /* 탭 */
+    .inst-tabs { display: flex; gap: 0.4rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--line); padding-bottom: 0; }
+    .inst-tab {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.7rem 1rem; background: none; border: none; border-bottom: 2px solid transparent;
+      margin-bottom: -2px; cursor: pointer; font: inherit; font-size: 0.88rem; font-weight: 600;
+      color: var(--muted); transition: all 0.15s;
+    }
+    .inst-tab:hover { color: var(--ink); }
+    .inst-tab.is-on { color: var(--accent); border-bottom-color: var(--accent); }
+    .inst-tab svg { flex: none; }
+
+    /* 패널 */
+    .inst-panel { display: none; }
+    .inst-panel.is-on { display: block; animation: inst-fade 0.2s ease; }
+    @keyframes inst-fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* 스텝 */
+    .inst-steps { display: flex; flex-direction: column; gap: 0; }
+    .inst-step {
+      display: flex; gap: 1rem; padding: 1.2rem 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .inst-step:last-child { border-bottom: none; }
+    .inst-step__num {
+      flex: none; width: 2rem; height: 2rem; border-radius: 50%;
+      background: var(--accent); color: #fff; font-weight: 800; font-size: 0.9rem;
+      display: grid; place-items: center;
+    }
+    .inst-step__body { flex: 1; }
+    .inst-step__body h3 { font-size: 0.95rem; font-weight: 600; margin: 0 0 0.3rem; line-height: 1.4; }
+    .inst-step__body b { color: var(--accent); }
+    .inst-step__body p { font-size: 0.85rem; color: var(--muted); margin: 0; line-height: 1.5; }
+
+    /* 바로 설치 버튼 */
+    .inst-direct {
+      display: block; width: 100%; margin-top: 1rem; padding: 0.9rem;
+      background: var(--ink); color: var(--paper); border: none; border-radius: 12px;
+      font: inherit; font-size: 1rem; font-weight: 700; cursor: pointer;
+      transition: filter 0.15s;
+    }
+    .inst-direct:hover { filter: brightness(1.15); }
+
+    /* 혜택 */
+    .inst-perks { margin-top: 2.5rem; }
+    .inst-perks h2 { font-family: var(--font-serif); font-size: 1.2rem; margin: 0 0 1rem; }
+    .inst-perks__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+    .inst-perk {
+      padding: 1.2rem; border: 1px solid var(--line); border-radius: 12px;
+      background: var(--paper);
+    }
+    .inst-perk__icon { font-size: 1.4rem; display: block; margin-bottom: 0.5rem; }
+    .inst-perk h3 { font-size: 0.9rem; font-weight: 700; margin: 0 0 0.3rem; }
+    .inst-perk p { font-size: 0.8rem; color: var(--muted); margin: 0; line-height: 1.4; }
+
+    @media (max-width: 480px) {
+      .inst-tabs { gap: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .inst-tab { padding: 0.6rem 0.7rem; font-size: 0.8rem; white-space: nowrap; }
+      .inst-perks__grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</BaseLayout>

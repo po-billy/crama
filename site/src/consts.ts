@@ -75,9 +75,11 @@ export const VAPID_PUBLIC_KEY = 'BJXQcoA8xVdqQn6E5v_RqFZWZ6CokyEyaYQ_s3KnaYyIZg4
 export type NavItem = { label: string; href: string; children?: NavItem[] };
 export const NAV: NavItem[] = [
   { label: '브리핑', href: '/briefing/' },
-  { label: '주식·재테크', href: '/category/money/' },
-  { label: 'AI 트렌드', href: '/category/ai/' },
-  { label: '부업·지원금', href: '/category/income/' },
+  { label: '카테고리', href: '/category/money/', children: [
+    { label: '주식·재테크', href: '/category/money/' },
+    { label: 'AI 트렌드', href: '/category/ai/' },
+    { label: '부업·지원금', href: '/category/income/' },
+  ]},
   { label: '서비스', href: '/benefits/', children: [
     { label: '내 혜택 찾기', href: '/benefits/' },
     { label: '재무 건강 체크업', href: '/checkup/' },
@@ -89,6 +91,7 @@ export const NAV: NavItem[] = [
     { label: '칼럼', href: '/column/' },
     { label: '용어 사전', href: '/glossary/' },
     { label: '가이드', href: '/guides/' },
+    { label: '퀴즈', href: '/quiz/' },
     { label: '소개', href: '/about/' },
   ]},
 ];

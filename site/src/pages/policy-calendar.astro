@@ -1,7 +1,8 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import policyEvents from '../data/policy-events.json';
 
-const EVENTS = [
+const BASE_EVENTS = [
   { month: 1, day: 15, title: '연말정산 간소화 서비스 오픈', cat: 'tax', desc: '홈택스에서 소득·세액공제 자료 확인', url: 'https://www.hometax.go.kr', target: 'worker', field: 'tax', ageGroup: 'all', region: 'all' },
   { month: 1, day: 25, title: '부가가치세 확정신고 마감', cat: 'tax', desc: '전년 2기분 부가세 신고·납부', url: 'https://www.hometax.go.kr', target: 'self', field: 'tax', ageGroup: 'all', region: 'all' },
   { month: 2, day: 3, title: '청년 전세자금 대출 상반기 접수', cat: 'benefit', desc: '만 19~34세 무주택자, 보증금 3억 이하 전세 대출', url: 'https://nhuf.molit.go.kr', target: 'youth', field: 'housing', ageGroup: '20s', region: 'all' },
@@ -36,6 +37,9 @@ const EVENTS = [
   { month: 12, day: 31, title: 'ISA 계좌 납입 마감', cat: 'invest', desc: '올해 비과세 한도를 채우려면 연내 납입', url: '', relatedSlug: 'isa-account-guide-2026', target: 'all', field: 'invest', ageGroup: 'all', region: 'all' },
   { month: 12, day: 31, title: '연말정산 준비 완료', cat: 'tax', desc: '기부금·의료비·교육비 영수증 챙기기', url: '', target: 'worker', field: 'tax', ageGroup: 'all', region: 'all' },
 ];
+
+// 하드코딩(세금·고정 지원금 등 밸런스 base) + 청약홈 자동수집(sync-policies.js) 하이브리드
+const EVENTS = [...BASE_EVENTS, ...policyEvents];
 
 const CATS: Record<string, { name: string; color: string; icon: string }> = {
   tax: { name: '세금', color: '#ef4444', icon: '📋' },

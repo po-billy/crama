@@ -1,11 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 
-// 2026년 주요 정책·세금·지원금 일정 — 대상·분야·지역 필터 지원
-// target: 대상 (all=전체, youth=청년, worker=직장인, self=자영업·프리랜서, parent=부모, student=학생)
-// field: 분야 (tax=세금, saving=저축·금융, housing=주거, job=취업·창업, family=출산·육아, invest=투자)
-// ageGroup: 연령대 (all=전체, 20s, 30s, 40s, 50plus)
-// region: 지역 (all=전국)
 const EVENTS = [
   { month: 1, day: 15, title: '연말정산 간소화 서비스 오픈', cat: 'tax', desc: '홈택스에서 소득·세액공제 자료 확인', url: 'https://www.hometax.go.kr', target: 'worker', field: 'tax', ageGroup: 'all', region: 'all' },
   { month: 1, day: 25, title: '부가가치세 확정신고 마감', cat: 'tax', desc: '전년 2기분 부가세 신고·납부', url: 'https://www.hometax.go.kr', target: 'self', field: 'tax', ageGroup: 'all', region: 'all' },
@@ -42,12 +37,6 @@ const EVENTS = [
   { month: 12, day: 31, title: '연말정산 준비 완료', cat: 'tax', desc: '기부금·의료비·교육비 영수증 챙기기', url: '', target: 'worker', field: 'tax', ageGroup: 'all', region: 'all' },
 ];
 
-// 필터 옵션
-const TARGETS = { all: '전체', youth: '청년', worker: '직장인', self: '자영업·프리랜서', parent: '부모', student: '학생' };
-const FIELDS = { all: '전체', tax: '세금', saving: '저축·금융', housing: '주거', job: '취업·창업', family: '출산·육아', invest: '투자' };
-const AGE_GROUPS = { all: '전체', '20s': '20대', '30s': '30대', '40s': '40대', '50plus': '50대 이상' };
-const eventsJson = JSON.stringify(EVENTS);
-
 const CATS: Record<string, { name: string; color: string; icon: string }> = {
   tax: { name: '세금', color: '#ef4444', icon: '📋' },
   benefit: { name: '지원금', color: '#22c55e', icon: '💰' },
@@ -56,513 +45,510 @@ const CATS: Record<string, { name: string; color: string; icon: string }> = {
   job: { name: '취업·창업', color: '#f59e0b', icon: '💼' },
   family: { name: '출산·육아', color: '#ec4899', icon: '👶' },
 };
-
-const MONTHS = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+const TARGETS: Record<string, string> = { all: '전체', youth: '청년', worker: '직장인', self: '자영업', parent: '부모', student: '학생' };
 const now = new Date();
 const currentMonth = now.getMonth() + 1;
+const currentDay = now.getDate();
+const eventsJson = JSON.stringify(EVENTS);
+
+// 다가오는 일정 (30일 이내)
+const upcoming = EVENTS
+  .map(ev => ({ ...ev, date: new Date(2026, ev.month - 1, ev.day), dday: Math.ceil((new Date(2026, ev.month - 1, ev.day).getTime() - now.getTime()) / 86400000) }))
+  .filter(ev => ev.dday >= 0 && ev.dday <= 30)
+  .sort((a, b) => a.dday - b.dday)
+  .slice(0, 4);
 ---
 <BaseLayout title="정책 캘린더 2026 — 놓치면 손해인 일정 한눈에" description="지원금 신청, 세금 납부, 투자 절세 마감일을 월별로 정리. 2026년 핵심 정책 일정을 한 곳에서.">
-  <div class="wrap">
-    <header class="page-hero" style="text-align:center;">
-      <span class="eyebrow">서비스</span>
-      <h1>정책 캘린더 2026</h1>
-      <p>놓치면 손해인 일정, 한 곳에서 챙기세요</p>
+  <div class="pc-page">
+    <!-- ━━ 히어로 ━━ -->
+    <header class="pc-hero">
+      <div class="pc-hero__text">
+        <span class="pc-hero__badge">서비스</span>
+        <h1>놓치면 손해,<br/>한눈에 챙기세요</h1>
+        <p>세금 납부부터 지원금 신청까지 — 2026년 핵심 일정을 내 캘린더에.</p>
+        <button type="button" id="pc-ics-btn" class="pc-hero__ics">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          내 캘린더에 연동하기
+        </button>
+      </div>
     </header>
 
-    <div class="pc">
-      <!-- 검색 + 필터 패널 -->
-      <div class="pc-search-bar">
-        <input type="search" class="pc-search" id="pc-search" placeholder="정책명으로 검색" aria-label="정책 검색" />
-      </div>
-
-      <div class="pc-filter-panel">
-        <div class="pc-filter-row">
-          <span class="pc-filter-label">대상별</span>
-          <div class="pc-filter-chips" data-filter="target">
-            {Object.entries(TARGETS).map(([k, v]) => (
-              <button type="button" class={`pc-chip ${k === 'all' ? 'is-on' : ''}`} data-val={k}>{v}</button>
-            ))}
-          </div>
-        </div>
-        <div class="pc-filter-row">
-          <span class="pc-filter-label">분야별</span>
-          <div class="pc-filter-chips" data-filter="field">
-            {Object.entries(FIELDS).map(([k, v]) => (
-              <button type="button" class={`pc-chip ${k === 'all' ? 'is-on' : ''}`} data-val={k}>{v}</button>
-            ))}
-          </div>
-        </div>
-        <div class="pc-filter-row">
-          <span class="pc-filter-label">연령별</span>
-          <div class="pc-filter-chips" data-filter="ageGroup">
-            {Object.entries(AGE_GROUPS).map(([k, v]) => (
-              <button type="button" class={`pc-chip ${k === 'all' ? 'is-on' : ''}`} data-val={k}>{v}</button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <!-- 결과 수 + 도구 -->
-      <div class="pc-toolbar">
-        <span class="pc-result-count" id="pc-count"></span>
-        <div style="display:flex;gap:.4rem;align-items:center;">
-          <a href="/policy-calendar.ics" class="pc-subscribe" download>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-            캘린더 구독
-          </a>
-          <div class="pc-views" role="group" aria-label="보기 방식">
-            <button class="pc-view is-on" type="button" data-view="timeline" title="타임라인">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
-            </button>
-            <button class="pc-view" type="button" data-view="grid" title="캘린더">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- 카테고리 필터는 상단 pc-filter-panel로 대체됨 -->
-
-      <!-- 월별 타임라인 -->
-      <div class="pc-timeline">
-        {MONTHS.map((label, i) => {
-          const m = i + 1;
-          const monthEvents = EVENTS.filter(e => e.month === m);
-          if (monthEvents.length === 0) return null;
-          const isPast = m < currentMonth;
-          const isCurrent = m === currentMonth;
-          return (
-            <section class={`pc-month ${isCurrent ? 'is-current' : ''} ${isPast ? 'is-past' : ''}`} id={`month-${m}`} data-month={m}>
-              <h2 class="pc-month__title">
-                <span class="pc-month__num">{m}</span>
-                <span class="pc-month__label">{label}</span>
-                {isCurrent && <span class="pc-month__badge">이번 달</span>}
-              </h2>
-              <div class="pc-events">
-                {monthEvents.map(ev => {
-                  const cat = CATS[ev.cat];
-                  const eventDate = new Date(2026, ev.month - 1, ev.day);
-                  const dday = Math.ceil((eventDate.getTime() - now.getTime()) / 86400000);
-                  const ddayLabel = dday > 0 ? `D-${dday}` : dday === 0 ? 'D-Day' : '';
-                  const globalIdx = EVENTS.indexOf(ev);
-                  return (
-                    <div class={`pc-event ${ev.important ? 'is-important' : ''}`} data-cat={ev.cat} data-idx={globalIdx}>
-                      <div class="pc-event__date">
-                        <span class="pc-event__day">{ev.day}</span>
-                      </div>
-                      <div class="pc-event__body">
-                        <div class="pc-event__head">
-                          <span class="pc-event__cat" style={`--ecolor:${cat.color}`}>{cat.icon} {cat.name}</span>
-                          {dday > 0 && dday <= 30 && <span class="pc-event__dday pc-event__dday--soon">{ddayLabel}</span>}
-                          {dday > 30 && dday <= 90 && <span class="pc-event__dday">{ddayLabel}</span>}
-                        </div>
-                        <h3 class="pc-event__title">{ev.title}</h3>
-                        <p class="pc-event__desc">{ev.desc}</p>
-                        <div class="pc-event__links">
-                          {ev.url && <a href={ev.url} target="_blank" rel="noopener" class="pc-event__link">신청/확인 →</a>}
-                          {ev.relatedSlug && <a href={`/blog/${ev.relatedSlug}/`} class="pc-event__link pc-event__link--guide">가이드 읽기</a>}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+    <!-- ━━ 다가오는 일정 카드 ━━ -->
+    {upcoming.length > 0 && (
+      <section class="pc-upcoming">
+        <h2 class="pc-section-title">다가오는 일정</h2>
+        <div class="pc-upcoming__grid">
+          {upcoming.map(ev => {
+            const cat = CATS[ev.cat];
+            return (
+              <div class={`pc-ucard ${ev.dday <= 7 ? 'is-urgent' : ''}`}>
+                <div class="pc-ucard__dday">{ev.dday === 0 ? 'D-Day' : `D-${ev.dday}`}</div>
+                <div class="pc-ucard__body">
+                  <span class="pc-ucard__cat" style={`color:${cat.color}`}>{cat.icon} {cat.name}</span>
+                  <h3>{ev.title}</h3>
+                  <p>{ev.month}/{ev.day} · {ev.desc}</p>
+                </div>
+                {ev.url && <a href={ev.url} target="_blank" rel="noopener" class="pc-ucard__link">확인 →</a>}
               </div>
-            </section>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      </section>
+    )}
 
-      <!-- 빈 필터 결과 안내 -->
+    <!-- ━━ 캘린더 + 일정 목록 (2단 레이아웃) ━━ -->
+    <div class="pc-main">
+      <!-- 좌: 캘린더 그리드 -->
+      <section class="pc-cal">
+        <div class="pc-cal__nav">
+          <button type="button" id="pc-prev" class="pc-cal__arrow" aria-label="이전 달">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <h2 class="pc-cal__month" id="pc-month-label"></h2>
+          <button type="button" id="pc-next" class="pc-cal__arrow" aria-label="다음 달">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+          <button type="button" id="pc-today-btn" class="pc-cal__today">오늘</button>
+        </div>
+        <div class="pc-cal__header">
+          <span class="pc-cal__dow pc-cal__dow--sun">일</span><span class="pc-cal__dow">월</span><span class="pc-cal__dow">화</span><span class="pc-cal__dow">수</span><span class="pc-cal__dow">목</span><span class="pc-cal__dow">금</span><span class="pc-cal__dow pc-cal__dow--sat">토</span>
+        </div>
+        <div class="pc-cal__grid" id="pc-grid"></div>
+      </section>
+
+      <!-- 우: 선택된 날짜의 일정 목록 -->
+      <section class="pc-detail" id="pc-detail">
+        <div class="pc-detail__empty" id="pc-detail-empty">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.2" opacity=".4"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          <p>날짜를 선택하면<br/>해당 일정이 여기에 표시됩니다</p>
+        </div>
+        <div id="pc-detail-content"></div>
+      </section>
+    </div>
+
+    <!-- ━━ 필터 (접이식) ━━ -->
+    <details class="pc-filter-wrap">
+      <summary class="pc-filter-toggle">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
+        필터로 내게 맞는 일정만 보기
+        <span class="pc-filter-count" id="pc-filter-count"></span>
+      </summary>
+      <div class="pc-filters" id="pc-filters">
+        <div class="pc-frow">
+          <span class="pc-frow__label">대상</span>
+          <div class="pc-fchips" data-filter="target">
+            {Object.entries(TARGETS).map(([k, v]) => (
+              <button type="button" class={`pc-fchip ${k === 'all' ? 'is-on' : ''}`} data-val={k}>{v}</button>
+            ))}
+          </div>
+        </div>
+        <div class="pc-frow">
+          <span class="pc-frow__label">분야</span>
+          <div class="pc-fchips" data-filter="field">
+            {Object.entries({ all: '전체', tax: '세금', saving: '저축·금융', housing: '주거', job: '취업', family: '육아', invest: '투자' }).map(([k, v]) => (
+              <button type="button" class={`pc-fchip ${k === 'all' ? 'is-on' : ''}`} data-val={k}>{v}</button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- 필터 적용 시 캘린더 연동 CTA -->
+    <div class="pc-ics-filter" id="pc-ics-filter" hidden>
+      <button type="button" id="pc-ics-filtered" class="pc-ics-filter__btn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        이 조건의 일정만 내 캘린더에 연동
+      </button>
+    </div>
+
+    <!-- ━━ 월별 타임라인 (전체 보기) ━━ -->
+    <section class="pc-timeline" id="pc-timeline">
+      <h2 class="pc-section-title">전체 일정</h2>
+      <div id="pc-timeline-list"></div>
       <div class="pc-empty" id="pc-empty" hidden>
         <p>선택한 조건에 맞는 일정이 없어요</p>
-        <p class="pc-empty__hint">필터를 조정하거나 검색어를 변경해 보세요</p>
       </div>
+    </section>
 
-      <!-- 캘린더 그리드 뷰 -->
-      <div class="pc-grid-view" id="pc-grid" hidden>
-        <div class="pc-grid-nav">
-          <button type="button" id="pc-prev" class="pc-grid-nav__btn" aria-label="이전 달">‹</button>
-          <span class="pc-grid-nav__month" id="pc-month-label"></span>
-          <button type="button" id="pc-next" class="pc-grid-nav__btn" aria-label="다음 달">›</button>
-        </div>
-        <div class="pc-grid-header">
-          <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
-        </div>
-        <div class="pc-grid-body" id="pc-grid-body"></div>
-        <div class="pc-grid-events" id="pc-grid-events"></div>
-      </div>
-
-      <!-- 서비스 크로스 연결 -->
-      <div class="pc-cross">
-        <a href="/benefits/" class="pc-cross__card">
-          <span class="pc-cross__icon">💰</span>
-          <div>
-            <strong>내 혜택 찾기</strong>
-            <p>나에게 해당되는 지원금을 찾아보세요</p>
-          </div>
-          <span class="pc-cross__arrow">→</span>
-        </a>
-        <a href="/checkup/" class="pc-cross__card">
-          <span class="pc-cross__icon">🩺</span>
-          <div>
-            <strong>재무 건강 체크업</strong>
-            <p>내 돈 관리 상태를 진단받아 보세요</p>
-          </div>
-          <span class="pc-cross__arrow">→</span>
-        </a>
-      </div>
-
-      <div class="pc-note">
-        <p>※ 일정은 2026년 기준이며, 정부 발표에 따라 변경될 수 있습니다. 정확한 일정은 각 기관 공식 사이트에서 확인하세요.</p>
-      </div>
+    <!-- ━━ 크로스 서비스 ━━ -->
+    <div class="pc-cross">
+      <a href="/benefits/" class="pc-cross__card">
+        <span class="pc-cross__icon">💰</span>
+        <div><strong>내 혜택 찾기</strong><p>나에게 해당되는 지원금을 찾아보세요</p></div>
+        <span class="pc-cross__arrow">→</span>
+      </a>
+      <a href="/checkup/" class="pc-cross__card">
+        <span class="pc-cross__icon">🩺</span>
+        <div><strong>재무 건강 체크업</strong><p>내 돈 관리 상태를 진단받아 보세요</p></div>
+        <span class="pc-cross__arrow">→</span>
+      </a>
     </div>
+    <div class="pc-note"><p>※ 일정은 2026년 기준이며, 정부 발표에 따라 변경될 수 있습니다.</p></div>
   </div>
 
   <script is:inline define:vars={{ eventsJson }}>
     (() => {
-      var ALL_EVENTS = JSON.parse(eventsJson);
-      var activeFilters = { target: 'all', field: 'all', ageGroup: 'all' };
-      var searchQuery = '';
+      var ALL = JSON.parse(eventsJson);
+      var catMeta = { tax:{name:'세금',color:'#ef4444',icon:'📋'}, benefit:{name:'지원금',color:'#22c55e',icon:'💰'}, invest:{name:'투자·절세',color:'#6c5ce7',icon:'📈'}, housing:{name:'주거',color:'#3b82f6',icon:'🏠'}, job:{name:'취업·창업',color:'#f59e0b',icon:'💼'}, family:{name:'출산·육아',color:'#ec4899',icon:'👶'} };
+      var filters = { target: 'all', field: 'all' };
+      var gridMonth = new Date().getMonth();
+      var selDay = null;
+      var MK = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
 
-      // 필터 칩 이벤트
-      document.querySelectorAll('.pc-filter-chips').forEach(function (group) {
-        group.addEventListener('click', function (ev) {
-          var btn = ev.target.closest('.pc-chip'); if (!btn) return;
-          var filterKey = group.dataset.filter;
-          activeFilters[filterKey] = btn.dataset.val;
-          group.querySelectorAll('.pc-chip').forEach(function (c) { c.classList.toggle('is-on', c.dataset.val === btn.dataset.val); });
-          applyFilters();
-        });
-      });
-
-      // 검색
-      var searchInput = document.getElementById('pc-search');
-      var searchTimer;
-      searchInput.addEventListener('input', function () {
-        clearTimeout(searchTimer);
-        searchTimer = setTimeout(function () {
-          searchQuery = searchInput.value.trim().toLowerCase();
-          applyFilters();
-        }, 150);
-      });
-
-      function applyFilters() {
-        var count = 0;
-        document.querySelectorAll('.pc-event').forEach(function (el) {
-          var idx = parseInt(el.dataset.idx);
-          var ev = ALL_EVENTS[idx];
-          if (!ev) { el.hidden = true; return; }
-          var show = true;
-          if (activeFilters.target !== 'all' && ev.target !== activeFilters.target && ev.target !== 'all') show = false;
-          if (activeFilters.field !== 'all' && ev.field !== activeFilters.field && ev.field !== 'all') show = false;
-          if (activeFilters.ageGroup !== 'all' && ev.ageGroup !== activeFilters.ageGroup && ev.ageGroup !== 'all') show = false;
-          if (searchQuery && ev.title.toLowerCase().indexOf(searchQuery) === -1 && ev.desc.toLowerCase().indexOf(searchQuery) === -1) show = false;
-          el.hidden = !show;
-          if (show) count++;
-        });
-        // 이벤트 없는 월 숨기기
-        document.querySelectorAll('.pc-month').forEach(function (m) {
-          var visible = m.querySelectorAll('.pc-event:not([hidden])');
-          m.hidden = visible.length === 0;
-        });
-        var countEl = document.getElementById('pc-count');
-        if (countEl) countEl.textContent = count + '건 표시 중';
-        // 빈 결과 안내
-        var emptyMsg = document.getElementById('pc-empty');
-        if (emptyMsg) emptyMsg.hidden = count > 0;
-        // 그리드 뷰도 필터에 맞게 갱신
-        var gridVisible = document.getElementById('pc-grid');
-        if (gridVisible && !gridVisible.hidden) renderCalGrid(gridMonth);
-      }
-      applyFilters(); // 초기 카운트
-
-      // 이번 달로 스크롤
-      var cur = document.querySelector('.pc-month.is-current');
-      if (cur) setTimeout(function () { cur.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300);
-
-      // ── 뷰 토글 ──
-      var viewBtns = document.querySelectorAll('.pc-view');
-      var timeline = document.querySelector('.pc-timeline');
-      var gridView = document.getElementById('pc-grid');
-      viewBtns.forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          var view = btn.dataset.view;
-          viewBtns.forEach(function (b) { b.classList.toggle('is-on', b.dataset.view === view); });
-          timeline.hidden = view !== 'timeline';
-          gridView.hidden = view !== 'grid';
-          if (view === 'grid') renderCalGrid(gridMonth);
-        });
-      });
-
-      // ── 캘린더 그리드 — ALL_EVENTS를 그대로 사용 (데이터 중복 제거) ──
-      var catColors = { tax:'#ef4444', benefit:'#22c55e', invest:'#6c5ce7', housing:'#3b82f6', job:'#f59e0b', family:'#ec4899' };
-      var gridMonth = new Date().getMonth(); // 0-based
-      var MONTHS_KR = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
-
-      function renderCalGrid(monthIdx) {
-        var label = document.getElementById('pc-month-label');
-        label.textContent = '2026년 ' + MONTHS_KR[monthIdx];
-
-        var body = document.getElementById('pc-grid-body');
-        var first = new Date(2026, monthIdx, 1);
-        var startDay = first.getDay(); // 일=0
-        var daysInMonth = new Date(2026, monthIdx + 1, 0).getDate();
-        var today = new Date();
-        var todayDay = (today.getFullYear() === 2026 && today.getMonth() === monthIdx) ? today.getDate() : -1;
-
-        // ALL_EVENTS에서 해당 월 + 현재 필터 적용
-        var monthEvents = ALL_EVENTS.filter(function (e) {
-          if (e.month !== monthIdx + 1) return false;
-          if (activeFilters.target !== 'all' && e.target !== activeFilters.target && e.target !== 'all') return false;
-          if (activeFilters.field !== 'all' && e.field !== activeFilters.field && e.field !== 'all') return false;
-          if (activeFilters.ageGroup !== 'all' && e.ageGroup !== activeFilters.ageGroup && e.ageGroup !== 'all') return false;
-          if (searchQuery && e.title.toLowerCase().indexOf(searchQuery) === -1 && e.desc.toLowerCase().indexOf(searchQuery) === -1) return false;
+      function filtered() {
+        return ALL.filter(function (e) {
+          if (filters.target !== 'all' && e.target !== filters.target && e.target !== 'all') return false;
+          if (filters.field !== 'all' && e.field !== filters.field && e.field !== 'all') return false;
           return true;
-        }).map(function (e) { return { m: e.month, d: e.day, t: e.title, c: e.cat }; });
-        var eventDays = {};
-        monthEvents.forEach(function (e) { if (!eventDays[e.d]) eventDays[e.d] = []; eventDays[e.d].push(e); });
+        });
+      }
 
-        var html = '';
-        // 빈 셀
-        for (var i = 0; i < startDay; i++) html += '<div class="pc-cell pc-cell--empty"></div>';
-        // 날짜 셀 — 이벤트 제목을 셀 안에 직접 표시
-        for (var d = 1; d <= daysInMonth; d++) {
-          var isToday = d === todayDay;
-          var hasEvent = eventDays[d];
-          html += '<div class="pc-cell' + (isToday ? ' is-today' : '') + (hasEvent ? ' has-event' : '') + '" data-day="' + d + '">';
-          html += '<span class="pc-cell__num">' + d + '</span>';
-          if (hasEvent) {
-            hasEvent.forEach(function (e) {
-              html += '<span class="pc-cell__tag" style="background:' + (catColors[e.c] || '#888') + '">' + e.t + '</span>';
-            });
+      // ── 캘린더 그리드 ──
+      function renderGrid() {
+        var label = document.getElementById('pc-month-label');
+        label.textContent = '2026년 ' + MK[gridMonth];
+        var grid = document.getElementById('pc-grid');
+        var first = new Date(2026, gridMonth, 1);
+        var startDay = first.getDay();
+        var days = new Date(2026, gridMonth + 1, 0).getDate();
+        var today = new Date();
+        var todayD = (today.getFullYear() === 2026 && today.getMonth() === gridMonth) ? today.getDate() : -1;
+
+        var evts = filtered().filter(function (e) { return e.month === gridMonth + 1; });
+        var byDay = {};
+        evts.forEach(function (e) { if (!byDay[e.day]) byDay[e.day] = []; byDay[e.day].push(e); });
+
+        var h = '';
+        for (var i = 0; i < startDay; i++) h += '<div class="pc-day pc-day--empty"></div>';
+        for (var d = 1; d <= days; d++) {
+          var isT = d === todayD;
+          var isS = d === selDay;
+          var has = byDay[d];
+          h += '<button type="button" class="pc-day' + (isT ? ' is-today' : '') + (isS ? ' is-sel' : '') + (has ? ' has-ev' : '') + '" data-d="' + d + '">';
+          h += '<span class="pc-day__num">' + d + '</span>';
+          if (has) {
+            var dots = {};
+            has.forEach(function (e) { dots[catMeta[e.cat]?.color || '#888'] = true; });
+            h += '<span class="pc-day__dots">';
+            Object.keys(dots).forEach(function (c) { h += '<span style="background:' + c + '"></span>'; });
+            h += '</span>';
           }
-          html += '</div>';
+          h += '</button>';
         }
-        body.innerHTML = html;
+        grid.innerHTML = h;
 
-        // 이벤트가 있는 날짜 아래에 상세 목록도 자동 표시
-        var evWrap = document.getElementById('pc-grid-events');
-        var allEvts = monthEvents.sort(function (a, b) { return a.d - b.d; });
-        if (allEvts.length > 0) {
-          evWrap.innerHTML = '<p style="font-size:.82rem;font-weight:600;color:var(--muted);margin:0 0 .5rem;">' + MONTHS_KR[monthIdx] + ' 일정 ' + allEvts.length + '건</p>' +
-            allEvts.map(function (e) {
-              return '<div class="pc-grid-ev" style="border-left:3px solid ' + (catColors[e.c] || '#888') + '"><span class="pc-grid-ev__day">' + e.d + '일</span><strong>' + e.t + '</strong></div>';
-            }).join('');
-        } else {
-          evWrap.innerHTML = '<p style="text-align:center;color:var(--muted);font-size:.9rem;padding:1rem;">이 달에는 주요 일정이 없어요</p>';
-        }
-
-        // 날짜 클릭 → 해당 날짜 이벤트 하이라이트
-        body.querySelectorAll('.pc-cell[data-day]').forEach(function (cell) {
-          cell.addEventListener('click', function () {
-            var day = parseInt(cell.dataset.day);
-            var evts = eventDays[day];
-            body.querySelectorAll('.pc-cell').forEach(function (c) { c.classList.remove('is-sel'); });
-            cell.classList.add('is-sel');
-            if (evts) {
-              evWrap.innerHTML = evts.map(function (e) {
-                return '<div class="pc-grid-ev pc-grid-ev--sel" style="border-left:3px solid ' + (catColors[e.c] || '#888') + '"><span class="pc-grid-ev__day">' + e.d + '일</span><strong>' + e.t + '</strong></div>';
-              }).join('');
-            }
+        // 날짜 클릭
+        grid.querySelectorAll('.pc-day[data-d]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            selDay = parseInt(btn.dataset.d);
+            grid.querySelectorAll('.pc-day').forEach(function (b) { b.classList.remove('is-sel'); });
+            btn.classList.add('is-sel');
+            showDetail(gridMonth + 1, selDay);
           });
         });
+
+        // 이번 달이면 오늘 자동 선택
+        if (todayD > 0 && selDay === null) {
+          selDay = todayD;
+          var todayBtn = grid.querySelector('[data-d="' + todayD + '"]');
+          if (todayBtn) { todayBtn.classList.add('is-sel'); showDetail(gridMonth + 1, todayD); }
+        }
       }
 
-      document.getElementById('pc-prev').addEventListener('click', function () { gridMonth = Math.max(0, gridMonth - 1); renderCalGrid(gridMonth); });
-      document.getElementById('pc-next').addEventListener('click', function () { gridMonth = Math.min(11, gridMonth + 1); renderCalGrid(gridMonth); });
+      function showDetail(m, d) {
+        var evts = filtered().filter(function (e) { return e.month === m && e.day === d; });
+        var empty = document.getElementById('pc-detail-empty');
+        var content = document.getElementById('pc-detail-content');
+        if (evts.length === 0) {
+          empty.hidden = false;
+          content.innerHTML = '<p class="pc-detail__no">' + m + '/' + d + ' — 이 날에는 일정이 없어요</p>';
+          return;
+        }
+        empty.hidden = true;
+        var now = new Date();
+        content.innerHTML = '<p class="pc-detail__date">' + m + '월 ' + d + '일 · ' + evts.length + '건</p>' +
+          evts.map(function (e) {
+            var c = catMeta[e.cat] || catMeta.tax;
+            var dd = Math.ceil((new Date(2026, e.month - 1, e.day) - now) / 86400000);
+            var ddHtml = dd > 0 && dd <= 30 ? '<span class="pc-ev__dday is-soon">D-' + dd + '</span>' : dd > 0 ? '<span class="pc-ev__dday">D-' + dd + '</span>' : dd === 0 ? '<span class="pc-ev__dday is-soon">D-Day</span>' : '';
+            return '<div class="pc-ev' + (e.important ? ' is-imp' : '') + '">' +
+              '<div class="pc-ev__head"><span class="pc-ev__cat" style="color:' + c.color + '">' + c.icon + ' ' + c.name + '</span>' + ddHtml + '</div>' +
+              '<h3 class="pc-ev__title">' + e.title + '</h3>' +
+              '<p class="pc-ev__desc">' + e.desc + '</p>' +
+              '<div class="pc-ev__actions">' +
+              (e.url ? '<a href="' + e.url + '" target="_blank" rel="noopener" class="pc-ev__btn">신청/확인 →</a>' : '') +
+              (e.relatedSlug ? '<a href="/blog/' + e.relatedSlug + '/" class="pc-ev__btn pc-ev__btn--ghost">가이드 읽기</a>' : '') +
+              '</div></div>';
+          }).join('');
+      }
+
+      // ── 타임라인 ──
+      function renderTimeline() {
+        var list = document.getElementById('pc-timeline-list');
+        var now = new Date();
+        var cm = now.getMonth() + 1;
+        var evts = filtered();
+        var byMonth = {};
+        evts.forEach(function (e) { if (!byMonth[e.month]) byMonth[e.month] = []; byMonth[e.month].push(e); });
+
+        var h = '';
+        for (var m = 1; m <= 12; m++) {
+          if (!byMonth[m]) continue;
+          var isPast = m < cm;
+          h += '<div class="pc-tl-month' + (isPast ? ' is-past' : '') + (m === cm ? ' is-now' : '') + '">';
+          h += '<div class="pc-tl-month__head"><span class="pc-tl-month__num">' + m + '</span><span>' + MK[m - 1] + '</span>' + (m === cm ? '<span class="pc-tl-month__badge">이번 달</span>' : '') + '</div>';
+          byMonth[m].forEach(function (e) {
+            var c = catMeta[e.cat] || catMeta.tax;
+            var dd = Math.ceil((new Date(2026, e.month - 1, e.day) - now) / 86400000);
+            var ddHtml = dd >= 0 && dd <= 30 ? '<span class="pc-ev__dday is-soon">D-' + (dd === 0 ? 'Day' : dd) + '</span>' : '';
+            h += '<div class="pc-tl-ev' + (e.important ? ' is-imp' : '') + '">' +
+              '<span class="pc-tl-ev__day">' + e.day + '</span>' +
+              '<div class="pc-tl-ev__body">' +
+              '<div class="pc-tl-ev__row"><span style="color:' + c.color + ';font-size:.75rem;font-weight:600">' + c.icon + ' ' + c.name + '</span>' + ddHtml + '</div>' +
+              '<strong>' + e.title + '</strong>' +
+              '<span class="pc-tl-ev__desc">' + e.desc + '</span>' +
+              '</div>' +
+              (e.url ? '<a href="' + e.url + '" target="_blank" rel="noopener" class="pc-tl-ev__link">확인 →</a>' : '') +
+              '</div>';
+          });
+          h += '</div>';
+        }
+        list.innerHTML = h;
+        document.getElementById('pc-empty').hidden = evts.length > 0;
+
+        // 이번 달로 스크롤
+        var cur = list.querySelector('.pc-tl-month.is-now');
+        if (cur) setTimeout(function () { cur.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 200);
+      }
+
+      // ── 필터 ──
+      document.querySelectorAll('.pc-fchips').forEach(function (group) {
+        group.addEventListener('click', function (ev) {
+          var btn = ev.target.closest('.pc-fchip'); if (!btn) return;
+          filters[group.dataset.filter] = btn.dataset.val;
+          group.querySelectorAll('.pc-fchip').forEach(function (c) { c.classList.toggle('is-on', c.dataset.val === btn.dataset.val); });
+          renderGrid(); renderTimeline();
+          if (selDay) showDetail(gridMonth + 1, selDay);
+          var cnt = document.getElementById('pc-filter-count');
+          var active = (filters.target !== 'all' ? 1 : 0) + (filters.field !== 'all' ? 1 : 0);
+          cnt.textContent = active > 0 ? active + '개 적용 중' : '';
+          document.getElementById('pc-ics-filter').hidden = active === 0;
+        });
+      });
+
+      // ── 네비게이션 ──
+      document.getElementById('pc-prev').addEventListener('click', function () { gridMonth = Math.max(0, gridMonth - 1); selDay = null; renderGrid(); });
+      document.getElementById('pc-next').addEventListener('click', function () { gridMonth = Math.min(11, gridMonth + 1); selDay = null; renderGrid(); });
+      document.getElementById('pc-today-btn').addEventListener('click', function () { gridMonth = new Date().getMonth(); selDay = null; renderGrid(); });
+
+      // ── .ics 다운로드 (필터 반영) ──
+      function downloadICS(events) {
+        function pad(n) { return String(n).padStart(2, '0'); }
+        function icsDate(m, d) { return '2026' + pad(m) + pad(d); }
+        var lines = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Crama//Policy Calendar//KO','CALSCALE:GREGORIAN','METHOD:PUBLISH','X-WR-CALNAME:크라마 정책 캘린더 2026','X-WR-TIMEZONE:Asia/Seoul'];
+        var stamp = new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+/,'');
+        events.forEach(function (ev, i) {
+          var dtStart = icsDate(ev.month, ev.day);
+          var next = new Date(2026, ev.month - 1, ev.day + 1);
+          var dtEnd = '2026' + pad(next.getMonth() + 1) + pad(next.getDate());
+          lines.push('BEGIN:VEVENT','UID:crama-pc-' + ev.month + '-' + ev.day + '-' + i + '@crama.app','DTSTAMP:' + stamp,'DTSTART;VALUE=DATE:' + dtStart,'DTEND;VALUE=DATE:' + dtEnd,'SUMMARY:' + ev.title,'DESCRIPTION:' + ev.desc + '\\n\\nhttps://crama.app/policy-calendar/','URL:https://crama.app/policy-calendar/','BEGIN:VALARM','TRIGGER:-P1D','ACTION:DISPLAY','DESCRIPTION:내일: ' + ev.title,'END:VALARM','END:VEVENT');
+        });
+        lines.push('END:VCALENDAR');
+        var blob = new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'crama-policy-2026.ics';
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
+
+      document.getElementById('pc-ics-btn').addEventListener('click', function () { downloadICS(ALL); });
+      document.getElementById('pc-ics-filtered').addEventListener('click', function () { downloadICS(filtered()); });
+
+      renderGrid();
+      renderTimeline();
     })();
   </script>
 
   <style>
-    .pc { max-width: 44rem; margin: 0 auto; }
+    .pc-page { max-width: 56rem; margin: 0 auto; padding: 0 1rem 3rem; }
 
-    /* 필터 */
-    .pc-filters { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 2rem; justify-content: center; }
-    .pc-filter {
-      padding: 0.45rem 1rem; border: 1px solid var(--line); border-radius: 20px;
-      background: var(--paper); font: inherit; font-size: 0.85rem; font-weight: 500;
-      color: var(--ink-soft); cursor: pointer; transition: all 0.12s;
+    /* ── 히어로 ── */
+    .pc-hero { padding: 2.5rem 0 1.5rem; }
+    .pc-hero__badge { display: inline-block; padding: 0.25rem 0.7rem; background: var(--accent-soft); color: var(--accent); font-size: 0.75rem; font-weight: 700; border-radius: 20px; letter-spacing: 0.05em; margin-bottom: 0.8rem; }
+    .pc-hero h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 4vw, 2rem); line-height: 1.3; margin: 0 0 0.6rem; }
+    .pc-hero p { color: var(--muted); font-size: 0.95rem; margin: 0 0 1.2rem; line-height: 1.6; }
+    .pc-hero__ics {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.7rem 1.4rem; background: var(--ink); color: var(--paper);
+      border-radius: 10px; font: inherit; font-size: 0.9rem; font-weight: 700;
+      border: none; cursor: pointer; transition: filter 0.15s;
     }
-    .pc-filter:hover { border-color: var(--accent); }
-    .pc-filter.is-on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .pc-hero__ics:hover { filter: brightness(1.15); }
 
-    /* 타임라인 */
-    .pc-timeline { position: relative; }
+    .pc-section-title { font-size: 1rem; font-weight: 700; margin: 0 0 0.8rem; color: var(--ink); }
 
-    .pc-month { margin-bottom: 2.5rem; }
-    .pc-month.is-past { opacity: 0.5; }
-    .pc-month.is-past:hover { opacity: 0.85; }
-    .pc-month.is-current { opacity: 1; }
-
-    .pc-month__title {
-      display: flex; align-items: center; gap: 0.6rem;
-      padding-bottom: 0.6rem; border-bottom: 2px solid var(--ink);
-      margin-bottom: 1rem;
+    /* ── 다가오는 일정 ── */
+    .pc-upcoming { margin-bottom: 2rem; }
+    .pc-upcoming__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); gap: 0.7rem; }
+    .pc-ucard {
+      display: flex; flex-direction: column; gap: 0.4rem;
+      padding: 1rem; border: 1px solid var(--line); border-radius: 12px;
+      background: var(--paper); transition: border-color 0.12s;
     }
-    .pc-month.is-current .pc-month__title { border-bottom-color: var(--accent); }
-    .pc-month__num { font-family: var(--font-serif); font-size: 1.8rem; font-weight: 700; color: var(--ink); line-height: 1; }
-    .pc-month__label { font-size: 1rem; font-weight: 600; color: var(--ink-soft); }
-    .pc-month__badge {
-      font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.6rem;
-      background: var(--accent); color: #fff; border-radius: 12px;
+    .pc-ucard:hover { border-color: var(--accent); }
+    .pc-ucard.is-urgent { border-left: 3px solid #ef4444; }
+    .pc-ucard__dday {
+      display: inline-block; font-size: 0.72rem; font-weight: 800; padding: 0.15rem 0.5rem;
+      background: var(--paper-2); color: var(--ink-soft); border-radius: 6px; width: fit-content;
     }
+    .pc-ucard.is-urgent .pc-ucard__dday { background: #fee2e2; color: #dc2626; }
+    .pc-ucard__cat { font-size: 0.72rem; font-weight: 600; }
+    .pc-ucard__body h3 { font-size: 0.9rem; font-weight: 700; margin: 0.2rem 0; line-height: 1.35; }
+    .pc-ucard__body p { font-size: 0.78rem; color: var(--muted); margin: 0; }
+    .pc-ucard__link { font-size: 0.8rem; font-weight: 600; color: var(--accent); text-decoration: none; margin-top: auto; }
 
-    /* 이벤트 카드 */
-    .pc-events { display: flex; flex-direction: column; gap: 0.8rem; }
-    .pc-event {
-      display: flex; gap: 1rem; padding: 1rem 1.2rem;
-      border: 1px solid var(--line); border-radius: 12px;
-      background: var(--paper); transition: box-shadow 0.12s;
+    /* ── 캘린더 + 상세 2단 ── */
+    .pc-main { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; align-items: start; }
+
+    /* 캘린더 */
+    .pc-cal { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 1.2rem; }
+    .pc-cal__nav { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
+    .pc-cal__month { flex: 1; text-align: center; font-family: var(--font-serif); font-size: 1.1rem; font-weight: 700; margin: 0; }
+    .pc-cal__arrow { background: none; border: 1px solid var(--line); border-radius: 8px; width: 2.2rem; height: 2.2rem; cursor: pointer; color: var(--ink); display: grid; place-items: center; transition: border-color 0.12s; }
+    .pc-cal__arrow:hover { border-color: var(--accent); color: var(--accent); }
+    .pc-cal__today { margin-left: auto; background: none; border: 1px solid var(--line); border-radius: 6px; padding: 0.3rem 0.7rem; font: inherit; font-size: 0.78rem; font-weight: 600; color: var(--accent); cursor: pointer; transition: all 0.12s; }
+    .pc-cal__today:hover { background: var(--accent-soft); }
+
+    .pc-cal__header { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 0.72rem; font-weight: 600; color: var(--muted); padding-bottom: 0.4rem; }
+    .pc-cal__dow--sun { color: #ef4444; }
+    .pc-cal__dow--sat { color: #3b82f6; }
+
+    .pc-cal__grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+    .pc-day {
+      aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 2px; background: none; border: none; border-radius: 10px; cursor: pointer;
+      font: inherit; color: var(--ink); transition: background 0.1s; position: relative;
+      padding: 2px;
     }
-    .pc-event:hover { box-shadow: 0 2px 12px rgba(0,0,0,.05); }
-    .pc-event.is-important { border-left: 3px solid var(--accent); }
+    .pc-day:hover { background: var(--paper-2); }
+    .pc-day--empty { cursor: default; }
+    .pc-day.is-today .pc-day__num { background: var(--accent); color: #fff; border-radius: 50%; width: 1.6rem; height: 1.6rem; display: grid; place-items: center; font-weight: 800; }
+    .pc-day.is-sel { background: var(--accent-soft); border-radius: 10px; }
+    .pc-day__num { font-size: 0.82rem; font-weight: 500; line-height: 1; }
+    .pc-day__dots { display: flex; gap: 2px; }
+    .pc-day__dots span { width: 5px; height: 5px; border-radius: 50%; }
 
-    .pc-event__date { flex: none; width: 2.5rem; text-align: center; padding-top: 0.2rem; }
-    .pc-event__day { font-family: var(--font-serif); font-size: 1.3rem; font-weight: 700; color: var(--ink); }
+    /* 상세 패널 */
+    .pc-detail { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 1.2rem; min-height: 20rem; }
+    .pc-detail__empty { text-align: center; padding: 3rem 1rem; color: var(--muted); }
+    .pc-detail__empty p { font-size: 0.88rem; margin: 0.8rem 0 0; line-height: 1.5; }
+    .pc-detail__date { font-size: 0.85rem; font-weight: 700; color: var(--accent); margin: 0 0 0.8rem; }
+    .pc-detail__no { font-size: 0.88rem; color: var(--muted); text-align: center; padding: 2rem 0; }
 
-    .pc-event__body { flex: 1; min-width: 0; }
-    .pc-event__head { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.3rem; }
-    .pc-event__cat { font-size: 0.75rem; font-weight: 600; color: var(--ecolor, var(--muted)); }
-    .pc-event__dday { font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 6px; background: var(--paper-2); color: var(--ink-soft); }
-    .pc-event__dday--soon { background: #fee2e2; color: #dc2626; }
+    .pc-ev { padding: 1rem; border: 1px solid var(--line); border-radius: 10px; margin-bottom: 0.6rem; }
+    .pc-ev.is-imp { border-left: 3px solid var(--accent); }
+    .pc-ev__head { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.3rem; }
+    .pc-ev__cat { font-size: 0.75rem; font-weight: 600; }
+    .pc-ev__dday { font-size: 0.68rem; font-weight: 700; padding: 0.12rem 0.4rem; border-radius: 4px; background: var(--paper-2); color: var(--ink-soft); }
+    .pc-ev__dday.is-soon { background: #fee2e2; color: #dc2626; }
+    .pc-ev__title { font-size: 0.95rem; font-weight: 700; margin: 0 0 0.2rem; line-height: 1.35; }
+    .pc-ev__desc { font-size: 0.82rem; color: var(--muted); margin: 0 0 0.5rem; line-height: 1.4; }
+    .pc-ev__actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .pc-ev__btn { font-size: 0.78rem; font-weight: 600; color: #fff; background: var(--accent); padding: 0.3rem 0.7rem; border-radius: 6px; text-decoration: none; transition: filter 0.12s; }
+    .pc-ev__btn:hover { filter: brightness(1.1); color: #fff; }
+    .pc-ev__btn--ghost { background: transparent; color: var(--ink-soft); border: 1px solid var(--line); }
+    .pc-ev__btn--ghost:hover { background: var(--paper-2); color: var(--ink); }
 
-    .pc-event__title { font-size: 1rem; font-weight: 700; margin: 0 0 0.3rem; line-height: 1.35; }
-    .pc-event__desc { font-size: 0.85rem; color: var(--ink-soft); margin: 0 0 0.5rem; line-height: 1.5; }
-
-    .pc-event__links { display: flex; gap: 0.6rem; flex-wrap: wrap; }
-    .pc-event__link {
-      font-size: 0.82rem; font-weight: 600; color: var(--accent);
-      text-decoration: none; padding: 0.3rem 0.7rem;
-      border: 1px solid var(--accent); border-radius: 6px; transition: all 0.12s;
+    /* ── 필터 ── */
+    .pc-filter-wrap { margin-bottom: 1.5rem; border: 1px solid var(--line); border-radius: 12px; }
+    .pc-filter-toggle {
+      display: flex; align-items: center; gap: 0.5rem; padding: 0.8rem 1rem;
+      font: inherit; font-size: 0.88rem; font-weight: 600; color: var(--ink-soft);
+      cursor: pointer; list-style: none;
     }
-    .pc-event__link:hover { background: var(--accent); color: #fff; }
-    .pc-event__link--guide { border-color: var(--line); color: var(--ink-soft); }
-    .pc-event__link--guide:hover { background: var(--paper-2); color: var(--ink); border-color: var(--ink-soft); }
+    .pc-filter-toggle::-webkit-details-marker { display: none; }
+    .pc-filter-toggle svg { flex: none; color: var(--muted); }
+    .pc-filter-count { font-size: 0.75rem; color: var(--accent); font-weight: 700; margin-left: auto; }
+    .pc-filters { padding: 0 1rem 1rem; }
+    .pc-frow { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem; }
+    .pc-frow__label { font-size: 0.75rem; font-weight: 700; color: var(--muted); min-width: 2.5rem; flex: none; }
+    .pc-fchips { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+    .pc-fchip {
+      padding: 0.3rem 0.65rem; border: 1px solid var(--line); border-radius: 14px;
+      background: var(--paper); font: inherit; font-size: 0.78rem; font-weight: 500;
+      color: var(--ink-soft); cursor: pointer; transition: all 0.12s; white-space: nowrap;
+      touch-action: manipulation;
+    }
+    .pc-fchip:hover { border-color: var(--accent); }
+    .pc-fchip.is-on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 
-    .pc-empty { text-align: center; padding: 3rem 1rem; color: var(--muted); }
-    .pc-empty p { margin: 0; font-size: 1rem; font-weight: 600; }
-    .pc-empty__hint { font-size: 0.85rem; font-weight: 400; margin-top: 0.4rem !important; }
+    /* 필터 연동 CTA */
+    .pc-ics-filter { margin-bottom: 1.2rem; text-align: center; }
+    .pc-ics-filter__btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.65rem 1.2rem; background: var(--accent); color: #fff;
+      border: none; border-radius: 10px; font: inherit; font-size: 0.85rem; font-weight: 700;
+      cursor: pointer; transition: filter 0.15s;
+    }
+    .pc-ics-filter__btn:hover { filter: brightness(1.1); }
 
-    .pc-note { margin-top: 2rem; padding: 1rem; background: var(--paper-2); border-radius: 10px; font-size: 0.8rem; color: var(--muted); }
+    /* ── 타임라인 ── */
+    .pc-timeline { margin-bottom: 2rem; }
+    .pc-tl-month { margin-bottom: 1.5rem; }
+    .pc-tl-month.is-past { opacity: 0.45; }
+    .pc-tl-month.is-past:hover { opacity: 0.8; }
+    .pc-tl-month__head { display: flex; align-items: center; gap: 0.5rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--ink); margin-bottom: 0.6rem; }
+    .pc-tl-month.is-now .pc-tl-month__head { border-bottom-color: var(--accent); }
+    .pc-tl-month__num { font-family: var(--font-serif); font-size: 1.5rem; font-weight: 700; line-height: 1; }
+    .pc-tl-month__badge { font-size: 0.68rem; font-weight: 700; padding: 0.15rem 0.5rem; background: var(--accent); color: #fff; border-radius: 10px; }
+
+    .pc-tl-ev {
+      display: flex; align-items: flex-start; gap: 0.7rem; padding: 0.7rem 0.8rem;
+      border-radius: 10px; margin-bottom: 0.3rem; transition: background 0.1s;
+    }
+    .pc-tl-ev:hover { background: var(--paper-2); }
+    .pc-tl-ev.is-imp { border-left: 3px solid var(--accent); }
+    .pc-tl-ev__day { font-family: var(--font-serif); font-size: 1.1rem; font-weight: 700; color: var(--ink); min-width: 2rem; text-align: center; padding-top: 0.1rem; }
+    .pc-tl-ev__body { flex: 1; min-width: 0; }
+    .pc-tl-ev__row { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.15rem; }
+    .pc-tl-ev__body strong { font-size: 0.9rem; display: block; line-height: 1.35; }
+    .pc-tl-ev__desc { font-size: 0.78rem; color: var(--muted); }
+    .pc-tl-ev__link { flex: none; font-size: 0.78rem; font-weight: 600; color: var(--accent); text-decoration: none; white-space: nowrap; align-self: center; }
+
+    .pc-empty { text-align: center; padding: 2rem; color: var(--muted); font-size: 0.9rem; }
+
+    /* ── 크로스 ── */
+    .pc-cross { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; margin: 1.5rem 0; }
+    .pc-cross__card {
+      display: flex; align-items: center; gap: 0.7rem; padding: 1rem;
+      border: 1px solid var(--line); border-radius: 12px; background: var(--paper);
+      text-decoration: none; color: var(--ink); transition: border-color 0.12s;
+    }
+    .pc-cross__card:hover { border-color: var(--accent); }
+    .pc-cross__icon { font-size: 1.2rem; flex: none; }
+    .pc-cross__card div { flex: 1; }
+    .pc-cross__card strong { font-size: 0.9rem; display: block; }
+    .pc-cross__card p { font-size: 0.78rem; color: var(--muted); margin: 0.15rem 0 0; }
+    .pc-cross__arrow { font-size: 1rem; color: var(--accent); font-weight: 700; }
+    .pc-note { padding: 0.8rem; background: var(--paper-2); border-radius: 8px; font-size: 0.78rem; color: var(--muted); }
     .pc-note p { margin: 0; }
 
-    /* 검색 + 필터 패널 */
-    .pc-search-bar { margin-bottom: .8rem; }
-    .pc-search {
-      width: 100%; padding: .7rem 1rem; font: inherit; font-size: .95rem;
-      border: 2px solid var(--line); border-radius: 10px; background: var(--paper);
-      color: var(--ink); transition: border-color .15s;
+    /* ── 반응형 ── */
+    @media (max-width: 768px) {
+      .pc-main { grid-template-columns: 1fr; }
+      .pc-detail { min-height: auto; }
+      .pc-cross { grid-template-columns: 1fr; }
+      .pc-upcoming__grid { grid-template-columns: 1fr 1fr; }
     }
-    .pc-search:focus { outline: none; border-color: var(--accent); }
-    .pc-search::placeholder { color: var(--muted); }
-
-    .pc-filter-panel { margin-bottom: 1rem; }
-    .pc-filter-row { display: flex; align-items: flex-start; gap: .5rem; margin-bottom: .5rem; }
-    .pc-filter-label { font-size: .75rem; font-weight: 700; color: var(--muted); min-width: 3rem; padding-top: .35rem; flex: none; }
-    .pc-filter-chips { display: flex; flex-wrap: wrap; gap: .3rem; }
-    .pc-chip {
-      padding: .3rem .7rem; border: 1px solid var(--line); border-radius: 16px;
-      background: var(--paper); font: inherit; font-size: .78rem; font-weight: 500;
-      color: var(--ink-soft); cursor: pointer; transition: all .12s; white-space: nowrap;
-    }
-    .pc-chip:hover { border-color: var(--accent); }
-    .pc-chip.is-on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
-
-    .pc-result-count { font-size: .82rem; font-weight: 600; color: var(--muted); }
-
-    /* 툴바 */
-    .pc-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-    .pc-subscribe {
-      display: inline-flex; align-items: center; gap: .4rem;
-      padding: .5rem 1rem; border: 1px solid var(--accent); border-radius: 8px;
-      font-size: .85rem; font-weight: 600; color: var(--accent); text-decoration: none;
-      transition: all .12s;
-    }
-    .pc-subscribe:hover { background: var(--accent); color: #fff; }
-    .pc-subscribe:hover svg { stroke: #fff; }
-    .pc-views { display: flex; gap: .3rem; }
-    .pc-view {
-      padding: .45rem .6rem; border: 1px solid var(--line); border-radius: 6px;
-      background: var(--paper); cursor: pointer; color: var(--muted); transition: all .12s;
-    }
-    .pc-view:hover { border-color: var(--accent); }
-    .pc-view.is-on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
-
-    /* 캘린더 그리드 */
-    .pc-grid-nav { display: flex; justify-content: center; align-items: center; gap: 1.5rem; margin-bottom: 1rem; }
-    .pc-grid-nav__month { font-family: var(--font-serif); font-size: 1.2rem; font-weight: 700; min-width: 8rem; text-align: center; }
-    .pc-grid-nav__btn { font-size: 1.5rem; background: none; border: 1px solid var(--line); border-radius: 50%; width: 2rem; height: 2rem; cursor: pointer; color: var(--ink); display: grid; place-items: center; transition: border-color .12s; }
-    .pc-grid-nav__btn:hover { border-color: var(--accent); color: var(--accent); }
-
-    .pc-grid-header { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: .75rem; font-weight: 600; color: var(--muted); padding-bottom: .4rem; border-bottom: 1px solid var(--line); margin-bottom: .3rem; }
-    .pc-grid-header span:first-child { color: #ef4444; }
-    .pc-grid-header span:last-child { color: #3b82f6; }
-
-    .pc-grid-body { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
-    .pc-cell {
-      min-height: 4.5rem; display: flex; flex-direction: column; align-items: stretch;
-      gap: 2px; padding: 3px; background: var(--paper); cursor: pointer; transition: background .1s;
-    }
-    .pc-cell:hover { background: var(--paper-2); }
-    .pc-cell--empty { background: var(--paper-2); cursor: default; min-height: 2rem; }
-    .pc-cell.is-today { background: var(--accent-soft); }
-    .pc-cell.is-today .pc-cell__num { color: var(--accent); font-weight: 800; }
-    .pc-cell.is-sel { background: var(--accent-soft); }
-    .pc-cell__num { font-size: .75rem; font-weight: 500; color: var(--ink-soft); padding: 1px 3px; }
-    .pc-cell__tag {
-      font-size: .58rem; font-weight: 600; color: #fff; padding: 1px 3px;
-      border-radius: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-      line-height: 1.4;
-    }
-    .pc-cell.has-event { font-weight: 700; }
-
-    .pc-grid-events { margin-top: 1rem; }
-    .pc-grid-ev {
-      display: flex; align-items: center; gap: .6rem;
-      padding: .7rem .9rem; margin-bottom: .4rem; background: var(--paper-2); border-radius: 8px; font-size: .88rem;
-    }
-    .pc-grid-ev--sel { background: var(--accent-soft); }
-    .pc-grid-ev__day { font-size: .75rem; font-weight: 700; color: var(--muted); min-width: 2rem; }
-
     @media (max-width: 480px) {
-      .pc-cell { min-height: 3rem; padding: 1px; }
-      .pc-cell__tag { font-size: .48rem; padding: 0 2px; line-height: 1.3; }
-      .pc-cell__num { font-size: .65rem; }
-      .pc-grid-nav__btn { width: 2.5rem; height: 2.5rem; font-size: 1.3rem; }
-    }
-    @media (max-width: 360px) {
-      .pc-cell__tag { display: none; } /* 극소형 화면: 태그 숨기고 dot만 */
-      .pc-cell.has-event::after { content: ''; display: block; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); margin: 1px auto 0; }
-    }
-
-    .pc-cross { display: flex; flex-direction: column; gap: 0.6rem; margin: 2rem 0 1.5rem; }
-    .pc-cross__card {
-      display: flex; align-items: center; gap: 0.8rem; padding: 1rem 1.2rem;
-      border: 1px solid var(--line); border-radius: 12px; background: var(--paper);
-      text-decoration: none; color: var(--ink); transition: border-color 0.12s, box-shadow 0.12s;
-    }
-    .pc-cross__card:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,.05); }
-    .pc-cross__icon { font-size: 1.3rem; flex: none; width: 2.2rem; height: 2.2rem; display: flex; align-items: center; justify-content: center; background: var(--paper-2); border-radius: 50%; }
-    .pc-cross__card div { flex: 1; }
-    .pc-cross__card strong { font-size: 0.95rem; display: block; }
-    .pc-cross__card p { font-size: 0.82rem; color: var(--muted); margin: 0.2rem 0 0; }
-    .pc-cross__arrow { font-size: 1.2rem; color: var(--accent); flex: none; font-weight: 700; }
-
-    @media (max-width: 640px) {
-      .pc { padding: 0; }
-      .pc-event__date { width: 2rem; }
-      .pc-event__day { font-size: 1.1rem; }
-      .pc-event { padding: 0.8rem; gap: 0.7rem; }
-      .pc-event__title { font-size: 0.92rem; }
-      .pc-event__links { gap: 0.4rem; }
-      .pc-event__link { padding: 0.25rem 0.6rem; font-size: 0.78rem; }
-      .pc-toolbar { flex-wrap: wrap; gap: 0.5rem; }
-      .pc-subscribe { font-size: 0.78rem; padding: 0.4rem 0.7rem; }
-      .pc-filter-row { flex-direction: column; gap: 0.3rem; }
-      .pc-filter-label { min-width: auto; padding-top: 0; }
-      .pc-search { font-size: 0.9rem; padding: 0.6rem 0.8rem; }
-      .pc-cross__card { padding: 0.8rem; }
-      .pc-month__num { font-size: 1.4rem; }
+      .pc-page { padding: 0 0.5rem 2rem; }
+      .pc-hero h1 { font-size: 1.4rem; }
+      .pc-upcoming__grid { grid-template-columns: 1fr; }
+      .pc-ucard { padding: 0.8rem; }
+      .pc-cal { padding: 0.8rem; border-radius: 12px; }
+      .pc-day__num { font-size: 0.75rem; }
+      .pc-frow { flex-direction: column; align-items: flex-start; gap: 0.2rem; }
     }
   </style>
 </BaseLayout>

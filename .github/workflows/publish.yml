@@ -1,15 +1,18 @@
 name: Publish article
 
-# 무인 자동 발행: 매일 1회 + 수동 실행. 글을 생성해 커밋하면 Vercel이 자동 배포.
+# 무인 자동 발행: 매일(백업 시각 다중 재시도) + 수동 실행. 글을 생성해 커밋하면 Vercel 이 자동 배포.
+# GitHub cron 은 무보장(지연·누락 잦음)이라 여러 시각으로 재시도하되,
+# '오늘 이미 발행됐으면 스킵' 가드로 하루 딱 1편만 발행되게 한다.
 on:
   schedule:
-    # 07:05 KST (UTC 22:05). 정각 00:00 UTC 는 GitHub Actions 최혼잡 슬롯이라 지연·누락이 잦음 →
-    # 비정각·비자정 시각으로 이동해 신뢰성 확보(GitHub 공식 권고). cron 은 여전히 무보장이라 지연 가능.
-    - cron: '5 22 * * *'
+    - cron: '5 22 * * *'   # 07:05 KST — 기본
+    - cron: '30 22 * * *'  # 07:30 KST — 백업1
+    - cron: '45 22 * * *'  # 07:45 KST — 백업2
+    - cron: '15 23 * * *'  # 08:15 KST — 백업3(마지막) · 여기까지 발행 없으면 실패 알림
   workflow_dispatch:
     inputs:
       category:
-        description: '강제 카테고리 (money | ai, 비우면 자동)'
+        description: '강제 카테고리 (money | ai | income, 비우면 자동)'
         required: false
 
 permissions:
@@ -20,18 +23,38 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 50 # 가드가 최근 커밋 메시지로 '오늘 발행 여부'를 확인
+
+      # ── 중복 방지 가드: 오늘 이미 자동 발행됐으면 이후 단계 전부 스킵 ──
+      - name: 오늘 발행 여부 확인
+        id: guard
+        run: |
+          TODAY=$(date -u +%F)
+          if git log -50 --oneline | grep -q "automated article ($TODAY)"; then
+            echo "이미 오늘($TODAY) 자동 발행됨 → 스킵(백업 크론 중복 방지)"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "오늘 미발행 → 진행"
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/setup-node@v4
+        if: steps.guard.outputs.skip == 'false'
         with:
           node-version: '22'
-      - name: Install Korean fonts # 썸네일 한글 헤드라인(sharp/librsvg)이 tofu로 깨지지 않도록
+      - name: Install Korean fonts # 썸네일 한글 헤드라인(sharp/librsvg) tofu 방지
+        if: steps.guard.outputs.skip == 'false'
         run: |
           sudo apt-get update
           sudo apt-get install -y fonts-noto-cjk fonts-nanum
           sudo fc-cache -f
       - name: Install deps
+        if: steps.guard.outputs.skip == 'false'
         working-directory: automation
         run: npm install
       - name: Generate article
+        if: steps.guard.outputs.skip == 'false'
         working-directory: automation
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -51,18 +74,29 @@ jobs:
           R2_AUDIO_BUCKET: ${{ vars.R2_AUDIO_BUCKET }}
           R2_AUDIO_PUBLIC_BASE: ${{ vars.R2_AUDIO_PUBLIC_BASE }}
         run: node run.js --no-poll ${{ github.event.inputs.category && format('--category={0}', github.event.inputs.category) || '' }}
+
       - name: Commit & push
+        if: steps.guard.outputs.skip == 'false'
         run: |
           git config user.name "crama-bot"
           git config user.email "bot@crama.app"
+          BEFORE=$(git rev-parse HEAD)
           git add -A
-          TITLE=$(node -e "try{const b=require('./automation/last-brief.json');console.log(b.title)}catch{console.log('자동 글')}" 2>/dev/null || echo "자동 글")
-          git commit -m "post: automated article ($(date +%F))" || echo "변경 없음"
-          git push
-          echo "ARTICLE_TITLE=$TITLE" >> $GITHUB_ENV
+          git commit -m "post: automated article ($(date -u +%F))" || echo "변경 없음(중복 게이트/짧음)"
+          AFTER=$(git rev-parse HEAD)
+          if [ "$BEFORE" != "$AFTER" ]; then
+            git push
+            TITLE=$(node -e "try{const b=require('./automation/last-brief.json');console.log(b.title)}catch{console.log('자동 글')}" 2>/dev/null || echo "자동 글")
+            echo "PUBLISHED=1" >> "$GITHUB_ENV"
+            echo "ARTICLE_TITLE=$TITLE" >> "$GITHUB_ENV"
+          else
+            echo "PUBLISHED=0" >> "$GITHUB_ENV"
+            echo "발행 없음 — 다음 백업 슬롯이 재시도"
+          fi
 
-      # 배포 후 자동 색인 + 알림
+      # ── 배포 후 자동 색인 + 알림 (실제로 발행된 경우만) ──
       - name: Deploy notification + IndexNow + Push + Email
+        if: steps.guard.outputs.skip == 'false' && env.PUBLISHED == '1'
         working-directory: automation
         env:
           VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
@@ -120,5 +154,21 @@ jobs:
               '${ARTICLE_TITLE}\n' +
               '$URL\n' +
               '$(echo -e $RESULT)'
+            )).catch(()=>{})
+          " || true
+
+      # ── 실패 알림: 마지막 백업 슬롯(08:15 KST)까지도 발행이 없으면 Slack 경고 ──
+      #    그 이전 슬롯의 '발행 없음'은 다음 백업 슬롯이 재시도하므로 알리지 않는다.
+      - name: 발행 실패 알림(마지막 백업까지 없음)
+        if: always() && steps.guard.outputs.skip == 'false' && env.PUBLISHED != '1' && github.event.schedule == '15 23 * * *'
+        working-directory: automation
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          npm install >/dev/null 2>&1 || true
+          node -e "
+            import('./lib/slack.js').then(s=>s.notify(
+              ':x: *오늘 자동발행 실패* — 07:05·07:30·07:45·08:15 백업까지 모두 발행 없음(중복 게이트 또는 오류 가능).\n' +
+              '수동 확인 필요: https://github.com/po-billy/crama/actions'
             )).catch(()=>{})
           " || true

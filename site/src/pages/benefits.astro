@@ -106,12 +106,8 @@ const faqLd = {
 
       <div class="bf-result__actions">
         <button class="bf-cta" type="button" id="bf-share-result">공유하기</button>
-        <button class="bf-cta bf-cta--ghost" type="button" id="bf-save">프로필 저장</button>
       </div>
 
-      <div class="bf-result__cta-box" id="bf-save-done" hidden>
-        <p>프로필이 저장됐어요. 다음에 방문하면 바로 결과를 보여드릴게요.</p>
-      </div>
 
       <!-- 서비스 크로스 연결 -->
       <div class="bf-cross">
@@ -490,6 +486,7 @@ const faqLd = {
         } catch (e) {}
         try { if (window.gtag) gtag('event', 'benefits_result', { count: results.length, total: total, loggedIn: loggedIn }); } catch (e) {}
         updateCondBar();
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(profile)); } catch (e) {} // 자동 저장 — 재방문 시 마지막 조건 자동 복원
       }
 
       // ── 네비게이션 ──
@@ -523,13 +520,6 @@ const faqLd = {
         Object.assign(profile, { age: 28, income: 3000, employment: 'employed', housing: 'rent', region: 'seoul', familySize: 1, hasChildren: false, childAge: null, isNewlywed: false, isPregnant: false });
         var note = document.querySelector('.bf-result__saved-note'); if (note) note.remove();
         showSection('bf-hero'); // 초기화 = 페이지 첫 화면으로
-      });
-
-      $('bf-save').addEventListener('click', function () {
-        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(profile)); } catch (e) {}
-        $('bf-save-done').hidden = false;
-        this.textContent = '✓ 저장 완료';
-        this.disabled = true;
       });
 
       $('bf-share-result').addEventListener('click', async function () {
@@ -631,12 +621,9 @@ const faqLd = {
         if (saved) {
           var p = JSON.parse(saved);
           Object.assign(profile, p);
-          // 바로 결과 표시
+          // 자동 저장된 프로필로 결과 바로 표시 (조건 수정·초기화는 상단 조건바에서)
           showSection('bf-result');
           showResults();
-          // "프로필 수정" 안내
-          $('bf-result-title').insertAdjacentHTML('afterend', '<p class="bf-result__saved-note">저장된 프로필로 결과를 보여드리고 있어요. <button type="button" id="bf-edit" class="bf-link">수정하기</button></p>');
-          $('bf-edit').addEventListener('click', function () { showSection('bf-flow'); step = 0; renderStep(); });
         }
       } catch (e) {}
     })();

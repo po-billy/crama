@@ -364,6 +364,7 @@ const faqLd = {
         // GA4
         try { if (window.gtag) gtag('event', 'checkup_result', { score: r.total, grade: r.grade, loggedIn: ckLoggedIn }); } catch (e) {}
         updateCkBar();
+        try { localStorage.setItem('crama:checkup:data', JSON.stringify(data)); } catch (e) {} // 자동 저장 — 재방문 시 마지막 입력 복원
       }
 
       // ── 내 입력값 요약 바 + 수정 바텀시트 ──

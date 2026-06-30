@@ -1,0 +1,559 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { BENEFITS, BENEFIT_CATEGORIES, REGIONS } from '../data/benefits';
+
+// 빌드 시점에 데이터를 인라인(JSON) — 클라이언트 JS에서 매칭
+const benefitsJson = JSON.stringify(BENEFITS);
+const categoriesJson = JSON.stringify(BENEFIT_CATEGORIES);
+const regionsJson = JSON.stringify(REGIONS);
+---
+<BaseLayout
+  title="내 혜택 찾기 — 나에게 해당되는 지원금을 3분 만에"
+  description="나이·소득·상황만 입력하면, 지금 당장 신청할 수 있는 정부 지원금·혜택을 찾아드립니다. 계산기가 아니라 진짜로 찾아주는 서비스."
+  image="/img/generated/benefits-og.webp"
+>
+  <div class="bf">
+    <!-- ━━ 1. 인트로 ━━ -->
+    <section class="bf-hero" id="bf-hero">
+      <div class="bf-hero__inner">
+        <span class="bf-hero__badge">서비스</span>
+        <h1 class="bf-hero__title">나에게 해당되는<br/>혜택, <em>진짜로</em> 찾아드려요</h1>
+        <p class="bf-hero__lead">
+          5가지 질문이면 충분합니다.<br/>
+          지금 신청할 수 있는 지원금·대출·공제를<br/>
+          <strong>놓치지 않게</strong> 한눈에 보여드릴게요.
+        </p>
+        <div class="bf-hero__stats">
+          <div class="bf-stat"><span class="bf-stat__num">{BENEFITS.length}</span><span class="bf-stat__label">혜택 수록</span></div>
+          <div class="bf-stat"><span class="bf-stat__num">3분</span><span class="bf-stat__label">소요 시간</span></div>
+          <div class="bf-stat"><span class="bf-stat__num">0원</span><span class="bf-stat__label">완전 무료</span></div>
+        </div>
+        <button class="bf-cta" type="button" id="bf-start">내 혜택 찾기 시작 →</button>
+        <p class="bf-hero__note">입력하신 정보는 기기에만 저장되며 서버로 전송되지 않습니다.</p>
+      </div>
+    </section>
+
+    <!-- ━━ 2. 프로필 입력 (단계별) ━━ -->
+    <section class="bf-flow" id="bf-flow" hidden>
+      <div class="bf-flow__top">
+        <button class="bf-flow__back" type="button" id="bf-back" aria-label="이전">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5m7-7-7 7 7 7"/></svg>
+        </button>
+        <div class="bf-progress"><span class="bf-progress__bar" id="bf-bar"></span></div>
+        <span class="bf-flow__step" id="bf-step-label"></span>
+      </div>
+
+      <div class="bf-step" id="bf-step">
+        <!-- JS가 단계별 콘텐츠를 렌더 -->
+      </div>
+
+      <div class="bf-flow__footer">
+        <button class="bf-cta bf-cta--next" type="button" id="bf-next" disabled>다음 →</button>
+      </div>
+    </section>
+
+    <!-- ━━ 3. 결과 대시보드 ━━ -->
+    <section class="bf-result" id="bf-result" hidden>
+      <div class="bf-result__hero">
+        <p class="bf-result__eyebrow">분석 완료</p>
+        <h2 class="bf-result__title" id="bf-result-title"></h2>
+        <p class="bf-result__amount" id="bf-result-amount"></p>
+        <p class="bf-result__sub">예상 연간 혜택 총액 (최대 기준)</p>
+      </div>
+
+      <div class="bf-filters" id="bf-filters"></div>
+
+      <div class="bf-cards" id="bf-cards">
+        <!-- JS가 매칭 결과 카드를 렌더 -->
+      </div>
+
+      <div class="bf-result__actions">
+        <button class="bf-cta" type="button" id="bf-save">프로필 저장하기</button>
+        <button class="bf-cta bf-cta--ghost" type="button" id="bf-retry">다시 입력하기</button>
+      </div>
+
+      <div class="bf-result__cta-box" id="bf-save-done" hidden>
+        <p>프로필이 저장됐어요. 다음에 방문하면 바로 결과를 보여드릴게요.</p>
+      </div>
+
+      <div class="bf-result__note">
+        <p>※ 이 결과는 공개된 자격 요건을 기반으로 한 <strong>예상 결과</strong>입니다. 실제 수급 여부는 각 기관에서 최종 확인하세요.</p>
+        <p>데이터 기준: 2026년 6월 · 정책 변경 시 업데이트됩니다.</p>
+      </div>
+    </section>
+  </div>
+
+  <script is:inline define:vars={{ benefitsJson, categoriesJson, regionsJson }}>
+    (() => {
+      const BENEFITS = JSON.parse(benefitsJson);
+      const CATS = JSON.parse(categoriesJson);
+      const REGIONS = JSON.parse(regionsJson);
+      const STORAGE_KEY = 'crama:benefits:profile';
+      const $ = (id) => document.getElementById(id);
+
+      // ── 중위소득 계산 ──
+      const MEDIAN = { 1: 2392, 2: 3932, 3: 5025, 4: 6097, 5: 7108, 6: 8064 };
+      function medianIncome(fam, pct) {
+        return Math.round((MEDIAN[Math.min(fam, 6)] || MEDIAN[4]) * 12 * (pct / 100));
+      }
+
+      // ── 매칭 엔진 ──
+      function match(p) {
+        return BENEFITS.filter(function (b) {
+          var e = b.eligibility;
+          if (e.ageMin != null && p.age < e.ageMin) return false;
+          if (e.ageMax != null && p.age > e.ageMax) return false;
+          if (e.incomeMax != null && p.income > e.incomeMax) return false;
+          if (e.incomePercentile != null && p.income > medianIncome(p.familySize, e.incomePercentile)) return false;
+          if (e.employment && e.employment.indexOf(p.employment) === -1) return false;
+          if (e.housing && e.housing.indexOf(p.housing) === -1) return false;
+          if (e.region && e.region.indexOf(p.region) === -1) return false;
+          if (e.familySizeMin != null && p.familySize < e.familySizeMin) return false;
+          if (e.hasChildren === true && !p.hasChildren) return false;
+          if (e.childAgeMax != null && (!p.hasChildren || (p.childAge == null ? 99 : p.childAge) > e.childAgeMax)) return false;
+          if (e.isNewlywed === true && !p.isNewlywed) return false;
+          if (e.isPregnant === true && !p.isPregnant) return false;
+          return true;
+        }).sort(function (a, b) { return b.amountValue - a.amountValue; });
+      }
+
+      // ── 상태 ──
+      var profile = { age: 28, income: 3000, employment: 'employed', housing: 'rent', region: 'seoul', familySize: 1, hasChildren: false, childAge: null, isNewlywed: false, isPregnant: false };
+      var step = 0;
+      var STEPS = [
+        { key: 'basic', title: '기본 정보', question: '나이와 거주 지역을 알려주세요' },
+        { key: 'work', title: '일과 소득', question: '현재 상황을 알려주세요' },
+        { key: 'housing', title: '주거', question: '주거 형태를 알려주세요' },
+        { key: 'family', title: '가족', question: '가구 구성을 알려주세요' },
+        { key: 'extra', title: '추가 정보', question: '해당되는 항목이 있다면 체크해 주세요' },
+      ];
+
+      // ── 프로필 입력 UI ──
+      function renderStep() {
+        var s = STEPS[step];
+        $('bf-bar').style.width = ((step + 1) / STEPS.length * 100) + '%';
+        $('bf-step-label').textContent = (step + 1) + ' / ' + STEPS.length;
+        $('bf-back').style.visibility = step === 0 ? 'hidden' : '';
+        var wrap = $('bf-step');
+
+        var html = '<p class="bf-step__q">' + s.question + '</p>';
+
+        if (s.key === 'basic') {
+          html += '<div class="bf-field">' +
+            '<label class="bf-label">나이<input type="number" id="inp-age" class="bf-input" min="15" max="80" value="' + profile.age + '" inputmode="numeric" /></label>' +
+            '</div>' +
+            '<div class="bf-field"><label class="bf-label">거주 지역</label>' +
+            '<div class="bf-chips" id="chips-region">' +
+            Object.keys(REGIONS).map(function (k) {
+              return '<button type="button" class="bf-chip' + (profile.region === k ? ' is-on' : '') + '" data-val="' + k + '">' + REGIONS[k] + '</button>';
+            }).join('') + '</div></div>';
+        } else if (s.key === 'work') {
+          var empOpts = [
+            { val: 'employed', label: '직장인', icon: '💼' },
+            { val: 'self-employed', label: '자영업·프리랜서', icon: '🏪' },
+            { val: 'unemployed', label: '구직 중', icon: '🔍' },
+            { val: 'student', label: '학생', icon: '📚' },
+          ];
+          html += '<div class="bf-field"><label class="bf-label">고용 상태</label>' +
+            '<div class="bf-opts" id="opts-emp">' +
+            empOpts.map(function (o) {
+              return '<button type="button" class="bf-opt' + (profile.employment === o.val ? ' is-on' : '') + '" data-val="' + o.val + '">' +
+                '<span class="bf-opt__icon">' + o.icon + '</span><span>' + o.label + '</span></button>';
+            }).join('') + '</div></div>' +
+            '<div class="bf-field">' +
+            '<label class="bf-label">연소득 (만원)<input type="number" id="inp-income" class="bf-input" min="0" max="30000" step="100" value="' + profile.income + '" inputmode="numeric" /></label>' +
+            '<input type="range" id="rng-income" class="bf-range" min="0" max="15000" step="100" value="' + Math.min(profile.income, 15000) + '" />' +
+            '<div class="bf-range-labels"><span>0</span><span>3,000</span><span>6,000</span><span>9,000</span><span>1.5억</span></div>' +
+            '</div>';
+        } else if (s.key === 'housing') {
+          var housingOpts = [
+            { val: 'own', label: '자가', icon: '🏡' },
+            { val: 'jeonse', label: '전세', icon: '🏢' },
+            { val: 'rent', label: '월세', icon: '🔑' },
+            { val: 'parents', label: '부모님 집', icon: '👨‍👩‍👧' },
+          ];
+          html += '<div class="bf-opts" id="opts-housing">' +
+            housingOpts.map(function (o) {
+              return '<button type="button" class="bf-opt' + (profile.housing === o.val ? ' is-on' : '') + '" data-val="' + o.val + '">' +
+                '<span class="bf-opt__icon">' + o.icon + '</span><span>' + o.label + '</span></button>';
+            }).join('') + '</div>';
+        } else if (s.key === 'family') {
+          html += '<div class="bf-field">' +
+            '<label class="bf-label">가구원 수 (본인 포함)<input type="number" id="inp-fam" class="bf-input" min="1" max="10" value="' + profile.familySize + '" inputmode="numeric" /></label></div>' +
+            '<div class="bf-field"><label class="bf-label">자녀 여부</label>' +
+            '<div class="bf-opts" id="opts-children">' +
+            '<button type="button" class="bf-opt' + (!profile.hasChildren ? ' is-on' : '') + '" data-val="no"><span>없음</span></button>' +
+            '<button type="button" class="bf-opt' + (profile.hasChildren ? ' is-on' : '') + '" data-val="yes"><span>있음</span></button>' +
+            '</div></div>' +
+            '<div class="bf-field" id="child-age-wrap"' + (!profile.hasChildren ? ' hidden' : '') + '>' +
+            '<label class="bf-label">막내 자녀 나이<input type="number" id="inp-child-age" class="bf-input" min="0" max="18" value="' + (profile.childAge ?? 0) + '" inputmode="numeric" /></label></div>';
+        } else if (s.key === 'extra') {
+          html += '<div class="bf-checks">' +
+            '<label class="bf-check"><input type="checkbox" id="chk-newlywed" ' + (profile.isNewlywed ? 'checked' : '') + ' /><span>신혼부부 (혼인 7년 이내)</span></label>' +
+            '<label class="bf-check"><input type="checkbox" id="chk-pregnant" ' + (profile.isPregnant ? 'checked' : '') + ' /><span>임신 중이거나 2년 이내 출산</span></label>' +
+            '</div>';
+        }
+
+        wrap.innerHTML = html;
+        bindStepEvents();
+        checkNext();
+      }
+
+      function bindStepEvents() {
+        var s = STEPS[step];
+        if (s.key === 'basic') {
+          var ageInp = $('inp-age');
+          ageInp.addEventListener('input', function () { profile.age = parseInt(this.value) || 0; checkNext(); });
+          $('chips-region').addEventListener('click', function (ev) {
+            var btn = ev.target.closest('.bf-chip'); if (!btn) return;
+            profile.region = btn.dataset.val;
+            this.querySelectorAll('.bf-chip').forEach(function (c) { c.classList.toggle('is-on', c.dataset.val === profile.region); });
+            checkNext();
+          });
+        } else if (s.key === 'work') {
+          $('opts-emp').addEventListener('click', function (ev) {
+            var btn = ev.target.closest('.bf-opt'); if (!btn) return;
+            profile.employment = btn.dataset.val;
+            this.querySelectorAll('.bf-opt').forEach(function (c) { c.classList.toggle('is-on', c.dataset.val === profile.employment); });
+            checkNext();
+          });
+          var incInp = $('inp-income'), rng = $('rng-income');
+          incInp.addEventListener('input', function () { profile.income = parseInt(this.value) || 0; rng.value = Math.min(profile.income, 15000); checkNext(); });
+          rng.addEventListener('input', function () { profile.income = parseInt(this.value) || 0; incInp.value = profile.income; checkNext(); });
+        } else if (s.key === 'housing') {
+          $('opts-housing').addEventListener('click', function (ev) {
+            var btn = ev.target.closest('.bf-opt'); if (!btn) return;
+            profile.housing = btn.dataset.val;
+            this.querySelectorAll('.bf-opt').forEach(function (c) { c.classList.toggle('is-on', c.dataset.val === profile.housing); });
+            checkNext();
+          });
+        } else if (s.key === 'family') {
+          $('inp-fam').addEventListener('input', function () { profile.familySize = parseInt(this.value) || 1; checkNext(); });
+          $('opts-children').addEventListener('click', function (ev) {
+            var btn = ev.target.closest('.bf-opt'); if (!btn) return;
+            profile.hasChildren = btn.dataset.val === 'yes';
+            this.querySelectorAll('.bf-opt').forEach(function (c) { c.classList.toggle('is-on', (c.dataset.val === 'yes') === profile.hasChildren); });
+            var caw = $('child-age-wrap'); if (caw) caw.hidden = !profile.hasChildren;
+            checkNext();
+          });
+          var caInp = $('inp-child-age');
+          if (caInp) caInp.addEventListener('input', function () { profile.childAge = parseInt(this.value) || 0; });
+        } else if (s.key === 'extra') {
+          $('chk-newlywed').addEventListener('change', function () { profile.isNewlywed = this.checked; });
+          $('chk-pregnant').addEventListener('change', function () { profile.isPregnant = this.checked; });
+        }
+      }
+
+      function checkNext() { $('bf-next').disabled = false; }
+
+      // ── 결과 대시보드 ──
+      function showResults() {
+        var results = match(profile);
+        var total = results.reduce(function (s, b) { return s + b.amountValue; }, 0);
+
+        $('bf-result-title').textContent = '받을 수 있는 혜택 ' + results.length + '건';
+        $('bf-result-amount').innerHTML = '예상 총 <strong>' + total.toLocaleString() + '만원</strong>/년';
+
+        // 카테고리 필터
+        var cats = {};
+        results.forEach(function (b) { cats[b.category] = (cats[b.category] || 0) + 1; });
+        var filterHtml = '<button type="button" class="bf-filter is-on" data-cat="all">전체 ' + results.length + '</button>';
+        Object.keys(cats).forEach(function (c) {
+          var ci = CATS[c];
+          filterHtml += '<button type="button" class="bf-filter" data-cat="' + c + '">' + ci.icon + ' ' + ci.name + ' ' + cats[c] + '</button>';
+        });
+        $('bf-filters').innerHTML = filterHtml;
+
+        // 필터 이벤트
+        $('bf-filters').addEventListener('click', function (ev) {
+          var btn = ev.target.closest('.bf-filter'); if (!btn) return;
+          var cat = btn.dataset.cat;
+          this.querySelectorAll('.bf-filter').forEach(function (f) { f.classList.toggle('is-on', f.dataset.cat === cat); });
+          document.querySelectorAll('.bf-card').forEach(function (card) {
+            card.hidden = cat !== 'all' && card.dataset.cat !== cat;
+          });
+        });
+
+        // 카드 렌더
+        var now = new Date();
+        var cardsHtml = results.map(function (b) {
+          var ci = CATS[b.category];
+          var ddayHtml = '';
+          if (b.deadline && b.deadline !== '상시') {
+            var dl = new Date(b.deadline);
+            var diff = Math.ceil((dl - now) / 86400000);
+            if (diff > 0 && diff <= 60) {
+              ddayHtml = '<span class="bf-card__dday bf-card__dday--urgent">D-' + diff + '</span>';
+            } else if (diff > 0) {
+              ddayHtml = '<span class="bf-card__dday">D-' + diff + '</span>';
+            }
+          }
+
+          return '<div class="bf-card" data-cat="' + b.category + '">' +
+            '<div class="bf-card__head">' +
+              '<span class="bf-card__cat" style="--cat-color:' + ci.color + '">' + ci.icon + ' ' + ci.name + '</span>' +
+              ddayHtml +
+            '</div>' +
+            '<h3 class="bf-card__title">' + b.name + '</h3>' +
+            '<p class="bf-card__summary">' + b.summary + '</p>' +
+            '<div class="bf-card__amount">' + b.amount + '</div>' +
+            (b.deadlineLabel ? '<p class="bf-card__deadline">📅 ' + b.deadlineLabel + '</p>' : '') +
+            '<div class="bf-card__foot">' +
+              '<span class="bf-card__method">' + b.applyMethod + '</span>' +
+              '<a class="bf-card__apply" href="' + b.applyUrl + '" target="_blank" rel="noopener">신청하기 →</a>' +
+            '</div>' +
+            (b.relatedSlug ? '<a class="bf-card__related" href="/blog/' + b.relatedSlug + '/">📖 자세한 가이드 읽기</a>' : '') +
+          '</div>';
+        }).join('');
+
+        if (results.length === 0) {
+          cardsHtml = '<div class="bf-empty">' +
+            '<p class="bf-empty__icon">🔍</p>' +
+            '<p>입력하신 조건에 맞는 혜택을 찾지 못했어요.</p>' +
+            '<p>조건을 변경하거나, <a href="/tools/">금융 계산기</a>를 활용해 보세요.</p>' +
+          '</div>';
+        }
+
+        $('bf-cards').innerHTML = cardsHtml;
+
+        // GA4 이벤트
+        try { if (window.gtag) gtag('event', 'benefits_result', { count: results.length, total: total }); } catch (e) {}
+      }
+
+      // ── 네비게이션 ──
+      function showSection(id) {
+        ['bf-hero', 'bf-flow', 'bf-result'].forEach(function (s) {
+          $(s).hidden = s !== id;
+        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      $('bf-start').addEventListener('click', function () {
+        showSection('bf-flow');
+        step = 0; renderStep();
+      });
+
+      $('bf-back').addEventListener('click', function () {
+        if (step > 0) { step--; renderStep(); }
+        else showSection('bf-hero');
+      });
+
+      $('bf-next').addEventListener('click', function () {
+        if (step < STEPS.length - 1) { step++; renderStep(); }
+        else { showSection('bf-result'); showResults(); }
+      });
+
+      $('bf-retry').addEventListener('click', function () {
+        showSection('bf-flow');
+        step = 0; renderStep();
+      });
+
+      $('bf-save').addEventListener('click', function () {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(profile)); } catch (e) {}
+        $('bf-save-done').hidden = false;
+        this.textContent = '✓ 저장 완료';
+        this.disabled = true;
+      });
+
+      // ── 저장된 프로필 복원 ──
+      try {
+        var saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          var p = JSON.parse(saved);
+          Object.assign(profile, p);
+          // 바로 결과 표시
+          showSection('bf-result');
+          showResults();
+          // "프로필 수정" 안내
+          $('bf-result-title').insertAdjacentHTML('afterend', '<p class="bf-result__saved-note">저장된 프로필로 결과를 보여드리고 있어요. <button type="button" id="bf-edit" class="bf-link">수정하기</button></p>');
+          $('bf-edit').addEventListener('click', function () { showSection('bf-flow'); step = 0; renderStep(); });
+        }
+      } catch (e) {}
+    })();
+  </script>
+
+  <style>
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       내 혜택 찾기 — 프리미엄 서비스 UI
+       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    .bf { max-width: 40rem; margin: 0 auto; padding: 0 1rem; }
+
+    /* ── 히어로 ── */
+    .bf-hero { text-align: center; padding: 3rem 0 2rem; }
+    .bf-hero__badge {
+      display: inline-block; padding: 0.3rem 0.8rem; background: var(--accent-soft);
+      color: var(--accent); font-size: 0.78rem; font-weight: 700; border-radius: 20px;
+      letter-spacing: 0.05em; margin-bottom: 1.2rem;
+    }
+    .bf-hero__title {
+      font-family: var(--font-serif); font-size: clamp(1.8rem, 5vw, 2.6rem);
+      line-height: 1.3; letter-spacing: -0.02em; margin: 0 0 1.2rem;
+    }
+    .bf-hero__title em { font-style: normal; color: var(--accent); }
+    .bf-hero__lead { color: var(--muted); font-size: 1.05rem; line-height: 1.7; margin: 0 0 2rem; }
+    .bf-hero__stats {
+      display: flex; justify-content: center; gap: 2rem; margin: 0 0 2rem;
+      padding: 1.2rem; background: var(--paper-2); border-radius: 12px;
+    }
+    .bf-stat { text-align: center; }
+    .bf-stat__num { display: block; font-size: 1.4rem; font-weight: 800; color: var(--ink); }
+    .bf-stat__label { font-size: 0.78rem; color: var(--muted); }
+    .bf-hero__note { font-size: 0.75rem; color: var(--muted); margin-top: 1rem; opacity: 0.7; }
+
+    /* ── 공통 CTA 버튼 ── */
+    .bf-cta {
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+      width: 100%; padding: 1rem; font: inherit; font-size: 1.05rem; font-weight: 700;
+      border: none; border-radius: 12px; cursor: pointer;
+      background: var(--ink); color: var(--paper); transition: all 0.15s;
+    }
+    .bf-cta:hover:not(:disabled) { filter: brightness(1.15); transform: translateY(-1px); }
+    .bf-cta:disabled { opacity: 0.4; cursor: not-allowed; }
+    .bf-cta--ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+    .bf-cta--next { max-width: 20rem; margin: 0 auto; }
+    .bf-link { background: none; border: none; color: var(--accent); font: inherit; font-weight: 600; cursor: pointer; text-decoration: underline; padding: 0; }
+
+    /* ── 플로우 (프로필 입력) ── */
+    .bf-flow { padding: 1rem 0 2rem; }
+    .bf-flow__top { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 2rem; }
+    .bf-flow__back { background: none; border: none; cursor: pointer; color: var(--ink); padding: 0.2rem; line-height: 1; }
+    .bf-flow__step { font-size: 0.82rem; color: var(--muted); font-weight: 600; white-space: nowrap; }
+    .bf-progress { flex: 1; height: 6px; background: var(--paper-2); border-radius: 99px; overflow: hidden; }
+    .bf-progress__bar { display: block; height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.35s ease; }
+
+    .bf-step__q { font-family: var(--font-serif); font-size: 1.35rem; font-weight: 600; line-height: 1.35; margin: 0 0 1.5rem; }
+
+    .bf-flow__footer { margin-top: 2rem; text-align: center; }
+
+    /* ── 입력 필드 ── */
+    .bf-field { margin-bottom: 1.4rem; }
+    .bf-label { display: block; font-size: 0.88rem; font-weight: 600; color: var(--ink-soft); margin-bottom: 0.4rem; }
+    .bf-input {
+      display: block; width: 100%; padding: 0.75rem 1rem; font: inherit; font-size: 1.1rem;
+      border: 2px solid var(--line); border-radius: 10px; background: var(--paper);
+      color: var(--ink); margin-top: 0.3rem; transition: border-color 0.15s;
+    }
+    .bf-input:focus { outline: none; border-color: var(--accent); }
+
+    .bf-range { width: 100%; margin-top: 0.5rem; accent-color: var(--accent); }
+    .bf-range-labels { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--muted); margin-top: 0.2rem; }
+
+    /* ── 선택 옵션 (큰 카드형) ── */
+    .bf-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+    .bf-opt {
+      display: flex; flex-direction: column; align-items: center; gap: 0.3rem;
+      padding: 1.1rem 0.8rem; border: 2px solid var(--line); border-radius: 12px;
+      background: var(--paper); cursor: pointer; transition: all 0.15s; font: inherit; color: var(--ink);
+    }
+    .bf-opt:hover { border-color: var(--accent); }
+    .bf-opt.is-on { border-color: var(--accent); background: var(--accent-soft); font-weight: 700; }
+    .bf-opt__icon { font-size: 1.6rem; }
+
+    /* ── 칩 선택 (지역 등) ── */
+    .bf-chips { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+    .bf-chip {
+      padding: 0.45rem 0.85rem; border: 1px solid var(--line); border-radius: 20px;
+      background: var(--paper); cursor: pointer; font: inherit; font-size: 0.88rem;
+      color: var(--ink-soft); transition: all 0.12s;
+    }
+    .bf-chip:hover { border-color: var(--accent); }
+    .bf-chip.is-on { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+
+    /* ── 체크박스 ── */
+    .bf-checks { display: flex; flex-direction: column; gap: 0.8rem; }
+    .bf-check {
+      display: flex; align-items: center; gap: 0.7rem; padding: 1rem 1.2rem;
+      border: 2px solid var(--line); border-radius: 12px; cursor: pointer;
+      transition: border-color 0.12s; font-size: 0.95rem;
+    }
+    .bf-check:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+    .bf-check input { width: 1.1rem; height: 1.1rem; accent-color: var(--accent); flex: none; }
+
+    /* ── 결과 대시보드 ── */
+    .bf-result { padding: 0 0 3rem; }
+    .bf-result__hero {
+      text-align: center; padding: 2.5rem 1rem;
+      background: linear-gradient(135deg, var(--accent) 0%, #8b5cf6 100%);
+      border-radius: 16px; color: #fff; margin-bottom: 1.5rem;
+    }
+    .bf-result__eyebrow { font-size: 0.8rem; font-weight: 600; opacity: 0.8; margin: 0 0 0.5rem; letter-spacing: 0.08em; }
+    .bf-result__title { font-family: var(--font-serif); font-size: 1.6rem; margin: 0 0 0.6rem; }
+    .bf-result__amount { font-size: 2rem; font-weight: 800; margin: 0; }
+    .bf-result__amount strong { font-size: 2.4rem; }
+    .bf-result__sub { font-size: 0.78rem; opacity: 0.7; margin: 0.3rem 0 0; }
+    .bf-result__saved-note { text-align: center; font-size: 0.88rem; color: var(--muted); margin: -0.5rem 0 1.5rem; }
+
+    /* ── 카테고리 필터 ── */
+    .bf-filters { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1.2rem; overflow-x: auto; padding-bottom: 0.3rem; }
+    .bf-filter {
+      padding: 0.4rem 0.9rem; border: 1px solid var(--line); border-radius: 20px;
+      background: var(--paper); font: inherit; font-size: 0.82rem; font-weight: 500;
+      color: var(--ink-soft); cursor: pointer; white-space: nowrap; transition: all 0.12s;
+    }
+    .bf-filter:hover { border-color: var(--accent); }
+    .bf-filter.is-on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+    /* ── 혜택 카드 ── */
+    .bf-cards { display: flex; flex-direction: column; gap: 1rem; }
+    .bf-card {
+      border: 1px solid var(--line); border-radius: 14px; padding: 1.3rem 1.4rem;
+      background: var(--paper); transition: box-shadow 0.15s;
+    }
+    .bf-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.06); }
+    .bf-card__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem; }
+    .bf-card__cat { font-size: 0.78rem; font-weight: 600; color: var(--cat-color, var(--accent)); }
+    .bf-card__dday {
+      font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.6rem;
+      border-radius: 6px; background: var(--paper-2); color: var(--ink-soft);
+    }
+    .bf-card__dday--urgent { background: #fee2e2; color: #dc2626; }
+    .bf-card__title { font-size: 1.1rem; font-weight: 700; margin: 0 0 0.5rem; line-height: 1.35; }
+    .bf-card__summary { font-size: 0.9rem; color: var(--ink-soft); line-height: 1.6; margin: 0 0 0.8rem; }
+    .bf-card__amount {
+      font-size: 1rem; font-weight: 800; color: var(--accent);
+      padding: 0.6rem 0.8rem; background: var(--accent-soft); border-radius: 8px;
+      margin-bottom: 0.6rem; display: inline-block;
+    }
+    .bf-card__deadline { font-size: 0.82rem; color: var(--muted); margin: 0 0 0.6rem; }
+    .bf-card__foot { display: flex; justify-content: space-between; align-items: center; margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid var(--line); }
+    .bf-card__method { font-size: 0.8rem; color: var(--muted); }
+    .bf-card__apply {
+      font-size: 0.88rem; font-weight: 700; color: var(--accent);
+      text-decoration: none; padding: 0.4rem 0.9rem; border: 1px solid var(--accent);
+      border-radius: 8px; transition: all 0.12s;
+    }
+    .bf-card__apply:hover { background: var(--accent); color: #fff; }
+    .bf-card__related {
+      display: block; margin-top: 0.6rem; font-size: 0.84rem; color: var(--ink-soft);
+      text-decoration: none; padding: 0.5rem 0.8rem; background: var(--paper-2);
+      border-radius: 8px; transition: color 0.12s;
+    }
+    .bf-card__related:hover { color: var(--accent); }
+
+    /* ── 빈 상태 ── */
+    .bf-empty { text-align: center; padding: 3rem 1rem; color: var(--muted); }
+    .bf-empty__icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+
+    /* ── 하단 액션 ── */
+    .bf-result__actions { display: flex; gap: 0.8rem; margin-top: 2rem; }
+    .bf-result__actions .bf-cta { flex: 1; }
+    .bf-result__cta-box {
+      text-align: center; padding: 1rem; margin-top: 1rem;
+      background: var(--accent-soft); border-radius: 10px;
+      font-size: 0.9rem; color: var(--accent); font-weight: 500;
+    }
+    .bf-result__note {
+      margin-top: 2rem; padding: 1rem 1.2rem;
+      background: var(--paper-2); border-radius: 10px;
+      font-size: 0.8rem; color: var(--muted); line-height: 1.7;
+    }
+    .bf-result__note p { margin: 0.3rem 0; }
+
+    /* ── 반응형 ── */
+    @media (max-width: 480px) {
+      .bf-hero__stats { gap: 1rem; padding: 1rem 0.5rem; }
+      .bf-opts { grid-template-columns: 1fr 1fr; }
+      .bf-result__actions { flex-direction: column; }
+    }
+  </style>
+</BaseLayout>

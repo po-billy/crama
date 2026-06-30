@@ -343,7 +343,13 @@ const faqLd = {
             '<p class="bf-card__summary">' + b.summary + '</p>' +
             '<div class="bf-card__amount">' + b.amount + '</div>' +
             (b.deadlineLabel ? '<p class="bf-card__deadline">' + b.deadlineLabel + '</p>' : '') +
-            '<div class="bf-card__foot"><span class="bf-card__method">' + b.applyMethod + '</span>' +
+            '<div class="bf-card__foot">' +
+            '<span class="bf-card__method">' + b.applyMethod + '</span>' +
+            (b.applyMethod.indexOf('온라인') !== -1 || b.applyMethod.indexOf('앱') !== -1
+              ? '<span class="bf-card__ease bf-card__ease--easy">간편 신청</span>'
+              : b.applyMethod.indexOf('방문') !== -1
+              ? '<span class="bf-card__ease bf-card__ease--visit">방문 필요</span>'
+              : '') +
             '<a class="bf-card__apply" href="' + b.applyUrl + '" target="_blank" rel="noopener">신청하기 →</a></div>' +
             (b.relatedSlug ? '<a class="bf-card__related" href="/blog/' + b.relatedSlug + '/">자세한 가이드 읽기 →</a>' : '') +
           '</div>';
@@ -607,7 +613,10 @@ const faqLd = {
     }
     .bf-card__deadline { font-size: 0.82rem; color: var(--muted); margin: 0 0 0.6rem; }
     .bf-card__foot { display: flex; justify-content: space-between; align-items: center; margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid var(--line); }
-    .bf-card__method { font-size: 0.8rem; color: var(--muted); }
+    .bf-card__method { font-size: 0.8rem; color: var(--muted); flex: 1; }
+    .bf-card__ease { font-size: 0.7rem; font-weight: 600; padding: 0.15rem 0.5rem; border-radius: 4px; white-space: nowrap; }
+    .bf-card__ease--easy { background: #dcfce7; color: #16a34a; }
+    .bf-card__ease--visit { background: #fef9c3; color: #a16207; }
     .bf-card__apply {
       font-size: 0.88rem; font-weight: 700; color: var(--accent);
       text-decoration: none; padding: 0.4rem 0.9rem; border: 1px solid var(--accent);

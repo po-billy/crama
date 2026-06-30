@@ -80,8 +80,9 @@ const faqLd = {
       </div>
 
       <div class="bf-result__actions">
-        <button class="bf-cta" type="button" id="bf-save">프로필 저장하기</button>
-        <button class="bf-cta bf-cta--ghost" type="button" id="bf-retry">다시 입력하기</button>
+        <button class="bf-cta" type="button" id="bf-share-result">결과 공유하기</button>
+        <button class="bf-cta bf-cta--ghost" type="button" id="bf-save">프로필 저장</button>
+        <button class="bf-cta bf-cta--ghost" type="button" id="bf-retry">다시 입력</button>
       </div>
 
       <div class="bf-result__cta-box" id="bf-save-done" hidden>
@@ -385,6 +386,17 @@ const faqLd = {
         $('bf-save-done').hidden = false;
         this.textContent = '✓ 저장 완료';
         this.disabled = true;
+      });
+
+      $('bf-share-result').addEventListener('click', async function () {
+        var results = match(profile);
+        var total = results.reduce(function (s, b) { return s + b.amountValue; }, 0);
+        var text = '나는 ' + results.length + '건, 약 ' + total.toLocaleString() + '만원의 혜택을 받을 수 있대요!\n크라마 "내 혜택 찾기"로 확인해 보세요.';
+        var url = location.origin + '/benefits/';
+        try {
+          if (navigator.share) await navigator.share({ title: '내 혜택 찾기 결과', text: text, url: url });
+          else { await navigator.clipboard.writeText(text + '\n' + url); alert('결과를 복사했어요! 친구에게 공유해 보세요.'); }
+        } catch (_) {}
       });
 
       // ── 저장된 프로필 복원 ──

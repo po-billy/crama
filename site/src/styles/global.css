@@ -432,6 +432,7 @@ hr {
 .svc-widget__icon .duoicon { width: 28px; height: 28px; }
 /* 서비스 아이콘 공통 사이즈 */
 .svc-ico { width: 28px; height: 28px; flex: none; }
+.svc-ico--sm { width: 22px; height: 22px; }
 .svc-ico--lg { width: 36px; height: 36px; }
 .svc-widget__label { font-size: 0.78rem; color: var(--muted); font-weight: 500; }
 .svc-widget__val { font-size: 0.95rem; color: var(--accent); }

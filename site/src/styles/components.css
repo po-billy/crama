@@ -752,7 +752,7 @@
   transition: border-color 0.12s, box-shadow 0.12s;
 }
 .svc-inline__card:hover { border-color: var(--accent); box-shadow: 0 2px 12px rgba(0,0,0,.06); }
-.svc-inline__icon { font-size: 1.2rem; flex: none; width: 2.2rem; height: 2.2rem; display: flex; align-items: center; justify-content: center; background: var(--accent-soft); border-radius: 50%; }
+.svc-inline__icon { flex: none; display: flex; align-items: center; justify-content: center; }
 .svc-inline__card div { flex: 1; }
 .svc-inline__card strong { font-size: 0.95rem; display: block; }
 .svc-inline__card p { font-size: 0.82rem; color: var(--muted); margin: 0.2rem 0 0; }

@@ -14,6 +14,7 @@ import GlossaryTooltips from '../components/GlossaryTooltips.astro';
 import TagList from '../components/TagList.astro';
 import AuthorBox from '../components/AuthorBox.astro';
 import ContentRail from '../components/ContentRail.astro';
+import DuoIcon from '../components/DuoIcon.astro';
 import SubscribeBox from '../components/SubscribeBox.astro';
 import { SITE, CATEGORIES, type CategorySlug } from '../consts';
 import { bylineLabel, resolveAuthorName, getPersona, REAL_AUTHOR } from '../data/personas';
@@ -170,7 +171,7 @@ const jsonLd = {
       <div class="svc-inline measure">
         {category === 'income' ? (
           <a href="/benefits/" class="svc-inline__card">
-            <span class="svc-inline__icon">💰</span>
+            <span class="svc-inline__icon"><DuoIcon name="benefits" class="svc-ico--sm" /></span>
             <div>
               <strong>나에게 해당되는 지원금 찾기</strong>
               <p>5가지 질문이면 받을 수 있는 혜택을 바로 알려드려요</p>
@@ -179,7 +180,7 @@ const jsonLd = {
           </a>
         ) : category === 'money' ? (
           <a href="/checkup/" class="svc-inline__card">
-            <span class="svc-inline__icon">🩺</span>
+            <span class="svc-inline__icon"><DuoIcon name="checkup" class="svc-ico--sm" /></span>
             <div>
               <strong>내 재무 건강 체크업</strong>
               <p>저축률·비상금·부채 — 5분 만에 종합 진단</p>
@@ -188,7 +189,7 @@ const jsonLd = {
           </a>
         ) : (
           <a href="/benefits/" class="svc-inline__card">
-            <span class="svc-inline__icon">💰</span>
+            <span class="svc-inline__icon"><DuoIcon name="benefits" class="svc-ico--sm" /></span>
             <div>
               <strong>내 혜택 찾기</strong>
               <p>지원금·대출·공제를 3분 만에 찾아드려요</p>

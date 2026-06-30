@@ -37,11 +37,24 @@ import { SITE, NAV } from '../consts';
     const t = document.getElementById('nav-toggle');
     const nav = document.getElementById('nav');
     if (!t || !nav) return;
-    const set = (o) => { nav.classList.toggle('is-open', o); t.setAttribute('aria-expanded', String(o)); };
+    const links = nav.querySelectorAll('a');
+    const set = (o) => {
+      nav.classList.toggle('is-open', o);
+      t.setAttribute('aria-expanded', String(o));
+      if (o && links.length) links[0].focus();
+      else if (!o) t.focus();
+    };
     t.addEventListener('click', (e) => { e.stopPropagation(); set(!nav.classList.contains('is-open')); });
     nav.addEventListener('click', (e) => { if (e.target.closest('a')) set(false); });
     document.addEventListener('click', (e) => { if (!nav.contains(e.target) && !t.contains(e.target)) set(false); });
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') set(false); });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && nav.classList.contains('is-open')) { set(false); return; }
+      if (!nav.classList.contains('is-open') || !links.length) return;
+      if (e.key === 'Tab') {
+        if (e.shiftKey && document.activeElement === links[0]) { e.preventDefault(); links[links.length - 1].focus(); }
+        else if (!e.shiftKey && document.activeElement === links[links.length - 1]) { e.preventDefault(); links[0].focus(); }
+      }
+    });
   })();
 
   // 스크롤 내리면 브랜드 줄을 숨기고 메뉴·검색·테마 바만 남기기.

@@ -26,6 +26,7 @@ const toCard = (p: (typeof posts)[number]) => ({
   thumb: p.data.thumb,
   audio: !!p.data.audio,
   format: p.data.format,
+  readingTime: Math.max(1, Math.round((p.body?.length ?? 0) / 500)),
 });
 
 // 허브(필러) + 입문 가이드 — 별도 섹션으로 분리, 랭킹/최신에서는 제외
@@ -99,7 +100,7 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
             <a class={i === 0 ? 'rslide is-active' : 'rslide'} href={s.href} data-slide={i} style={`--panel:${s.panel ?? '#1b1b22'}; --rtext:${s.ink ?? '#fff'}`}>
               <picture>
                 <source media="(min-width: 1024px)" srcset={s.img} />
-                <img class="rslide__bg" src={s.imgMobile ?? s.img} alt="" loading={i === 0 ? 'eager' : 'lazy'} fetchpriority={i === 0 ? 'high' : 'auto'} />
+                <img class="rslide__bg" src={s.imgMobile ?? s.img} alt={s.title || ''} width="1200" height="675" style="aspect-ratio:16/9;object-fit:cover;" loading={i === 0 ? 'eager' : 'lazy'} fetchpriority={i === 0 ? 'high' : 'auto'} />
               </picture>
               <h2 class="rslide__title" set:html={s.title}></h2>
               <p class="rslide__desc">{s.desc}</p>

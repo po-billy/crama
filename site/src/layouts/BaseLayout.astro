@@ -31,10 +31,11 @@ const { spa, ...props } = Astro.props;
         window.__cramaCtl = function () {
           if (window.__cramaPlayer) return window.__cramaPlayer;
           var audio = new Audio(); audio.preload = 'none';
-          var C = { audio: audio, slug: null, href: '', rate: 1, autoNext: false, follow: true, hooks: {} };
-          try { C.rate = parseFloat(localStorage.getItem('crama:tts:rate')) || 1; } catch (e) {}
+          var C = { audio: audio, slug: null, href: '', rate: 1.25, autoNext: false, follow: true, hooks: {} };
+          try { C.rate = parseFloat(localStorage.getItem('crama:tts:rate')) || 1.25; } catch (e) {}
           try { C.autoNext = localStorage.getItem('crama:tts:auto') === '1'; } catch (e) {}
-          audio.playbackRate = C.rate;
+          // defaultPlaybackRate 도 함께 설정 — 새 src 로드 시 playbackRate 가 1.0 으로 리셋되는 것 방지
+          audio.defaultPlaybackRate = C.rate; audio.playbackRate = C.rate;
           ['timeupdate', 'play', 'pause', 'ended', 'loadedmetadata'].forEach(function (n) { audio.addEventListener(n, function (e) { if (C.hooks[n]) C.hooks[n](e); }); });
           window.__cramaPlayer = C; return C;
         };

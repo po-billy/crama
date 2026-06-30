@@ -36,67 +36,108 @@ function pgConn() {
 /* ── HTML 이메일 템플릿 ── */
 function buildHtml({ hook, title, description, image, url, slug }) {
   const unsubUrl = `https://crama.app/unsubscribe/?email={{EMAIL}}`;
+  const today = new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' });
   return `<!DOCTYPE html>
 <html lang="ko">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${title}</title></head>
-<body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;">
-<tr><td align="center" style="padding:32px 16px;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);">
+<title>${title}</title>
+<style>
+  @media (prefers-color-scheme: dark) {
+    body, .email-bg { background: #1a1a2e !important; }
+    .email-card { background: #22223b !important; }
+    .email-ink { color: #e8e6e3 !important; }
+    .email-muted { color: #a0a0b0 !important; }
+    .email-chip { background: #2a2a3e !important; color: #c0c0d0 !important; }
+    .email-divider { border-color: #333350 !important; }
+    .email-cta { background: #e8e6e3 !important; color: #1a1a2e !important; }
+  }
+</style>
+</head>
+<body class="email-bg" style="margin:0;padding:0;background:#f0f0f3;font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',Roboto,sans-serif;">
+<!-- 프리헤더 (이메일 앱 미리보기 텍스트) -->
+<div style="display:none;font-size:1px;color:#f0f0f3;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">
+  ${(description || '').slice(0, 120)}
+</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f0f0f3;">
+<tr><td align="center" style="padding:40px 16px;">
 
-  <!-- 헤더 -->
-  <tr><td style="background:#1e293b;padding:20px 28px;">
-    <p style="margin:0;font-size:18px;font-weight:700;color:#ffffff;letter-spacing:-.3px;">
-      ☕ 오늘의 브리핑
-    </p>
-    <p style="margin:4px 0 0;font-size:12px;color:#94a3b8;">매일 아침 3분, 크라마</p>
+<!-- 로고 영역 -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
+  <tr><td style="padding:0 0 20px;text-align:center;">
+    <a href="https://crama.app" class="email-ink" style="text-decoration:none;color:#0f172a;font-size:20px;font-weight:800;letter-spacing:-.5px;">Crama</a>
+    <span style="color:#94a3b8;font-size:13px;margin-left:6px;">${today}</span>
   </td></tr>
+</table>
+
+<!-- 메인 카드 -->
+<table class="email-card" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(15,23,42,.06);">
 
   <!-- 히어로 이미지 -->
   ${image ? `<tr><td style="padding:0;">
-    <a href="${url}" target="_blank">
-      <img src="${image}" alt="" width="560" style="display:block;width:100%;height:auto;border:0;" />
+    <a href="${url}" target="_blank" style="display:block;">
+      <img src="${image}" alt="" width="520" style="display:block;width:100%;height:auto;border:0;" />
     </a>
   </td></tr>` : ''}
 
+  <!-- 카테고리 칩 -->
+  <tr><td style="padding:24px 28px 0;">
+    <span class="email-chip" style="display:inline-block;padding:4px 10px;background:#f1f5f9;color:#475569;font-size:12px;font-weight:600;border-radius:20px;letter-spacing:.02em;">오늘의 브리핑</span>
+  </td></tr>
+
   <!-- 훅 카피 -->
-  <tr><td style="padding:28px 28px 0;">
-    <p style="margin:0;font-size:22px;font-weight:800;color:#0f172a;line-height:1.4;letter-spacing:-.5px;">
-      ${hook || title}
-    </p>
+  <tr><td style="padding:14px 28px 0;">
+    <a href="${url}" target="_blank" style="text-decoration:none;">
+      <p class="email-ink" style="margin:0;font-size:21px;font-weight:800;color:#0f172a;line-height:1.45;letter-spacing:-.4px;">
+        ${hook || title}
+      </p>
+    </a>
   </td></tr>
 
   <!-- 본문 요약 -->
-  <tr><td style="padding:12px 28px 0;">
-    <p style="margin:0;font-size:15px;color:#475569;line-height:1.7;">
+  <tr><td style="padding:10px 28px 0;">
+    <p class="email-muted" style="margin:0;font-size:14.5px;color:#64748b;line-height:1.7;">
       ${description}
     </p>
   </td></tr>
 
   <!-- CTA 버튼 -->
-  <tr><td style="padding:24px 28px;">
-    <a href="${url}" target="_blank" style="display:inline-block;padding:12px 28px;background:#2563eb;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;border-radius:8px;">
+  <tr><td style="padding:22px 28px 0;">
+    <a href="${url}" target="_blank" class="email-cta" style="display:inline-block;padding:11px 24px;background:#0f172a;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;border-radius:999px;letter-spacing:.01em;">
       3분 읽기 →
     </a>
   </td></tr>
 
-  <!-- 구분선 -->
-  <tr><td style="padding:0 28px;">
-    <hr style="border:none;border-top:1px solid #e2e8f0;margin:0;" />
-  </td></tr>
-
-  <!-- 푸터 -->
-  <tr><td style="padding:20px 28px 28px;">
-    <p style="margin:0;font-size:12px;color:#94a3b8;line-height:1.6;">
-      <a href="https://crama.app" style="color:#64748b;text-decoration:none;font-weight:600;">크라마</a>
-      · 먼저 읽는 사람들<br/>
-      이 메일은 crama.app 에서 구독하신 분께 발송됩니다.<br/>
-      <a href="${unsubUrl}" style="color:#94a3b8;text-decoration:underline;">수신 거부</a>
-    </p>
+  <!-- 에디터 인사 -->
+  <tr><td style="padding:24px 28px 28px;">
+    <table role="presentation" cellpadding="0" cellspacing="0" class="email-divider" style="border-top:1px solid #f1f5f9;padding-top:20px;width:100%;">
+      <tr>
+        <td style="vertical-align:top;padding-right:14px;width:44px;">
+          <img src="https://crama.app/icon-192.png" alt="" width="44" height="44" style="border-radius:50%;display:block;" />
+        </td>
+        <td style="vertical-align:top;">
+          <p class="email-ink" style="margin:0 0 4px;font-size:13px;font-weight:700;color:#0f172a;">엄희송 · 편집장</p>
+          <p class="email-muted" style="margin:0;font-size:13px;color:#64748b;line-height:1.6;">
+            오늘도 3분 투자해주셔서 고맙습니다.<br/>
+            좋은 정보가 있었다면 주변에도 공유해 주세요.
+          </p>
+        </td>
+      </tr>
+    </table>
   </td></tr>
 
 </table>
+
+<!-- 푸터 -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
+  <tr><td style="padding:24px 0 0;text-align:center;">
+    <p style="margin:0;font-size:12px;color:#94a3b8;line-height:1.8;">
+      <a href="https://crama.app" style="color:#64748b;text-decoration:none;font-weight:600;">crama.app</a>
+      &nbsp;·&nbsp; 먼저 읽는 사람들<br/>
+      <a href="${unsubUrl}" style="color:#b0b0b0;text-decoration:underline;">수신 거부</a>
+    </p>
+  </td></tr>
+</table>
+
 </td></tr>
 </table>
 </body>

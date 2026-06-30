@@ -15,7 +15,7 @@ interface Props {
 const {
   title,
   description,
-  image = '/og-default.svg',
+  image = '/og-home.png',
   type = 'website',
   publishedTime,
   jsonLd,
@@ -98,7 +98,7 @@ const siteJsonLd = {
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="Crama" />
 <script is:inline>
-  if ('serviceWorker' in navigator) {
+  if ('serviceWorker' in navigator && location.hostname !== 'localhost') {
     window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
   }
   // 친구 초대 링크(?ref=CODE) 저장 — 로그인 후 /me에서 보상 청구

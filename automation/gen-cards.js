@@ -160,18 +160,32 @@ function pointSVG({ n, total, heading, stat, body }) {
   </svg>`;
 }
 
-function ctaSVG({ cta }) {
-  const lines = wrap(cta || '흐름을 먼저 읽는 사람들', 13);
-  const fs = 74, lh = fs * 1.2;
-  const startY = 470;
+function ctaSVG({ cta, editorNote }) {
+  const note = editorNote || '오늘도 읽어주셔서 고맙습니다.\n도움이 됐다면 주변에도 공유해 주세요.';
+  const noteLines = wrap(note, 22);
+  const ctaLines = wrap(cta || '흐름을 먼저 읽는 사람들', 13);
+  const ctaFs = 74, ctaLh = ctaFs * 1.2;
+  // 에디터 인사 영역
+  const edY = 220;
+  const edNameY = edY + 52;
+  const edNoteY = edNameY + 56;
+  const edNoteLh = 44;
+  // CTA 헤드라인
+  const ctaStartY = edNoteY + noteLines.length * edNoteLh + 80;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
     <rect width="${W}" height="${H}" fill="${DARK}"/>
     <rect x="0" y="0" width="${W}" height="14" fill="${ACCENT}"/>
-    <text x="90" y="250" font-family="${SANS}" font-size="30" font-weight="bold" letter-spacing="6" fill="#e07a57">READ THE TRENDS</text>
-    <text font-family="${SERIF}" font-size="${fs}" font-weight="bold" fill="#ffffff">${tspans(lines, 90, startY, lh)}</text>
-    <text x="90" y="${startY + lines.length * lh + 70}" font-family="${SANS}" font-size="40" fill="${CREAM}">전문은 <tspan fill="#e07a57" font-weight="bold">crama.app</tspan> 에서.</text>
-    <text x="90" y="${H - 150}" font-family="${SERIF}" font-size="48" font-weight="bold" fill="#fff">Crama</text>
-    <text x="90" y="${H - 100}" font-family="${SANS}" font-size="30" fill="#bdb7ad">주식·재테크 · AI 트렌드 · 지원금</text>
+    <!-- 에디터 인사 -->
+    <circle cx="136" cy="${edY}" r="46" fill="#2a2520"/>
+    <text x="136" y="${edY + 8}" text-anchor="middle" font-family="${SERIF}" font-size="32" font-weight="bold" fill="#e07a57">C</text>
+    <text x="200" y="${edNameY}" font-family="${SANS}" font-size="30" font-weight="bold" fill="#ffffff">엄희송 · 편집장</text>
+    <text font-family="${SANS}" font-size="32" fill="#ccc8c0" opacity="0.92">${tspans(noteLines, 90, edNoteY, edNoteLh)}</text>
+    <rect x="90" y="${edNoteY + noteLines.length * edNoteLh + 24}" width="900" height="1" fill="#3c3a37"/>
+    <!-- CTA -->
+    <text font-family="${SERIF}" font-size="${ctaFs}" font-weight="bold" fill="#ffffff">${tspans(ctaLines, 90, ctaStartY, ctaLh)}</text>
+    <text x="90" y="${ctaStartY + ctaLines.length * ctaLh + 60}" font-family="${SANS}" font-size="40" fill="${CREAM}">전문은 <tspan fill="#e07a57" font-weight="bold">crama.app</tspan> 에서.</text>
+    <text x="${W / 2}" y="${H - 130}" text-anchor="middle" font-family="${SERIF}" font-size="44" font-weight="bold" fill="#fff">Crama</text>
+    <text x="${W / 2}" y="${H - 84}" text-anchor="middle" font-family="${SANS}" font-size="28" fill="#bdb7ad">주식·재테크 · AI 트렌드 · 지원금</text>
   </svg>`;
 }
 
@@ -258,6 +272,7 @@ async function condense(art) {
     '  "kicker": "상단 영문/한글 라벨 한 단어~두 단어 (예: 청년 정책, AI 트렌드)",\n' +
     '  "hook": "커버 카드 헤드라인. 호기심을 끄는 한 문장, 24자 이내, 낚시 금지",\n' +
     '  "cards": [ { "heading": "핵심 포인트 제목 16자 이내", "stat": "그 포인트의 핵심 수치/키워드 7자 이내 (예: 6~12%, 연 19.4%, ~7/3, 월 50만). 없으면 빈 문자열", "body": "초보자에게 옆에서 설명하듯 친근한 해요체 2~3문장, 90~130자. 요약만 하지 말고 \'왜 그런지·어떻게 와닿는지\'를 한 끗 더 풀어 유익하게(필요하면 짧은 비유나 가벼운 위트). 가장 중요한 키워드 1~2개를 **별표 두개**로 감싸 강조" } ],   // 3~4개\n' +
+    '  "editorNote": "에디터가 독자에게 건네는 짧은 인사 1~2문장(50자 내외). 글 내용에 맞춰 따뜻하고 진심 어린 한마디. 예: \'이 제도, 저도 올해 처음 알았어요. 알면 아는 만큼 챙길 수 있더라고요.\'",\n' +
     '  "cta": "마지막 카드용 한 줄 (16자 이내)",\n' +
     '  "caption": "인스타그램 게시물 캡션. 커버 hook과 겹치지 않는 변주로 시작하는 강한 첫 줄 + 핵심 가치 2~3문장 + 부드러운 CTA(예: 전문은 프로필 링크에서). 과장·낚시 금지, 이모지는 0~2개만. 200자 내외, 사람이 쓴 듯 자연스럽게",\n' +
     '  "captionThreads": "스레드용 짧은 캡션. 280자 이내, 핵심 한 가지 + 작은 호기심. 해시태그·이모지 없이 담백하게",\n' +
@@ -280,6 +295,7 @@ const MOCK = {
     { heading: '실질 가입효과', stat: '연 19.4%', body: '은행금리(최고 8%)에 **정부기여금**과 **이자 비과세**까지 더한 환산 수익률. 일반 적금과 비교 불가.' },
     { heading: '신청 기간은 단 2주', stat: '~7/3', body: '첫 주는 출생연도 끝자리 **5부제**로 운영. 대상이면 **서둘러** 확인하세요.' },
   ],
+  editorNote: '이 제도, 저도 올해 처음 알았어요.\n알면 아는 만큼 챙길 수 있더라고요.',
   cta: '흐름을 먼저 읽는 사람들',
   caption: '“몰라서 못 받는” 돈이 있습니다. 청년미래적금은 정부가 매달 기여금을 얹어줘 환산 수익률이 연 19.4%에 달해요. 나이·소득 조건만 맞으면 누구나 가입할 수 있는데, 의외로 모르는 분이 많습니다. 신청은 7/3까지, 5부제로 운영되니 대상이면 서두르는 게 좋아요. 전문은 프로필 링크에서.',
   captionThreads: '은행엔 없는 적금이 있어요. 정부가 매달 기여금을 얹어주는 청년미래적금, 환산 수익률이 연 19.4%. 조건이 되는데 안 하면 그냥 손해입니다. 신청은 7월 3일까지.',
@@ -346,7 +362,7 @@ async function main() {
   // 02..) 포인트 + CTA
   const rest = [
     ...points.map((p, i) => pointSVG({ n: i + 1, total: total - 1, heading: p.heading, stat: p.stat, body: p.body })),
-    ctaSVG({ cta: data.cta }),
+    ctaSVG({ cta: data.cta, editorNote: data.editorNote }),
   ];
   for (let i = 0; i < rest.length; i++) {
     await sharp(Buffer.from(rest[i])).png().toFile(num(i + 2));

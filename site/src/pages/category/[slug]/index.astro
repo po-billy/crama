@@ -74,6 +74,7 @@ const guideCount = posts.length - columnCount;
             thumb={p.data.thumb}
             audio={!!p.data.audio}
             format={p.data.format}
+            readingTime={Math.max(1, Math.round((p.body?.length ?? 0) / 500))}
           />
         ))}
       </div>

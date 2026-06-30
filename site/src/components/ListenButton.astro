@@ -33,9 +33,13 @@ const ICON = {
       <div class="aplayer__voice" hidden>
         <select data-voice aria-label="음성 선택"></select>
       </div>
-      <button class="aplayer__chip" type="button" data-rate-btn aria-label="재생 속도">1.0×</button>
+      <button class="aplayer__chip aplayer__chip--rate" type="button" data-rate-btn aria-label="재생 속도 — 탭하면 0.75×~2× 순서로 바뀌어요" title="재생 속도 — 탭하면 0.75×~2× 순서로 바뀌어요">1.25×</button>
       <button class="aplayer__chip aplayer__chip--toggle" type="button" data-autonext aria-pressed="false" title="이어 듣기: 끝나면 다음 글을 이어서 들려줘요"><span class="ic" aria-hidden="true" set:html={ICON.next}></span> 이어 듣기</button>
-      <button class="aplayer__chip" type="button" data-scope-btn title="이어 듣기 범위 — 전체 최신순 / 같은 카테고리 내">전체</button>
+      <div class="aplayer__seg" data-scope-seg role="group" aria-label="이어 듣기 범위 — 끝나면 이어질 글">
+        <span class="aplayer__seg-cap">범위</span>
+        <button class="aplayer__seg-opt" type="button" data-scope-opt="all" title="전체 글을 최신순으로 이어 들어요">전체</button>
+        <button class="aplayer__seg-opt" type="button" data-scope-opt="cat" title="같은 카테고리 글만 이어 들어요">카테고리</button>
+      </div>
     </div>
   </div>
 
@@ -66,9 +70,16 @@ const ICON = {
 
   <!-- 모바일 전용: 위로 펼치는 상세 설정 패널 -->
   <div class="aminibar__panel" data-mini-panel>
-    <div class="aprow">
-      <span class="aprow__label">재생 속도</span>
-      <button class="aprow__chip" type="button" data-panel-rate>1.0×</button>
+    <div class="aprow aprow--stack">
+      <span class="aprow__label">재생 속도<small>원하는 배속을 골라보세요</small></span>
+      <div class="aseg" data-panel-rate-seg role="group" aria-label="재생 속도 선택">
+        <button class="aseg__opt" type="button" data-rate-opt="0.75">0.75×</button>
+        <button class="aseg__opt" type="button" data-rate-opt="1">1×</button>
+        <button class="aseg__opt" type="button" data-rate-opt="1.25">1.25×</button>
+        <button class="aseg__opt" type="button" data-rate-opt="1.5">1.5×</button>
+        <button class="aseg__opt" type="button" data-rate-opt="1.75">1.75×</button>
+        <button class="aseg__opt" type="button" data-rate-opt="2">2×</button>
+      </div>
     </div>
     <div class="aprow" data-panel-voice-row hidden>
       <span class="aprow__label">음성 모델</span>
@@ -82,9 +93,12 @@ const ICON = {
       <span class="aprow__label">이어 듣기<small>끝나면 다음 글을 이어서 재생</small></span>
       <button class="aprow__sw" type="button" data-panel-autonext aria-pressed="false" aria-label="이어 듣기 켜기/끄기"></button>
     </div>
-    <div class="aprow">
-      <span class="aprow__label">이어 듣기 범위<small>전체 최신순 / 같은 카테고리 내</small></span>
-      <button class="aprow__chip" type="button" data-panel-scope>전체</button>
+    <div class="aprow aprow--stack">
+      <span class="aprow__label">이어 듣기 범위<small>끝나면 이어서 들려줄 글</small></span>
+      <div class="aseg" data-scope-seg role="group" aria-label="이어 듣기 범위 선택">
+        <button class="aseg__opt" type="button" data-scope-opt="all">전체 최신순</button>
+        <button class="aseg__opt" type="button" data-scope-opt="cat">같은 카테고리</button>
+      </div>
     </div>
   </div>
 
@@ -161,6 +175,19 @@ const ICON = {
     cursor: pointer; min-width: 3.4rem; font-variant-numeric: tabular-nums;
   }
   .aplayer__chip:hover { border-color: var(--accent); color: var(--accent); }
+  /* 세그먼트 토글(이어 듣기 범위) — 여러 선택지를 한눈에 보여 '누르면 바뀐다'를 명확히 */
+  .aplayer__seg {
+    display: inline-flex; align-items: center; gap: 0.1rem;
+    background: var(--paper); border: 1px solid var(--line); border-radius: 999px; padding: 0.15rem;
+  }
+  .aplayer__seg-cap { font-size: 0.72rem; font-weight: 700; color: var(--muted); padding: 0 0.4rem 0 0.5rem; letter-spacing: 0.02em; }
+  .aplayer__seg-opt {
+    border: none; background: transparent; color: var(--ink-soft);
+    border-radius: 999px; padding: 0.3rem 0.7rem; font-size: 0.8rem; font-weight: 600;
+    cursor: pointer; white-space: nowrap; transition: background .15s, color .15s;
+  }
+  .aplayer__seg-opt:hover { color: var(--accent); }
+  .aplayer__seg-opt.is-active { background: var(--accent); color: #fff; }
   .aplayer__voice[hidden] { display: none; }
   .aplayer__voice select {
     border: 1px solid var(--line); background: var(--paper); color: var(--ink-soft);
@@ -264,6 +291,19 @@ const ICON = {
     cursor: pointer; font-variant-numeric: tabular-nums; flex: none;
   }
   .aprow__chip:hover { background: rgba(255,255,255,0.26); }
+  /* 스택형 행: 라벨 위 / 선택지 아래 전체폭 — 잘림 없이 모든 옵션 노출 */
+  .aprow--stack { flex-direction: column; align-items: stretch; gap: 0.6rem; }
+  .aprow--stack .aprow__label { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 0.4rem; }
+  .aprow--stack .aprow__label small { margin-left: auto; }
+  /* 세그먼트 선택(속도·범위) — 다크 패널용 */
+  .aseg { display: flex; gap: 0.3rem; background: rgba(255,255,255,0.08); border-radius: 999px; padding: 0.25rem; }
+  .aseg__opt {
+    flex: 1 1 0; min-width: 0; border: none; background: transparent; color: var(--paper);
+    opacity: 0.62; border-radius: 999px; padding: 0.5rem 0.35rem; font-size: 0.82rem; font-weight: 700;
+    cursor: pointer; white-space: nowrap; font-variant-numeric: tabular-nums; transition: background .15s, opacity .15s;
+  }
+  .aseg__opt:hover { opacity: 0.9; }
+  .aseg__opt.is-active { background: var(--accent); color: #fff; opacity: 1; }
   .aprow__sw {
     width: 3rem; height: 1.7rem; border-radius: 999px; border: none; flex: none; position: relative;
     background: rgba(255,255,255,0.22); cursor: pointer; transition: background .15s ease;
@@ -432,7 +472,7 @@ const ICON = {
     const miniRate = mini.querySelector('[data-mini-rate]');
     const miniVoice = mini.querySelector('[data-mini-voice]');
     const miniExpand = mini.querySelector('[data-mini-expand]');
-    const panelRate = mini.querySelector('[data-panel-rate]');
+    const rateOpts = mini.querySelectorAll('[data-rate-opt]');
     const panelVoice = mini.querySelector('[data-panel-voice]');
     const panelVoiceRow = mini.querySelector('[data-panel-voice-row]');
     const panelFollow = mini.querySelector('[data-panel-follow]');
@@ -445,8 +485,8 @@ const ICON = {
 
     const RATE_KEY = 'crama:tts:rate';
     const VOICE_KEY = 'crama:tts:voice';
-    let rate = 1, selectedVoiceName = '';
-    try { rate = parseFloat(localStorage.getItem(RATE_KEY)) || 1; } catch (e) {}
+    let rate = 1.25, selectedVoiceName = '';
+    try { rate = parseFloat(localStorage.getItem(RATE_KEY)) || 1.25; } catch (e) {}
     try { selectedVoiceName = localStorage.getItem(VOICE_KEY) || ''; } catch (e) {}
     const AUTO_KEY = 'crama:tts:auto';
     let autoNext = false;
@@ -744,21 +784,21 @@ const ICON = {
     function renderRate() {
       const t = (Number.isInteger(rate) ? rate.toFixed(1) : String(rate)) + '×';
       rateBtn.textContent = t; if (miniRate) miniRate.textContent = t;
-      if (panelRate) panelRate.textContent = t;
+      rateOpts.forEach((o) => o.classList.toggle('is-active', parseFloat(o.dataset.rateOpt) === rate));
     }
-    function cycleRate() {
-      const cur = RATES.indexOf(rate);
-      rate = RATES[(cur + 1) % RATES.length];
+    function applyRate(v) {
+      rate = v;
       renderRate();
       try { localStorage.setItem(RATE_KEY, String(rate)); } catch (e) {}
       updateUI();
       toast('재생 속도 ' + (Number.isInteger(rate) ? rate.toFixed(1) : String(rate)) + '×');
       if (state === 'playing') playFrom(idx);
     }
+    function cycleRate() { applyRate(RATES[(RATES.indexOf(rate) + 1) % RATES.length]); }
     renderRate();
     rateBtn.addEventListener('click', cycleRate);
     miniRate && miniRate.addEventListener('click', cycleRate);
-    panelRate && panelRate.addEventListener('click', cycleRate);
+    rateOpts.forEach((o) => o.addEventListener('click', () => applyRate(parseFloat(o.dataset.rateOpt))));
     miniBack && miniBack.addEventListener('click', () => skipBySeconds(-SKIP_SEC));
     miniFwd && miniFwd.addEventListener('click', () => skipBySeconds(SKIP_SEC));
 
@@ -871,10 +911,11 @@ const ICON = {
     if (window.__cramaCtl) return window.__cramaCtl(); // 전역 팩토리(BaseLayout) 공용 — 목록↔본문 동일 오디오
     if (window.__cramaPlayer) return window.__cramaPlayer;
     const audio = new Audio(); audio.preload = 'none'; // 재생 전엔 MP3 미다운로드(성능: 1.7MB 절감)
-    const C = { audio, slug: null, href: '', rate: 1, autoNext: false, follow: true, hooks: {} };
-    try { C.rate = parseFloat(localStorage.getItem('crama:tts:rate')) || 1; } catch (e) {}
+    const C = { audio, slug: null, href: '', rate: 1.25, autoNext: false, follow: true, hooks: {} };
+    try { C.rate = parseFloat(localStorage.getItem('crama:tts:rate')) || 1.25; } catch (e) {}
     try { C.autoNext = localStorage.getItem('crama:tts:auto') === '1'; } catch (e) {}
-    audio.playbackRate = C.rate;
+    // defaultPlaybackRate 도 함께 설정 — 새 src 로드 시 playbackRate 가 1.0 으로 리셋되는 것 방지
+    audio.defaultPlaybackRate = C.rate; audio.playbackRate = C.rate;
     ['timeupdate', 'play', 'pause', 'ended', 'loadedmetadata'].forEach((n) => audio.addEventListener(n, (e) => { if (C.hooks[n]) C.hooks[n](e); }));
     window.__cramaPlayer = C;
     return C;
@@ -966,7 +1007,7 @@ const ICON = {
     const miniBack = m('[data-mini-back]'), miniFwd = m('[data-mini-fwd]'), miniRate = m('[data-mini-rate]');
     const miniVoice = m('[data-mini-voice]'), miniAuto = m('[data-mini-autonext]'), miniExpand = m('[data-mini-expand]'), miniPip = m('[data-mini-pip]');
     const followBtn = m('[data-follow]'), followLabel = m('[data-follow-label]');
-    const panelRate = m('[data-panel-rate]'), panelVoiceRow = m('[data-panel-voice-row]');
+    const rateOpts = mini.querySelectorAll('[data-rate-opt]'), panelVoiceRow = m('[data-panel-voice-row]');
     const panelFollow = m('[data-panel-follow]'), panelAuto = m('[data-panel-autonext]');
     if (miniVoice) miniVoice.hidden = true;
     if (panelVoiceRow) panelVoiceRow.hidden = true;
@@ -1012,7 +1053,7 @@ const ICON = {
     const thisSlug = (audioSrc.match(/\/audio\/([^/]+)\.mp3/) || [])[1];
     const audioBase = audioSrc.replace(/\/audio\/[^/]+$/, '');
     let rate = C.rate, autoNext = C.autoNext, followEnabled = C.follow;
-    audio.playbackRate = rate;
+    audio.defaultPlaybackRate = rate; audio.playbackRate = rate;
     const nextEl = document.querySelector('article[data-next-article]');
     let nextHref = nextFromEl(nextEl);
     C.href = nextHref;
@@ -1046,13 +1087,14 @@ const ICON = {
     }
 
     C.hooks.timeupdate = update;
-    C.hooks.loadedmetadata = () => { update(); if (ctaSub && audio.duration) ctaSub.textContent = '약 ' + Math.max(1, Math.round(audio.duration / 60)) + '분 · 잠금화면에서도 들을 수 있어요'; };
-    C.hooks.play = () => { renderIcons(); setActive(true); setStatus(); };
+    // 새 음원 로드 시 브라우저가 playbackRate 를 1.0 으로 리셋 → 메타데이터 로드·재생 시작 시 사용자 배속 재적용
+    C.hooks.loadedmetadata = () => { audio.playbackRate = rate; update(); if (ctaSub && audio.duration) ctaSub.textContent = '약 ' + Math.max(1, Math.round(audio.duration / 60)) + '분 · 잠금화면에서도 들을 수 있어요'; };
+    C.hooks.play = () => { audio.playbackRate = rate; renderIcons(); setActive(true); setStatus(); };
     C.hooks.pause = () => { renderIcons(); setStatus(); };
 
     // 다음 글 이어가기 — 포그라운드: 페이지 이동(SPA)+소리 유지 / 백그라운드: 소리만(광고·조회수 X)
     let finishing = false;
-    function loadNextAudio(ns) { highlightOff = true; highlight(null); timing = null; audio.src = audioBase + '/audio/' + ns + '.mp3'; C.slug = ns; const p = audio.play(); return (p && p.then ? p : Promise.resolve()); }
+    function loadNextAudio(ns) { highlightOff = true; highlight(null); timing = null; audio.src = audioBase + '/audio/' + ns + '.mp3'; audio.defaultPlaybackRate = rate; audio.playbackRate = rate; C.slug = ns; const p = audio.play(); return (p && p.then ? p : Promise.resolve()); }
     function finish() {
       if (finishing) return; finishing = true; setTimeout(() => { finishing = false; }, 1500);
       renderIcons();
@@ -1093,9 +1135,10 @@ const ICON = {
     bindSeek(bar); bindSeek(miniBar);
     bar.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') { e.preventDefault(); skip(SKIP_SEC); } else if (e.key === 'ArrowLeft') { e.preventDefault(); skip(-SKIP_SEC); } else if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); togglePlay(); } });
 
-    function renderRate() { const t = (Number.isInteger(rate) ? rate.toFixed(1) : String(rate)) + '×'; if (rateBtn) rateBtn.textContent = t; if (miniRate) miniRate.textContent = t; if (panelRate) panelRate.textContent = t; }
-    function cycleRate() { rate = RATES[(RATES.indexOf(rate) + 1) % RATES.length]; C.rate = rate; audio.playbackRate = rate; renderRate(); try { localStorage.setItem(RATE_KEY, String(rate)); } catch (e) {} toast('재생 속도 ' + (Number.isInteger(rate) ? rate.toFixed(1) : String(rate)) + '×'); }
-    renderRate(); [rateBtn, miniRate, panelRate].forEach((b) => b && b.addEventListener('click', cycleRate));
+    function renderRate() { const t = (Number.isInteger(rate) ? rate.toFixed(1) : String(rate)) + '×'; if (rateBtn) rateBtn.textContent = t; if (miniRate) miniRate.textContent = t; rateOpts.forEach((o) => o.classList.toggle('is-active', parseFloat(o.dataset.rateOpt) === rate)); }
+    function applyRate(v) { rate = v; C.rate = v; audio.defaultPlaybackRate = v; audio.playbackRate = v; renderRate(); try { localStorage.setItem(RATE_KEY, String(rate)); } catch (e) {} toast('재생 속도 ' + (Number.isInteger(rate) ? rate.toFixed(1) : String(rate)) + '×'); }
+    function cycleRate() { applyRate(RATES[(RATES.indexOf(rate) + 1) % RATES.length]); }
+    renderRate(); [rateBtn, miniRate].forEach((b) => b && b.addEventListener('click', cycleRate)); rateOpts.forEach((o) => o.addEventListener('click', () => applyRate(parseFloat(o.dataset.rateOpt))));
 
     function renderFollow() { [followBtn, panelFollow].forEach((b) => b && b.setAttribute('aria-pressed', String(followEnabled))); if (followLabel) followLabel.textContent = '따라가기'; }
     function toggleFollow() { followEnabled = !followEnabled; C.follow = followEnabled; renderFollow(); toast(followEnabled ? '따라가기 켜짐' : '따라가기 꺼짐'); if (followEnabled && curEl) scrollIfNeeded(curEl); }
@@ -1177,18 +1220,23 @@ const ICON = {
     else initListen(); // 폴백: 브라우저 내장 TTS(Web Speech)
   }
 
-  // '이어 듣기 범위'(전체/카테고리) 토글 — 재생 모드와 무관하게 전역에서 처리(라벨 동기화 + 클릭 시 전환)
+  // '이어 듣기 범위'(전체/카테고리) 세그먼트 — 재생 모드와 무관하게 전역에서 처리(선택 상태 동기화 + 클릭 시 전환)
   function syncScopeUI() {
-    const label = ttsScope() === 'cat' ? '카테고리' : '전체';
-    document.querySelectorAll('[data-scope-btn], [data-panel-scope]').forEach((b) => { b.textContent = label; });
+    const cur = ttsScope();
+    document.querySelectorAll('[data-scope-opt]').forEach((b) => {
+      const on = b.getAttribute('data-scope-opt') === cur;
+      b.classList.toggle('is-active', on);
+      b.setAttribute('aria-pressed', String(on));
+    });
   }
   if (!window.__cramaScopeBound) {
     window.__cramaScopeBound = true;
     document.addEventListener('click', (e) => {
-      const b = e.target && e.target.closest ? e.target.closest('[data-scope-btn], [data-panel-scope]') : null;
+      const b = e.target && e.target.closest ? e.target.closest('[data-scope-opt]') : null;
       if (!b) return;
       e.preventDefault();
-      try { localStorage.setItem('crama:tts:scope', ttsScope() === 'cat' ? 'all' : 'cat'); } catch (err) {}
+      const v = b.getAttribute('data-scope-opt') === 'cat' ? 'cat' : 'all';
+      try { localStorage.setItem('crama:tts:scope', v); } catch (err) {}
       syncScopeUI();
     });
     document.addEventListener('astro:page-load', syncScopeUI);

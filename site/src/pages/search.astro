@@ -13,7 +13,7 @@ const catNames = Object.fromEntries(
       <p>제목·설명·태그로 글을 찾습니다.</p>
     </header>
 
-    <div class="search-box">
+    <div class="search-box" style="position:relative;">
       <input
         type="search"
         id="q"
@@ -22,6 +22,7 @@ const catNames = Object.fromEntries(
         autocomplete="off"
         autofocus
       />
+      <button type="button" id="search-clear" aria-label="검색어 지우기" style="display:none;position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:1.2rem;color:var(--muted,#94a3b8);cursor:pointer;padding:4px 8px;line-height:1;">&times;</button>
     </div>
 
     <div class="search-results" id="results" aria-live="polite"></div>
@@ -68,9 +69,14 @@ const catNames = Object.fromEntries(
         .join('');
     }
 
+    const clearBtn = document.getElementById('search-clear');
+    function updateClear() { clearBtn.style.display = input.value ? '' : 'none'; }
+    clearBtn.addEventListener('click', () => { input.value = ''; out.innerHTML = ''; updateClear(); input.focus(); });
+
     let t;
     input.addEventListener('input', () => {
       clearTimeout(t);
+      updateClear();
       t = setTimeout(() => render(input.value), 120);
     });
   </script>

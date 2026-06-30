@@ -1,8 +1,16 @@
 ---
+import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { SITE } from '../consts';
+import { SITE, EDITOR_PICKS } from '../consts';
 const SU = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
 const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
+
+// 인기 글 3개 추천용
+const posts = (await getCollection('blog')).filter((p) => !p.data.draft);
+const picks = EDITOR_PICKS.slice(0, 3)
+  .map((slug) => posts.find((p) => p.id === slug))
+  .filter(Boolean)
+  .map((p) => ({ href: `/blog/${p!.id}/`, title: p!.data.title, desc: p!.data.description }));
 ---
 <BaseLayout title="뉴스레터 수신 거부" description="크라마 뉴스레터 수신을 거부합니다.">
   <div class="wrap">
@@ -11,27 +19,206 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
       <h1>뉴스레터 수신 거부</h1>
       <p>더 이상 이메일을 받지 않으시겠어요?</p>
     </header>
-    <div class="measure" style="max-width:480px;margin:0 auto;">
-      <form id="unsub-form" class="contact-form" style="margin-top:1rem;">
-        <label>이메일 주소
-          <input name="email" type="email" required id="unsub-email" placeholder="구독 해지할 이메일" />
-        </label>
-        <button type="submit" class="btn" style="width:100%;margin-top:.75rem;">수신 거부</button>
-      </form>
-      <p id="unsub-status" role="status" aria-live="polite" style="text-align:center;margin-top:1rem;"></p>
+
+    <div class="measure" style="max-width:520px;margin:0 auto;">
+      <!-- 1단계: 리텐션 안내 -->
+      <div id="step-retain">
+        <div class="retain-box">
+          <p class="retain-lead">구독을 해지하시면 이런 혜택을 놓치게 돼요.</p>
+          <ul class="retain-list">
+            <li><strong>매일 아침 3분 브리핑</strong> — 재테크·AI 핵심만 골라 전해드려요</li>
+            <li><strong>신규 지원금·정책 알림</strong> — 놓치면 수십만 원 차이나는 정보</li>
+            <li><strong>구독자 전용 가이드</strong> — 투자 입문부터 실전까지 단계별 안내</li>
+          </ul>
+        </div>
+
+        <p class="retain-free">
+          <span class="retain-free__amt">0원</span>
+          <span class="retain-free__tx">브리핑 구독은 <strong>처음부터 끝까지 무료</strong>예요. 유료 전환도, 숨은 비용도 없어요.</span>
+        </p>
+
+        {picks.length > 0 && (
+          <div class="retain-picks">
+            <p class="retain-picks-title">혹시 이런 글은 보셨나요?</p>
+            {picks.map((p) => (
+              <a href={p.href} class="retain-pick">
+                <span class="retain-pick-title">{p.title}</span>
+                <span class="retain-pick-desc">{p.desc}</span>
+              </a>
+            ))}
+          </div>
+        )}
+
+        <div class="retain-actions">
+          <a href="/" class="btn btn-primary" style="width:100%;text-align:center;">돌아가기 — 계속 구독할게요</a>
+          <button type="button" id="btn-proceed" class="btn-text">그래도 해지할게요</button>
+        </div>
+      </div>
+
+      <!-- 2단계: 실제 해지 폼 -->
+      <div id="step-unsub" style="display:none;">
+        <p style="text-align:center;color:var(--muted,#64748b);margin-bottom:1rem;">아쉽지만, 언제든 다시 돌아와 주세요.</p>
+        <form id="unsub-form" class="contact-form">
+          <label>이메일 주소
+            <input name="email" type="email" required id="unsub-email" placeholder="구독 해지할 이메일" />
+          </label>
+          <button type="submit" class="btn" style="width:100%;margin-top:.75rem;">수신 거부</button>
+        </form>
+        <p id="unsub-status" role="status" aria-live="polite" style="text-align:center;margin-top:1rem;"></p>
+      </div>
     </div>
   </div>
 </BaseLayout>
 
+<style>
+  .retain-box {
+    background: var(--surface, #f8fafc);
+    border: 1px solid var(--border, #e2e8f0);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .retain-lead {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--ink, #0f172a);
+    margin: 0 0 .75rem;
+  }
+  .retain-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .retain-list li {
+    position: relative;
+    padding: .5rem 0 .5rem 1.4rem;
+    font-size: .93rem;
+    color: var(--muted, #475569);
+    line-height: 1.55;
+  }
+  .retain-list li::before {
+    content: '✦';
+    position: absolute;
+    left: 0;
+    color: var(--accent, #b04a2f);
+    font-size: .8rem;
+    top: .6rem;
+  }
+  .retain-list li strong {
+    color: var(--ink, #0f172a);
+  }
+  .retain-free {
+    display: flex;
+    align-items: center;
+    gap: .9rem;
+    margin: 0 0 1.5rem;
+    padding: .85rem 1rem;
+    background: color-mix(in srgb, var(--accent, #b04a2f) 8%, var(--paper, #fff));
+    border: 1px solid color-mix(in srgb, var(--accent, #b04a2f) 28%, transparent);
+    border-radius: 10px;
+  }
+  .retain-free__amt {
+    flex: none;
+    font-size: 1.4rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -.02em;
+    color: var(--accent, #b04a2f);
+  }
+  .retain-free__tx {
+    font-size: .9rem;
+    line-height: 1.5;
+    color: var(--ink, #0f172a);
+  }
+  .retain-free__tx strong {
+    color: var(--accent, #b04a2f);
+    font-weight: 700;
+  }
+  .retain-picks {
+    margin-bottom: 1.5rem;
+  }
+  .retain-picks-title {
+    font-size: .9rem;
+    font-weight: 600;
+    color: var(--muted, #64748b);
+    margin: 0 0 .5rem;
+  }
+  .retain-pick {
+    display: block;
+    padding: .75rem 1rem;
+    border: 1px solid var(--border, #e2e8f0);
+    border-radius: 8px;
+    margin-bottom: .5rem;
+    text-decoration: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .retain-pick:hover {
+    border-color: var(--accent, #b04a2f);
+    box-shadow: 0 2px 8px rgba(176,74,47,.08);
+  }
+  .retain-pick-title {
+    display: block;
+    font-size: .93rem;
+    font-weight: 600;
+    color: var(--ink, #0f172a);
+    line-height: 1.4;
+  }
+  .retain-pick-desc {
+    display: block;
+    font-size: .8rem;
+    color: var(--muted, #64748b);
+    margin-top: .2rem;
+    line-height: 1.45;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .retain-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .75rem;
+    margin-top: 1rem;
+  }
+  .btn-primary {
+    background: var(--accent, #b04a2f) !important;
+    color: #fff !important;
+    border: none;
+  }
+  .btn-text {
+    background: none;
+    border: none;
+    color: var(--muted, #94a3b8);
+    font-size: .85rem;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: .25rem;
+  }
+  .btn-text:hover {
+    color: var(--ink, #0f172a);
+  }
+</style>
+
 <script is:inline define:vars={{ SU, AK }}>
   (() => {
-    // URL 파라미터에서 이메일 자동 채우기
     const params = new URLSearchParams(location.search);
     const emailInput = document.getElementById('unsub-email');
     if (params.get('email') && emailInput) {
       emailInput.value = decodeURIComponent(params.get('email'));
     }
 
+    // 1단계 → 2단계
+    const btnProceed = document.getElementById('btn-proceed');
+    const stepRetain = document.getElementById('step-retain');
+    const stepUnsub = document.getElementById('step-unsub');
+    if (btnProceed) {
+      btnProceed.addEventListener('click', () => {
+        stepRetain.style.display = 'none';
+        stepUnsub.style.display = '';
+      });
+    }
+
+    // 해지 처리
     const f = document.getElementById('unsub-form');
     const s = document.getElementById('unsub-status');
     if (!f) return;
@@ -54,7 +241,7 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
           body: JSON.stringify({ p_email: email }),
         });
         if (r.ok || r.status === 204) {
-          s.textContent = '수신 거부가 완료되었습니다. 더 이상 이메일을 보내지 않습니다.';
+          s.innerHTML = '수신 거부가 완료되었습니다.<br/><span style="font-size:.85rem;color:var(--muted,#94a3b8);">마음이 바뀌시면 언제든 <a href="/briefing/" style="color:var(--accent,#b04a2f);">브리핑 페이지</a>에서 다시 구독할 수 있어요.</span>';
           s.style.color = 'var(--accent, #2563eb)';
           f.style.display = 'none';
         } else {

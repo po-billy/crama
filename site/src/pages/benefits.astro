@@ -45,6 +45,16 @@ const faqLd = {
         <p class="bf-hero__social" id="bf-social" hidden></p>
         <button class="bf-cta" type="button" id="bf-start">내 혜택 찾기 시작 →</button>
         <p class="bf-hero__note">입력하신 정보는 기기에만 저장되며 서버로 전송되지 않습니다.</p>
+        <div class="bf-hero__cases">
+          <div class="bf-case">
+            <span class="bf-case__q">28세 직장인, 연 3,500만원</span>
+            <span class="bf-case__a">→ 12건, 약 820만원/년 발견</span>
+          </div>
+          <div class="bf-case">
+            <span class="bf-case__q">32세 프리랜서, 1인 가구</span>
+            <span class="bf-case__a">→ 8건, 약 450만원/년 발견</span>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -507,6 +517,10 @@ const faqLd = {
     .bf-hero__social { font-size: 0.82rem; color: var(--muted); margin: 0 0 0.8rem; }
     .bf-hero__social strong { color: var(--ink); font-weight: 700; }
     .bf-hero__note { font-size: 0.75rem; color: var(--muted); margin-top: 1rem; opacity: 0.7; }
+    .bf-hero__cases { display: flex; flex-direction: column; gap: 0.4rem; margin-top: 1.2rem; }
+    .bf-case { display: flex; gap: 0.5rem; align-items: center; font-size: 0.82rem; justify-content: center; flex-wrap: wrap; }
+    .bf-case__q { color: var(--muted); }
+    .bf-case__a { font-weight: 700; color: var(--accent); }
 
     /* ── 공통 CTA 버튼 ── */
     .bf-cta {

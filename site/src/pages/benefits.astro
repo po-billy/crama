@@ -369,6 +369,7 @@ const faqLd = {
               : b.applyMethod.indexOf('방문') !== -1
               ? '<span class="bf-card__ease bf-card__ease--visit">방문 필요</span>'
               : '') +
+            (b.deadline && b.deadline !== '상시' ? '<button class="bf-card__ical" type="button" data-title="' + b.name + '" data-date="' + b.deadline + '" title="캘린더에 추가">📅</button>' : '') +
             '<a class="bf-card__apply" href="' + b.applyUrl + '" target="_blank" rel="noopener">신청하기 →</a></div>' +
             (b.relatedSlug ? '<a class="bf-card__related" href="/blog/' + b.relatedSlug + '/">자세한 가이드 읽기 →</a>' : '') +
           '</div>';
@@ -411,6 +412,26 @@ const faqLd = {
         }
 
         $('bf-cards').innerHTML = cardsHtml;
+
+        // 캘린더 추가 버튼
+        $('bf-cards').addEventListener('click', function (ev) {
+          var btn = ev.target.closest('.bf-card__ical'); if (!btn) return;
+          var title = btn.dataset.title, date = btn.dataset.date;
+          if (!date) return;
+          var d = new Date(date);
+          var pad = function (n) { return String(n).padStart(2, '0'); };
+          var dtStart = d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate());
+          var nd = new Date(d); nd.setDate(nd.getDate() + 1);
+          var dtEnd = nd.getFullYear() + pad(nd.getMonth() + 1) + pad(nd.getDate());
+          var ics = ['BEGIN:VCALENDAR','VERSION:2.0','BEGIN:VEVENT',
+            'DTSTART;VALUE=DATE:' + dtStart, 'DTEND;VALUE=DATE:' + dtEnd,
+            'SUMMARY:' + title + ' 마감', 'DESCRIPTION:크라마 내 혜택 찾기에서 확인: https://crama.app/benefits/',
+            'BEGIN:VALARM','TRIGGER:-P1D','ACTION:DISPLAY','DESCRIPTION:내일: ' + title,'END:VALARM',
+            'END:VEVENT','END:VCALENDAR'].join('\r\n');
+          var blob = new Blob([ics], { type: 'text/calendar' });
+          var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+          a.download = 'crama-' + title.replace(/\s+/g, '-') + '.ics'; a.click();
+        });
 
         // GA4 이벤트
         // 이용 횟수 카운터 (localStorage)
@@ -657,6 +678,11 @@ const faqLd = {
     .bf-card__ease { font-size: 0.7rem; font-weight: 600; padding: 0.15rem 0.5rem; border-radius: 4px; white-space: nowrap; }
     .bf-card__ease--easy { background: #dcfce7; color: #16a34a; }
     .bf-card__ease--visit { background: #fef9c3; color: #a16207; }
+    .bf-card__ical {
+      background: none; border: 1px solid var(--line); border-radius: 6px;
+      padding: 0.2rem 0.5rem; font-size: 0.8rem; cursor: pointer; transition: border-color 0.12s;
+    }
+    .bf-card__ical:hover { border-color: var(--accent); }
     .bf-card__apply {
       font-size: 0.88rem; font-weight: 700; color: var(--accent);
       text-decoration: none; padding: 0.4rem 0.9rem; border: 1px solid var(--accent);

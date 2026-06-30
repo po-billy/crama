@@ -365,7 +365,14 @@ const faqLd = {
         showSection('ck-flow'); step = 0; renderStep();
       });
       $('ck-back').addEventListener('click', function () { if (step > 0) { step--; renderStep(); } else showSection('ck-hero'); });
-      $('ck-next').addEventListener('click', function () { if (step < STEPS.length - 1) { step++; renderStep(); } else { showSection('ck-result'); showResults(); } });
+      $('ck-next').addEventListener('click', function () {
+        if (step < STEPS.length - 1) { step++; renderStep(); }
+        else {
+          showSection('ck-result'); showResults();
+          // 결과 저장
+          try { localStorage.setItem('crama:checkup:data', JSON.stringify(data)); } catch (e) {}
+        }
+      });
       $('ck-retry').addEventListener('click', function () { showSection('ck-flow'); step = 0; renderStep(); });
       $('ck-share').addEventListener('click', async function () {
         var r = calculate();
@@ -429,6 +436,17 @@ const faqLd = {
           try { await navigator.clipboard.writeText(text + '\n' + url); alert('결과를 복사했어요!'); } catch (e2) {}
         }
       });
+
+      // ── 저장된 체크업 결과 복원 ──
+      try {
+        var savedCk = localStorage.getItem('crama:checkup:data');
+        if (savedCk) {
+          var sd = JSON.parse(savedCk);
+          Object.assign(data, sd);
+          showSection('ck-result');
+          showResults();
+        }
+      } catch (e) {}
     })();
   </script>
 

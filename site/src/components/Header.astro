@@ -59,6 +59,7 @@ import DuoIcon from './DuoIcon.astro';
     const set = (o) => {
       nav.classList.toggle('is-open', o);
       t.setAttribute('aria-expanded', String(o));
+      document.body.style.overflow = o ? 'hidden' : '';
       if (o && focusables.length) focusables[0].focus();
       else if (!o) t.focus();
     };

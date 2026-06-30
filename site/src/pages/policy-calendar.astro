@@ -61,6 +61,22 @@ const currentMonth = now.getMonth() + 1;
     </header>
 
     <div class="pc">
+      <!-- 구독 + 뷰 토글 -->
+      <div class="pc-toolbar">
+        <a href="/policy-calendar.ics" class="pc-subscribe" download>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          내 캘린더에 추가
+        </a>
+        <div class="pc-views" role="group" aria-label="보기 방식">
+          <button class="pc-view is-on" type="button" data-view="timeline" title="타임라인">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+          </button>
+          <button class="pc-view" type="button" data-view="grid" title="캘린더">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          </button>
+        </div>
+      </div>
+
       <!-- 카테고리 필터 -->
       <div class="pc-filters">
         <button class="pc-filter is-on" data-cat="all">전체</button>
@@ -117,6 +133,20 @@ const currentMonth = now.getMonth() + 1;
         })}
       </div>
 
+      <!-- 캘린더 그리드 뷰 -->
+      <div class="pc-grid-view" id="pc-grid" hidden>
+        <div class="pc-grid-nav">
+          <button type="button" id="pc-prev" class="pc-grid-nav__btn" aria-label="이전 달">‹</button>
+          <span class="pc-grid-nav__month" id="pc-month-label"></span>
+          <button type="button" id="pc-next" class="pc-grid-nav__btn" aria-label="다음 달">›</button>
+        </div>
+        <div class="pc-grid-header">
+          <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+        </div>
+        <div class="pc-grid-body" id="pc-grid-body"></div>
+        <div class="pc-grid-events" id="pc-grid-events"></div>
+      </div>
+
       <!-- 서비스 크로스 연결 -->
       <div class="pc-cross">
         <a href="/benefits/" class="pc-cross__card">
@@ -162,6 +192,91 @@ const currentMonth = now.getMonth() + 1;
       // 이번 달로 스크롤
       var cur = document.querySelector('.pc-month.is-current');
       if (cur) setTimeout(function () { cur.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300);
+
+      // ── 뷰 토글 ──
+      var viewBtns = document.querySelectorAll('.pc-view');
+      var timeline = document.querySelector('.pc-timeline');
+      var gridView = document.getElementById('pc-grid');
+      viewBtns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var view = btn.dataset.view;
+          viewBtns.forEach(function (b) { b.classList.toggle('is-on', b.dataset.view === view); });
+          timeline.hidden = view !== 'timeline';
+          gridView.hidden = view !== 'grid';
+          if (view === 'grid') renderCalGrid(gridMonth);
+        });
+      });
+
+      // ── 캘린더 그리드 ──
+      var EVENTS_DATA = [
+        { m:1,d:15,t:'연말정산 간소화 오픈',c:'tax' },{ m:1,d:25,t:'부가세 확정신고 마감',c:'tax' },
+        { m:2,d:28,t:'연말정산 환급 시작',c:'tax' },{ m:3,d:2,t:'장려금 반기 신청',c:'benefit' },
+        { m:3,d:31,t:'건보료 정산',c:'tax' },{ m:4,d:25,t:'부가세 예정신고 마감',c:'tax' },
+        { m:5,d:1,t:'종소세 신고 시작',c:'tax' },{ m:5,d:1,t:'장려금 정기 신청',c:'benefit' },
+        { m:5,d:31,t:'종소세 신고 마감',c:'tax' },{ m:6,d:1,t:'재산세 납부',c:'tax' },
+        { m:6,d:16,t:'청년도약계좌 신청',c:'benefit' },{ m:7,d:3,t:'도약계좌 마감',c:'benefit' },
+        { m:7,d:25,t:'부가세 확정신고',c:'tax' },{ m:7,d:31,t:'재산세 1기 마감',c:'tax' },
+        { m:8,d:31,t:'주민세 마감',c:'tax' },{ m:9,d:1,t:'장려금 지급',c:'benefit' },
+        { m:9,d:15,t:'국가장학금 2학기',c:'benefit' },{ m:9,d:30,t:'재산세 2기 마감',c:'tax' },
+        { m:10,d:25,t:'부가세 예정신고',c:'tax' },{ m:11,d:15,t:'종부세 고지',c:'tax' },
+        { m:12,d:1,t:'IRP 납입 임박',c:'invest' },{ m:12,d:15,t:'종부세 납부 마감',c:'tax' },
+        { m:12,d:31,t:'ISA 납입 마감',c:'invest' },{ m:12,d:31,t:'연말정산 준비',c:'tax' },
+      ];
+      var catColors = { tax:'#ef4444', benefit:'#22c55e', invest:'#6c5ce7' };
+      var gridMonth = new Date().getMonth(); // 0-based
+      var MONTHS_KR = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+
+      function renderCalGrid(monthIdx) {
+        var label = document.getElementById('pc-month-label');
+        label.textContent = '2026년 ' + MONTHS_KR[monthIdx];
+
+        var body = document.getElementById('pc-grid-body');
+        var first = new Date(2026, monthIdx, 1);
+        var startDay = first.getDay(); // 일=0
+        var daysInMonth = new Date(2026, monthIdx + 1, 0).getDate();
+        var today = new Date();
+        var todayDay = (today.getFullYear() === 2026 && today.getMonth() === monthIdx) ? today.getDate() : -1;
+
+        var monthEvents = EVENTS_DATA.filter(function (e) { return e.m === monthIdx + 1; });
+        var eventDays = {};
+        monthEvents.forEach(function (e) { if (!eventDays[e.d]) eventDays[e.d] = []; eventDays[e.d].push(e); });
+
+        var html = '';
+        // 빈 셀
+        for (var i = 0; i < startDay; i++) html += '<div class="pc-cell pc-cell--empty"></div>';
+        // 날짜 셀
+        for (var d = 1; d <= daysInMonth; d++) {
+          var isToday = d === todayDay;
+          var hasEvent = eventDays[d];
+          html += '<div class="pc-cell' + (isToday ? ' is-today' : '') + (hasEvent ? ' has-event' : '') + '" data-day="' + d + '">';
+          html += '<span class="pc-cell__num">' + d + '</span>';
+          if (hasEvent) {
+            hasEvent.forEach(function (e) {
+              html += '<span class="pc-cell__dot" style="background:' + (catColors[e.c] || '#888') + '"></span>';
+            });
+          }
+          html += '</div>';
+        }
+        body.innerHTML = html;
+
+        // 날짜 클릭 → 이벤트 표시
+        body.querySelectorAll('.pc-cell[data-day]').forEach(function (cell) {
+          cell.addEventListener('click', function () {
+            var day = parseInt(cell.dataset.day);
+            var evts = eventDays[day];
+            var evWrap = document.getElementById('pc-grid-events');
+            if (!evts) { evWrap.innerHTML = ''; return; }
+            body.querySelectorAll('.pc-cell').forEach(function (c) { c.classList.remove('is-sel'); });
+            cell.classList.add('is-sel');
+            evWrap.innerHTML = evts.map(function (e) {
+              return '<div class="pc-grid-ev" style="border-left:3px solid ' + (catColors[e.c] || '#888') + '"><strong>' + e.t + '</strong></div>';
+            }).join('');
+          });
+        });
+      }
+
+      document.getElementById('pc-prev').addEventListener('click', function () { gridMonth = Math.max(0, gridMonth - 1); renderCalGrid(gridMonth); });
+      document.getElementById('pc-next').addEventListener('click', function () { gridMonth = Math.min(11, gridMonth + 1); renderCalGrid(gridMonth); });
     })();
   </script>
 
@@ -233,6 +348,50 @@ const currentMonth = now.getMonth() + 1;
 
     .pc-note { margin-top: 2rem; padding: 1rem; background: var(--paper-2); border-radius: 10px; font-size: 0.8rem; color: var(--muted); }
     .pc-note p { margin: 0; }
+
+    /* 툴바 */
+    .pc-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .pc-subscribe {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .5rem 1rem; border: 1px solid var(--accent); border-radius: 8px;
+      font-size: .85rem; font-weight: 600; color: var(--accent); text-decoration: none;
+      transition: all .12s;
+    }
+    .pc-subscribe:hover { background: var(--accent); color: #fff; }
+    .pc-subscribe:hover svg { stroke: #fff; }
+    .pc-views { display: flex; gap: .3rem; }
+    .pc-view {
+      padding: .45rem .6rem; border: 1px solid var(--line); border-radius: 6px;
+      background: var(--paper); cursor: pointer; color: var(--muted); transition: all .12s;
+    }
+    .pc-view:hover { border-color: var(--accent); }
+    .pc-view.is-on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+    /* 캘린더 그리드 */
+    .pc-grid-nav { display: flex; justify-content: center; align-items: center; gap: 1.5rem; margin-bottom: 1rem; }
+    .pc-grid-nav__month { font-family: var(--font-serif); font-size: 1.2rem; font-weight: 700; min-width: 8rem; text-align: center; }
+    .pc-grid-nav__btn { font-size: 1.5rem; background: none; border: 1px solid var(--line); border-radius: 50%; width: 2rem; height: 2rem; cursor: pointer; color: var(--ink); display: grid; place-items: center; transition: border-color .12s; }
+    .pc-grid-nav__btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .pc-grid-header { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: .75rem; font-weight: 600; color: var(--muted); padding-bottom: .4rem; border-bottom: 1px solid var(--line); margin-bottom: .3rem; }
+    .pc-grid-header span:first-child { color: #ef4444; }
+    .pc-grid-header span:last-child { color: #3b82f6; }
+
+    .pc-grid-body { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+    .pc-cell {
+      aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 2px; border-radius: 8px; cursor: pointer; transition: background .1s; position: relative;
+    }
+    .pc-cell:hover { background: var(--paper-2); }
+    .pc-cell--empty { cursor: default; }
+    .pc-cell.is-today .pc-cell__num { background: var(--accent); color: #fff; border-radius: 50%; width: 1.6rem; height: 1.6rem; display: grid; place-items: center; }
+    .pc-cell.is-sel { background: var(--accent-soft); }
+    .pc-cell__num { font-size: .85rem; font-weight: 500; }
+    .pc-cell__dot { width: 5px; height: 5px; border-radius: 50%; }
+    .pc-cell.has-event { font-weight: 700; }
+
+    .pc-grid-events { margin-top: .8rem; }
+    .pc-grid-ev { padding: .6rem .8rem; margin-bottom: .4rem; background: var(--paper-2); border-radius: 8px; font-size: .88rem; }
 
     .pc-cross { display: flex; flex-direction: column; gap: 0.6rem; margin: 2rem 0 1.5rem; }
     .pc-cross__card {

@@ -6,12 +6,14 @@ import '../styles/app.css';
 
 <BaseLayout title="마이 — Crama" description="내 프로필 · 밀웜 · 크라미">
   <!-- 비로그인 → 즉시 로그인 페이지(깜빡임 방지) -->
+  <!-- OAuth 콜백은 #access_token=... 해시로 도착 → Supabase가 파싱할 때까지 대기 -->
   <script is:inline>
     (() => {
       try {
-        const hasToken = Object.keys(localStorage).some(k => k.includes('-auth-token'));
-        if (!hasToken) { location.replace('/login/'); return; }
-      } catch {}
+        var hasToken = Object.keys(localStorage).some(function(k) { return k.includes('-auth-token'); });
+        var isOAuthCallback = location.hash && (location.hash.includes('access_token') || location.hash.includes('refresh_token'));
+        if (!hasToken && !isOAuthCallback) { location.replace('/login/'); return; }
+      } catch (e) {}
     })();
   </script>
   <div class="app" id="me-app" style="opacity:0;transition:opacity .15s;">

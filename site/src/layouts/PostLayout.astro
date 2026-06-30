@@ -132,6 +132,23 @@ const jsonLd = {
     {!premium && <GlossaryTooltips />}
 
     {!premium && (
+      <div class="article-feedback measure" id="article-feedback" data-slug={slug}>
+        <p class="article-feedback__q">이 글이 도움이 됐나요?</p>
+        <div class="article-feedback__btns">
+          <button type="button" class="article-feedback__btn" data-vote="up" aria-label="도움됐어요">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+            <span>도움됐어요</span>
+          </button>
+          <button type="button" class="article-feedback__btn" data-vote="down" aria-label="아쉬워요">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10zM17 2h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"/></svg>
+            <span>아쉬워요</span>
+          </button>
+        </div>
+        <p class="article-feedback__thanks" hidden>의견 감사합니다! 더 나은 글을 쓰는 데 참고할게요.</p>
+      </div>
+    )}
+
+    {!premium && (
       <div class="measure article-footer">
         <TagList tags={tags} />
         <ShareButtons title={title} />
@@ -192,6 +209,34 @@ const jsonLd = {
   <ContentRail excludeSlug={slug} />
   </div>
 </BaseLayout>
+
+<script is:inline>
+  // 글 피드백 위젯
+  (() => {
+    const fb = document.getElementById('article-feedback');
+    if (!fb) return;
+    const slug = fb.dataset.slug;
+    const KEY = 'crama:feedback';
+    try {
+      const votes = JSON.parse(localStorage.getItem(KEY) || '{}');
+      if (votes[slug]) { fb.querySelector('.article-feedback__btns').hidden = true; fb.querySelector('.article-feedback__thanks').hidden = false; return; }
+    } catch (e) {}
+    fb.querySelectorAll('.article-feedback__btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var vote = btn.dataset.vote;
+        try {
+          var votes = JSON.parse(localStorage.getItem(KEY) || '{}');
+          votes[slug] = vote;
+          localStorage.setItem(KEY, JSON.stringify(votes));
+        } catch (e) {}
+        fb.querySelector('.article-feedback__btns').hidden = true;
+        fb.querySelector('.article-feedback__thanks').hidden = false;
+        // GA4 이벤트로 피드백 수집
+        try { if (window.gtag) gtag('event', 'article_feedback', { slug: slug, vote: vote }); } catch (e) {}
+      });
+    });
+  })();
+</script>
 
 <script is:inline>
   // 읽은 글 기록 (localStorage) — 카드에 '읽음' 뱃지 표시용

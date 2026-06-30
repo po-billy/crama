@@ -671,6 +671,24 @@
 }
 .tag:hover { border-color: var(--accent); color: var(--accent); }
 
+/* ---------- 글 피드백 ("도움이 됐나요?") ---------- */
+.article-feedback {
+  text-align: center; margin: 2.5rem auto 0; padding: 1.5rem;
+  border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--paper-2);
+}
+.article-feedback__q { font-weight: 600; font-size: 1rem; margin: 0 0 0.8rem; }
+.article-feedback__btns { display: flex; justify-content: center; gap: 0.8rem; }
+.article-feedback__btn {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.55rem 1.2rem; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--paper); color: var(--ink); font-size: 0.9rem; font-weight: 500;
+  cursor: pointer; transition: border-color 0.15s, background 0.15s;
+}
+.article-feedback__btn:hover { border-color: var(--accent); background: var(--accent); color: #fff; }
+.article-feedback__btn:hover svg { stroke: #fff; }
+.article-feedback__thanks { font-size: 0.9rem; color: var(--muted); margin: 0; }
+
 /* ---------- 이전/다음 글 네비게이션 ---------- */
 .post-nav {
   display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;

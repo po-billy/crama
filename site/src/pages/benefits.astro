@@ -280,9 +280,16 @@ const faqLd = {
       function checkNext() { $('bf-next').disabled = false; }
 
       // ── 결과 대시보드 ──
+      // 로그인 여부 확인
+      function isLoggedIn() {
+        try { return Object.keys(localStorage).some(function (k) { return k.includes('-auth-token'); }); } catch (e) { return false; }
+      }
+      var FREE_LIMIT = 3; // 비회원에게 보여줄 카드 수
+
       function showResults() {
         var results = match(profile);
         var total = results.reduce(function (s, b) { return s + b.amountValue; }, 0);
+        var loggedIn = isLoggedIn();
 
         $('bf-result-title').textContent = '받을 수 있는 혜택 ' + results.length + '건';
         $('bf-result-amount').innerHTML = '예상 총 <strong>' + total.toLocaleString() + '만원</strong>/년';
@@ -309,48 +316,67 @@ const faqLd = {
 
         // 카드 렌더
         var now = new Date();
-        var cardsHtml = results.map(function (b) {
+        function renderCard(b) {
           var ci = CATS[b.category];
           var ddayHtml = '';
           if (b.deadline && b.deadline !== '상시') {
             var dl = new Date(b.deadline);
             var diff = Math.ceil((dl - now) / 86400000);
-            if (diff > 0 && diff <= 60) {
-              ddayHtml = '<span class="bf-card__dday bf-card__dday--urgent">D-' + diff + '</span>';
-            } else if (diff > 0) {
-              ddayHtml = '<span class="bf-card__dday">D-' + diff + '</span>';
-            }
+            if (diff > 0 && diff <= 60) ddayHtml = '<span class="bf-card__dday bf-card__dday--urgent">D-' + diff + '</span>';
+            else if (diff > 0) ddayHtml = '<span class="bf-card__dday">D-' + diff + '</span>';
           }
-
           return '<div class="bf-card" data-cat="' + b.category + '">' +
-            '<div class="bf-card__head">' +
-              '<span class="bf-card__cat" style="--cat-color:' + ci.color + '">' + ci.icon + ' ' + ci.name + '</span>' +
-              ddayHtml +
-            '</div>' +
+            '<div class="bf-card__head"><span class="bf-card__cat" style="--cat-color:' + ci.color + '">' + ci.icon + ' ' + ci.name + '</span>' + ddayHtml + '</div>' +
             '<h3 class="bf-card__title">' + b.name + '</h3>' +
             '<p class="bf-card__summary">' + b.summary + '</p>' +
             '<div class="bf-card__amount">' + b.amount + '</div>' +
             (b.deadlineLabel ? '<p class="bf-card__deadline">📅 ' + b.deadlineLabel + '</p>' : '') +
-            '<div class="bf-card__foot">' +
-              '<span class="bf-card__method">' + b.applyMethod + '</span>' +
-              '<a class="bf-card__apply" href="' + b.applyUrl + '" target="_blank" rel="noopener">신청하기 →</a>' +
-            '</div>' +
+            '<div class="bf-card__foot"><span class="bf-card__method">' + b.applyMethod + '</span>' +
+            '<a class="bf-card__apply" href="' + b.applyUrl + '" target="_blank" rel="noopener">신청하기 →</a></div>' +
             (b.relatedSlug ? '<a class="bf-card__related" href="/blog/' + b.relatedSlug + '/">📖 자세한 가이드 읽기</a>' : '') +
           '</div>';
-        }).join('');
+        }
 
+        var cardsHtml = '';
         if (results.length === 0) {
-          cardsHtml = '<div class="bf-empty">' +
-            '<p class="bf-empty__icon">🔍</p>' +
-            '<p>입력하신 조건에 맞는 혜택을 찾지 못했어요.</p>' +
-            '<p>조건을 변경하거나, <a href="/tools/">금융 계산기</a>를 활용해 보세요.</p>' +
-          '</div>';
+          cardsHtml = '<div class="bf-empty"><p class="bf-empty__icon">🔍</p><p>입력하신 조건에 맞는 혜택을 찾지 못했어요.</p></div>';
+        } else if (loggedIn) {
+          // 로그인 사용자: 전체 표시
+          cardsHtml = results.map(renderCard).join('');
+        } else {
+          // 비회원: 상위 N개만 + 나머지 블러 + 로그인 CTA
+          var visible = results.slice(0, FREE_LIMIT).map(renderCard).join('');
+          var lockedCount = results.length - FREE_LIMIT;
+          var gateHtml = '';
+          if (lockedCount > 0) {
+            // 블러 처리된 미리보기 카드 2개
+            var previewCards = results.slice(FREE_LIMIT, FREE_LIMIT + 2).map(function (b) {
+              return '<div class="bf-card bf-card--blur" aria-hidden="true">' +
+                '<h3 class="bf-card__title">' + b.name.replace(/./g, '●') + '</h3>' +
+                '<p class="bf-card__summary">이 혜택의 상세 조건과 신청 방법은 로그인 후 확인할 수 있습니다.</p>' +
+                '<div class="bf-card__amount">금액 확인하기</div></div>';
+            }).join('');
+
+            gateHtml = '<div class="bf-gate">' +
+              '<div class="bf-gate__blur">' + previewCards + '</div>' +
+              '<div class="bf-gate__cta">' +
+                '<div class="bf-gate__inner">' +
+                  '<span class="bf-gate__icon">🔓</span>' +
+                  '<h3 class="bf-gate__title">나머지 ' + lockedCount + '건의 혜택이 더 있어요</h3>' +
+                  '<p class="bf-gate__desc">무료 로그인하면 전체 결과 + 신청 링크 + 프로필 저장까지 모두 이용할 수 있어요.</p>' +
+                  '<a class="bf-gate__btn" href="/login/">무료 로그인하고 전체 보기 →</a>' +
+                  '<p class="bf-gate__note">가입 30초 · 완전 무료 · 광고 없음</p>' +
+                '</div>' +
+              '</div>' +
+            '</div>';
+          }
+          cardsHtml = visible + gateHtml;
         }
 
         $('bf-cards').innerHTML = cardsHtml;
 
         // GA4 이벤트
-        try { if (window.gtag) gtag('event', 'benefits_result', { count: results.length, total: total }); } catch (e) {}
+        try { if (window.gtag) gtag('event', 'benefits_result', { count: results.length, total: total, loggedIn: loggedIn }); } catch (e) {}
       }
 
       // ── 네비게이션 ──
@@ -573,6 +599,35 @@ const faqLd = {
       border-radius: 8px; transition: color 0.12s;
     }
     .bf-card__related:hover { color: var(--accent); }
+
+    /* ── 블러 카드 (비회원) ── */
+    .bf-card--blur {
+      filter: blur(6px); pointer-events: none; user-select: none; opacity: 0.5;
+    }
+
+    /* ── 프리미엄 게이트 ── */
+    .bf-gate { position: relative; margin-top: -1rem; }
+    .bf-gate__blur { pointer-events: none; }
+    .bf-gate__cta {
+      position: relative; z-index: 2; margin-top: -3rem;
+      background: linear-gradient(to bottom, transparent, var(--paper) 2rem);
+      padding-top: 4rem;
+    }
+    .bf-gate__inner {
+      text-align: center; padding: 2rem 1.5rem;
+      border: 2px solid var(--accent); border-radius: 16px;
+      background: var(--paper);
+    }
+    .bf-gate__icon { font-size: 2rem; display: block; margin-bottom: 0.6rem; }
+    .bf-gate__title { font-family: var(--font-serif); font-size: 1.2rem; margin: 0 0 0.5rem; }
+    .bf-gate__desc { font-size: 0.92rem; color: var(--ink-soft); margin: 0 0 1.2rem; line-height: 1.6; }
+    .bf-gate__btn {
+      display: inline-block; padding: 0.85rem 2rem;
+      background: var(--accent); color: #fff; font-weight: 700; font-size: 1rem;
+      border-radius: 12px; text-decoration: none; transition: all 0.15s;
+    }
+    .bf-gate__btn:hover { filter: brightness(1.1); transform: translateY(-1px); color: #fff; }
+    .bf-gate__note { font-size: 0.75rem; color: var(--muted); margin: 0.8rem 0 0; }
 
     /* ── 빈 상태 ── */
     .bf-empty { text-align: center; padding: 3rem 1rem; color: var(--muted); }

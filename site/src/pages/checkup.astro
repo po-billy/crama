@@ -284,24 +284,42 @@ const faqLd = {
           '</div>';
         }).join('');
 
-        // 개선 팁
+        // 개선 팁 — 로그인 여부에 따라 게이트
+        var ckLoggedIn = false;
+        try { ckLoggedIn = Object.keys(localStorage).some(function (k) { return k.includes('-auth-token'); }); } catch (e) {}
+
         if (r.tips.length > 0) {
-          $('ck-tips').innerHTML = '<h3 class="ck-tips__title">개선 포인트</h3>' +
-            r.tips.map(function (t) {
-              return '<div class="ck-tip">' +
-                '<span class="ck-tip__icon">' + t.icon + '</span>' +
-                '<div class="ck-tip__body">' +
-                  '<p class="ck-tip__area">' + t.area + '</p>' +
+          if (ckLoggedIn) {
+            $('ck-tips').innerHTML = '<h3 class="ck-tips__title">개선 포인트</h3>' +
+              r.tips.map(function (t) {
+                return '<div class="ck-tip"><span class="ck-tip__icon">' + t.icon + '</span>' +
+                  '<div class="ck-tip__body"><p class="ck-tip__area">' + t.area + '</p>' +
                   '<p class="ck-tip__text">' + t.text + '</p>' +
                   (t.link ? '<a class="ck-tip__link" href="' + t.link + '">' + t.linkLabel + ' →</a>' : '') +
-                '</div></div>';
-            }).join('');
+                  '</div></div>';
+              }).join('');
+          } else {
+            // 비회원: 첫 1개만 보이고 나머지 게이트
+            var firstTip = r.tips[0];
+            var restCount = r.tips.length - 1;
+            $('ck-tips').innerHTML = '<h3 class="ck-tips__title">개선 포인트</h3>' +
+              '<div class="ck-tip"><span class="ck-tip__icon">' + firstTip.icon + '</span>' +
+              '<div class="ck-tip__body"><p class="ck-tip__area">' + firstTip.area + '</p>' +
+              '<p class="ck-tip__text">' + firstTip.text + '</p></div></div>' +
+              (restCount > 0 ? '<div class="ck-gate">' +
+                '<span class="ck-gate__icon">🔓</span>' +
+                '<p class="ck-gate__title">나머지 ' + restCount + '개 개선 포인트 + 맞춤 가이드</p>' +
+                '<p class="ck-gate__desc">무료 로그인하면 상세 분석과 맞춤 추천을 받을 수 있어요.</p>' +
+                '<a class="ck-gate__btn" href="/login/">무료 로그인 →</a>' +
+                '<p class="ck-gate__note">30초 · 완전 무료</p>' +
+              '</div>' : '');
+          }
         } else {
           $('ck-tips').innerHTML = '<div class="ck-tip" style="text-align:center;"><p>모든 항목이 양호해요! 현재 습관을 유지하세요. 🎉</p></div>';
         }
 
         // GA4
-        try { if (window.gtag) gtag('event', 'checkup_result', { score: r.total, grade: r.grade }); } catch (e) {}
+        try { if (window.gtag) gtag('event', 'checkup_result', { score: r.total, grade: r.grade, loggedIn: ckLoggedIn }); } catch (e) {}
       }
 
       // ── 네비게이션 ──
@@ -415,6 +433,21 @@ const faqLd = {
     .ck-result__actions .ck-cta { flex: 1; }
     .ck-result__note { margin-top: 1.5rem; padding: 1rem; background: var(--paper-2); border-radius: 10px; font-size: 0.8rem; color: var(--muted); }
     .ck-result__note p { margin: 0; }
+
+    /* 프리미엄 게이트 */
+    .ck-gate {
+      text-align: center; padding: 1.5rem; margin-top: 0.5rem;
+      border: 2px solid var(--accent); border-radius: 16px; background: var(--paper);
+    }
+    .ck-gate__icon { font-size: 1.8rem; display: block; margin-bottom: 0.4rem; }
+    .ck-gate__title { font-weight: 700; font-size: 1rem; margin: 0 0 0.4rem; }
+    .ck-gate__desc { font-size: 0.88rem; color: var(--ink-soft); margin: 0 0 1rem; }
+    .ck-gate__btn {
+      display: inline-block; padding: 0.7rem 1.8rem; background: var(--accent); color: #fff;
+      font-weight: 700; border-radius: 10px; text-decoration: none; transition: all 0.12s;
+    }
+    .ck-gate__btn:hover { filter: brightness(1.1); color: #fff; }
+    .ck-gate__note { font-size: 0.72rem; color: var(--muted); margin: 0.6rem 0 0; }
 
     /* 크로스 연결 */
     .ck-cross { display: flex; flex-direction: column; gap: 0.6rem; margin: 1.5rem 0; }

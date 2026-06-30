@@ -210,7 +210,7 @@ hr {
   color: var(--ink-soft); text-decoration: none; transition: background .1s;
 }
 .crail__svc-link:hover { background: var(--paper-2); color: var(--accent); }
-.crail__svc-link span { font-size: 1rem; flex: none; }
+.crail__svc-link span { font-size: .85rem; flex: none; width: 1.6rem; height: 1.6rem; display: inline-flex; align-items: center; justify-content: center; background: var(--paper-2); border-radius: 50%; }
 .brand {
   font-family: var(--font-serif);
   font-weight: 600;
@@ -428,7 +428,8 @@ hr {
   transition: border-color 0.12s, box-shadow 0.12s, transform 0.12s;
 }
 .svc-widget:hover { border-color: var(--accent); box-shadow: 0 4px 16px rgba(108,92,231,.1); transform: translateY(-2px); }
-.svc-widget__icon { font-size: 1.6rem; }
+.svc-widget__icon { font-size: 1.6rem; display: flex; align-items: center; justify-content: center; }
+.svc-widget__icon .duoicon { width: 28px; height: 28px; }
 .svc-widget__label { font-size: 0.78rem; color: var(--muted); font-weight: 500; }
 .svc-widget__val { font-size: 0.95rem; color: var(--accent); }
 @media (max-width: 480px) { .svc-widgets { grid-template-columns: repeat(3, 1fr); gap: 0.4rem; } .svc-widget { padding: 1rem 0.4rem; } }

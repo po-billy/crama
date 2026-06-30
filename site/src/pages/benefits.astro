@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import DuoIcon from '../components/DuoIcon.astro';
 import { BENEFITS, BENEFIT_CATEGORIES, REGIONS } from '../data/benefits';
 
 // 빌드 시점에 데이터를 인라인(JSON) — 클라이언트 JS에서 매칭
@@ -93,7 +94,7 @@ const faqLd = {
       <!-- 서비스 크로스 연결 -->
       <div class="bf-cross">
         <a href="/checkup/" class="bf-cross__card">
-          <span class="bf-cross__icon">🩺</span>
+          <span class="bf-cross__icon"><DuoIcon name="checkup" /></span>
           <div>
             <strong>재무 건강 체크업</strong>
             <p>내 돈 관리가 건강한지 5분 만에 진단해 보세요</p>
@@ -101,7 +102,7 @@ const faqLd = {
           <span class="bf-cross__arrow">→</span>
         </a>
         <a href="/policy-calendar/" class="bf-cross__card">
-          <span class="bf-cross__icon">📅</span>
+          <span class="bf-cross__icon"><DuoIcon name="calendar" /></span>
           <div>
             <strong>정책 캘린더 2026</strong>
             <p>놓치면 손해인 신청 마감일을 한눈에</p>
@@ -661,7 +662,8 @@ const faqLd = {
       text-decoration: none; color: var(--ink); transition: border-color 0.12s, box-shadow 0.12s;
     }
     .bf-cross__card:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,.05); }
-    .bf-cross__icon { font-size: 1.5rem; flex: none; }
+    .bf-cross__icon { font-size: 1.5rem; flex: none; display: flex; align-items: center; }
+    .bf-cross__icon .duoicon { width: 24px; height: 24px; }
     .bf-cross__card div { flex: 1; }
     .bf-cross__card strong { font-size: 0.95rem; display: block; }
     .bf-cross__card p { font-size: 0.82rem; color: var(--muted); margin: 0.2rem 0 0; }

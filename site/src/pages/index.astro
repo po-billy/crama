@@ -59,16 +59,16 @@ const slides = [
 
 // 배너 하단 원형 퀵메뉴 — 콘텐츠 + 테스트 바로가기
 const circles = [
-  { label: '머니 캐릭터 테스트', href: '/quiz/money-character/', name: 'quiz', badge: 'NEW' },
+  { label: '내 혜택 찾기', href: '/benefits/', name: 'benefits', badge: 'NEW' },
+  { label: '재무 체크업', href: '/checkup/', name: 'checkup', badge: 'NEW' },
+  { label: '정책 캘린더', href: '/policy-calendar/', name: 'calendar' },
+  { label: '머니 캐릭터', href: '/quiz/money-character/', name: 'quiz' },
   { label: '빼꼼 투표', href: '/vote/', name: 'vote', badge: 'HOT' },
   { label: '투자 성향 진단', href: '/quiz/investor-type/', name: 'diagnose' },
   { label: '칼럼', href: '/column/', name: 'column' },
-  { label: '완벽 가이드', href: '/guides/', name: 'guide' },
+  { label: '가이드', href: '/guides/', name: 'guide' },
   { label: '계산기', href: '/tools/', name: 'calc' },
   { label: '용어집', href: '/glossary/', name: 'glossary' },
-  { label: '주식·재테크', href: '/category/money/', name: 'money' },
-  { label: 'AI 트렌드', href: '/category/ai/', name: 'ai' },
-  { label: '부업·지원금', href: '/category/income/', name: 'income' },
 ];
 
 const latest = posts.filter((p) => !guideSlugs.includes(p.id)).slice(0, 8);
@@ -434,17 +434,17 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
         </div>
         <div class="svc-widgets">
           <a href="/benefits/" class="svc-widget" id="svc-w-benefits">
-            <span class="svc-widget__icon">💰</span>
+            <span class="svc-widget__icon"><DuoIcon name="benefits" /></span>
             <span class="svc-widget__label">내 혜택</span>
             <strong class="svc-widget__val" id="svc-benefit-count">-</strong>
           </a>
           <a href="/checkup/" class="svc-widget">
-            <span class="svc-widget__icon">🩺</span>
+            <span class="svc-widget__icon"><DuoIcon name="checkup" /></span>
             <span class="svc-widget__label">재무 건강</span>
             <strong class="svc-widget__val">체크업 →</strong>
           </a>
           <a href="/policy-calendar/" class="svc-widget">
-            <span class="svc-widget__icon">📅</span>
+            <span class="svc-widget__icon"><DuoIcon name="calendar" /></span>
             <span class="svc-widget__label">정책 캘린더</span>
             <strong class="svc-widget__val">일정 보기</strong>
           </a>

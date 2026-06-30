@@ -26,6 +26,19 @@ const catNames = Object.fromEntries(
     </div>
 
     <div class="search-results" id="results" aria-live="polite"></div>
+    <div class="search-suggest" id="search-suggest">
+      <p class="search-suggest__title">인기 주제로 찾아보기</p>
+      <div class="search-suggest__tags">
+        <button type="button" class="search-suggest__tag" data-q="청년도약계좌">청년도약계좌</button>
+        <button type="button" class="search-suggest__tag" data-q="ETF">ETF</button>
+        <button type="button" class="search-suggest__tag" data-q="연말정산">연말정산</button>
+        <button type="button" class="search-suggest__tag" data-q="부업">부업</button>
+        <button type="button" class="search-suggest__tag" data-q="AI 에이전트">AI 에이전트</button>
+        <button type="button" class="search-suggest__tag" data-q="비상금">비상금</button>
+        <button type="button" class="search-suggest__tag" data-q="절세">절세</button>
+        <button type="button" class="search-suggest__tag" data-q="프롬프트">프롬프트</button>
+      </div>
+    </div>
   </div>
 
   <script define:vars={{ catNames }}>
@@ -78,11 +91,36 @@ const catNames = Object.fromEntries(
     function updateClear() { clearBtn.style.display = input.value ? '' : 'none'; }
     clearBtn.addEventListener('click', () => { input.value = ''; out.innerHTML = ''; updateClear(); input.focus(); });
 
+    const suggest = document.getElementById('search-suggest');
     let t;
     input.addEventListener('input', () => {
       clearTimeout(t);
       updateClear();
+      if (suggest) suggest.hidden = !!input.value.trim();
       t = setTimeout(() => render(input.value), 120);
     });
+
+    // 인기 주제 태그 클릭
+    document.querySelectorAll('.search-suggest__tag').forEach(btn => {
+      btn.addEventListener('click', () => {
+        input.value = btn.dataset.q;
+        if (suggest) suggest.hidden = true;
+        updateClear();
+        render(input.value);
+        input.focus();
+      });
+    });
   </script>
+
+  <style>
+    .search-suggest { margin-top: 2rem; }
+    .search-suggest__title { font-size: 0.85rem; font-weight: 600; color: var(--muted); margin: 0 0 0.8rem; }
+    .search-suggest__tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .search-suggest__tag {
+      padding: 0.45rem 0.9rem; border: 1px solid var(--line); border-radius: 20px;
+      background: var(--paper); font: inherit; font-size: 0.85rem; font-weight: 500;
+      color: var(--ink-soft); cursor: pointer; transition: all 0.12s;
+    }
+    .search-suggest__tag:hover { border-color: var(--accent); color: var(--accent); }
+  </style>
 </BaseLayout>

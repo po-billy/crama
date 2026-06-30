@@ -80,11 +80,16 @@ const faqLd = {
     <!-- ━━ 3. 결과 대시보드 ━━ -->
     <section class="bf-result" id="bf-result" hidden>
       <!-- 내 조건 요약 바 (탭 → 수정 바텀시트) -->
-      <button type="button" class="bf-condbar" id="bf-cond-open">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.6 3.2-5.5 7-5.5s7 1.9 7 5.5"/></svg>
-        <span class="bf-condbar__text" id="bf-cond-summary">내 조건</span>
-        <span class="bf-condbar__edit">수정<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></span>
-      </button>
+      <div class="bf-condbar">
+        <button type="button" class="bf-condbar__main" id="bf-cond-open">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.6 3.2-5.5 7-5.5s7 1.9 7 5.5"/></svg>
+          <span class="bf-condbar__text" id="bf-cond-summary">내 조건</span>
+          <span class="bf-condbar__edit">수정<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></span>
+        </button>
+        <button type="button" class="bf-condbar__reset" id="bf-cond-reset" aria-label="조건 초기화" title="처음부터 다시">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+        </button>
+      </div>
       <div class="bf-result__hero">
         <p class="bf-result__eyebrow">분석 완료</p>
         <h2 class="bf-result__title" id="bf-result-title"></h2>
@@ -102,7 +107,6 @@ const faqLd = {
       <div class="bf-result__actions">
         <button class="bf-cta" type="button" id="bf-share-result">결과 공유하기</button>
         <button class="bf-cta bf-cta--ghost" type="button" id="bf-save">프로필 저장</button>
-        <button class="bf-cta bf-cta--ghost" type="button" id="bf-retry">다시 입력</button>
       </div>
 
       <div class="bf-result__cta-box" id="bf-save-done" hidden>
@@ -511,9 +515,14 @@ const faqLd = {
         else { showSection('bf-result'); showResults(); }
       });
 
-      $('bf-retry').addEventListener('click', function () {
-        showSection('bf-flow');
-        step = 0; renderStep();
+      // 조건바 초기화 — 저장값 삭제 + 기본값 복원 + 위저드 처음부터
+      var _bfReset = $('bf-cond-reset');
+      if (_bfReset) _bfReset.addEventListener('click', function () {
+        if (!confirm('입력한 조건을 초기화하고 처음부터 다시 할까요?')) return;
+        try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+        Object.assign(profile, { age: 28, income: 3000, employment: 'employed', housing: 'rent', region: 'seoul', familySize: 1, hasChildren: false, childAge: null, isNewlywed: false, isPregnant: false });
+        var note = document.querySelector('.bf-result__saved-note'); if (note) note.remove();
+        showSection('bf-flow'); step = 0; renderStep();
       });
 
       $('bf-save').addEventListener('click', function () {
@@ -694,17 +703,23 @@ const faqLd = {
     .bf-flow[hidden] { display: none; }
 
     /* ── 내 조건 요약 바 + 수정 바텀시트 ── */
-    .bf-condbar {
-      display: flex; align-items: center; gap: 0.5rem; width: 100%;
-      padding: 0.7rem 0.9rem; margin: 0 0 1.2rem;
-      background: var(--paper); border: 1px solid var(--line); border-radius: 12px;
+    .bf-condbar { display: flex; align-items: stretch; gap: 0.4rem; margin: 0 0 1.2rem; position: sticky; top: 0.5rem; z-index: 20; }
+    .bf-condbar__main {
+      flex: 1; min-width: 0; display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.7rem 0.9rem; background: var(--paper); border: 1px solid var(--line); border-radius: 12px;
       font: inherit; color: var(--ink-soft); cursor: pointer; text-align: left;
-      position: sticky; top: 0.5rem; z-index: 20; box-shadow: 0 2px 12px rgba(0,0,0,.05);
+      box-shadow: 0 2px 12px rgba(0,0,0,.05); touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+    }
+    .bf-condbar__main > svg { flex: none; color: var(--accent); }
+    .bf-condbar__text { flex: 1; min-width: 0; font-size: 0.88rem; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bf-condbar__edit { display: inline-flex; align-items: center; gap: 0.1rem; flex: none; font-size: 0.82rem; font-weight: 700; color: var(--accent); }
+    .bf-condbar__reset {
+      flex: none; display: grid; place-items: center; width: 2.9rem;
+      background: var(--paper); border: 1px solid var(--line); border-radius: 12px;
+      color: var(--ink-soft); cursor: pointer; box-shadow: 0 2px 12px rgba(0,0,0,.05);
       touch-action: manipulation; -webkit-tap-highlight-color: transparent;
     }
-    .bf-condbar > svg { flex: none; color: var(--accent); }
-    .bf-condbar__text { flex: 1; font-size: 0.88rem; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .bf-condbar__edit { display: inline-flex; align-items: center; gap: 0.1rem; flex: none; font-size: 0.82rem; font-weight: 700; color: var(--accent); }
+    .bf-condbar__reset:hover { color: var(--accent); border-color: var(--accent); }
 
     .bf-sheet { position: fixed; inset: 0; z-index: 100; display: flex; align-items: flex-end; }
     .bf-sheet[hidden] { display: none; }

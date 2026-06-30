@@ -71,11 +71,16 @@ const faqLd = {
     <!-- ━━ 결과 ━━ -->
     <section class="ck-result" id="ck-result" hidden>
       <!-- 내 입력값 요약 바 (탭 → 수정 바텀시트) -->
-      <button type="button" class="ck-condbar" id="ck-cond-open">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
-        <span class="ck-condbar__text" id="ck-cond-summary">내 입력값</span>
-        <span class="ck-condbar__edit">수정<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></span>
-      </button>
+      <div class="ck-condbar">
+        <button type="button" class="ck-condbar__main" id="ck-cond-open">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
+          <span class="ck-condbar__text" id="ck-cond-summary">내 입력값</span>
+          <span class="ck-condbar__edit">수정<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></span>
+        </button>
+        <button type="button" class="ck-condbar__reset" id="ck-cond-reset" aria-label="초기화" title="처음부터 다시">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+        </button>
+      </div>
       <div class="ck-result__card" id="ck-card">
         <p class="ck-result__eyebrow">재무 건강 체크업</p>
         <div class="ck-result__gauge">
@@ -99,7 +104,6 @@ const faqLd = {
 
       <div class="ck-result__actions">
         <button class="ck-cta" type="button" id="ck-share">결과 공유하기</button>
-        <button class="ck-cta ck-cta--ghost" type="button" id="ck-retry">다시 진단하기</button>
       </div>
 
       <!-- 맞춤 서비스 추천 (점수 기반) -->
@@ -442,7 +446,14 @@ const faqLd = {
           try { localStorage.setItem('crama:checkup:data', JSON.stringify(data)); } catch (e) {}
         }
       });
-      $('ck-retry').addEventListener('click', function () { showSection('ck-flow'); step = 0; renderStep(); });
+      // 조건바 초기화 — 저장값 삭제 + 기본값 복원 + 위저드 처음부터
+      var _ckReset = $('ck-cond-reset');
+      if (_ckReset) _ckReset.addEventListener('click', function () {
+        if (!confirm('입력값을 초기화하고 처음부터 다시 진단할까요?')) return;
+        try { localStorage.removeItem('crama:checkup:data'); } catch (e) {}
+        Object.assign(data, { monthlyIncome: 300, monthlySaving: 50, emergencyFund: 300, totalDebt: 0, monthlyDebtPay: 0, hasInsurance: false, investRatio: 0 });
+        showSection('ck-flow'); step = 0; renderStep();
+      });
       $('ck-share').addEventListener('click', async function () {
         var r = calculate();
         var text = '나의 재무 건강 등급: ' + r.grade + ' (' + r.total + '점/100) — 크라마 재무 건강 체크업';
@@ -571,10 +582,23 @@ const faqLd = {
     .ck-flow[hidden] { display: none; }
 
     /* ── 내 입력값 요약 바 + 수정 바텀시트 ── */
-    .ck-condbar { display: flex; align-items: center; gap: 0.5rem; width: 100%; padding: 0.7rem 0.9rem; margin: 0 0 1.2rem; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; font: inherit; color: var(--ink-soft); cursor: pointer; text-align: left; position: sticky; top: 0.5rem; z-index: 20; box-shadow: 0 2px 12px rgba(0,0,0,.05); touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-    .ck-condbar > svg { flex: none; color: var(--accent); }
-    .ck-condbar__text { flex: 1; font-size: 0.86rem; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ck-condbar { display: flex; align-items: stretch; gap: 0.4rem; margin: 0 0 1.2rem; position: sticky; top: 0.5rem; z-index: 20; }
+    .ck-condbar__main {
+      flex: 1; min-width: 0; display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.7rem 0.9rem; background: var(--paper); border: 1px solid var(--line); border-radius: 12px;
+      font: inherit; color: var(--ink-soft); cursor: pointer; text-align: left;
+      box-shadow: 0 2px 12px rgba(0,0,0,.05); touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+    }
+    .ck-condbar__main > svg { flex: none; color: var(--accent); }
+    .ck-condbar__text { flex: 1; min-width: 0; font-size: 0.86rem; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .ck-condbar__edit { display: inline-flex; align-items: center; gap: 0.1rem; flex: none; font-size: 0.82rem; font-weight: 700; color: var(--accent); }
+    .ck-condbar__reset {
+      flex: none; display: grid; place-items: center; width: 2.9rem;
+      background: var(--paper); border: 1px solid var(--line); border-radius: 12px;
+      color: var(--ink-soft); cursor: pointer; box-shadow: 0 2px 12px rgba(0,0,0,.05);
+      touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+    }
+    .ck-condbar__reset:hover { color: var(--accent); border-color: var(--accent); }
     .ck-sheet { position: fixed; inset: 0; z-index: 100; display: flex; align-items: flex-end; }
     .ck-sheet[hidden] { display: none; }
     .ck-sheet__backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.45); animation: ck-fade 0.15s ease; }

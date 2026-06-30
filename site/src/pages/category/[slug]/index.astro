@@ -94,6 +94,13 @@ const guideCount = posts.length - columnCount;
         <span style="color:var(--accent);font-weight:700;">→</span>
       </a>
     )}
+    {slug === 'ai' && (
+      <a href="/policy-calendar/" style="display:flex;align-items:center;gap:.8rem;padding:1.1rem 1.3rem;margin-top:2rem;border:1px solid var(--line);border-radius:12px;background:var(--paper-2);text-decoration:none;color:var(--ink);transition:border-color .12s;">
+        <span style="font-size:1.4rem;">📅</span>
+        <div style="flex:1"><strong>정책 캘린더 2026</strong><p style="font-size:.82rem;color:var(--muted);margin:.2rem 0 0;">놓치면 손해인 세금·지원금 마감일을 내 캘린더에</p></div>
+        <span style="color:var(--accent);font-weight:700;">→</span>
+      </a>
+    )}
   </div>
 
   <script is:inline>

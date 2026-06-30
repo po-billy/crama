@@ -367,13 +367,13 @@ const faqLd = {
     .ck-flow__step { font-size: 0.82rem; color: var(--muted); font-weight: 600; white-space: nowrap; }
     .ck-progress { flex: 1; height: 6px; background: var(--paper-2); border-radius: 99px; overflow: hidden; }
     .ck-progress__bar { display: block; height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.35s ease; }
-    .ck-step__q { font-family: var(--font-serif); font-size: 1.3rem; font-weight: 600; margin: 0 0 1.5rem; }
+    .ck-step__q { font-family: var(--font-serif); font-size: clamp(1.05rem, 4vw, 1.3rem); font-weight: 600; margin: 0 0 1.5rem; }
     .ck-flow__footer { margin-top: 2rem; text-align: center; }
 
     /* ── 필드 ── */
     .ck-field { margin-bottom: 1.2rem; }
     .ck-label { display: block; font-size: 0.88rem; font-weight: 600; color: var(--ink-soft); }
-    .ck-input { display: block; width: 100%; padding: 0.75rem 1rem; font: inherit; font-size: 1.1rem; border: 2px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); margin-top: 0.3rem; transition: border-color 0.15s; }
+    .ck-input { display: block; width: 100%; padding: 0.85rem 1rem; font: inherit; font-size: 1.05rem; border: 2px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); margin-top: 0.3rem; transition: border-color 0.15s; min-height: 2.75rem; }
     .ck-input:focus { outline: none; border-color: var(--accent); }
     .ck-hint { font-size: 0.85rem; color: var(--muted); margin: 0.5rem 0 0; }
     .ck-hint strong { color: var(--accent); }
@@ -384,7 +384,7 @@ const faqLd = {
 
     /* ── 옵션 ── */
     .ck-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
-    .ck-opt { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; padding: 1.2rem; border: 2px solid var(--line); border-radius: 12px; background: var(--paper); cursor: pointer; transition: all 0.15s; font: inherit; color: var(--ink); }
+    .ck-opt { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; padding: 1.2rem; border: 2px solid var(--line); border-radius: 12px; background: var(--paper); cursor: pointer; transition: all 0.15s; font: inherit; color: var(--ink); min-height: 3.2rem; }
     .ck-opt:hover { border-color: var(--accent); }
     .ck-opt.is-on { border-color: var(--accent); background: var(--accent-soft); font-weight: 700; }
     .ck-opt__icon { font-size: 1.6rem; }

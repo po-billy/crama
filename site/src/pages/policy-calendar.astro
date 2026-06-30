@@ -250,6 +250,9 @@ const currentMonth = now.getMonth() + 1;
         });
         var countEl = document.getElementById('pc-count');
         if (countEl) countEl.textContent = count + '건 표시 중';
+        // 그리드 뷰도 필터에 맞게 갱신
+        var gridVisible = document.getElementById('pc-grid');
+        if (gridVisible && !gridVisible.hidden) renderCalGrid(gridMonth);
       }
       applyFilters(); // 초기 카운트
 
@@ -271,21 +274,7 @@ const currentMonth = now.getMonth() + 1;
         });
       });
 
-      // ── 캘린더 그리드 ──
-      var EVENTS_DATA = [
-        { m:1,d:15,t:'연말정산 간소화 오픈',c:'tax' },{ m:1,d:25,t:'부가세 확정신고 마감',c:'tax' },
-        { m:2,d:28,t:'연말정산 환급 시작',c:'tax' },{ m:3,d:2,t:'장려금 반기 신청',c:'benefit' },
-        { m:3,d:31,t:'건보료 정산',c:'tax' },{ m:4,d:25,t:'부가세 예정신고 마감',c:'tax' },
-        { m:5,d:1,t:'종소세 신고 시작',c:'tax' },{ m:5,d:1,t:'장려금 정기 신청',c:'benefit' },
-        { m:5,d:31,t:'종소세 신고 마감',c:'tax' },{ m:6,d:1,t:'재산세 납부',c:'tax' },
-        { m:6,d:16,t:'청년도약계좌 신청',c:'benefit' },{ m:7,d:3,t:'도약계좌 마감',c:'benefit' },
-        { m:7,d:25,t:'부가세 확정신고',c:'tax' },{ m:7,d:31,t:'재산세 1기 마감',c:'tax' },
-        { m:8,d:31,t:'주민세 마감',c:'tax' },{ m:9,d:1,t:'장려금 지급',c:'benefit' },
-        { m:9,d:15,t:'국가장학금 2학기',c:'benefit' },{ m:9,d:30,t:'재산세 2기 마감',c:'tax' },
-        { m:10,d:25,t:'부가세 예정신고',c:'tax' },{ m:11,d:15,t:'종부세 고지',c:'tax' },
-        { m:12,d:1,t:'IRP 납입 임박',c:'invest' },{ m:12,d:15,t:'종부세 납부 마감',c:'tax' },
-        { m:12,d:31,t:'ISA 납입 마감',c:'invest' },{ m:12,d:31,t:'연말정산 준비',c:'tax' },
-      ];
+      // ── 캘린더 그리드 — ALL_EVENTS를 그대로 사용 (데이터 중복 제거) ──
       var catColors = { tax:'#ef4444', benefit:'#22c55e', invest:'#6c5ce7' };
       var gridMonth = new Date().getMonth(); // 0-based
       var MONTHS_KR = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
@@ -301,7 +290,15 @@ const currentMonth = now.getMonth() + 1;
         var today = new Date();
         var todayDay = (today.getFullYear() === 2026 && today.getMonth() === monthIdx) ? today.getDate() : -1;
 
-        var monthEvents = EVENTS_DATA.filter(function (e) { return e.m === monthIdx + 1; });
+        // ALL_EVENTS에서 해당 월 + 현재 필터 적용
+        var monthEvents = ALL_EVENTS.filter(function (e) {
+          if (e.month !== monthIdx + 1) return false;
+          if (activeFilters.target !== 'all' && e.target !== activeFilters.target && e.target !== 'all') return false;
+          if (activeFilters.field !== 'all' && e.field !== activeFilters.field && e.field !== 'all') return false;
+          if (activeFilters.ageGroup !== 'all' && e.ageGroup !== activeFilters.ageGroup && e.ageGroup !== 'all') return false;
+          if (searchQuery && e.title.toLowerCase().indexOf(searchQuery) === -1 && e.desc.toLowerCase().indexOf(searchQuery) === -1) return false;
+          return true;
+        }).map(function (e) { return { m: e.month, d: e.day, t: e.title, c: e.cat }; });
         var eventDays = {};
         monthEvents.forEach(function (e) { if (!eventDays[e.d]) eventDays[e.d] = []; eventDays[e.d].push(e); });
 

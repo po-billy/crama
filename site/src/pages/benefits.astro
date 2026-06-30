@@ -291,7 +291,15 @@ const faqLd = {
         }
       }
 
-      function checkNext() { $('bf-next').disabled = false; }
+      function checkNext() {
+        var s = STEPS[step];
+        var valid = true;
+        if (s.key === 'basic') valid = profile.age >= 15 && profile.age <= 80 && profile.region;
+        else if (s.key === 'work') valid = profile.employment && profile.income >= 0;
+        else if (s.key === 'housing') valid = !!profile.housing;
+        else if (s.key === 'family') valid = profile.familySize >= 1;
+        $('bf-next').disabled = !valid;
+      }
 
       // ── 결과 대시보드 ──
       // 로그인 여부 확인

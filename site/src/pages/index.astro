@@ -451,15 +451,33 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
           </a>
         </div>
       </div>
-      <!-- 프로필 없는 사용자: 서비스 소개 배너 -->
-      <a href="/benefits/" class="bf-banner" id="svc-banner">
-        <div class="bf-banner__inner">
-          <span class="bf-banner__badge">서비스</span>
-          <p class="bf-banner__title">나에게 해당되는 혜택,<br/><em>진짜로</em> 찾아드려요</p>
-          <p class="bf-banner__desc">평균 7~12건, 연 300~800만원의 혜택이 숨어있어요</p>
-          <span class="bf-banner__cta">내 혜택 찾기 →</span>
+      <!-- 프로필 없는 사용자: 3단계 여정으로 시작 -->
+      <div class="svc-start" id="svc-banner">
+        <div class="svc-start__head">
+          <span class="svc-start__badge">여기서 시작하세요</span>
+          <p class="svc-start__title">내 돈, 3단계로 챙기기</p>
         </div>
-      </a>
+        <div class="svc-start__steps">
+          <a href="/benefits/" class="svc-step">
+            <span class="svc-step__no">1</span>
+            <span class="svc-step__ic"><DuoIcon name="benefits" /></span>
+            <span class="svc-step__body"><strong>받을 돈부터 찾기</strong><small>숨은 지원금·환급 · 3분</small></span>
+            <span class="svc-step__arrow">→</span>
+          </a>
+          <a href="/checkup/" class="svc-step">
+            <span class="svc-step__no">2</span>
+            <span class="svc-step__ic"><DuoIcon name="checkup" /></span>
+            <span class="svc-step__body"><strong>재무 건강 진단</strong><small>저축·부채·투자 · 5분</small></span>
+            <span class="svc-step__arrow">→</span>
+          </a>
+          <a href="/policy-calendar/" class="svc-step">
+            <span class="svc-step__no">3</span>
+            <span class="svc-step__ic"><DuoIcon name="calendar" /></span>
+            <span class="svc-step__body"><strong>마감 일정 챙기기</strong><small>신청·세금 마감일 · 1분</small></span>
+            <span class="svc-step__arrow">→</span>
+          </a>
+        </div>
+      </div>
     </div>
     <script is:inline>
       (() => {
@@ -556,12 +574,26 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
       <div class="welcome-sheet__inner">
         <button class="welcome-sheet__close" id="welcome-close" aria-label="닫기">×</button>
         <p class="welcome-sheet__hello">처음이시죠? 반가워요 👋</p>
-        <h3 class="welcome-sheet__title">3분이면 나에게 맞는<br/>혜택을 찾을 수 있어요</h3>
-        <p class="welcome-sheet__desc">평균 <strong>7~12건</strong>, 연 <strong>300~800만원</strong>의 지원금이 숨어있어요</p>
-        <div class="welcome-sheet__btns">
-          <a href="/benefits/" class="welcome-sheet__cta">내 혜택 찾기 →</a>
-          <button class="welcome-sheet__skip" id="welcome-skip">나중에 할게요</button>
+        <h3 class="welcome-sheet__title">지금 가장 필요한 걸<br/>먼저 챙겨드릴게요</h3>
+        <p class="welcome-sheet__desc">뭐부터 해볼까요? 3분이면 돼요.</p>
+        <div class="welcome-goals">
+          <a href="/benefits/" class="welcome-goal" data-goal="benefits">
+            <span class="welcome-goal__emoji">💰</span>
+            <span class="welcome-goal__body"><strong>받을 수 있는 돈 찾기</strong><small>숨은 지원금·환급, 평균 7~12건</small></span>
+            <span class="welcome-goal__arrow">→</span>
+          </a>
+          <a href="/checkup/" class="welcome-goal" data-goal="checkup">
+            <span class="welcome-goal__emoji">🩺</span>
+            <span class="welcome-goal__body"><strong>내 재무 건강 진단</strong><small>저축·부채·투자 5분 체크</small></span>
+            <span class="welcome-goal__arrow">→</span>
+          </a>
+          <a href="/policy-calendar/" class="welcome-goal" data-goal="calendar">
+            <span class="welcome-goal__emoji">📅</span>
+            <span class="welcome-goal__body"><strong>놓치면 안 될 일정</strong><small>지원금·세금 마감일 한눈에</small></span>
+            <span class="welcome-goal__arrow">→</span>
+          </a>
         </div>
+        <button class="welcome-sheet__skip" id="welcome-skip">그냥 둘러볼게요</button>
       </div>
     </div>
   </div>
@@ -621,10 +653,14 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
       setTimeout(function () { sheet.style.display = 'none'; }, 350);
       try { localStorage.setItem(KEY, '1'); } catch (e) {}
     }
-    // 닫기 버튼 + 나중에 + 배경 클릭
+    // 닫기 버튼 + 둘러보기 + 배경 클릭
     document.getElementById('welcome-close').addEventListener('click', dismiss);
     document.getElementById('welcome-skip').addEventListener('click', dismiss);
     sheet.addEventListener('click', function (e) { if (e.target === sheet) dismiss(); });
+    // 골 선택 시: 다시 안 뜨게 플래그만 남기고 링크는 그대로 이동
+    sheet.querySelectorAll('.welcome-goal').forEach(function (a) {
+      a.addEventListener('click', function () { try { localStorage.setItem(KEY, '1'); } catch (e) {} });
+    });
   })();
 </script>
 

@@ -414,6 +414,21 @@ hr {
 [data-theme='dark'] .deadline-banner__dday { background: #b91c1c; }
 [data-theme='dark'] .deadline-banner__cta { color: rgba(0,0,0,0.5); }
 
+/* 이번 달 할 일 (홈) */
+.month-action { margin-bottom: 2.5rem; }
+.month-action__cards { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.8rem; }
+.month-action__card {
+  display: flex; align-items: center; gap: 0.8rem;
+  padding: 1rem 1.2rem; border: 1px solid var(--line); border-left: 3px solid var(--accent);
+  border-radius: 10px; background: var(--paper); text-decoration: none; color: var(--ink);
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+.month-action__card:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+.month-action__card div { flex: 1; }
+.month-action__card strong { font-size: 0.95rem; display: block; }
+.month-action__card p { font-size: 0.82rem; color: var(--muted); margin: 0.15rem 0 0; }
+.month-action__arrow { font-size: 1.1rem; color: var(--accent); font-weight: 700; flex: none; }
+
 /* 서비스 허브 위젯 (홈) */
 .svc-hub { margin-bottom: 3rem; }
 .svc-hub__head { margin-bottom: 0.8rem; }

@@ -73,6 +73,7 @@ const faqLd = {
         <h2 class="bf-result__title" id="bf-result-title"></h2>
         <p class="bf-result__amount" id="bf-result-amount"></p>
         <p class="bf-result__sub">예상 연간 혜택 총액 (최대 기준)</p>
+        <p class="bf-result__missed" id="bf-missed" hidden></p>
       </div>
 
       <div class="bf-filters" id="bf-filters"></div>
@@ -295,6 +296,15 @@ const faqLd = {
 
         $('bf-result-title').textContent = '받을 수 있는 혜택 ' + results.length + '건';
         $('bf-result-amount').innerHTML = '예상 총 <strong>' + total.toLocaleString() + '만원</strong>/년';
+
+        // "놓쳤을 수 있는 금액" — 나이 기반으로 신청 가능했던 기간 추정
+        var missedEl = $('bf-missed');
+        if (total > 0 && profile.age > 20) {
+          var yearsCouldHave = Math.min(profile.age - 19, 5); // 최대 5년 추정
+          var missedTotal = total * yearsCouldHave;
+          missedEl.innerHTML = '지금까지 놓쳤을 수 있는 금액: 약 <strong>' + missedTotal.toLocaleString() + '만원</strong>';
+          missedEl.hidden = false;
+        }
 
         // 카테고리 필터
         var cats = {};
@@ -557,6 +567,11 @@ const faqLd = {
     .bf-result__amount { font-size: 2rem; font-weight: 800; margin: 0; }
     .bf-result__amount strong { font-size: 2.4rem; }
     .bf-result__sub { font-size: 0.78rem; opacity: 0.7; margin: 0.3rem 0 0; }
+    .bf-result__missed {
+      font-size: 0.85rem; margin: 0.8rem 0 0; padding: 0.5rem 1rem;
+      background: rgba(255,255,255,0.15); border-radius: 8px; opacity: 0.9;
+    }
+    .bf-result__missed strong { font-weight: 800; }
     .bf-result__saved-note { text-align: center; font-size: 0.88rem; color: var(--muted); margin: -0.5rem 0 1.5rem; }
 
     /* ── 카테고리 필터 ── */

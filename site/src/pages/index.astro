@@ -475,6 +475,41 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
       })();
     </script>
 
+    <!-- 이번 달 할 일 — 시간 기반 액션 플랜 -->
+    <div class="month-action" id="month-action" hidden>
+      <div class="section-head">
+        <div class="section-head__t">
+          <h2>이번 달, 꼭 챙기세요</h2>
+          <p class="section-head__dek">놓치면 손해인 일정</p>
+        </div>
+      </div>
+      <div class="month-action__cards" id="month-cards"></div>
+    </div>
+    <script is:inline>
+      (() => {
+        var ACTIONS = [
+          { m: 1, items: [{ t: '연말정산 간소화 확인', d: '홈택스에서 공제 자료 조회', href: '/policy-calendar/' }] },
+          { m: 5, items: [{ t: '종합소득세 신고', d: '프리랜서·N잡러는 5/31까지', href: '/policy-calendar/' }, { t: '근로·자녀장려금 신청', d: '5/31까지 홈택스에서', href: '/policy-calendar/' }] },
+          { m: 6, items: [{ t: '청년도약계좌 신청', d: '7/3 마감 — 지금 확인', href: '/benefits/' }] },
+          { m: 7, items: [{ t: '청년도약계좌 마감 D-day', d: '7/3까지 신청', href: '/benefits/' }] },
+          { m: 12, items: [{ t: 'IRP·연금저축 납입', d: '세액공제 한도 채우기', href: '/policy-calendar/' }, { t: 'ISA 납입 마감', d: '비과세 한도 확인', href: '/policy-calendar/' }] },
+        ];
+        var now = new Date();
+        var cm = now.getMonth() + 1;
+        var found = ACTIONS.find(function (a) { return a.m === cm; });
+        if (!found || !found.items.length) return;
+        var wrap = document.getElementById('month-action');
+        var cards = document.getElementById('month-cards');
+        if (!wrap || !cards) return;
+        cards.innerHTML = found.items.map(function (it) {
+          return '<a href="' + it.href + '" class="month-action__card">' +
+            '<div><strong>' + it.t + '</strong><p>' + it.d + '</p></div>' +
+            '<span class="month-action__arrow">→</span></a>';
+        }).join('');
+        wrap.hidden = false;
+      })();
+    </script>
+
     <section>
       <div class="section-head">
         <div class="section-head__t">

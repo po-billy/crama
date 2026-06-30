@@ -71,6 +71,7 @@ const faqLd = {
           </div>
         </div>
         <p class="ck-result__msg" id="ck-msg"></p>
+        <div class="ck-compare" id="ck-compare" hidden></div>
       </div>
 
       <div class="ck-bars" id="ck-bars"></div>
@@ -247,6 +248,17 @@ const faqLd = {
 
         $('ck-score-num').textContent = r.total;
         $('ck-grade').textContent = r.grade;
+
+        // 또래 평균 대비 비교 (시뮬레이션 데이터 — 향후 실제 집계로 교체)
+        var avgByIncome = data.monthlyIncome < 250 ? 48 : data.monthlyIncome < 400 ? 55 : data.monthlyIncome < 600 ? 62 : 68;
+        var diff = r.total - avgByIncome;
+        var compareEl = $('ck-compare');
+        if (diff >= 0) {
+          compareEl.innerHTML = '비슷한 소득 구간 평균 <strong>' + avgByIncome + '점</strong>보다 <strong style="color:#22c55e;">+' + diff + '점</strong> 높아요';
+        } else {
+          compareEl.innerHTML = '비슷한 소득 구간 평균 <strong>' + avgByIncome + '점</strong>보다 <strong style="color:#ef4444;">' + diff + '점</strong> — 개선 여지가 있어요';
+        }
+        compareEl.hidden = false;
         $('ck-grade').className = 'ck-result__grade ck-grade--' + r.grade.replace('+', 'p').toLowerCase();
         $('ck-msg').textContent = r.message;
 
@@ -403,6 +415,8 @@ const faqLd = {
     .ck-grade--c { background: #ffedd5; color: #c2410c; }
     .ck-grade--d, .ck-grade--f { background: #fee2e2; color: #dc2626; }
     .ck-result__msg { font-size: 1rem; color: var(--ink-soft); margin: 0.8rem 0 0; font-weight: 500; }
+    .ck-compare { font-size: 0.85rem; margin: 0.6rem 0 0; padding: 0.5rem 0.8rem; background: var(--paper-2); border-radius: 8px; color: var(--ink-soft); }
+    .ck-compare strong { font-weight: 700; }
 
     /* ── 항목별 바 ── */
     .ck-bars { margin-bottom: 1.5rem; }

@@ -374,7 +374,7 @@ const upcoming = EVENTS
     })();
   </script>
 
-  <style>
+  <style is:global>
     .pc-page { max-width: 56rem; margin: 0 auto; padding: 0 1rem 3rem; }
 
     /* ── 히어로 ── */
@@ -417,7 +417,7 @@ const upcoming = EVENTS
       background: var(--paper); transition: border-color 0.12s;
     }
     .pc-ucard:hover { border-color: var(--accent); }
-    .pc-ucard.is-urgent { border-left: 3px solid #ef4444; }
+    .pc-ucard.is-urgent { border-color: #fca5a5; }
     .pc-ucard__dday {
       display: inline-block; font-size: 0.72rem; font-weight: 800; padding: 0.15rem 0.5rem;
       background: var(--paper-2); color: var(--ink-soft); border-radius: 6px; width: fit-content;
@@ -467,7 +467,7 @@ const upcoming = EVENTS
     .pc-detail__no { font-size: 0.88rem; color: var(--muted); text-align: center; padding: 2rem 0; }
 
     .pc-ev { padding: 1rem; border: 1px solid var(--line); border-radius: 10px; margin-bottom: 0.6rem; }
-    .pc-ev.is-imp { border-left: 3px solid var(--accent); }
+    .pc-ev.is-imp { border-color: var(--accent); }
     .pc-ev__head { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.3rem; }
     .pc-ev__cat { font-size: 0.75rem; font-weight: 600; }
     .pc-ev__dday { font-size: 0.68rem; font-weight: 700; padding: 0.12rem 0.4rem; border-radius: 4px; background: var(--paper-2); color: var(--ink-soft); }
@@ -528,7 +528,7 @@ const upcoming = EVENTS
       border-radius: 10px; margin-bottom: 0.3rem; transition: background 0.1s;
     }
     .pc-tl-ev:hover { background: var(--paper-2); }
-    .pc-tl-ev.is-imp { border-left: 3px solid var(--accent); }
+    .pc-tl-ev.is-imp { background: var(--accent-soft); }
     .pc-tl-ev__day { font-family: var(--font-serif); font-size: 1.1rem; font-weight: 700; color: var(--ink); min-width: 2rem; text-align: center; padding-top: 0.1rem; }
     .pc-tl-ev__body { flex: 1; min-width: 0; }
     .pc-tl-ev__row { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.15rem; }

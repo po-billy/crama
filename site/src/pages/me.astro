@@ -5,7 +5,16 @@ import '../styles/app.css';
 ---
 
 <BaseLayout title="마이 — Crama" description="내 프로필 · 밀웜 · 크라미">
-  <div class="app">
+  <!-- 비로그인 → 즉시 로그인 페이지(깜빡임 방지) -->
+  <script is:inline>
+    (() => {
+      try {
+        const hasToken = Object.keys(localStorage).some(k => k.includes('-auth-token'));
+        if (!hasToken) { location.replace('/login/'); return; }
+      } catch {}
+    })();
+  </script>
+  <div class="app" id="me-app" style="opacity:0;transition:opacity .15s;">
     <!-- 연속 출석 → 캘린더 -->
     <a class="streak-bar" href="/calendar/">
       <span><b id="streak">0</b>일 연속 출석 중</span>
@@ -403,6 +412,8 @@ import '../styles/app.css';
     try { const cb = localStorage.getItem('crama:bal'); if (cb) $('bal').textContent = cb; const cs = localStorage.getItem('crama:streak'); if (cs) $('streak').textContent = cs; } catch {}
     const user = await getUser();
     if (!user) { location.replace('/login/'); return; }
+    const app = document.getElementById('me-app');
+    if (app) app.style.opacity = '1';
     await earnWorms('attend'); // 출석(서버 1일 1회 캡)
 
     // 보상 청구: 친구 초대(대기 코드) + 연속출석 마일스톤

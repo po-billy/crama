@@ -4,8 +4,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/PostCard.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
 import BriefSubscribe from '../../components/BriefSubscribe.astro';
-import SubscribeBox from '../../components/SubscribeBox.astro';
 import { CATEGORIES, type CategorySlug } from '../../consts';
+const SU = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
+const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
 
 const posts = (await getCollection('blog'))
   .filter((p) => !p.data.draft)
@@ -26,14 +27,18 @@ const todayAudio = today ? !!today.data.audio : false;
       <p>오늘 꼭 알아야 할 <b>돈·AI·생활경제</b>를 딱 3분에. <br class="brief-hero__br" />읽거나, 출근길에 들으세요. 정보의 시차를 0으로.</p>
     </header>
 
-    <!-- 구독(푸시) CTA -->
-    <section class="brief-sub">
-      <BriefSubscribe />
-    </section>
-
-    <!-- 메일로도 받기 -->
-    <section class="brief-news">
-      <SubscribeBox />
+    <!-- 브리핑 받는 방법 — 1줄 컴팩트 -->
+    <section class="brief-subscribe-row">
+      <div class="brief-subscribe-row__push">
+        <BriefSubscribe />
+      </div>
+      <span class="brief-subscribe-row__or">또는</span>
+      <form class="brief-email" id="brief-email-form">
+        <input type="email" name="email" required placeholder="이메일로 받기" aria-label="이메일 주소" />
+        <input type="text" name="hp" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
+        <button type="submit">신청</button>
+      </form>
+      <p class="brief-email-status" id="brief-email-status" role="status" aria-live="polite"></p>
     </section>
 
     {today && (
@@ -87,9 +92,42 @@ const todayAudio = today ? !!today.data.audio : false;
 
 <style>
   .brief-hero strong { color: var(--accent); }
-  .brief-sub { margin: 0 0 1.6rem; }
-  .brief-news { margin: 0 0 2.6rem; padding: 1.4rem 1.4rem .4rem; border: 1px solid var(--line); border-radius: 14px; background: var(--paper-2); }
   .brief-section { margin-bottom: 2.6rem; }
+
+  /* 브리핑 받기 — 푸시 | 또는 | 이메일 1줄 */
+  .brief-subscribe-row {
+    display: flex; align-items: center; gap: .6rem; flex-wrap: wrap;
+    margin: 0 0 2rem; padding: .8rem 1rem;
+    border: 1px solid var(--line); border-radius: 12px; background: var(--paper-2);
+  }
+  .brief-subscribe-row__push { flex: 0 0 auto; }
+  .brief-subscribe-row__push .cta-card--brief { border: 0; padding: .3rem .6rem; }
+  .brief-subscribe-row__or {
+    flex: 0 0 auto; font-size: .8rem; color: var(--muted); font-weight: 500;
+  }
+  .brief-email {
+    display: flex; flex: 1; min-width: 180px; gap: .4rem; align-items: center;
+  }
+  .brief-email input[type="email"] {
+    flex: 1; padding: .45rem .65rem; border: 1px solid var(--line); border-radius: 8px;
+    font-size: .85rem; background: var(--paper); color: var(--ink); min-width: 0;
+  }
+  .brief-email .hp { display: none; }
+  .brief-email button {
+    flex-shrink: 0; padding: .45rem .8rem; border: 1px solid var(--accent); background: var(--accent);
+    color: #fff; font-size: .85rem; font-weight: 600; cursor: pointer;
+    border-radius: 8px; transition: opacity .15s;
+  }
+  .brief-email button:hover { opacity: .85; }
+  .brief-email-status { width: 100%; margin: .3rem 0 0; font-size: .8rem; color: var(--muted); }
+  .brief-email-status:empty { display: none; }
+  .brief-email-status.is-ok { color: #22c55e; }
+  .brief-email-status.is-err { color: #ef4444; }
+  @media (max-width: 520px) {
+    .brief-subscribe-row { flex-direction: column; align-items: stretch; gap: .5rem; }
+    .brief-subscribe-row__or { text-align: center; }
+    .brief-email { width: 100%; }
+  }
 
   /* 오늘의 브리핑 — 가로 피처 카드 */
   .brief-today {
@@ -124,3 +162,42 @@ const todayAudio = today ? !!today.data.audio : false;
     .brief-hero__br { display: none; }
   }
 </style>
+
+<script is:inline define:vars={{ SU, AK }}>
+  (() => {
+    const f = document.getElementById('brief-email-form');
+    const s = document.getElementById('brief-email-status');
+    if (!f || !SU || !AK) return;
+    f.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(f).entries());
+      if (data.hp) return;
+      const email = (data.email || '').trim();
+      if (!email) return;
+      const btn = f.querySelector('button');
+      btn.disabled = true;
+      s.textContent = '신청 중…';
+      s.className = 'brief-email-status';
+      try {
+        const r = await fetch(`${SU}/rest/v1/rpc/subscribe_email`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', apikey: AK, Authorization: `Bearer ${AK}` },
+          body: JSON.stringify({ p_email: email }),
+        });
+        if (r.ok || r.status === 204) {
+          f.reset();
+          s.textContent = '완료! 매일 아침 메일로 보내드릴게요.';
+          s.className = 'brief-email-status is-ok';
+        } else {
+          const t = await r.text().catch(() => '');
+          s.textContent = t.includes('duplicate') ? '이미 신청되어 있어요.' : '실패했습니다. 다시 시도해 주세요.';
+          s.className = 'brief-email-status is-err';
+        }
+      } catch {
+        s.textContent = '실패했습니다. 다시 시도해 주세요.';
+        s.className = 'brief-email-status is-err';
+      }
+      btn.disabled = false;
+    });
+  })();
+</script>

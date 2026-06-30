@@ -1,0 +1,222 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// 2026년 주요 정책·세금·지원금 일정
+const EVENTS = [
+  // 1월
+  { month: 1, day: 15, title: '연말정산 간소화 서비스 오픈', cat: 'tax', desc: '홈택스에서 소득·세액공제 자료 확인', url: 'https://www.hometax.go.kr' },
+  { month: 1, day: 25, title: '부가가치세 확정신고 마감', cat: 'tax', desc: '전년 2기분 부가세 신고·납부', url: 'https://www.hometax.go.kr' },
+  // 2월
+  { month: 2, day: 28, title: '연말정산 환급 시작', cat: 'tax', desc: '근로소득 연말정산 환급금 지급 시작', url: '' },
+  // 3월
+  { month: 3, day: 2, title: '근로·자녀장려금 반기 신청', cat: 'benefit', desc: '상반기분 장려금 신청 (~3/15)', url: 'https://www.hometax.go.kr' },
+  { month: 3, day: 31, title: '건강보험료 정산', cat: 'tax', desc: '전년도 소득 기준 건보료 정산·추가 납부', url: '' },
+  // 4월
+  { month: 4, day: 25, title: '부가가치세 예정신고 마감', cat: 'tax', desc: '1기 부가세 예정 신고·납부', url: 'https://www.hometax.go.kr' },
+  // 5월
+  { month: 5, day: 1, title: '종합소득세 신고 시작', cat: 'tax', desc: '프리랜서·N잡러 종소세 신고 (~5/31)', url: 'https://www.hometax.go.kr', relatedSlug: 'freelancer-tax-guide' },
+  { month: 5, day: 1, title: '근로·자녀장려금 정기 신청', cat: 'benefit', desc: '전년 귀속 장려금 신청 (~5/31)', url: 'https://www.hometax.go.kr' },
+  { month: 5, day: 31, title: '종합소득세 신고 마감', cat: 'tax', desc: '기한 내 미신고 시 가산세 부과', url: 'https://www.hometax.go.kr', important: true },
+  // 6월
+  { month: 6, day: 1, title: '재산세(건축물) 납부', cat: 'tax', desc: '건축물분 재산세 납부 (~6/30)', url: '' },
+  { month: 6, day: 16, title: '청년도약계좌 신규 신청', cat: 'benefit', desc: '출생연도 5부제 (~7/3)', url: 'https://www.kinfa.or.kr', relatedSlug: 'youth-leap-account-guide-2026', important: true },
+  // 7월
+  { month: 7, day: 3, title: '청년도약계좌 신청 마감', cat: 'benefit', desc: '하반기 신규 가입 마감', url: 'https://www.kinfa.or.kr', important: true },
+  { month: 7, day: 25, title: '부가가치세 확정신고 마감', cat: 'tax', desc: '1기분 부가세 확정 신고·납부', url: 'https://www.hometax.go.kr' },
+  { month: 7, day: 31, title: '재산세(주택 1기) 납부 마감', cat: 'tax', desc: '주택분 재산세 1기 납부', url: '' },
+  // 8월
+  { month: 8, day: 31, title: '주민세 납부 마감', cat: 'tax', desc: '개인분 주민세 납부 (~8/31)', url: '' },
+  // 9월
+  { month: 9, day: 1, title: '근로·자녀장려금 지급', cat: 'benefit', desc: '5월 신청분 장려금 지급 시작', url: '' },
+  { month: 9, day: 15, title: '국가장학금 2학기 신청', cat: 'benefit', desc: '2학기 국가장학금 신청 마감', url: 'https://www.kosaf.go.kr' },
+  { month: 9, day: 30, title: '재산세(주택 2기) 납부 마감', cat: 'tax', desc: '주택분 재산세 2기 납부', url: '' },
+  // 10월
+  { month: 10, day: 25, title: '부가가치세 예정신고 마감', cat: 'tax', desc: '2기 부가세 예정 신고·납부', url: 'https://www.hometax.go.kr' },
+  // 11월
+  { month: 11, day: 15, title: '종합부동산세 고지', cat: 'tax', desc: '종부세 고지서 발송·납부 (~12/15)', url: '' },
+  { month: 11, day: 30, title: '건강보험 피부양자 요건 점검', cat: 'tax', desc: '연소득 2천만원 초과 시 지역가입 전환', url: '' },
+  // 12월
+  { month: 12, day: 1, title: 'IRP·연금저축 납입 마감 임박', cat: 'invest', desc: '세액공제 한도(900만원) 채우기 (~12/31)', url: '', relatedSlug: 'irp-pension-tax-deduction', important: true },
+  { month: 12, day: 15, title: '종합부동산세 납부 마감', cat: 'tax', desc: '기한 내 미납부 시 가산세', url: '', important: true },
+  { month: 12, day: 31, title: 'ISA 계좌 납입 마감', cat: 'invest', desc: '올해 비과세 한도를 채우려면 연내 납입', url: '', relatedSlug: 'isa-account-guide-2026' },
+  { month: 12, day: 31, title: '연말정산 준비 완료', cat: 'tax', desc: '기부금·의료비·교육비 영수증 챙기기', url: '' },
+];
+
+const CATS: Record<string, { name: string; color: string; icon: string }> = {
+  tax: { name: '세금', color: '#ef4444', icon: '📋' },
+  benefit: { name: '지원금', color: '#22c55e', icon: '💰' },
+  invest: { name: '투자·절세', color: '#6c5ce7', icon: '📈' },
+};
+
+const MONTHS = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+const now = new Date();
+const currentMonth = now.getMonth() + 1;
+---
+<BaseLayout title="정책 캘린더 2026 — 놓치면 손해인 일정 한눈에" description="지원금 신청, 세금 납부, 투자 절세 마감일을 월별로 정리. 2026년 핵심 정책 일정을 한 곳에서.">
+  <div class="wrap">
+    <header class="page-hero" style="text-align:center;">
+      <span class="eyebrow">서비스</span>
+      <h1>정책 캘린더 2026</h1>
+      <p>놓치면 손해인 일정, 한 곳에서 챙기세요</p>
+    </header>
+
+    <div class="pc">
+      <!-- 카테고리 필터 -->
+      <div class="pc-filters">
+        <button class="pc-filter is-on" data-cat="all">전체</button>
+        {Object.entries(CATS).map(([k, v]) => (
+          <button class="pc-filter" data-cat={k}>{v.icon} {v.name}</button>
+        ))}
+      </div>
+
+      <!-- 월별 타임라인 -->
+      <div class="pc-timeline">
+        {MONTHS.map((label, i) => {
+          const m = i + 1;
+          const monthEvents = EVENTS.filter(e => e.month === m);
+          if (monthEvents.length === 0) return null;
+          const isPast = m < currentMonth;
+          const isCurrent = m === currentMonth;
+          return (
+            <section class={`pc-month ${isCurrent ? 'is-current' : ''} ${isPast ? 'is-past' : ''}`} id={`month-${m}`} data-month={m}>
+              <h2 class="pc-month__title">
+                <span class="pc-month__num">{m}</span>
+                <span class="pc-month__label">{label}</span>
+                {isCurrent && <span class="pc-month__badge">이번 달</span>}
+              </h2>
+              <div class="pc-events">
+                {monthEvents.map(ev => {
+                  const cat = CATS[ev.cat];
+                  const eventDate = new Date(2026, ev.month - 1, ev.day);
+                  const dday = Math.ceil((eventDate.getTime() - now.getTime()) / 86400000);
+                  const ddayLabel = dday > 0 ? `D-${dday}` : dday === 0 ? 'D-Day' : '';
+                  return (
+                    <div class={`pc-event ${ev.important ? 'is-important' : ''}`} data-cat={ev.cat}>
+                      <div class="pc-event__date">
+                        <span class="pc-event__day">{ev.day}</span>
+                      </div>
+                      <div class="pc-event__body">
+                        <div class="pc-event__head">
+                          <span class="pc-event__cat" style={`--ecolor:${cat.color}`}>{cat.icon} {cat.name}</span>
+                          {dday > 0 && dday <= 30 && <span class="pc-event__dday pc-event__dday--soon">{ddayLabel}</span>}
+                          {dday > 30 && dday <= 90 && <span class="pc-event__dday">{ddayLabel}</span>}
+                        </div>
+                        <h3 class="pc-event__title">{ev.title}</h3>
+                        <p class="pc-event__desc">{ev.desc}</p>
+                        <div class="pc-event__links">
+                          {ev.url && <a href={ev.url} target="_blank" rel="noopener" class="pc-event__link">신청/확인 →</a>}
+                          {ev.relatedSlug && <a href={`/blog/${ev.relatedSlug}/`} class="pc-event__link pc-event__link--guide">가이드 읽기</a>}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          );
+        })}
+      </div>
+
+      <div class="pc-note">
+        <p>※ 일정은 2026년 기준이며, 정부 발표에 따라 변경될 수 있습니다. 정확한 일정은 각 기관 공식 사이트에서 확인하세요.</p>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    (() => {
+      // 카테고리 필터
+      var filters = document.querySelector('.pc-filters');
+      if (filters) filters.addEventListener('click', function (ev) {
+        var btn = ev.target.closest('.pc-filter'); if (!btn) return;
+        var cat = btn.dataset.cat;
+        filters.querySelectorAll('.pc-filter').forEach(function (f) { f.classList.toggle('is-on', f.dataset.cat === cat); });
+        document.querySelectorAll('.pc-event').forEach(function (e) { e.hidden = cat !== 'all' && e.dataset.cat !== cat; });
+        // 이벤트 없는 월 숨기기
+        document.querySelectorAll('.pc-month').forEach(function (m) {
+          var visible = m.querySelectorAll('.pc-event:not([hidden])');
+          m.hidden = visible.length === 0;
+        });
+      });
+
+      // 이번 달로 스크롤
+      var cur = document.querySelector('.pc-month.is-current');
+      if (cur) setTimeout(function () { cur.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300);
+    })();
+  </script>
+
+  <style>
+    .pc { max-width: 44rem; margin: 0 auto; }
+
+    /* 필터 */
+    .pc-filters { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 2rem; justify-content: center; }
+    .pc-filter {
+      padding: 0.45rem 1rem; border: 1px solid var(--line); border-radius: 20px;
+      background: var(--paper); font: inherit; font-size: 0.85rem; font-weight: 500;
+      color: var(--ink-soft); cursor: pointer; transition: all 0.12s;
+    }
+    .pc-filter:hover { border-color: var(--accent); }
+    .pc-filter.is-on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+    /* 타임라인 */
+    .pc-timeline { position: relative; }
+
+    .pc-month { margin-bottom: 2.5rem; }
+    .pc-month.is-past { opacity: 0.5; }
+    .pc-month.is-past:hover { opacity: 0.85; }
+    .pc-month.is-current { opacity: 1; }
+
+    .pc-month__title {
+      display: flex; align-items: center; gap: 0.6rem;
+      padding-bottom: 0.6rem; border-bottom: 2px solid var(--ink);
+      margin-bottom: 1rem;
+    }
+    .pc-month.is-current .pc-month__title { border-bottom-color: var(--accent); }
+    .pc-month__num { font-family: var(--font-serif); font-size: 1.8rem; font-weight: 700; color: var(--ink); line-height: 1; }
+    .pc-month__label { font-size: 1rem; font-weight: 600; color: var(--ink-soft); }
+    .pc-month__badge {
+      font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.6rem;
+      background: var(--accent); color: #fff; border-radius: 12px;
+    }
+
+    /* 이벤트 카드 */
+    .pc-events { display: flex; flex-direction: column; gap: 0.8rem; }
+    .pc-event {
+      display: flex; gap: 1rem; padding: 1rem 1.2rem;
+      border: 1px solid var(--line); border-radius: 12px;
+      background: var(--paper); transition: box-shadow 0.12s;
+    }
+    .pc-event:hover { box-shadow: 0 2px 12px rgba(0,0,0,.05); }
+    .pc-event.is-important { border-left: 3px solid var(--accent); }
+
+    .pc-event__date { flex: none; width: 2.5rem; text-align: center; padding-top: 0.2rem; }
+    .pc-event__day { font-family: var(--font-serif); font-size: 1.3rem; font-weight: 700; color: var(--ink); }
+
+    .pc-event__body { flex: 1; min-width: 0; }
+    .pc-event__head { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.3rem; }
+    .pc-event__cat { font-size: 0.75rem; font-weight: 600; color: var(--ecolor, var(--muted)); }
+    .pc-event__dday { font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 6px; background: var(--paper-2); color: var(--ink-soft); }
+    .pc-event__dday--soon { background: #fee2e2; color: #dc2626; }
+
+    .pc-event__title { font-size: 1rem; font-weight: 700; margin: 0 0 0.3rem; line-height: 1.35; }
+    .pc-event__desc { font-size: 0.85rem; color: var(--ink-soft); margin: 0 0 0.5rem; line-height: 1.5; }
+
+    .pc-event__links { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+    .pc-event__link {
+      font-size: 0.82rem; font-weight: 600; color: var(--accent);
+      text-decoration: none; padding: 0.3rem 0.7rem;
+      border: 1px solid var(--accent); border-radius: 6px; transition: all 0.12s;
+    }
+    .pc-event__link:hover { background: var(--accent); color: #fff; }
+    .pc-event__link--guide { border-color: var(--line); color: var(--ink-soft); }
+    .pc-event__link--guide:hover { background: var(--paper-2); color: var(--ink); border-color: var(--ink-soft); }
+
+    .pc-note { margin-top: 2rem; padding: 1rem; background: var(--paper-2); border-radius: 10px; font-size: 0.8rem; color: var(--muted); }
+    .pc-note p { margin: 0; }
+
+    @media (max-width: 640px) {
+      .pc-event__date { width: 2rem; }
+      .pc-event__day { font-size: 1.1rem; }
+    }
+  </style>
+</BaseLayout>

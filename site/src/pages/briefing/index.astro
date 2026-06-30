@@ -81,6 +81,36 @@ const todayAudio = today ? !!today.data.audio : false;
       <div class="brief-why__item"><b>매일 아침</b><span>출근길 루틴으로</span></div>
     </section>
 
+    <!-- 브리핑 다음 행동: 내 돈 챙기기 여정 (홈과 동일 컴포넌트) -->
+    <section class="brief-section">
+      <div class="svc-start">
+        <div class="svc-start__head">
+          <span class="svc-start__badge">브리핑 너머</span>
+          <p class="svc-start__title">읽었으면, 내 돈도 챙기기</p>
+        </div>
+        <div class="svc-start__steps">
+          <a href="/benefits/" class="svc-step">
+            <span class="svc-step__no">1</span>
+            <span class="svc-step__ic"><DuoIcon name="benefits" /></span>
+            <span class="svc-step__body"><strong>받을 돈부터 찾기</strong><small>숨은 지원금·환급 · 3분</small></span>
+            <span class="svc-step__arrow">→</span>
+          </a>
+          <a href="/checkup/" class="svc-step">
+            <span class="svc-step__no">2</span>
+            <span class="svc-step__ic"><DuoIcon name="checkup" /></span>
+            <span class="svc-step__body"><strong>재무 건강 진단</strong><small>저축·부채·투자 · 5분</small></span>
+            <span class="svc-step__arrow">→</span>
+          </a>
+          <a href="/policy-calendar/" class="svc-step">
+            <span class="svc-step__no">3</span>
+            <span class="svc-step__ic"><DuoIcon name="calendar" /></span>
+            <span class="svc-step__body"><strong>마감 일정 챙기기</strong><small>신청·세금 마감일 · 1분</small></span>
+            <span class="svc-step__arrow">→</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
     {recent.length > 0 && (
       <section class="brief-section">
         <div class="section-head"><h2>지난 브리핑</h2></div>
@@ -102,27 +132,6 @@ const todayAudio = today ? !!today.data.audio : false;
       </section>
     )}
 
-    <!-- 서비스 소개 -->
-    <section class="brief-section">
-      <div class="section-head"><h2>브리핑 너머, 더 챙기세요</h2></div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.7rem;margin-top:1rem;">
-        <a href="/benefits/" style="display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:1.2rem;border:1px solid var(--line);border-radius:14px;text-decoration:none;color:var(--ink);background:var(--paper);transition:border-color .12s,box-shadow .12s;">
-          <DuoIcon name="benefits" class="svc-ico" />
-          <strong style="font-size:.92rem;">내 혜택 찾기</strong>
-          <span style="font-size:.78rem;color:var(--muted);text-align:center;">나에게 해당되는 지원금을 3분 만에</span>
-        </a>
-        <a href="/checkup/" style="display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:1.2rem;border:1px solid var(--line);border-radius:14px;text-decoration:none;color:var(--ink);background:var(--paper);transition:border-color .12s,box-shadow .12s;">
-          <DuoIcon name="checkup" class="svc-ico" />
-          <strong style="font-size:.92rem;">재무 건강 체크업</strong>
-          <span style="font-size:.78rem;color:var(--muted);text-align:center;">내 돈 상태를 5분 만에 진단</span>
-        </a>
-        <a href="/policy-calendar/" style="display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:1.2rem;border:1px solid var(--line);border-radius:14px;text-decoration:none;color:var(--ink);background:var(--paper);transition:border-color .12s,box-shadow .12s;">
-          <DuoIcon name="calendar" class="svc-ico" />
-          <strong style="font-size:.92rem;">정책 캘린더</strong>
-          <span style="font-size:.78rem;color:var(--muted);text-align:center;">놓치면 손해인 일정 한눈에</span>
-        </a>
-      </div>
-    </section>
   </div>
 </BaseLayout>
 

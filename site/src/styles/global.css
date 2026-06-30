@@ -259,27 +259,38 @@ hr {
 @media (max-width: 768px) {
   .nav-toggle { display: inline-flex; }
   .nav {
-    position: absolute; top: calc(100% - 0.2rem); left: 0; z-index: 60;
-    flex-direction: column; align-items: stretch; gap: 0.1rem;
+    position: absolute; top: calc(100% - 0.2rem); left: 0; right: 0; z-index: 60;
+    flex-direction: column; align-items: stretch; gap: 0;
     background: var(--paper); border: 1px solid var(--line); border-radius: 12px;
-    box-shadow: 0 16px 48px -22px rgba(20, 18, 30, 0.4); padding: 0.4rem; min-width: 12rem;
+    box-shadow: 0 16px 48px -22px rgba(20, 18, 30, 0.4); padding: 0.5rem; min-width: 12rem;
     display: none;
   }
   .nav.is-open { display: flex; }
-  .nav > a, .nav-group__trigger { padding: 0.62rem 0.85rem; border-radius: 8px; white-space: nowrap; width: 100%; text-align: left; }
-  .nav > a:hover, .nav-group__trigger:hover { background: var(--paper-2); }
-  /* 모바일: 드롭다운은 인라인 펼침 */
+  .nav > a { padding: 0.62rem 0.85rem; border-radius: 8px; white-space: nowrap; width: 100%; text-align: left; font-weight: 600; }
+  .nav > a:hover { background: var(--paper-2); }
+  /* 모바일: 그룹은 항상 펼침 — 토글 버튼은 라벨 역할만 */
+  .nav-group__trigger { display: flex; width: 100%; padding: 0.5rem 0.85rem 0.2rem; font-size: 0.72rem; font-weight: 700; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; pointer-events: none; }
+  .nav-group__chevron { display: none; }
   .nav-group__dropdown {
-    position: static; transform: none; box-shadow: none; border: none;
-    padding: 0 0 0 0.8rem; min-width: 0; background: transparent;
+    display: flex !important; position: static; transform: none; box-shadow: none; border: none;
+    padding: 0 0 0.3rem 0; min-width: 0; background: transparent;
   }
-  .nav-group__dropdown a { font-size: 0.88rem; padding: 0.5rem 0.85rem; }
+  .nav-group__dropdown a { font-size: 0.92rem; font-weight: 500; padding: 0.5rem 0.85rem; border-radius: 8px; }
+  .nav-group__dropdown a:hover { background: var(--paper-2); }
+  .nav-group { border-bottom: 1px solid var(--line); padding-bottom: 0.1rem; margin-bottom: 0.2rem; }
+  .nav-group:last-child { border-bottom: none; margin-bottom: 0; }
 }
-/* PC(≥601px): 메뉴를 로고 옆 왼쪽에 붙이고, 아이콘은 우측 끝, 태그라인 숨김. 모바일(≤600px)은 별도 규칙 유지 */
-@media (min-width: 601px) {
-  .brand small { display: none; }        /* '트렌드를 읽다' 태그라인 PC 숨김 */
-  .nav { margin-inline: 0; }             /* 로고 옆 왼쪽에 붙임(컨테이너 gap 1.5rem) */
-  .header-actions { margin-left: auto; } /* 아이콘 3개는 우측 끝으로 */
+/* PC(≥769px): 메뉴 가운데 정렬, 로고 왼쪽·아이콘 오른쪽 */
+@media (min-width: 769px) {
+  .site-header__inner { justify-content: center; }
+  .brand { position: absolute; left: 1.5rem; }
+  .brand small { display: none; }
+  .nav { margin: 0 auto; }              /* 가운데 정렬 */
+  .header-actions { position: absolute; right: 1.5rem; }
+}
+@media (min-width: 601px) and (max-width: 768px) {
+  .brand small { display: none; }
+  .header-actions { margin-left: auto; }
 }
 .theme-toggle {
   background: none; border: 1px solid var(--line); color: var(--ink-soft);

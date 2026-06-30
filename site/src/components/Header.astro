@@ -71,14 +71,16 @@ import { SITE, NAV } from '../consts';
     });
   })();
 
-  // 드롭다운 그룹 토글
+  // 드롭다운 그룹 토글 (PC만 — 모바일은 CSS로 항상 펼침)
   (() => {
+    var isMobile = function () { return window.matchMedia('(max-width: 768px)').matches; };
+
     document.querySelectorAll('.nav-group__trigger').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
+        if (isMobile()) return; // 모바일은 CSS가 처리
         e.stopPropagation();
         var group = this.closest('.nav-group');
         var isOpen = group.classList.contains('is-open');
-        // 다른 그룹 닫기
         document.querySelectorAll('.nav-group.is-open').forEach(function (g) { g.classList.remove('is-open'); g.querySelector('.nav-group__trigger').setAttribute('aria-expanded', 'false'); });
         if (!isOpen) {
           group.classList.add('is-open');
@@ -86,7 +88,6 @@ import { SITE, NAV } from '../consts';
         }
       });
     });
-    // 외부 클릭 시 닫기
     document.addEventListener('click', function (e) {
       if (!e.target.closest('.nav-group')) {
         document.querySelectorAll('.nav-group.is-open').forEach(function (g) { g.classList.remove('is-open'); g.querySelector('.nav-group__trigger').setAttribute('aria-expanded', 'false'); });

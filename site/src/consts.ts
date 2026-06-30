@@ -74,7 +74,7 @@ export const VAPID_PUBLIC_KEY = 'BJXQcoA8xVdqQn6E5v_RqFZWZ6CokyEyaYQ_s3KnaYyIZg4
 // 헤더 내비게이션
 export type NavItem = { label: string; href: string; children?: NavItem[] };
 export const NAV: NavItem[] = [
-  { label: '브리핑', href: '/briefing/' },
+  { label: 'Today 브리핑', href: '/briefing/' },
   { label: '돈·AI·부업', href: '/category/money/', children: [
     { label: '주식·재테크', href: '/category/money/' },
     { label: 'AI 트렌드', href: '/category/ai/' },

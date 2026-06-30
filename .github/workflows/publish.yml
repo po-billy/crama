@@ -3,7 +3,9 @@ name: Publish article
 # 무인 자동 발행: 매일 1회 + 수동 실행. 글을 생성해 커밋하면 Vercel이 자동 배포.
 on:
   schedule:
-    - cron: '0 0 * * *' # 매일 09:00 KST (UTC 00:00)
+    # 07:05 KST (UTC 22:05). 정각 00:00 UTC 는 GitHub Actions 최혼잡 슬롯이라 지연·누락이 잦음 →
+    # 비정각·비자정 시각으로 이동해 신뢰성 확보(GitHub 공식 권고). cron 은 여전히 무보장이라 지연 가능.
+    - cron: '5 22 * * *'
   workflow_dispatch:
     inputs:
       category:

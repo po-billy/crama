@@ -19,9 +19,10 @@
   --accent: #6c5ce7; /* 모던 바이올렛 — 신규 브랜드 톤 */
   --accent-soft: #ecebfc;
 
-  /* 타이포 */
+  /* 타이포 — Pretendard 하나로 통일. 세리프(Fraunces/Noto Serif KR)는 폐기하고
+     --font-serif 는 sans 로 앨리어스 → 기존 var(--font-serif) 참조(23개 파일)를 건드리지 않고 전부 Pretendard 로 렌더 */
   --font-sans: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  --font-serif: 'Fraunces', 'Noto Serif KR', Georgia, 'Times New Roman', serif;
+  --font-serif: var(--font-sans);
 
   /* 레이아웃 */
   --measure: 44rem;        /* 본문 읽기 폭 ~704px */

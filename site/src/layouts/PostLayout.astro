@@ -167,6 +167,39 @@ const jsonLd = {
     )}
 
     {!premium && (
+      <div class="svc-inline measure">
+        {category === 'income' ? (
+          <a href="/benefits/" class="svc-inline__card">
+            <span class="svc-inline__icon">💰</span>
+            <div>
+              <strong>나에게 해당되는 지원금 찾기</strong>
+              <p>5가지 질문이면 받을 수 있는 혜택을 바로 알려드려요</p>
+            </div>
+            <span class="svc-inline__arrow">→</span>
+          </a>
+        ) : category === 'money' ? (
+          <a href="/checkup/" class="svc-inline__card">
+            <span class="svc-inline__icon">🩺</span>
+            <div>
+              <strong>내 재무 건강 체크업</strong>
+              <p>저축률·비상금·부채 — 5분 만에 종합 진단</p>
+            </div>
+            <span class="svc-inline__arrow">→</span>
+          </a>
+        ) : (
+          <a href="/benefits/" class="svc-inline__card">
+            <span class="svc-inline__icon">💰</span>
+            <div>
+              <strong>내 혜택 찾기</strong>
+              <p>지원금·대출·공제를 3분 만에 찾아드려요</p>
+            </div>
+            <span class="svc-inline__arrow">→</span>
+          </a>
+        )}
+      </div>
+    )}
+
+    {!premium && (
       <div class="measure article-footer">
         <TagList tags={tags} />
         <ShareButtons title={title} />

@@ -725,6 +725,21 @@
   .post-nav { grid-template-columns: 1fr; }
 }
 
+/* ---------- 맥락형 서비스 CTA (글 본문 하단) ---------- */
+.svc-inline { margin: 2rem auto; }
+.svc-inline__card {
+  display: flex; align-items: center; gap: 0.8rem;
+  padding: 1.1rem 1.3rem; border: 1px solid var(--line); border-radius: 12px;
+  background: var(--paper-2); text-decoration: none; color: var(--ink);
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+.svc-inline__card:hover { border-color: var(--accent); box-shadow: 0 2px 12px rgba(0,0,0,.06); }
+.svc-inline__icon { font-size: 1.5rem; flex: none; }
+.svc-inline__card div { flex: 1; }
+.svc-inline__card strong { font-size: 0.95rem; display: block; }
+.svc-inline__card p { font-size: 0.82rem; color: var(--muted); margin: 0.2rem 0 0; }
+.svc-inline__arrow { font-size: 1.2rem; color: var(--accent); flex: none; font-weight: 700; }
+
 /* ---------- 글 하단 푸터(공유·태그·저자) ---------- */
 .article-footer { margin: 2.5rem auto 0; padding-top: 1.5rem; border-top: 1px solid var(--line); }
 

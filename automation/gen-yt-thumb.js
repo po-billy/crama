@@ -14,6 +14,9 @@ import { BLOG_DIR, PUBLIC_IMG } from './lib/util.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const W = 1280, H = 720;
 const NAVY = '#0a1b33', YELLOW = '#ffd23e', WHITE = '#ffffff';
+// 한글 폰트: 로컬(Windows)=Malgun Gothic, 무인 발행(Ubuntu/Actions)=Noto/Nanum 폴백.
+// 폴백이 없으면 .notdef(코드포인트 hex) tofu 박스로 깨짐 → publish.yml에서 폰트 설치도 함께.
+const FONT = 'Malgun Gothic, Apple SD Gothic Neo, Noto Sans CJK KR, NanumGothic, sans-serif';
 
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const visLen = (s) => String(s).replace(/\s/g, '').length || 1;
@@ -67,15 +70,15 @@ function buildFront(lines) {
   return Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
   <defs><filter id="sh" x="-25%" y="-25%" width="150%" height="170%"><feGaussianBlur stdDeviation="8"/></filter></defs>
   <rect x="${x + 2}" y="${baseY - fs1 - 32}" width="74" height="10" rx="5" fill="${YELLOW}"/>
-  <text font-family="Malgun Gothic" font-size="${fs1}" font-weight="bold" fill="#000" opacity="0.66" filter="url(#sh)">${shadow}</text>
-  <text font-family="Malgun Gothic" font-size="${fs1}" font-weight="bold">${colored}</text>
+  <text font-family="${FONT}" font-size="${fs1}" font-weight="bold" fill="#000" opacity="0.66" filter="url(#sh)">${shadow}</text>
+  <text font-family="${FONT}" font-size="${fs1}" font-weight="bold">${colored}</text>
 </svg>`);
 }
 
 function readFm(slug) {
   const file = path.join(BLOG_DIR, `${slug}.mdx`);
   const raw = fs.readFileSync(file, 'utf8');
-  const fm = (raw.match(/^---\n([\s\S]*?)\n---/) || [, ''])[1];
+  const fm = (raw.match(/^---\r?\n([\s\S]*?)\r?\n---/) || [, ''])[1]; // CRLF 체크아웃(Windows) 대응
   const get = (k) => { const r = fm.match(new RegExp(`^${k}:\\s*(.+)$`, 'm')); return r ? r[1].trim().replace(/^['"]|['"]$/g, '') : ''; };
   return { file, raw, title: get('title'), thumbTitle: get('thumbTitle'), heroImage: get('heroImage') };
 }

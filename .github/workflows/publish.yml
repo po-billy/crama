@@ -21,6 +21,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Install Korean fonts # 썸네일 한글 헤드라인(sharp/librsvg)이 tofu로 깨지지 않도록
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fonts-noto-cjk fonts-nanum
+          sudo fc-cache -f
       - name: Install deps
         working-directory: automation
         run: npm install

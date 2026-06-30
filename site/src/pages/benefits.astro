@@ -79,6 +79,12 @@ const faqLd = {
 
     <!-- ━━ 3. 결과 대시보드 ━━ -->
     <section class="bf-result" id="bf-result" hidden>
+      <!-- 내 조건 요약 바 (탭 → 수정 바텀시트) -->
+      <button type="button" class="bf-condbar" id="bf-cond-open">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.6 3.2-5.5 7-5.5s7 1.9 7 5.5"/></svg>
+        <span class="bf-condbar__text" id="bf-cond-summary">내 조건</span>
+        <span class="bf-condbar__edit">수정<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></span>
+      </button>
       <div class="bf-result__hero">
         <p class="bf-result__eyebrow">분석 완료</p>
         <h2 class="bf-result__title" id="bf-result-title"></h2>
@@ -126,6 +132,20 @@ const faqLd = {
       <div class="bf-result__note">
         <p>※ 이 결과는 공개된 자격 요건을 기반으로 한 <strong>예상 결과</strong>입니다. 실제 수급 여부는 각 기관에서 최종 확인하세요.</p>
         <p>데이터 기준: 2026년 6월 · 정책 변경 시 업데이트됩니다.</p>
+      </div>
+
+      <!-- 조건 수정 바텀시트 모달 -->
+      <div class="bf-sheet" id="bf-cond-sheet" hidden>
+        <div class="bf-sheet__backdrop" id="bf-cond-backdrop"></div>
+        <div class="bf-sheet__panel" role="dialog" aria-modal="true" aria-label="내 조건 수정">
+          <div class="bf-sheet__handle"></div>
+          <div class="bf-sheet__head">
+            <h3>내 조건 수정</h3>
+            <button type="button" class="bf-sheet__x" id="bf-cond-close" aria-label="닫기"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+          </div>
+          <div class="bf-cond-form" id="bf-cond-body"></div>
+          <button type="button" class="bf-sheet__apply" id="bf-cond-apply">이 조건으로 다시 찾기</button>
+        </div>
       </div>
     </section>
   </div>
@@ -465,6 +485,7 @@ const faqLd = {
           localStorage.setItem('crama:bf:uses', String(useCount));
         } catch (e) {}
         try { if (window.gtag) gtag('event', 'benefits_result', { count: results.length, total: total, loggedIn: loggedIn }); } catch (e) {}
+        updateCondBar();
       }
 
       // ── 네비게이션 ──
@@ -522,6 +543,81 @@ const faqLd = {
           socialEl.hidden = false;
         }
       } catch (e) {}
+
+      // ── 내 조건 요약 바 + 수정 바텀시트 ──
+      var EMP_LABEL = { employed: '직장인', 'self-employed': '자영업·프리랜서', unemployed: '구직 중', student: '학생' };
+      var HOUSING_LABEL = { own: '자가', jeonse: '전세', rent: '월세', parents: '부모님 집' };
+      var condTemp = null;
+
+      function updateCondBar() {
+        var el = $('bf-cond-summary'); if (!el) return;
+        el.textContent = [
+          (profile.age || '?') + '세',
+          REGIONS[profile.region] || '지역',
+          EMP_LABEL[profile.employment] || '고용',
+          (profile.income ? profile.income.toLocaleString() + '만원' : '소득 미입력'),
+          (profile.familySize || 1) + '인'
+        ].join(' · ');
+      }
+
+      function chipRowHtml(label, key, opts, sel) {
+        return '<div class="bf-cond-row"><span class="bf-cond-label">' + label + '</span><div class="bf-cond-chips" data-key="' + key + '">' +
+          opts.map(function (o) { return '<button type="button" class="bf-cond-chip' + (o[0] === sel ? ' is-on' : '') + '" data-val="' + o[0] + '">' + o[1] + '</button>'; }).join('') +
+          '</div></div>';
+      }
+      function inputRowHtml(label, id, val, extra) {
+        return '<div class="bf-cond-row"><label class="bf-cond-label" for="' + id + '">' + label + '</label>' +
+          '<input type="number" id="' + id + '" class="bf-cond-input" inputmode="numeric" value="' + val + '" ' + (extra || '') + ' /></div>';
+      }
+
+      function renderCondForm() {
+        condTemp = { region: profile.region, employment: profile.employment, housing: profile.housing, hasChildren: profile.hasChildren };
+        var regionOpts = Object.keys(REGIONS).map(function (k) { return [k, REGIONS[k]]; });
+        var empOpts = Object.keys(EMP_LABEL).map(function (k) { return [k, EMP_LABEL[k]]; });
+        var housingOpts = Object.keys(HOUSING_LABEL).map(function (k) { return [k, HOUSING_LABEL[k]]; });
+        $('bf-cond-body').innerHTML =
+          inputRowHtml('나이', 'cond-age', profile.age, 'min="15" max="80"') +
+          chipRowHtml('거주 지역', 'region', regionOpts, profile.region) +
+          chipRowHtml('고용 상태', 'employment', empOpts, profile.employment) +
+          inputRowHtml('연소득 (만원)', 'cond-income', profile.income, 'min="0" step="100"') +
+          chipRowHtml('주거 형태', 'housing', housingOpts, profile.housing) +
+          inputRowHtml('가구원 수', 'cond-fam', profile.familySize, 'min="1" max="10"') +
+          '<div class="bf-cond-row"><span class="bf-cond-label">자녀</span><div class="bf-cond-chips" data-key="hasChildren">' +
+            '<button type="button" class="bf-cond-chip' + (!profile.hasChildren ? ' is-on' : '') + '" data-val="no">없음</button>' +
+            '<button type="button" class="bf-cond-chip' + (profile.hasChildren ? ' is-on' : '') + '" data-val="yes">있음</button></div></div>' +
+          '<div class="bf-cond-checks">' +
+            '<label class="bf-cond-check"><input type="checkbox" id="cond-newlywed"' + (profile.isNewlywed ? ' checked' : '') + ' /> 신혼부부(혼인 7년 이내)</label>' +
+            '<label class="bf-cond-check"><input type="checkbox" id="cond-pregnant"' + (profile.isPregnant ? ' checked' : '') + ' /> 임신·2년 이내 출산</label>' +
+          '</div>';
+        $('bf-cond-body').querySelectorAll('.bf-cond-chips').forEach(function (grp) {
+          grp.addEventListener('click', function (ev) {
+            var b = ev.target.closest('.bf-cond-chip'); if (!b) return;
+            grp.querySelectorAll('.bf-cond-chip').forEach(function (c) { c.classList.toggle('is-on', c === b); });
+            if (grp.dataset.key === 'hasChildren') condTemp.hasChildren = (b.dataset.val === 'yes');
+            else condTemp[grp.dataset.key] = b.dataset.val;
+          });
+        });
+      }
+
+      function openCond() { renderCondForm(); $('bf-cond-sheet').hidden = false; document.body.style.overflow = 'hidden'; }
+      function closeCond() { $('bf-cond-sheet').hidden = true; document.body.style.overflow = ''; }
+      function applyCond() {
+        profile.age = parseInt(($('cond-age') || {}).value) || profile.age;
+        profile.income = parseInt(($('cond-income') || {}).value) || 0;
+        profile.familySize = parseInt(($('cond-fam') || {}).value) || 1;
+        if (condTemp) { profile.region = condTemp.region; profile.employment = condTemp.employment; profile.housing = condTemp.housing; profile.hasChildren = condTemp.hasChildren; }
+        profile.isNewlywed = !!(($('cond-newlywed') || {}).checked);
+        profile.isPregnant = !!(($('cond-pregnant') || {}).checked);
+        closeCond();
+        showResults();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      (function () {
+        var o = $('bf-cond-open'); if (o) o.addEventListener('click', openCond);
+        var c = $('bf-cond-close'); if (c) c.addEventListener('click', closeCond);
+        var bd = $('bf-cond-backdrop'); if (bd) bd.addEventListener('click', closeCond);
+        var a = $('bf-cond-apply'); if (a) a.addEventListener('click', applyCond);
+      })();
 
       // ── 저장된 프로필 복원 ──
       try {
@@ -596,6 +692,56 @@ const faqLd = {
     /* display:flex 가 UA의 [hidden]{display:none} 을 덮어써, 숨겨야 할 flow 가 인트로 히어로 아래 유령으로 깔리고
        그 sticky 하단 푸터(z-index:10)가 프리뷰 입력창·시작 버튼을 덮어 탭/키보드를 가로채던 문제 방지 */
     .bf-flow[hidden] { display: none; }
+
+    /* ── 내 조건 요약 바 + 수정 바텀시트 ── */
+    .bf-condbar {
+      display: flex; align-items: center; gap: 0.5rem; width: 100%;
+      padding: 0.7rem 0.9rem; margin: 0 0 1.2rem;
+      background: var(--paper); border: 1px solid var(--line); border-radius: 12px;
+      font: inherit; color: var(--ink-soft); cursor: pointer; text-align: left;
+      position: sticky; top: 0.5rem; z-index: 20; box-shadow: 0 2px 12px rgba(0,0,0,.05);
+      touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+    }
+    .bf-condbar > svg { flex: none; color: var(--accent); }
+    .bf-condbar__text { flex: 1; font-size: 0.88rem; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bf-condbar__edit { display: inline-flex; align-items: center; gap: 0.1rem; flex: none; font-size: 0.82rem; font-weight: 700; color: var(--accent); }
+
+    .bf-sheet { position: fixed; inset: 0; z-index: 100; display: flex; align-items: flex-end; }
+    .bf-sheet[hidden] { display: none; }
+    .bf-sheet__backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.45); animation: bf-fade 0.15s ease; }
+    .bf-sheet__panel {
+      position: relative; width: 100%; max-width: 40rem; margin: 0 auto;
+      background: var(--paper); border-radius: 20px 20px 0 0;
+      padding: 0.6rem 1.2rem calc(1.4rem + env(safe-area-inset-bottom, 0));
+      box-shadow: 0 -8px 30px rgba(0,0,0,0.18); animation: bf-slide-up 0.22s cubic-bezier(.16,.84,.44,1);
+      max-height: 88vh; overflow-y: auto;
+    }
+    @keyframes bf-fade { from { opacity: 0; } }
+    @keyframes bf-slide-up { from { transform: translateY(100%); } }
+    .bf-sheet__handle { width: 2.4rem; height: 0.28rem; background: var(--line); border-radius: 99px; margin: 0.2rem auto 0.9rem; }
+    .bf-sheet__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.8rem; }
+    .bf-sheet__head h3 { font-size: 1.05rem; font-weight: 800; margin: 0; }
+    .bf-sheet__x { background: none; border: none; color: var(--muted); cursor: pointer; padding: 0.3rem; display: grid; place-items: center; touch-action: manipulation; }
+    .bf-sheet__apply { width: 100%; margin-top: 1rem; padding: 0.95rem; background: var(--accent); color: #fff; border: none; border-radius: 12px; font: inherit; font-size: 1rem; font-weight: 700; cursor: pointer; touch-action: manipulation; }
+    .bf-sheet__apply:hover { filter: brightness(1.1); }
+    .bf-cond-row { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1rem; }
+    .bf-cond-label { font-size: 0.82rem; font-weight: 700; color: var(--ink-soft); }
+    .bf-cond-input {
+      width: 100%; padding: 0.7rem 0.9rem; font: inherit; font-size: 16px;
+      border: 1.5px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink);
+      -webkit-appearance: none; appearance: none; box-sizing: border-box;
+    }
+    .bf-cond-input:focus { outline: none; border-color: var(--accent); }
+    .bf-cond-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .bf-cond-chip {
+      padding: 0.5rem 0.85rem; border: 1px solid var(--line); border-radius: 99px;
+      background: var(--paper); font: inherit; font-size: 0.85rem; font-weight: 600;
+      color: var(--ink-soft); cursor: pointer; transition: all 0.12s; touch-action: manipulation;
+    }
+    .bf-cond-chip.is-on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .bf-cond-checks { display: flex; flex-direction: column; gap: 0.6rem; margin: 0.4rem 0 0.2rem; }
+    .bf-cond-check { display: flex; align-items: center; gap: 0.5rem; font-size: 0.88rem; color: var(--ink-soft); cursor: pointer; }
+    .bf-cond-check input { width: 1.1rem; height: 1.1rem; accent-color: var(--accent); flex: none; }
     .bf-flow__top { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1.5rem; padding: 0.5rem 0; position: sticky; top: 0; z-index: 10; background: var(--paper); }
     .bf-flow__back { background: none; border: none; cursor: pointer; color: var(--ink); padding: 0.5rem; line-height: 1; min-width: 2.5rem; min-height: 2.5rem; display: flex; align-items: center; justify-content: center; }
     .bf-flow__step { font-size: 0.82rem; color: var(--muted); font-weight: 600; white-space: nowrap; }

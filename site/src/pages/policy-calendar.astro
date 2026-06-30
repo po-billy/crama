@@ -213,7 +213,7 @@ const faqLd = {
       var catMeta = { tax:{name:'세금',color:'#ef4444',icon:'📋'}, benefit:{name:'지원금',color:'#22c55e',icon:'💰'}, invest:{name:'투자·절세',color:'#6c5ce7',icon:'📈'}, housing:{name:'주거',color:'#3b82f6',icon:'🏠'}, job:{name:'취업·창업',color:'#f59e0b',icon:'💼'}, family:{name:'출산·육아',color:'#ec4899',icon:'👶'} };
       var TARGET_LABEL = { all:'전체', youth:'청년', worker:'직장인', self:'자영업', parent:'부모', student:'학생' };
       var FIELD_LABEL = { all:'전체', tax:'세금', saving:'저축·금융', housing:'주거', job:'취업', family:'육아', invest:'투자' };
-      var filters = { target: 'all', field: 'all' };
+      var filters = { target: [], field: [] }; // 다중 선택 — 빈 배열 = 전체(청년+부모 동시 선택 등)
       var gridMonth = new Date().getMonth();
       var selDay = null;
       var MK = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
@@ -221,8 +221,9 @@ const faqLd = {
 
       function filtered() {
         return ALL.filter(function (e) {
-          if (filters.target !== 'all' && e.target !== filters.target && e.target !== 'all') return false;
-          if (filters.field !== 'all' && e.field !== filters.field && e.field !== 'all') return false;
+          // 다중 선택: 선택 없으면 전체. 'all' 대상/분야 일정은 항상 노출. 선택된 것 중 하나라도 맞으면 통과(OR)
+          if (filters.target.length && e.target !== 'all' && filters.target.indexOf(e.target) === -1) return false;
+          if (filters.field.length && e.field !== 'all' && filters.field.indexOf(e.field) === -1) return false;
           return true;
         });
       }
@@ -318,18 +319,27 @@ const faqLd = {
       $('pc-sheet-apply').addEventListener('click', closeSheet);
 
       function updateFilterUI() {
-        var active = (filters.target !== 'all' ? 1 : 0) + (filters.field !== 'all' ? 1 : 0);
-        $('pc-filter-summary').textContent = active === 0 ? '전체 일정 보기'
-          : [filters.target !== 'all' ? TARGET_LABEL[filters.target] : null, filters.field !== 'all' ? FIELD_LABEL[filters.field] : null].filter(Boolean).join(' · ') + ' 일정';
-        $('pc-filter-open').classList.toggle('is-active', active > 0);
-        $('pc-ics-filtered').hidden = active === 0;
+        var labels = filters.target.map(function (k) { return TARGET_LABEL[k]; })
+          .concat(filters.field.map(function (k) { return FIELD_LABEL[k]; }));
+        $('pc-filter-summary').textContent = labels.length === 0 ? '전체 일정 보기' : labels.join(' · ') + ' 일정';
+        $('pc-filter-open').classList.toggle('is-active', labels.length > 0);
+        $('pc-ics-filtered').hidden = labels.length === 0;
       }
 
+      // 각 그룹의 칩 is-on 상태를 filters 배열에 맞춰 갱신('전체'는 아무것도 안 골랐을 때만 켜짐)
+      function syncChips(group) {
+        var key = group.dataset.filter, arr = filters[key];
+        group.querySelectorAll('.pc-fchip').forEach(function (c) {
+          c.classList.toggle('is-on', c.dataset.val === 'all' ? arr.length === 0 : arr.indexOf(c.dataset.val) >= 0);
+        });
+      }
       document.querySelectorAll('.pc-fchips').forEach(function (group) {
         group.addEventListener('click', function (ev) {
           var btn = ev.target.closest('.pc-fchip'); if (!btn) return;
-          filters[group.dataset.filter] = btn.dataset.val;
-          group.querySelectorAll('.pc-fchip').forEach(function (c) { c.classList.toggle('is-on', c.dataset.val === btn.dataset.val); });
+          var key = group.dataset.filter, val = btn.dataset.val, arr = filters[key];
+          if (val === 'all') { filters[key] = []; } // '전체' = 조건 해제
+          else { var i = arr.indexOf(val); if (i >= 0) arr.splice(i, 1); else arr.push(val); } // 토글(다중 선택)
+          syncChips(group);
           updateFilterUI();
           refresh();
         });

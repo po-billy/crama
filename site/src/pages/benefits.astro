@@ -42,6 +42,7 @@ const faqLd = {
           <div class="bf-stat"><span class="bf-stat__num">0원</span><span class="bf-stat__label">완전 무료</span></div>
         </div>
         <p class="bf-hero__proof">평균 <strong>7~12건</strong>, 연 <strong>300~800만원</strong>의 혜택이 발견됩니다</p>
+        <p class="bf-hero__social" id="bf-social" hidden></p>
         <button class="bf-cta" type="button" id="bf-start">내 혜택 찾기 시작 →</button>
         <p class="bf-hero__note">입력하신 정보는 기기에만 저장되며 서버로 전송되지 않습니다.</p>
       </div>
@@ -394,6 +395,11 @@ const faqLd = {
         $('bf-cards').innerHTML = cardsHtml;
 
         // GA4 이벤트
+        // 이용 횟수 카운터 (localStorage)
+        try {
+          var useCount = parseInt(localStorage.getItem('crama:bf:uses') || '0') + 1;
+          localStorage.setItem('crama:bf:uses', String(useCount));
+        } catch (e) {}
         try { if (window.gtag) gtag('event', 'benefits_result', { count: results.length, total: total, loggedIn: loggedIn }); } catch (e) {}
       }
 
@@ -443,6 +449,16 @@ const faqLd = {
         } catch (_) {}
       });
 
+      // 소셜 프루프 — 이용 횟수 기반
+      try {
+        var uses = parseInt(localStorage.getItem('crama:bf:uses') || '0');
+        var socialEl = $('bf-social');
+        if (socialEl && uses > 0) {
+          socialEl.innerHTML = '지금까지 <strong>' + uses + '번</strong> 혜택을 찾아봤어요';
+          socialEl.hidden = false;
+        }
+      } catch (e) {}
+
       // ── 저장된 프로필 복원 ──
       try {
         var saved = localStorage.getItem(STORAGE_KEY);
@@ -488,6 +504,8 @@ const faqLd = {
     .bf-stat__label { font-size: 0.78rem; color: var(--muted); }
     .bf-hero__proof { font-size: 0.92rem; color: var(--accent); margin: 0 0 1.2rem; font-weight: 500; }
     .bf-hero__proof strong { font-weight: 800; }
+    .bf-hero__social { font-size: 0.82rem; color: var(--muted); margin: 0 0 0.8rem; }
+    .bf-hero__social strong { color: var(--ink); font-weight: 700; }
     .bf-hero__note { font-size: 0.75rem; color: var(--muted); margin-top: 1rem; opacity: 0.7; }
 
     /* ── 공통 CTA 버튼 ── */

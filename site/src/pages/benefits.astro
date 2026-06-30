@@ -335,6 +335,22 @@ const faqLd = {
         });
         $('bf-filters').innerHTML = filterHtml;
 
+        // 카테고리별 금액 분포 인포그래픽
+        var catAmounts = {};
+        results.forEach(function (b) { catAmounts[b.category] = (catAmounts[b.category] || 0) + b.amountValue; });
+        var maxCatAmount = Math.max.apply(null, Object.values(catAmounts).concat([1]));
+        var chartHtml = '<div class="bf-chart">';
+        Object.keys(catAmounts).forEach(function (c) {
+          var ci = CATS[c]; if (!ci) return;
+          var pct = Math.round(catAmounts[c] / maxCatAmount * 100);
+          chartHtml += '<div class="bf-chart__row">' +
+            '<span class="bf-chart__label">' + ci.name + '</span>' +
+            '<div class="bf-chart__track"><div class="bf-chart__bar" style="width:' + pct + '%;background:' + ci.color + '"></div></div>' +
+            '<span class="bf-chart__val">' + catAmounts[c].toLocaleString() + '만</span></div>';
+        });
+        chartHtml += '</div>';
+        $('bf-filters').insertAdjacentHTML('afterend', chartHtml);
+
         // 필터 이벤트
         $('bf-filters').addEventListener('click', function (ev) {
           var btn = ev.target.closest('.bf-filter'); if (!btn) return;
@@ -683,6 +699,15 @@ const faqLd = {
       padding: 0.2rem 0.5rem; font-size: 0.8rem; cursor: pointer; transition: border-color 0.12s;
     }
     .bf-card__ical:hover { border-color: var(--accent); }
+
+    /* 카테고리 분포 차트 */
+    .bf-chart { margin-bottom: 1.2rem; padding: 0.8rem 1rem; background: var(--paper-2); border-radius: 10px; }
+    .bf-chart__row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem; }
+    .bf-chart__row:last-child { margin-bottom: 0; }
+    .bf-chart__label { font-size: 0.75rem; font-weight: 600; color: var(--ink-soft); min-width: 4rem; }
+    .bf-chart__track { flex: 1; height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; }
+    .bf-chart__bar { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+    .bf-chart__val { font-size: 0.72rem; font-weight: 700; color: var(--muted); min-width: 3.5rem; text-align: right; }
     .bf-card__apply {
       font-size: 0.88rem; font-weight: 700; color: var(--accent);
       text-decoration: none; padding: 0.4rem 0.9rem; border: 1px solid var(--accent);

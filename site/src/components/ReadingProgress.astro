@@ -1,17 +1,46 @@
 ---
-// 글 읽기 진행바 (상단 얇은 바) — PostLayout 전용
+// 글 읽기 진행바 (상단 얇은 바) + 진행 퍼센트 표시 — PostLayout 전용
 ---
 <div class="reading-progress" id="reading-progress" aria-hidden="true"></div>
+<div class="reading-pct" id="reading-pct" aria-hidden="true" hidden></div>
+<div class="reading-done" id="reading-done" hidden>
+  <span class="reading-done__check">✓</span>
+  <span>다 읽었어요!</span>
+</div>
 <script is:inline>
   (() => {
+    let shown = false, doneShown = false;
     const update = () => {
       const bar = document.getElementById('reading-progress'); if (!bar) return;
       const h = document.documentElement;
       const max = h.scrollHeight - h.clientHeight;
-      bar.style.transform = `scaleX(${max > 0 ? Math.min(h.scrollTop / max, 1) : 0})`;
+      const pct = max > 0 ? Math.min(h.scrollTop / max, 1) : 0;
+      bar.style.transform = `scaleX(${pct})`;
+
+      // 퍼센트 텍스트
+      const pctEl = document.getElementById('reading-pct');
+      if (pctEl) {
+        if (pct > 0.02 && pct < 0.98) {
+          pctEl.textContent = Math.round(pct * 100) + '%';
+          pctEl.hidden = false;
+        } else {
+          pctEl.hidden = true;
+        }
+      }
+
+      // 완독 표시
+      const done = document.getElementById('reading-done');
+      if (done && pct >= 0.95 && !doneShown) {
+        doneShown = true;
+        done.hidden = false;
+        done.classList.add('is-show');
+        setTimeout(() => { done.classList.remove('is-show'); done.classList.add('is-hide'); }, 3000);
+        setTimeout(() => { done.hidden = true; }, 3500);
+      }
     };
     if (!window.__rpScroll) { window.__rpScroll = true; window.addEventListener('scroll', update, { passive: true }); window.addEventListener('resize', update); }
+    // SPA 전환 시 리셋
+    if (!window.__rpPL) { window.__rpPL = true; document.addEventListener('astro:page-load', () => { doneShown = false; update(); }); }
     update();
-    if (!window.__rpPL) { window.__rpPL = true; document.addEventListener('astro:page-load', update); }
   })();
 </script>

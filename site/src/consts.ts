@@ -72,18 +72,26 @@ export const GUIDE_EXTRA = [
 export const VAPID_PUBLIC_KEY = 'BJXQcoA8xVdqQn6E5v_RqFZWZ6CokyEyaYQ_s3KnaYyIZg4GFRntAozu6LrGoB9Jp4Tfd17Zo4tDMNnHGH-WljQ';
 
 // 헤더 내비게이션
-export const NAV = [
-  { label: '내 혜택', href: '/benefits/' },
-  { label: '재무 체크업', href: '/checkup/' },
+export type NavItem = { label: string; href: string; children?: NavItem[] };
+export const NAV: NavItem[] = [
   { label: '브리핑', href: '/briefing/' },
   { label: '주식·재테크', href: '/category/money/' },
   { label: 'AI 트렌드', href: '/category/ai/' },
   { label: '부업·지원금', href: '/category/income/' },
-  { label: '쇼츠', href: '/shorts/' },
-  { label: '칼럼', href: '/column/' },
-  { label: '계산기', href: '/tools/' },
-  { label: '소개', href: '/about/' },
-] as const;
+  { label: '서비스', href: '/benefits/', children: [
+    { label: '내 혜택 찾기', href: '/benefits/' },
+    { label: '재무 건강 체크업', href: '/checkup/' },
+    { label: '정책 캘린더', href: '/policy-calendar/' },
+    { label: '금융 계산기', href: '/tools/' },
+  ]},
+  { label: '더보기', href: '/shorts/', children: [
+    { label: '쇼츠', href: '/shorts/' },
+    { label: '칼럼', href: '/column/' },
+    { label: '용어 사전', href: '/glossary/' },
+    { label: '가이드', href: '/guides/' },
+    { label: '소개', href: '/about/' },
+  ]},
+];
 
 // 상단 공지/추천 배너 — 내용만 바꾸면 됨. key를 바꾸면 닫았던 사용자에게 다시 표시.
 export const NOTICE = {

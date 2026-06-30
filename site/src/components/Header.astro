@@ -18,9 +18,23 @@ import { SITE, NAV } from '../consts';
       </a>
     </div>
     <nav class="nav" id="nav" aria-label="주요 메뉴">
-      {NAV.map((item) => (
-        <a href={item.href} class="is-cat">{item.label}</a>
-      ))}
+      {NAV.map((item) =>
+        item.children ? (
+          <div class="nav-group">
+            <button type="button" class="nav-group__trigger" aria-expanded="false">
+              {item.label}
+              <svg class="nav-group__chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            <div class="nav-group__dropdown">
+              {item.children.map((child) => (
+                <a href={child.href}>{child.label}</a>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <a href={item.href}>{item.label}</a>
+        )
+      )}
     </nav>
   </div>
 </header>
@@ -32,16 +46,16 @@ import { SITE, NAV } from '../consts';
     localStorage.setItem('theme', dark ? 'light' : 'dark');
   });
 
-  // 햄버거 카테고리 메뉴 토글
+  // 햄버거 메뉴 토글
   (() => {
     const t = document.getElementById('nav-toggle');
     const nav = document.getElementById('nav');
     if (!t || !nav) return;
-    const links = nav.querySelectorAll('a');
+    const focusables = nav.querySelectorAll('a, button');
     const set = (o) => {
       nav.classList.toggle('is-open', o);
       t.setAttribute('aria-expanded', String(o));
-      if (o && links.length) links[0].focus();
+      if (o && focusables.length) focusables[0].focus();
       else if (!o) t.focus();
     };
     t.addEventListener('click', (e) => { e.stopPropagation(); set(!nav.classList.contains('is-open')); });
@@ -49,18 +63,38 @@ import { SITE, NAV } from '../consts';
     document.addEventListener('click', (e) => { if (!nav.contains(e.target) && !t.contains(e.target)) set(false); });
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && nav.classList.contains('is-open')) { set(false); return; }
-      if (!nav.classList.contains('is-open') || !links.length) return;
+      if (!nav.classList.contains('is-open') || !focusables.length) return;
       if (e.key === 'Tab') {
-        if (e.shiftKey && document.activeElement === links[0]) { e.preventDefault(); links[links.length - 1].focus(); }
-        else if (!e.shiftKey && document.activeElement === links[links.length - 1]) { e.preventDefault(); links[0].focus(); }
+        if (e.shiftKey && document.activeElement === focusables[0]) { e.preventDefault(); focusables[focusables.length - 1].focus(); }
+        else if (!e.shiftKey && document.activeElement === focusables[focusables.length - 1]) { e.preventDefault(); focusables[0].focus(); }
+      }
+    });
+  })();
+
+  // 드롭다운 그룹 토글
+  (() => {
+    document.querySelectorAll('.nav-group__trigger').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var group = this.closest('.nav-group');
+        var isOpen = group.classList.contains('is-open');
+        // 다른 그룹 닫기
+        document.querySelectorAll('.nav-group.is-open').forEach(function (g) { g.classList.remove('is-open'); g.querySelector('.nav-group__trigger').setAttribute('aria-expanded', 'false'); });
+        if (!isOpen) {
+          group.classList.add('is-open');
+          this.setAttribute('aria-expanded', 'true');
+        }
+      });
+    });
+    // 외부 클릭 시 닫기
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.nav-group')) {
+        document.querySelectorAll('.nav-group.is-open').forEach(function (g) { g.classList.remove('is-open'); g.querySelector('.nav-group__trigger').setAttribute('aria-expanded', 'false'); });
       }
     });
   })();
 
   // 스크롤 내리면 브랜드 줄을 숨기고 메뉴·검색·테마 바만 남기기.
-  // 단일 임계점(예: 80)으로 토글하면, 컴팩트 전환 시 헤더 높이가 줄며 스크롤 위치가
-  // 그 임계점을 다시 넘나들어 켜짐↔꺼짐이 반복되는 '떨림'이 생긴다.
-  // → 켜는 값(140)과 끄는 값(70)을 벌린 히스테리시스 + rAF 스로틀로 피드백 루프를 끊는다.
   (() => {
     const header = document.querySelector('.site-header');
     if (!header) return;

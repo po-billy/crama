@@ -2,6 +2,7 @@
 // 상세페이지(아티클·투표) 우측 공통 사이드바 — 사이트 콘텐츠 노출(오늘의 투표·주목 아티클·크라미 CTA).
 import { getCollection } from 'astro:content';
 import { CATEGORIES, EDITOR_PICKS } from '../consts';
+import DuoIcon from './DuoIcon.astro';
 import { fetchActivePolls } from '../lib/polls-build.js';
 
 interface Props {
@@ -38,13 +39,13 @@ polls = polls.slice(0, 3);
   <section class="crail__box crail__svc">
     <h3 class="crail__h" style="font-size:0.82rem;">서비스</h3>
     <a class="crail__svc-link" href="/benefits/">
-      <span>💰</span> 내 혜택 찾기
+      <DuoIcon name="benefits" class="crail__svc-ic" /> 내 혜택 찾기
     </a>
     <a class="crail__svc-link" href="/checkup/">
-      <span>🩺</span> 재무 체크업
+      <DuoIcon name="checkup" class="crail__svc-ic" /> 재무 체크업
     </a>
     <a class="crail__svc-link" href="/policy-calendar/">
-      <span>📅</span> 정책 캘린더
+      <DuoIcon name="calendar" class="crail__svc-ic" /> 정책 캘린더
     </a>
   </section>
 

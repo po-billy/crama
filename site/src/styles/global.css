@@ -210,7 +210,7 @@ hr {
   color: var(--ink-soft); text-decoration: none; transition: background .1s;
 }
 .crail__svc-link:hover { background: var(--paper-2); color: var(--accent); }
-.crail__svc-link span { font-size: .85rem; flex: none; width: 1.6rem; height: 1.6rem; display: inline-flex; align-items: center; justify-content: center; background: var(--paper-2); border-radius: 50%; }
+.crail__svc-ic { width: 18px; height: 18px; flex: none; }
 .brand {
   font-family: var(--font-serif);
   font-weight: 600;

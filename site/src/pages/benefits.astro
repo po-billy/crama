@@ -332,16 +332,16 @@ const faqLd = {
             '<h3 class="bf-card__title">' + b.name + '</h3>' +
             '<p class="bf-card__summary">' + b.summary + '</p>' +
             '<div class="bf-card__amount">' + b.amount + '</div>' +
-            (b.deadlineLabel ? '<p class="bf-card__deadline">📅 ' + b.deadlineLabel + '</p>' : '') +
+            (b.deadlineLabel ? '<p class="bf-card__deadline">' + b.deadlineLabel + '</p>' : '') +
             '<div class="bf-card__foot"><span class="bf-card__method">' + b.applyMethod + '</span>' +
             '<a class="bf-card__apply" href="' + b.applyUrl + '" target="_blank" rel="noopener">신청하기 →</a></div>' +
-            (b.relatedSlug ? '<a class="bf-card__related" href="/blog/' + b.relatedSlug + '/">📖 자세한 가이드 읽기</a>' : '') +
+            (b.relatedSlug ? '<a class="bf-card__related" href="/blog/' + b.relatedSlug + '/">자세한 가이드 읽기 →</a>' : '') +
           '</div>';
         }
 
         var cardsHtml = '';
         if (results.length === 0) {
-          cardsHtml = '<div class="bf-empty"><p class="bf-empty__icon">🔍</p><p>입력하신 조건에 맞는 혜택을 찾지 못했어요.</p></div>';
+          cardsHtml = '<div class="bf-empty"><p class="bf-empty__icon" style="opacity:.4;"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></p><p>입력하신 조건에 맞는 혜택을 찾지 못했어요.</p></div>';
         } else if (loggedIn) {
           // 로그인 사용자: 전체 표시
           cardsHtml = results.map(renderCard).join('');
@@ -363,7 +363,7 @@ const faqLd = {
               '<div class="bf-gate__blur">' + previewCards + '</div>' +
               '<div class="bf-gate__cta">' +
                 '<div class="bf-gate__inner">' +
-                  '<span class="bf-gate__icon">🔓</span>' +
+                  '<span class="bf-gate__icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></span>' +
                   '<h3 class="bf-gate__title">나머지 ' + lockedCount + '건의 혜택이 더 있어요</h3>' +
                   '<p class="bf-gate__desc">무료 로그인하면 전체 결과 + 신청 링크 + 프로필 저장까지 모두 이용할 수 있어요.</p>' +
                   '<a class="bf-gate__btn" href="/login/">무료 로그인하고 전체 보기 →</a>' +

@@ -349,17 +349,21 @@ const faqLd = {
             '<span class="bf-chart__val">' + catAmounts[c].toLocaleString() + '만</span></div>';
         });
         chartHtml += '</div>';
+        var _oldChart = document.querySelector('.bf-chart'); if (_oldChart) _oldChart.remove(); // 재실행(수정·재시도) 시 차트 중복 삽입 방지
         $('bf-filters').insertAdjacentHTML('afterend', chartHtml);
 
-        // 필터 이벤트
-        $('bf-filters').addEventListener('click', function (ev) {
-          var btn = ev.target.closest('.bf-filter'); if (!btn) return;
-          var cat = btn.dataset.cat;
-          this.querySelectorAll('.bf-filter').forEach(function (f) { f.classList.toggle('is-on', f.dataset.cat === cat); });
-          document.querySelectorAll('.bf-card').forEach(function (card) {
-            card.hidden = cat !== 'all' && card.dataset.cat !== cat;
+        // 필터 이벤트 (한 번만 바인딩 — 재실행 시 리스너 중복 방지)
+        if ($('bf-filters').dataset.bound !== '1') {
+          $('bf-filters').dataset.bound = '1';
+          $('bf-filters').addEventListener('click', function (ev) {
+            var btn = ev.target.closest('.bf-filter'); if (!btn) return;
+            var cat = btn.dataset.cat;
+            this.querySelectorAll('.bf-filter').forEach(function (f) { f.classList.toggle('is-on', f.dataset.cat === cat); });
+            document.querySelectorAll('.bf-card').forEach(function (card) {
+              card.hidden = cat !== 'all' && card.dataset.cat !== cat;
+            });
           });
-        });
+        }
 
         // 카드 렌더
         var now = new Date();
@@ -431,7 +435,9 @@ const faqLd = {
 
         $('bf-cards').innerHTML = cardsHtml;
 
-        // 캘린더 추가 버튼
+        // 캘린더 추가 버튼 (한 번만 바인딩 — 재실행 시 클릭당 다중 다운로드 방지)
+        if ($('bf-cards').dataset.bound !== '1') {
+        $('bf-cards').dataset.bound = '1';
         $('bf-cards').addEventListener('click', function (ev) {
           var btn = ev.target.closest('.bf-card__ical'); if (!btn) return;
           var title = btn.dataset.title, date = btn.dataset.date;
@@ -450,6 +456,7 @@ const faqLd = {
           var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
           a.download = 'crama-' + title.replace(/\s+/g, '-') + '.ics'; a.click();
         });
+        }
 
         // GA4 이벤트
         // 이용 횟수 카운터 (localStorage)

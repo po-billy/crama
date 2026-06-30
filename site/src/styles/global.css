@@ -111,8 +111,18 @@ hr {
 @media (min-width: 1024px) { .site-header .site-header__inner { max-width: 90rem; } }
 .brand { order: 1; }
 /* 검색·테마 버튼 — 로고와 같은 줄(상단)에 배치 */
-.header-actions { order: 3; display: flex; align-items: center; gap: 0.7rem; }
-.search-link { font-size: 1.25rem; color: var(--ink-soft); line-height: 1; }
+.header-actions { order: 3; display: flex; align-items: center; gap: 0.3rem; }
+/* 아이콘 정렬 — SVG·버튼·링크를 동일 크기 정사각 박스로 통일해 삐뚤빼뚤 방지 */
+.header-actions > a, .header-actions > button {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 2.15rem; height: 2.15rem; padding: 0; margin: 0;
+  color: var(--ink-soft); background: none; border: none; border-radius: 8px;
+  cursor: pointer; line-height: 1; -webkit-tap-highlight-color: transparent;
+  transition: background 0.12s, color 0.12s;
+}
+.header-actions > a:hover, .header-actions > button:hover { color: var(--accent); background: var(--paper-2); }
+.header-actions svg { display: block; }
+.search-link { color: var(--ink-soft); }
 .search-link:hover { color: var(--accent); }
 
 /* 헤더 프로필 아바타 — 로그인 시 내 크라미(착장)를 동그라미로 줌. 값 튜닝 가능 */

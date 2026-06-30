@@ -42,13 +42,14 @@ export const CATEGORIES: Record<
 // 홈 '주목할 아티클' 랭킹 — 에디터 큐레이션(고가치·수익 글을 상단 노출). slug 순서 = 노출 순서.
 // 주목할 아티클 랭킹 — 허브(필러)는 제외, 실제 개별 글만
 export const EDITOR_PICKS = [
-  'youth-future-savings-2026',
-  'spacex-stock-buying-guide',
-  'ai-trends-2026',
-  'how-to-choose-brokerage',
-  'credit-vs-check-card',
-  'side-hustle-for-office-workers',
-  'chatgpt-free-vs-paid',
+  'cost-of-a-good-question',
+  'unclaimed-money-refunds-2026',
+  'agentic-ai-workflow-automation-strategy',
+  'employed-side-job-guide-risk-insurance-tax',
+  'youth-rent-support-2026',
+  'luck-surface-area',
+  'household-ledger-real-money-leak',
+  'first-stock-loss-one-principle',
 ] as const;
 
 // 카테고리별 필러(허브) 가이드 — 글↔허브 양방향 링크 및 카테고리 상단 노출에 사용
@@ -72,34 +73,35 @@ export const GUIDE_EXTRA = [
 export const VAPID_PUBLIC_KEY = 'BJXQcoA8xVdqQn6E5v_RqFZWZ6CokyEyaYQ_s3KnaYyIZg4GFRntAozu6LrGoB9Jp4Tfd17Zo4tDMNnHGH-WljQ';
 
 // 헤더 내비게이션
-export type NavItem = { label: string; href: string; children?: NavItem[] };
+export type NavItem = { label: string; href: string; icon?: string; children?: NavItem[] };
 export const NAV: NavItem[] = [
   { label: 'Today 브리핑', href: '/briefing/' },
   { label: '돈·AI·부업', href: '/category/money/', children: [
-    { label: '주식·재테크', href: '/category/money/' },
-    { label: 'AI 트렌드', href: '/category/ai/' },
-    { label: '부업·지원금', href: '/category/income/' },
+    { label: '주식·재테크', href: '/category/money/', icon: 'money' },
+    { label: 'AI 트렌드', href: '/category/ai/', icon: 'ai' },
+    { label: '부업·지원금', href: '/category/income/', icon: 'income' },
   ]},
   { label: '혜택·진단', href: '/benefits/', children: [
-    { label: '내 혜택 찾기', href: '/benefits/' },
-    { label: '재무 건강 체크업', href: '/checkup/' },
-    { label: '정책 캘린더', href: '/policy-calendar/' },
-    { label: '금융 계산기', href: '/tools/' },
+    { label: '내 혜택 찾기', href: '/benefits/', icon: 'benefits' },
+    { label: '재무 건강 체크업', href: '/checkup/', icon: 'checkup' },
+    { label: '정책 캘린더', href: '/policy-calendar/', icon: 'calendar' },
+    { label: '금융 계산기', href: '/tools/', icon: 'calc' },
   ]},
   { label: '쇼츠·칼럼', href: '/shorts/', children: [
-    { label: '쇼츠', href: '/shorts/' },
-    { label: '칼럼', href: '/column/' },
-    { label: '용어 사전', href: '/glossary/' },
-    { label: '가이드', href: '/guides/' },
-    { label: '퀴즈', href: '/quiz/' },
-    { label: '소개', href: '/about/' },
+    { label: '쇼츠', href: '/shorts/', icon: 'shorts' },
+    { label: '칼럼', href: '/column/', icon: 'column' },
+    { label: '용어 사전', href: '/glossary/', icon: 'glossary' },
+    { label: '가이드', href: '/guides/', icon: 'guide' },
+    { label: '퀴즈', href: '/quiz/', icon: 'quiz' },
+    { label: '빼꼼 투표', href: '/vote/', icon: 'vote' },
+    { label: '소개', href: '/about/', icon: 'start' },
   ]},
 ];
 
 // 상단 공지/추천 배너 — 내용만 바꾸면 됨. key를 바꾸면 닫았던 사용자에게 다시 표시.
 export const NOTICE = {
   enabled: true,
-  key: '2026-06-coupon',
-  text: '💸 민생회복 소비쿠폰 — 내 대상·금액(최대 60만원)·신청법 총정리 보기',
-  href: '/blog/livelihood-coupon-2026/',
+  key: '2026-07-benefits',
+  text: '🔍 청년도약계좌 7/3 마감 — 놓치기 전에 내 혜택 한눈에 확인하기',
+  href: '/benefits/',
 } as const;

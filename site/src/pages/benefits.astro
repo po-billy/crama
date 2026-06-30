@@ -369,8 +369,10 @@ const faqLd = {
           if (b.deadline && b.deadline !== '상시') {
             var dl = new Date(b.deadline);
             var diff = Math.ceil((dl - now) / 86400000);
-            if (diff > 0 && diff <= 60) ddayHtml = '<span class="bf-card__dday bf-card__dday--urgent">D-' + diff + '</span>';
-            else if (diff > 0) ddayHtml = '<span class="bf-card__dday">D-' + diff + '</span>';
+            if (diff < 0) ddayHtml = '<span class="bf-card__dday bf-card__dday--expired">마감됨</span>';
+            else if (diff === 0) ddayHtml = '<span class="bf-card__dday bf-card__dday--urgent">D-Day</span>';
+            else if (diff <= 60) ddayHtml = '<span class="bf-card__dday bf-card__dday--urgent">D-' + diff + '</span>';
+            else ddayHtml = '<span class="bf-card__dday">D-' + diff + '</span>';
           }
           return '<div class="bf-card" data-cat="' + b.category + '">' +
             '<div class="bf-card__head"><span class="bf-card__cat" style="--cat-color:' + ci.color + '">' + ci.icon + ' ' + ci.name + '</span>' + ddayHtml + '</div>' +
@@ -573,6 +575,8 @@ const faqLd = {
       width: 100%; padding: 1rem; font: inherit; font-size: 1.05rem; font-weight: 700;
       border: none; border-radius: 12px; cursor: pointer;
       background: var(--ink); color: var(--paper); transition: all 0.15s;
+      touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+      min-height: 3rem;
     }
     .bf-cta:hover:not(:disabled) { filter: brightness(1.15); transform: translateY(-1px); }
     .bf-cta:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -583,27 +587,43 @@ const faqLd = {
     /* ── 플로우 (프로필 입력) ── */
     .bf-flow { padding: 1rem 0 2rem; }
     .bf-flow__top { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 2rem; }
-    .bf-flow__back { background: none; border: none; cursor: pointer; color: var(--ink); padding: 0.2rem; line-height: 1; }
+    .bf-flow__back { background: none; border: none; cursor: pointer; color: var(--ink); padding: 0.5rem; line-height: 1; min-width: 2.5rem; min-height: 2.5rem; display: flex; align-items: center; justify-content: center; }
     .bf-flow__step { font-size: 0.82rem; color: var(--muted); font-weight: 600; white-space: nowrap; }
     .bf-progress { flex: 1; height: 6px; background: var(--paper-2); border-radius: 99px; overflow: hidden; }
     .bf-progress__bar { display: block; height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.35s ease; }
 
+    .bf-step { animation: bf-fade-in 0.25s ease; }
+    @keyframes bf-fade-in { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: translateX(0); } }
     .bf-step__q { font-family: var(--font-serif); font-size: clamp(1.1rem, 4vw, 1.35rem); font-weight: 600; line-height: 1.35; margin: 0 0 1.5rem; }
 
-    .bf-flow__footer { margin-top: 2rem; text-align: center; }
+    .bf-flow__footer { margin-top: 2rem; text-align: center; padding-bottom: env(safe-area-inset-bottom, 0); }
 
     /* ── 입력 필드 ── */
     .bf-field { margin-bottom: 1.4rem; }
     .bf-label { display: block; font-size: 0.88rem; font-weight: 600; color: var(--ink-soft); margin-bottom: 0.4rem; }
     .bf-input {
-      display: block; width: 100%; padding: 0.85rem 1rem; font: inherit; font-size: 1.05rem;
+      display: block; width: 100%; padding: 0.85rem 1rem; font: inherit; font-size: 16px;
       border: 2px solid var(--line); border-radius: 10px; background: var(--paper);
       color: var(--ink); margin-top: 0.3rem; transition: border-color 0.15s;
-      min-height: 2.75rem; /* 44px 터치 타겟 */
+      min-height: 2.75rem;
+      -webkit-appearance: none; appearance: none;
+      box-sizing: border-box;
+      touch-action: manipulation;
     }
     .bf-input:focus { outline: none; border-color: var(--accent); }
 
-    .bf-range { width: 100%; margin-top: 0.5rem; accent-color: var(--accent); }
+    .bf-range {
+      width: 100%; margin-top: 0.5rem; accent-color: var(--accent);
+      -webkit-appearance: none; appearance: none;
+      height: 6px; background: var(--line); border-radius: 99px; outline: none;
+      touch-action: manipulation;
+    }
+    .bf-range::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--accent); cursor: pointer; border: 2px solid #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,.2);
+    }
     .bf-range-labels { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--muted); margin-top: 0.2rem; }
 
     /* ── 선택 옵션 (큰 카드형) ── */
@@ -612,18 +632,23 @@ const faqLd = {
       display: flex; flex-direction: column; align-items: center; gap: 0.3rem;
       padding: 1.1rem 0.8rem; border: 2px solid var(--line); border-radius: 12px;
       background: var(--paper); cursor: pointer; transition: all 0.15s; font: inherit; color: var(--ink);
-      min-height: 3.2rem; /* 편한 터치 */
+      min-height: 3.2rem;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
     .bf-opt:hover { border-color: var(--accent); }
     .bf-opt.is-on { border-color: var(--accent); background: var(--accent-soft); font-weight: 700; }
-    .bf-opt__icon { font-size: 1.6rem; }
+    .bf-opt__icon { font-size: 1.6rem; pointer-events: none; }
 
     /* ── 칩 선택 (지역 등) ── */
     .bf-chips { display: flex; flex-wrap: wrap; gap: 0.45rem; }
     .bf-chip {
-      padding: 0.45rem 0.85rem; border: 1px solid var(--line); border-radius: 20px;
+      padding: 0.55rem 0.9rem; border: 1px solid var(--line); border-radius: 20px;
       background: var(--paper); cursor: pointer; font: inherit; font-size: 0.88rem;
       color: var(--ink-soft); transition: all 0.12s;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      min-height: 2.5rem; display: inline-flex; align-items: center;
     }
     .bf-chip:hover { border-color: var(--accent); }
     .bf-chip.is-on { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
@@ -634,9 +659,10 @@ const faqLd = {
       display: flex; align-items: center; gap: 0.7rem; padding: 1rem 1.2rem;
       border: 2px solid var(--line); border-radius: 12px; cursor: pointer;
       transition: border-color 0.12s; font-size: 0.95rem;
+      touch-action: manipulation;
     }
     .bf-check:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
-    .bf-check input { width: 1.1rem; height: 1.1rem; accent-color: var(--accent); flex: none; }
+    .bf-check input { width: 1.2rem; height: 1.2rem; accent-color: var(--accent); flex: none; }
 
     /* ── 결과 대시보드 ── */
     .bf-result { padding: 0 0 3rem; }
@@ -681,6 +707,7 @@ const faqLd = {
       border-radius: 6px; background: var(--paper-2); color: var(--ink-soft);
     }
     .bf-card__dday--urgent { background: #fee2e2; color: #dc2626; }
+    .bf-card__dday--expired { background: var(--paper-2); color: var(--muted); text-decoration: line-through; }
     .bf-card__title { font-size: 1.1rem; font-weight: 700; margin: 0 0 0.5rem; line-height: 1.35; }
     .bf-card__summary { font-size: 0.9rem; color: var(--ink-soft); line-height: 1.6; margin: 0 0 0.8rem; }
     .bf-card__amount {

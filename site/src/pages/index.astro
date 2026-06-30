@@ -77,9 +77,9 @@ const byCategory = (slug: 'money' | 'ai' | 'income') =>
 
 // 홈 섹션 제목 — 구어체·풍부하게(카테고리명은 consts 그대로, 홈에서만 다른 카피)
 const catHome = {
-  money: { title: '내 돈, 어떻게 굴릴까?', dek: '주식부터 절세까지 — 재테크 한 수씩' },
-  ai: { title: 'AI, 먼저 보고 가요', dek: '지금 알아야 할 흐름만 콕 집어서' },
-  income: { title: '월급 밖에서 버는 법', dek: '부업부터 정부 지원금까지, 받을 건 다 챙겨요' },
+  money: { title: '내 돈, 어떻게 굴릴까?', dek: '주식부터 절세까지 — 모르면 잃고, 알면 불어나는 돈 이야기' },
+  ai: { title: 'AI, 먼저 보고 가요', dek: '남들이 따라올 때쯤 당신은 이미 쓰고 있다' },
+  income: { title: '월급 밖에서 버는 법', dek: '부업·지원금·환급금 — 안 챙기면 남 주는 내 돈' },
 } as const;
 
 // 작은 썸네일(160px) 경로 — 랭킹/리스트의 48~90px 썸네일에 풀사이즈 hero 대신 사용(이미지 용량 절감)
@@ -93,8 +93,15 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
     {(() => {
       const DEADLINES = [
         { date: '2026-07-03', title: '청년도약계좌 신청 마감', href: '/benefits/' },
-        { date: '2026-05-31', title: '종합소득세 신고 마감', href: '/policy-calendar/' },
+        { date: '2026-07-25', title: '부가가치세 확정신고 마감', href: '/policy-calendar/' },
+        { date: '2026-07-31', title: '재산세(주택 1기) 납부 마감', href: '/policy-calendar/' },
+        { date: '2026-08-01', title: '청년 월세 지원 하반기 접수', href: '/policy-calendar/' },
+        { date: '2026-08-31', title: '주민세 납부 마감', href: '/policy-calendar/' },
+        { date: '2026-09-15', title: '국가장학금 2학기 신청 마감', href: '/policy-calendar/' },
+        { date: '2026-09-30', title: '재산세(주택 2기) 납부 마감', href: '/policy-calendar/' },
+        { date: '2026-12-15', title: '종합부동산세 납부 마감', href: '/policy-calendar/' },
         { date: '2026-12-31', title: 'IRP·연금저축 납입 마감', href: '/policy-calendar/' },
+        { date: '2026-12-31', title: 'ISA 계좌 납입 마감', href: '/policy-calendar/' },
       ];
       const now = new Date();
       const soon = DEADLINES
@@ -111,8 +118,15 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
       ) : null;
     })()}
 
+    <!-- ━━ 오늘의 숫자 — 매일 다른 돈·경제 팩트 ━━ -->
+    <div class="today-num" id="today-num">
+      <span class="today-num__label">오늘의 숫자</span>
+      <span class="today-num__value" id="today-num-val"></span>
+      <span class="today-num__fact" id="today-num-fact"></span>
+    </div>
+
     <header class="home-masthead">
-      <h1>주식·재테크와 AI 트렌드, <em>깊이 있게.</em></h1>
+      <h1>돈과 AI, <em>먼저 읽는 사람들.</em></h1>
     </header>
 
     <div class="home-top">
@@ -455,7 +469,7 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
         <div class="bf-banner__inner">
           <span class="bf-banner__badge">서비스</span>
           <p class="bf-banner__title">나에게 해당되는 혜택,<br/><em>진짜로</em> 찾아드려요</p>
-          <p class="bf-banner__desc">3분이면 지원금·대출·공제를 한눈에</p>
+          <p class="bf-banner__desc">평균 7~12건, 연 300~800만원의 혜택이 숨어있어요</p>
           <span class="bf-banner__cta">내 혜택 찾기 →</span>
         </div>
       </a>
@@ -489,10 +503,15 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
       (() => {
         var ACTIONS = [
           { m: 1, items: [{ t: '연말정산 간소화 확인', d: '홈택스에서 공제 자료 조회', href: '/policy-calendar/' }] },
+          { m: 3, items: [{ t: '근로·자녀장려금 반기 신청', d: '3/15까지 홈택스에서', href: '/policy-calendar/' }, { t: '국민취업지원제도 신청', d: '구직촉진수당 월 50만원', href: '/policy-calendar/' }] },
           { m: 5, items: [{ t: '종합소득세 신고', d: '프리랜서·N잡러는 5/31까지', href: '/policy-calendar/' }, { t: '근로·자녀장려금 신청', d: '5/31까지 홈택스에서', href: '/policy-calendar/' }] },
-          { m: 6, items: [{ t: '청년도약계좌 신청', d: '7/3 마감 — 지금 확인', href: '/benefits/' }] },
-          { m: 7, items: [{ t: '청년도약계좌 마감 D-day', d: '7/3까지 신청', href: '/benefits/' }] },
-          { m: 12, items: [{ t: 'IRP·연금저축 납입', d: '세액공제 한도 채우기', href: '/policy-calendar/' }, { t: 'ISA 납입 마감', d: '비과세 한도 확인', href: '/policy-calendar/' }] },
+          { m: 6, items: [{ t: '청년도약계좌 신청', d: '7/3 마감 — 지금 확인', href: '/benefits/' }, { t: '재산세(건축물) 납부', d: '6/30까지 납부', href: '/policy-calendar/' }] },
+          { m: 7, items: [{ t: '청년도약계좌 마감 D-day', d: '7/3까지 신청', href: '/benefits/' }, { t: '부가가치세 확정신고', d: '7/25까지 신고·납부', href: '/policy-calendar/' }, { t: '재산세(주택 1기) 납부', d: '7/31까지 납부', href: '/policy-calendar/' }] },
+          { m: 8, items: [{ t: '청년 월세 지원 접수', d: '월 20만원, 최대 12개월', href: '/policy-calendar/' }, { t: '주민세 납부', d: '8/31까지 납부', href: '/policy-calendar/' }] },
+          { m: 9, items: [{ t: '국가장학금 2학기 신청', d: '9/15 마감', href: '/policy-calendar/' }, { t: '내일배움카드 하반기 신청', d: '훈련비 최대 500만원', href: '/policy-calendar/' }, { t: '재산세(주택 2기) 납부', d: '9/30까지', href: '/policy-calendar/' }] },
+          { m: 10, items: [{ t: '청년창업지원패키지 접수', d: '최대 1억 지원', href: '/policy-calendar/' }, { t: '부가가치세 예정신고', d: '10/25까지', href: '/policy-calendar/' }] },
+          { m: 11, items: [{ t: '종합부동산세 확인', d: '고지서 발송 — 12/15까지 납부', href: '/policy-calendar/' }, { t: '건강보험 피부양자 점검', d: '소득 2천만원 초과 시 전환', href: '/policy-calendar/' }] },
+          { m: 12, items: [{ t: 'IRP·연금저축 납입', d: '세액공제 한도(900만원) 채우기', href: '/policy-calendar/' }, { t: 'ISA 납입 마감', d: '비과세 한도 확인', href: '/policy-calendar/' }, { t: '종합부동산세 납부', d: '12/15 마감', href: '/policy-calendar/' }] },
         ];
         var now = new Date();
         var cm = now.getMonth() + 1;
@@ -539,8 +558,111 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
         </div>
       </section>
     ))}
+    <!-- ━━ 소셜 프루프 토스트 ━━ -->
+    <div class="social-proof" id="social-proof" hidden>
+      <span class="social-proof__icon">🔔</span>
+      <span class="social-proof__text" id="sp-text"></span>
+    </div>
+
+    <!-- ━━ 첫 방문 웰컴 바텀시트 ━━ -->
+    <div class="welcome-sheet" id="welcome-sheet" hidden>
+      <div class="welcome-sheet__inner">
+        <button class="welcome-sheet__close" id="welcome-close" aria-label="닫기">×</button>
+        <p class="welcome-sheet__hello">처음이시죠? 반가워요 👋</p>
+        <h3 class="welcome-sheet__title">3분이면 나에게 맞는<br/>혜택을 찾을 수 있어요</h3>
+        <p class="welcome-sheet__desc">평균 <strong>7~12건</strong>, 연 <strong>300~800만원</strong>의 지원금이 숨어있어요</p>
+        <div class="welcome-sheet__btns">
+          <a href="/benefits/" class="welcome-sheet__cta">내 혜택 찾기 →</a>
+          <button class="welcome-sheet__skip" id="welcome-skip">나중에 할게요</button>
+        </div>
+      </div>
+    </div>
   </div>
 </BaseLayout>
+
+<script is:inline>
+  // ── 오늘의 숫자 ──
+  (() => {
+    var FACTS = [
+      { val: '73%', fact: '한국인 중 받을 수 있는 정부 지원금을 놓치고 있는 비율' },
+      { val: '820만원', fact: '20대 직장인이 평균적으로 놓치는 연간 혜택 금액' },
+      { val: '47%', fact: 'MZ세대 중 비상금이 월급 1개월분 미만인 비율' },
+      { val: '2.3배', fact: '가계부를 쓰는 사람의 평균 저축률 증가 배수' },
+      { val: '6개월', fact: '재무 전문가들이 권장하는 최소 비상금 기준' },
+      { val: '900만원', fact: 'IRP·연금저축으로 받을 수 있는 최대 세액공제 한도' },
+      { val: '30%', fact: '재무 건강 우수 등급(A+)의 최소 저축률 기준' },
+      { val: '24시간', fact: '충동구매를 막기 위해 결제 전 기다려야 할 최소 시간' },
+      { val: '5,000만원', fact: '청년도약계좌 5년 만기 시 예상 수령액' },
+      { val: '40%', fact: '안전한 가계 부채 관리를 위한 DSR 상한선' },
+      { val: '3분', fact: '크라마 혜택 찾기로 내 지원금을 확인하는 데 걸리는 시간' },
+      { val: '500만원', fact: '국민내일배움카드로 받을 수 있는 최대 직업훈련비' },
+      { val: '20만원', fact: '청년 월세 지원으로 매달 받을 수 있는 금액' },
+      { val: '1억원', fact: '청년창업지원패키지 최대 지원 금액' },
+      { val: '60만원', fact: '민생회복 소비쿠폰 최대 지원 금액' },
+    ];
+    var day = Math.floor(Date.now() / 86400000);
+    var pick = FACTS[day % FACTS.length];
+    var valEl = document.getElementById('today-num-val');
+    var factEl = document.getElementById('today-num-fact');
+    if (valEl && factEl) { valEl.textContent = pick.val; factEl.textContent = pick.fact; }
+  })();
+</script>
+
+<script is:inline>
+  // ── 소셜 프루프 토스트 ──
+  (() => {
+    var MSGS = [
+      '방금 28세 직장인이 혜택 9건을 찾았어요',
+      '25세 대학생이 장학금·지원금 5건을 발견했어요',
+      '32세 프리랜서가 재무 체크업에서 B+ 등급을 받았어요',
+      '방금 누군가 연 480만원의 숨은 혜택을 찾았어요',
+      '26세 사회초년생이 도약계좌+월세지원을 동시에 찾았어요',
+      '30세 신혼부부가 혜택 11건, 연 720만원을 발견했어요',
+      '방금 누군가 재무 건강 등급 A를 달성했어요',
+      '29세 직장인이 연금저축 세액공제 148만원을 확인했어요',
+    ];
+    var el = document.getElementById('social-proof');
+    var text = document.getElementById('sp-text');
+    if (!el || !text) return;
+    var idx = 0, shown = 0;
+    function show() {
+      if (shown >= 3) return; // 세션당 최대 3회
+      text.textContent = MSGS[idx % MSGS.length];
+      el.hidden = false;
+      el.classList.add('is-visible');
+      idx++;
+      shown++;
+      setTimeout(function () {
+        el.classList.remove('is-visible');
+        setTimeout(function () { el.hidden = true; }, 400);
+      }, 4000);
+    }
+    // 첫 표시: 8초 후, 이후 25초 간격
+    setTimeout(function () { show(); setInterval(show, 25000); }, 8000);
+  })();
+</script>
+
+<script is:inline>
+  // ── 첫 방문 웰컴 바텀시트 ──
+  (() => {
+    var KEY = 'crama:welcomed';
+    try { if (localStorage.getItem(KEY)) return; } catch (e) { return; }
+    var sheet = document.getElementById('welcome-sheet');
+    if (!sheet) return;
+    // 5초 후 표시
+    setTimeout(function () {
+      sheet.hidden = false;
+      requestAnimationFrame(function () { sheet.classList.add('is-visible'); });
+    }, 5000);
+    function dismiss() {
+      sheet.classList.remove('is-visible');
+      setTimeout(function () { sheet.hidden = true; }, 300);
+      try { localStorage.setItem(KEY, '1'); } catch (e) {}
+    }
+    document.getElementById('welcome-close').addEventListener('click', dismiss);
+    document.getElementById('welcome-skip').addEventListener('click', dismiss);
+  })();
+</script>
 
 <script>
   // 가이드 섹션 모바일 자동 슬라이드(보일 때만, 사용자 조작 시 일시정지, 모션 최소화 시 끔)

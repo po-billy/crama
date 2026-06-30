@@ -1,5 +1,6 @@
 ---
 import { SITE, NAV } from '../consts';
+import DuoIcon from './DuoIcon.astro';
 ---
 <header class="site-header">
   <div class="wrap site-header__inner">
@@ -27,12 +28,15 @@ import { SITE, NAV } from '../consts';
             </button>
             <div class="nav-group__dropdown">
               {item.children.map((child) => (
-                <a href={child.href}>{child.label}</a>
+                <a href={child.href}>
+                  {child.icon && <DuoIcon name={child.icon} class="nav-drop__icon" />}
+                  {child.label}
+                </a>
               ))}
             </div>
           </div>
         ) : (
-          <a href={item.href} class={item.href === '/briefing/' ? 'nav-cta' : ''}>{item.label}</a>
+          <a href={item.href}>{item.label}</a>
         )
       )}
     </nav>
@@ -71,21 +75,35 @@ import { SITE, NAV } from '../consts';
     });
   })();
 
-  // 드롭다운 그룹 토글 (PC만 — 모바일은 CSS로 항상 펼침)
+  // 드롭다운 그룹 — PC: hover로 열기 / 모바일: CSS로 항상 펼침
   (() => {
     var isMobile = function () { return window.matchMedia('(max-width: 768px)').matches; };
 
-    document.querySelectorAll('.nav-group__trigger').forEach(function (btn) {
+    document.querySelectorAll('.nav-group').forEach(function (group) {
+      var btn = group.querySelector('.nav-group__trigger');
+      var openTimer, closeTimer;
+      function open() {
+        clearTimeout(closeTimer);
+        document.querySelectorAll('.nav-group.is-open').forEach(function (g) { if (g !== group) { g.classList.remove('is-open'); g.querySelector('.nav-group__trigger').setAttribute('aria-expanded', 'false'); } });
+        group.classList.add('is-open');
+        btn.setAttribute('aria-expanded', 'true');
+      }
+      function close() {
+        clearTimeout(openTimer);
+        closeTimer = setTimeout(function () {
+          group.classList.remove('is-open');
+          btn.setAttribute('aria-expanded', 'false');
+        }, 150);
+      }
+      // PC: hover
+      group.addEventListener('mouseenter', function () { if (!isMobile()) { clearTimeout(closeTimer); openTimer = setTimeout(open, 80); } });
+      group.addEventListener('mouseleave', function () { if (!isMobile()) close(); });
+      // PC: click도 지원 (접근성)
       btn.addEventListener('click', function (e) {
-        if (isMobile()) return; // 모바일은 CSS가 처리
+        if (isMobile()) return;
         e.stopPropagation();
-        var group = this.closest('.nav-group');
-        var isOpen = group.classList.contains('is-open');
-        document.querySelectorAll('.nav-group.is-open').forEach(function (g) { g.classList.remove('is-open'); g.querySelector('.nav-group__trigger').setAttribute('aria-expanded', 'false'); });
-        if (!isOpen) {
-          group.classList.add('is-open');
-          this.setAttribute('aria-expanded', 'true');
-        }
+        if (group.classList.contains('is-open')) close();
+        else open();
       });
     });
     document.addEventListener('click', function (e) {

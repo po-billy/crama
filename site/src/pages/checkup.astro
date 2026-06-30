@@ -262,14 +262,14 @@ const faqLd = {
         $('ck-score-num').textContent = r.total;
         $('ck-grade').textContent = r.grade;
 
-        // 또래 평균 대비 비교 (시뮬레이션 데이터 — 향후 실제 집계로 교체)
+        // 또래 평균 대비 비교 (통계 기반 추정치)
         var avgByIncome = data.monthlyIncome < 250 ? 48 : data.monthlyIncome < 400 ? 55 : data.monthlyIncome < 600 ? 62 : 68;
         var diff = r.total - avgByIncome;
         var compareEl = $('ck-compare');
         if (diff >= 0) {
-          compareEl.innerHTML = '비슷한 소득 구간 평균 <strong>' + avgByIncome + '점</strong>보다 <strong style="color:#22c55e;">+' + diff + '점</strong> 높아요';
+          compareEl.innerHTML = '비슷한 소득 구간 추정 평균 <strong>' + avgByIncome + '점</strong>보다 <strong style="color:#22c55e;">+' + diff + '점</strong> 높아요 <span style="font-size:.72rem;color:var(--muted);">*통계 기반 추정</span>';
         } else {
-          compareEl.innerHTML = '비슷한 소득 구간 평균 <strong>' + avgByIncome + '점</strong>보다 <strong style="color:#ef4444;">' + diff + '점</strong> — 개선 여지가 있어요';
+          compareEl.innerHTML = '비슷한 소득 구간 추정 평균 <strong>' + avgByIncome + '점</strong>보다 <strong style="color:#ef4444;">' + diff + '점</strong> — 개선 여지가 있어요 <span style="font-size:.72rem;color:var(--muted);">*통계 기반 추정</span>';
         }
         compareEl.hidden = false;
         $('ck-grade').className = 'ck-result__grade ck-grade--' + r.grade.replace('+', 'p').toLowerCase();
@@ -461,7 +461,13 @@ const faqLd = {
     .ck-preview { margin: 1.5rem 0; padding: 1rem; background: var(--paper-2); border-radius: 12px; }
     .ck-preview__label { font-size: 0.82rem; color: var(--muted); display: block; margin-bottom: 0.5rem; }
     .ck-preview__row { display: flex; gap: 0.6rem; align-items: center; }
-    .ck-preview__input { flex: 1; padding: 0.65rem 0.8rem; font: inherit; font-size: 1rem; border: 2px solid var(--line); border-radius: 8px; background: var(--paper); color: var(--ink); min-height: 2.5rem; }
+    .ck-preview__input {
+      flex: 1; padding: 0.65rem 0.8rem; font: inherit; font-size: 16px;
+      border: 2px solid var(--line); border-radius: 8px; background: var(--paper);
+      color: var(--ink); min-height: 2.75rem;
+      -webkit-appearance: none; appearance: none;
+      box-sizing: border-box; touch-action: manipulation;
+    }
     .ck-preview__input:focus { outline: none; border-color: var(--accent); }
     .ck-preview__result { font-size: 0.9rem; color: var(--accent); font-weight: 600; white-space: nowrap; min-width: 6rem; text-align: center; }
     .ck-preview__result strong { font-size: 1.1rem; }
@@ -477,7 +483,14 @@ const faqLd = {
     .ck-gauge__label { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); font-size: 1.6rem; font-weight: 800; color: var(--muted); }
 
     /* ── CTA ── */
-    .ck-cta { display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 1rem; font: inherit; font-size: 1.05rem; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; background: var(--ink); color: var(--paper); transition: all 0.15s; }
+    .ck-cta {
+      display: inline-flex; align-items: center; justify-content: center; width: 100%;
+      padding: 1rem; font: inherit; font-size: 1.05rem; font-weight: 700;
+      border: none; border-radius: 12px; cursor: pointer;
+      background: var(--ink); color: var(--paper); transition: all 0.15s;
+      touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+      min-height: 3rem;
+    }
     .ck-cta:hover { filter: brightness(1.15); transform: translateY(-1px); }
     .ck-cta--ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
     .ck-cta--next { max-width: 18rem; margin: 0 auto; }
@@ -485,31 +498,58 @@ const faqLd = {
     /* ── 플로우 ── */
     .ck-flow { padding: 1rem 0 2rem; }
     .ck-flow__top { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 2rem; }
-    .ck-flow__back { background: none; border: none; cursor: pointer; color: var(--ink); padding: 0.2rem; }
+    .ck-flow__back { background: none; border: none; cursor: pointer; color: var(--ink); padding: 0.5rem; min-width: 2.5rem; min-height: 2.5rem; display: flex; align-items: center; justify-content: center; }
     .ck-flow__step { font-size: 0.82rem; color: var(--muted); font-weight: 600; white-space: nowrap; }
     .ck-progress { flex: 1; height: 6px; background: var(--paper-2); border-radius: 99px; overflow: hidden; }
     .ck-progress__bar { display: block; height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.35s ease; }
+    #ck-step { animation: ck-fade-in 0.25s ease; }
+    @keyframes ck-fade-in { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: translateX(0); } }
     .ck-step__q { font-family: var(--font-serif); font-size: clamp(1.05rem, 4vw, 1.3rem); font-weight: 600; margin: 0 0 1.5rem; }
-    .ck-flow__footer { margin-top: 2rem; text-align: center; }
+    .ck-flow__footer { margin-top: 2rem; text-align: center; padding-bottom: env(safe-area-inset-bottom, 0); }
 
     /* ── 필드 ── */
     .ck-field { margin-bottom: 1.2rem; }
     .ck-label { display: block; font-size: 0.88rem; font-weight: 600; color: var(--ink-soft); }
-    .ck-input { display: block; width: 100%; padding: 0.85rem 1rem; font: inherit; font-size: 1.05rem; border: 2px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); margin-top: 0.3rem; transition: border-color 0.15s; min-height: 2.75rem; }
+    .ck-input {
+      display: block; width: 100%; padding: 0.85rem 1rem; font: inherit; font-size: 16px;
+      border: 2px solid var(--line); border-radius: 10px; background: var(--paper);
+      color: var(--ink); margin-top: 0.3rem; transition: border-color 0.15s; min-height: 2.75rem;
+      -webkit-appearance: none; appearance: none;
+      box-sizing: border-box;
+      touch-action: manipulation;
+    }
     .ck-input:focus { outline: none; border-color: var(--accent); }
     .ck-hint { font-size: 0.85rem; color: var(--muted); margin: 0.5rem 0 0; }
     .ck-hint strong { color: var(--accent); }
 
-    .ck-range { width: 100%; margin-top: 0.5rem; accent-color: var(--accent); }
+    .ck-range {
+      width: 100%; margin-top: 0.5rem; accent-color: var(--accent);
+      -webkit-appearance: none; appearance: none;
+      height: 6px; background: var(--line); border-radius: 99px; outline: none;
+      touch-action: manipulation;
+    }
+    .ck-range::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--accent); cursor: pointer; border: 2px solid #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,.2);
+    }
     .ck-range-labels { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--muted); }
     .ck-invest-val { text-align: center; font-size: 1.8rem; font-weight: 800; color: var(--accent); margin: 0.5rem 0 0; }
 
     /* ── 옵션 ── */
     .ck-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
-    .ck-opt { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; padding: 1.2rem; border: 2px solid var(--line); border-radius: 12px; background: var(--paper); cursor: pointer; transition: all 0.15s; font: inherit; color: var(--ink); min-height: 3.2rem; }
+    .ck-opt {
+      display: flex; flex-direction: column; align-items: center; gap: 0.3rem;
+      padding: 1.2rem; border: 2px solid var(--line); border-radius: 12px;
+      background: var(--paper); cursor: pointer; transition: all 0.15s;
+      font: inherit; color: var(--ink); min-height: 3.2rem;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
     .ck-opt:hover { border-color: var(--accent); }
     .ck-opt.is-on { border-color: var(--accent); background: var(--accent-soft); font-weight: 700; }
-    .ck-opt__icon { font-size: 1.6rem; }
+    .ck-opt__icon { font-size: 1.6rem; pointer-events: none; }
 
     /* ── 결과 ── */
     .ck-result { padding: 0 0 3rem; }

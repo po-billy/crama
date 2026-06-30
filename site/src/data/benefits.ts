@@ -108,7 +108,7 @@ export const BENEFITS: Benefit[] = [
     applyUrl: 'https://www.kinfa.or.kr',
     applyMethod: '시중은행 앱 (국민·신한·하나·우리 등)',
     tags: ['청년', '저축', '비과세', '정부기여금'],
-    relatedSlug: 'youth-leap-account-guide-2026',
+    relatedSlug: 'youth-leap-vs-future-savings',
     eligibility: {
       ageMin: 19, ageMax: 34,
       incomeMax: 7500,

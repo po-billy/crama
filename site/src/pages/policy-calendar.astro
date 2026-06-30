@@ -9,26 +9,34 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 const EVENTS = [
   { month: 1, day: 15, title: '연말정산 간소화 서비스 오픈', cat: 'tax', desc: '홈택스에서 소득·세액공제 자료 확인', url: 'https://www.hometax.go.kr', target: 'worker', field: 'tax', ageGroup: 'all', region: 'all' },
   { month: 1, day: 25, title: '부가가치세 확정신고 마감', cat: 'tax', desc: '전년 2기분 부가세 신고·납부', url: 'https://www.hometax.go.kr', target: 'self', field: 'tax', ageGroup: 'all', region: 'all' },
+  { month: 2, day: 3, title: '청년 전세자금 대출 상반기 접수', cat: 'benefit', desc: '만 19~34세 무주택자, 보증금 3억 이하 전세 대출', url: 'https://nhuf.molit.go.kr', target: 'youth', field: 'housing', ageGroup: '20s', region: 'all' },
   { month: 2, day: 28, title: '연말정산 환급 시작', cat: 'tax', desc: '근로소득 연말정산 환급금 지급 시작', url: '', target: 'worker', field: 'tax', ageGroup: 'all', region: 'all' },
   { month: 3, day: 2, title: '근로·자녀장려금 반기 신청', cat: 'benefit', desc: '상반기분 장려금 신청 (~3/15)', url: 'https://www.hometax.go.kr', target: 'all', field: 'tax', ageGroup: 'all', region: 'all' },
+  { month: 3, day: 3, title: '국민취업지원제도 상반기 신청', cat: 'benefit', desc: '구직촉진수당 월 50만원 + 취업지원 서비스', url: 'https://www.kua.go.kr', target: 'youth', field: 'job', ageGroup: '20s', region: 'all' },
   { month: 3, day: 31, title: '건강보험료 정산', cat: 'tax', desc: '전년도 소득 기준 건보료 정산·추가 납부', url: '', target: 'all', field: 'tax', ageGroup: 'all', region: 'all' },
+  { month: 4, day: 1, title: '신혼부부 특별공급 상반기 접수', cat: 'benefit', desc: '혼인 7년 이내 무주택 세대 대상 특별공급', url: 'https://www.applyhome.co.kr', target: 'parent', field: 'housing', ageGroup: '30s', region: 'all' },
   { month: 4, day: 25, title: '부가가치세 예정신고 마감', cat: 'tax', desc: '1기 부가세 예정 신고·납부', url: 'https://www.hometax.go.kr', target: 'self', field: 'tax', ageGroup: 'all', region: 'all' },
-  { month: 5, day: 1, title: '종합소득세 신고 시작', cat: 'tax', desc: '프리랜서·N잡러 종소세 신고 (~5/31)', url: 'https://www.hometax.go.kr', relatedSlug: 'freelancer-tax-guide', target: 'self', field: 'tax', ageGroup: 'all', region: 'all' },
+  { month: 5, day: 1, title: '종합소득세 신고 시작', cat: 'tax', desc: '프리랜서·N잡러 종소세 신고 (~5/31)', url: 'https://www.hometax.go.kr', relatedSlug: 'side-hustle-tax-guide', target: 'self', field: 'tax', ageGroup: 'all', region: 'all' },
   { month: 5, day: 1, title: '근로·자녀장려금 정기 신청', cat: 'benefit', desc: '전년 귀속 장려금 신청 (~5/31)', url: 'https://www.hometax.go.kr', target: 'all', field: 'tax', ageGroup: 'all', region: 'all' },
   { month: 5, day: 31, title: '종합소득세 신고 마감', cat: 'tax', desc: '기한 내 미신고 시 가산세 부과', url: 'https://www.hometax.go.kr', important: true, target: 'self', field: 'tax', ageGroup: 'all', region: 'all' },
   { month: 6, day: 1, title: '재산세(건축물) 납부', cat: 'tax', desc: '건축물분 재산세 납부 (~6/30)', url: '', target: 'all', field: 'tax', ageGroup: 'all', region: 'all' },
-  { month: 6, day: 16, title: '청년도약계좌 신규 신청', cat: 'benefit', desc: '출생연도 5부제 (~7/3)', url: 'https://www.kinfa.or.kr', relatedSlug: 'youth-leap-account-guide-2026', important: true, target: 'youth', field: 'saving', ageGroup: '20s', region: 'all' },
+  { month: 6, day: 16, title: '청년도약계좌 신규 신청', cat: 'benefit', desc: '출생연도 5부제 (~7/3)', url: 'https://www.kinfa.or.kr', relatedSlug: 'youth-leap-vs-future-savings', important: true, target: 'youth', field: 'saving', ageGroup: '20s', region: 'all' },
+  { month: 7, day: 1, title: '부모급여 하반기 지급 시작', cat: 'benefit', desc: '만 0세 월 100만원, 만 1세 월 50만원 지급', url: 'https://www.bokjiro.go.kr', target: 'parent', field: 'family', ageGroup: '30s', region: 'all' },
   { month: 7, day: 3, title: '청년도약계좌 신청 마감', cat: 'benefit', desc: '하반기 신규 가입 마감', url: 'https://www.kinfa.or.kr', important: true, target: 'youth', field: 'saving', ageGroup: '20s', region: 'all' },
   { month: 7, day: 25, title: '부가가치세 확정신고 마감', cat: 'tax', desc: '1기분 부가세 확정 신고·납부', url: 'https://www.hometax.go.kr', target: 'self', field: 'tax', ageGroup: 'all', region: 'all' },
   { month: 7, day: 31, title: '재산세(주택 1기) 납부 마감', cat: 'tax', desc: '주택분 재산세 1기 납부', url: '', target: 'all', field: 'tax', ageGroup: 'all', region: 'all' },
+  { month: 8, day: 1, title: '청년 월세 지원 하반기 접수', cat: 'benefit', desc: '만 19~34세, 월세 20만원(최대 12개월) 지원', url: 'https://www.myhome.go.kr', important: true, target: 'youth', field: 'housing', ageGroup: '20s', region: 'all' },
   { month: 8, day: 31, title: '주민세 납부 마감', cat: 'tax', desc: '개인분 주민세 납부 (~8/31)', url: '', target: 'all', field: 'tax', ageGroup: 'all', region: 'all' },
   { month: 9, day: 1, title: '근로·자녀장려금 지급', cat: 'benefit', desc: '5월 신청분 장려금 지급 시작', url: '', target: 'all', field: 'tax', ageGroup: 'all', region: 'all' },
+  { month: 9, day: 1, title: '국민내일배움카드 하반기 신청', cat: 'benefit', desc: '직업훈련비 최대 500만원 지원', url: 'https://www.hrd.go.kr', target: 'all', field: 'job', ageGroup: 'all', region: 'all' },
   { month: 9, day: 15, title: '국가장학금 2학기 신청', cat: 'benefit', desc: '2학기 국가장학금 신청 마감', url: 'https://www.kosaf.go.kr', target: 'student', field: 'saving', ageGroup: '20s', region: 'all' },
   { month: 9, day: 30, title: '재산세(주택 2기) 납부 마감', cat: 'tax', desc: '주택분 재산세 2기 납부', url: '', target: 'all', field: 'tax', ageGroup: 'all', region: 'all' },
+  { month: 10, day: 1, title: '청년창업지원패키지 하반기 접수', cat: 'benefit', desc: '만 39세 이하 예비·초기 창업자 최대 1억 지원', url: 'https://www.k-startup.go.kr', target: 'youth', field: 'job', ageGroup: '30s', region: 'all' },
   { month: 10, day: 25, title: '부가가치세 예정신고 마감', cat: 'tax', desc: '2기 부가세 예정 신고·납부', url: 'https://www.hometax.go.kr', target: 'self', field: 'tax', ageGroup: 'all', region: 'all' },
+  { month: 11, day: 1, title: '주거안정 월세 대출 연중 접수', cat: 'benefit', desc: '연소득 5천만원 이하, 보증금 1억 이하 월세 대출', url: 'https://nhuf.molit.go.kr', target: 'worker', field: 'housing', ageGroup: 'all', region: 'all' },
   { month: 11, day: 15, title: '종합부동산세 고지', cat: 'tax', desc: '종부세 고지서 발송·납부 (~12/15)', url: '', target: 'all', field: 'tax', ageGroup: 'all', region: 'all' },
   { month: 11, day: 30, title: '건강보험 피부양자 요건 점검', cat: 'tax', desc: '연소득 2천만원 초과 시 지역가입 전환', url: '', target: 'all', field: 'tax', ageGroup: 'all', region: 'all' },
-  { month: 12, day: 1, title: 'IRP·연금저축 납입 마감 임박', cat: 'invest', desc: '세액공제 한도(900만원) 채우기 (~12/31)', url: '', relatedSlug: 'irp-pension-tax-deduction', important: true, target: 'worker', field: 'invest', ageGroup: 'all', region: 'all' },
+  { month: 12, day: 1, title: 'IRP·연금저축 납입 마감 임박', cat: 'invest', desc: '세액공제 한도(900만원) 채우기 (~12/31)', url: '', relatedSlug: 'pension-irp-tax-guide', important: true, target: 'worker', field: 'invest', ageGroup: 'all', region: 'all' },
   { month: 12, day: 15, title: '종합부동산세 납부 마감', cat: 'tax', desc: '기한 내 미납부 시 가산세', url: '', important: true, target: 'all', field: 'tax', ageGroup: 'all', region: 'all' },
   { month: 12, day: 31, title: 'ISA 계좌 납입 마감', cat: 'invest', desc: '올해 비과세 한도를 채우려면 연내 납입', url: '', relatedSlug: 'isa-account-guide-2026', target: 'all', field: 'invest', ageGroup: 'all', region: 'all' },
   { month: 12, day: 31, title: '연말정산 준비 완료', cat: 'tax', desc: '기부금·의료비·교육비 영수증 챙기기', url: '', target: 'worker', field: 'tax', ageGroup: 'all', region: 'all' },
@@ -44,6 +52,9 @@ const CATS: Record<string, { name: string; color: string; icon: string }> = {
   tax: { name: '세금', color: '#ef4444', icon: '📋' },
   benefit: { name: '지원금', color: '#22c55e', icon: '💰' },
   invest: { name: '투자·절세', color: '#6c5ce7', icon: '📈' },
+  housing: { name: '주거', color: '#3b82f6', icon: '🏠' },
+  job: { name: '취업·창업', color: '#f59e0b', icon: '💼' },
+  family: { name: '출산·육아', color: '#ec4899', icon: '👶' },
 };
 
 const MONTHS = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
@@ -161,6 +172,12 @@ const currentMonth = now.getMonth() + 1;
         })}
       </div>
 
+      <!-- 빈 필터 결과 안내 -->
+      <div class="pc-empty" id="pc-empty" hidden>
+        <p>선택한 조건에 맞는 일정이 없어요</p>
+        <p class="pc-empty__hint">필터를 조정하거나 검색어를 변경해 보세요</p>
+      </div>
+
       <!-- 캘린더 그리드 뷰 -->
       <div class="pc-grid-view" id="pc-grid" hidden>
         <div class="pc-grid-nav">
@@ -250,6 +267,9 @@ const currentMonth = now.getMonth() + 1;
         });
         var countEl = document.getElementById('pc-count');
         if (countEl) countEl.textContent = count + '건 표시 중';
+        // 빈 결과 안내
+        var emptyMsg = document.getElementById('pc-empty');
+        if (emptyMsg) emptyMsg.hidden = count > 0;
         // 그리드 뷰도 필터에 맞게 갱신
         var gridVisible = document.getElementById('pc-grid');
         if (gridVisible && !gridVisible.hidden) renderCalGrid(gridMonth);
@@ -275,7 +295,7 @@ const currentMonth = now.getMonth() + 1;
       });
 
       // ── 캘린더 그리드 — ALL_EVENTS를 그대로 사용 (데이터 중복 제거) ──
-      var catColors = { tax:'#ef4444', benefit:'#22c55e', invest:'#6c5ce7' };
+      var catColors = { tax:'#ef4444', benefit:'#22c55e', invest:'#6c5ce7', housing:'#3b82f6', job:'#f59e0b', family:'#ec4899' };
       var gridMonth = new Date().getMonth(); // 0-based
       var MONTHS_KR = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
 
@@ -418,6 +438,10 @@ const currentMonth = now.getMonth() + 1;
     .pc-event__link:hover { background: var(--accent); color: #fff; }
     .pc-event__link--guide { border-color: var(--line); color: var(--ink-soft); }
     .pc-event__link--guide:hover { background: var(--paper-2); color: var(--ink); border-color: var(--ink-soft); }
+
+    .pc-empty { text-align: center; padding: 3rem 1rem; color: var(--muted); }
+    .pc-empty p { margin: 0; font-size: 1rem; font-weight: 600; }
+    .pc-empty__hint { font-size: 0.85rem; font-weight: 400; margin-top: 0.4rem !important; }
 
     .pc-note { margin-top: 2rem; padding: 1rem; background: var(--paper-2); border-radius: 10px; font-size: 0.8rem; color: var(--muted); }
     .pc-note p { margin: 0; }

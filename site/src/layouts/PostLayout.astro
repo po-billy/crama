@@ -64,6 +64,7 @@ const authorLd = getPersona(resolvedAuthor)
       url: new URL(`/authors/${REAL_AUTHOR.id}/`, SITE.url).href,
       ...(REAL_AUTHOR.sameAs.length ? { sameAs: REAL_AUTHOR.sameAs } : {}),
     };
+const canonicalUrl = new URL(`/blog/${slug}/`, SITE.url).href;
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Article',
@@ -72,8 +73,9 @@ const jsonLd = {
   datePublished: pubDate.toISOString(),
   dateModified: (updatedDate ?? pubDate).toISOString(),
   author: authorLd,
-  publisher: { '@type': 'Organization', name: SITE.name },
+  publisher: { '@type': 'Organization', name: SITE.name, logo: { '@type': 'ImageObject', url: new URL('/icon-512.png', SITE.url).href } },
   articleSection: cat.name,
+  mainEntityOfPage: { '@type': 'WebPage', '@id': canonicalUrl },
   ...(heroImage ? { image: new URL(heroImage, SITE.url).href } : {}),
   isAccessibleForFree: !premium,
 };

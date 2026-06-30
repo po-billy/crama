@@ -54,6 +54,7 @@ jobs:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
           SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
         run: |
           URL=$(cat last-url.txt 2>/dev/null || true)
           if [ -z "$URL" ]; then echo "발행 URL 없음 — 스킵"; exit 0; fi
@@ -67,6 +68,7 @@ jobs:
           if [ "$live" = "1" ]; then
             node indexnow.js "$URL"
             node send-brief.js || echo "푸시 발송 스킵/실패(글은 정상)"
+            node send-email.js || echo "이메일 발송 스킵/실패(글은 정상)"
           else
-            echo "타임아웃(10분) — 색인/푸시 스킵"
+            echo "타임아웃(10분) — 색인/푸시/이메일 스킵"
           fi

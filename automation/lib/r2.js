@@ -21,19 +21,27 @@ function client() {
 }
 
 // 객체 업로드 후 공개 URL 반환. bucket/publicBase 를 넘기면 우선 사용(오디오 전용 버킷 등).
+// 네트워크 오류 시 최대 3회 재시도(지수 백오프).
 export async function putObject({ key, body, contentType, bucket, publicBase, cache = true }) {
   if (!r2Configured()) throw new Error('R2 환경변수가 없습니다(.env 의 R2_* 확인).');
   const Bucket = bucket || R2_BUCKET;
   if (!Bucket) throw new Error('R2 버킷명이 없습니다(R2_BUCKET 또는 인자 bucket).');
-  await client().send(
-    new PutObjectCommand({
-      Bucket,
-      Key: key,
-      Body: body,
-      ContentType: contentType,
-      ...(cache ? { CacheControl: 'public, max-age=31536000, immutable' } : {}),
-    }),
-  );
+  const cmd = new PutObjectCommand({
+    Bucket,
+    Key: key,
+    Body: body,
+    ContentType: contentType,
+    ...(cache ? { CacheControl: 'public, max-age=31536000, immutable' } : {}),
+  });
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      await client().send(cmd);
+      break;
+    } catch (e) {
+      if (attempt === 2) throw e;
+      await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)));
+    }
+  }
   const base = (publicBase || R2_PUBLIC_BASE || '').replace(/\/$/, '');
   return base ? `${base}/${key}` : key;
 }

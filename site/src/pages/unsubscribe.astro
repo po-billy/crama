@@ -1,0 +1,70 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../consts';
+const SU = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
+const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
+---
+<BaseLayout title="뉴스레터 수신 거부" description="크라마 뉴스레터 수신을 거부합니다.">
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">Unsubscribe</span>
+      <h1>뉴스레터 수신 거부</h1>
+      <p>더 이상 이메일을 받지 않으시겠어요?</p>
+    </header>
+    <div class="measure" style="max-width:480px;margin:0 auto;">
+      <form id="unsub-form" class="contact-form" style="margin-top:1rem;">
+        <label>이메일 주소
+          <input name="email" type="email" required id="unsub-email" placeholder="구독 해지할 이메일" />
+        </label>
+        <button type="submit" class="btn" style="width:100%;margin-top:.75rem;">수신 거부</button>
+      </form>
+      <p id="unsub-status" role="status" aria-live="polite" style="text-align:center;margin-top:1rem;"></p>
+    </div>
+  </div>
+</BaseLayout>
+
+<script is:inline define:vars={{ SU, AK }}>
+  (() => {
+    // URL 파라미터에서 이메일 자동 채우기
+    const params = new URLSearchParams(location.search);
+    const emailInput = document.getElementById('unsub-email');
+    if (params.get('email') && emailInput) {
+      emailInput.value = decodeURIComponent(params.get('email'));
+    }
+
+    const f = document.getElementById('unsub-form');
+    const s = document.getElementById('unsub-status');
+    if (!f) return;
+
+    f.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = new FormData(f).get('email')?.toString().trim();
+      if (!email || !SU || !AK) return;
+
+      s.textContent = '처리 중…';
+      s.style.color = '';
+      try {
+        const r = await fetch(`${SU}/rest/v1/rpc/unsubscribe_email`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': AK,
+            'Authorization': `Bearer ${AK}`,
+          },
+          body: JSON.stringify({ p_email: email }),
+        });
+        if (r.ok || r.status === 204) {
+          s.textContent = '수신 거부가 완료되었습니다. 더 이상 이메일을 보내지 않습니다.';
+          s.style.color = 'var(--accent, #2563eb)';
+          f.style.display = 'none';
+        } else {
+          s.textContent = '처리에 실패했습니다. 잠시 후 다시 시도해 주세요.';
+          s.style.color = '#ef4444';
+        }
+      } catch {
+        s.textContent = '처리에 실패했습니다. 잠시 후 다시 시도해 주세요.';
+        s.style.color = '#ef4444';
+      }
+    });
+  })();
+</script>

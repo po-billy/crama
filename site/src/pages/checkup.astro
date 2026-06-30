@@ -342,10 +342,63 @@ const faqLd = {
         var r = calculate();
         var text = '나의 재무 건강 등급: ' + r.grade + ' (' + r.total + '점/100) — 크라마 재무 건강 체크업';
         var url = location.origin + '/checkup/';
+
+        // Canvas 이미지 카드 생성
         try {
-          if (navigator.share) await navigator.share({ title: '재무 건강 체크업', text: text, url: url });
-          else { await navigator.clipboard.writeText(text + '\n' + url); alert('결과를 복사했어요!'); }
-        } catch (_) {}
+          var c = document.createElement('canvas'); c.width = 600; c.height = 400;
+          var ctx = c.getContext('2d');
+          // 배경
+          var grd = ctx.createLinearGradient(0, 0, 600, 400);
+          grd.addColorStop(0, '#6c5ce7'); grd.addColorStop(1, '#8b5cf6');
+          ctx.fillStyle = grd; ctx.fillRect(0, 0, 600, 400);
+          // 텍스트
+          ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.font = '500 14px sans-serif';
+          ctx.fillText('재무 건강 체크업', 40, 50);
+          // 점수
+          ctx.fillStyle = '#fff'; ctx.font = 'bold 72px sans-serif';
+          ctx.fillText(r.total + '점', 40, 140);
+          // 등급
+          ctx.font = 'bold 36px sans-serif';
+          ctx.fillText('등급 ' + r.grade, 40, 190);
+          // 메시지
+          ctx.font = '500 16px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.85)';
+          ctx.fillText(r.message, 40, 240);
+          // 항목 바
+          var areas = [
+            { label: '저축률', score: r.scores.saving, max: 25 },
+            { label: '비상금', score: r.scores.emergency, max: 25 },
+            { label: '부채', score: r.scores.debt, max: 20 },
+            { label: '보장', score: r.scores.protection, max: 15 },
+            { label: '투자', score: r.scores.invest, max: 15 },
+          ];
+          areas.forEach(function (a, i) {
+            var y = 280 + i * 22;
+            ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = '500 12px sans-serif';
+            ctx.fillText(a.label, 40, y);
+            ctx.fillStyle = 'rgba(255,255,255,0.2)';
+            ctx.fillRect(100, y - 10, 200, 8);
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(100, y - 10, 200 * a.score / a.max, 8);
+          });
+          // 브랜드
+          ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = 'bold 14px sans-serif';
+          ctx.fillText('crama.app/checkup', 40, 380);
+
+          var blob = await new Promise(function (res) { c.toBlob(res, 'image/png'); });
+          var file = new File([blob], 'checkup-result.png', { type: 'image/png' });
+
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({ title: '재무 건강 체크업', text: text, url: url, files: [file] });
+          } else if (navigator.share) {
+            await navigator.share({ title: '재무 건강 체크업', text: text, url: url });
+          } else {
+            // 데스크톱: 이미지 다운로드
+            var a = document.createElement('a'); a.href = c.toDataURL(); a.download = 'checkup-result.png'; a.click();
+          }
+        } catch (_) {
+          // 폴백: 텍스트 복사
+          try { await navigator.clipboard.writeText(text + '\n' + url); alert('결과를 복사했어요!'); } catch (e2) {}
+        }
       });
     })();
   </script>

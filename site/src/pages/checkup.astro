@@ -456,8 +456,22 @@ const faqLd = {
     .ck-cross__card p { font-size: 0.82rem; color: var(--muted); margin: 0.2rem 0 0; }
     .ck-cross__arrow { font-size: 1.2rem; color: var(--accent); flex: none; font-weight: 700; }
 
+    @media (max-width: 640px) {
+      .ck { padding: 0 0.5rem; }
+      .ck-hero__title { font-size: 1.6rem; }
+      .ck-result__card { padding: 1.5rem 0.8rem; border-radius: 12px; }
+      .ck-result__num { font-size: 1.8rem; }
+      .ck-result__gauge { max-width: 160px; }
+      .ck-bar-row__label { width: 3.5rem; font-size: 0.78rem; }
+      .ck-tip { padding: 0.8rem; }
+      .ck-cross__card { padding: 0.8rem 1rem; }
+      .ck-gate { padding: 1.2rem; }
+    }
     @media (max-width: 480px) {
       .ck-result__actions { flex-direction: column; }
+      .ck-cta { font-size: 0.95rem; padding: 0.85rem; }
+      .ck-opts { gap: 0.5rem; }
+      .ck-opt { padding: 1rem; }
     }
   </style>
 </BaseLayout>

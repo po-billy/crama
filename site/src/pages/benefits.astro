@@ -668,10 +668,28 @@ const faqLd = {
     .bf-cross__arrow { font-size: 1.2rem; color: var(--accent); flex: none; font-weight: 700; }
 
     /* ── 반응형 ── */
+    @media (max-width: 640px) {
+      .bf { padding: 0 0.5rem; }
+      .bf-hero__title { font-size: 1.6rem; }
+      .bf-hero__stats { gap: 0.8rem; padding: 0.8rem 0.5rem; }
+      .bf-hero__stats .bf-stat__num { font-size: 1.2rem; }
+      .bf-result__hero { padding: 1.5rem 0.8rem; border-radius: 12px; }
+      .bf-result__amount { font-size: 1.5rem; }
+      .bf-result__amount strong { font-size: 1.8rem; }
+      .bf-card { padding: 1rem; }
+      .bf-card__title { font-size: 1rem; }
+      .bf-filters { gap: 0.3rem; }
+      .bf-filter { padding: 0.35rem 0.7rem; font-size: 0.78rem; }
+      .bf-chips { gap: 0.3rem; }
+      .bf-chip { padding: 0.4rem 0.7rem; font-size: 0.82rem; }
+      .bf-cross__card { padding: 0.8rem 1rem; }
+      .bf-gate__inner { padding: 1.5rem 1rem; }
+      .bf-gate__title { font-size: 1.05rem; }
+    }
     @media (max-width: 480px) {
-      .bf-hero__stats { gap: 1rem; padding: 1rem 0.5rem; }
       .bf-opts { grid-template-columns: 1fr 1fr; }
       .bf-result__actions { flex-direction: column; }
+      .bf-cta { font-size: 0.95rem; padding: 0.85rem; }
     }
   </style>
 </BaseLayout>

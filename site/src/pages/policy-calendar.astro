@@ -533,8 +533,20 @@ const currentMonth = now.getMonth() + 1;
     .pc-cross__arrow { font-size: 1.2rem; color: var(--accent); flex: none; font-weight: 700; }
 
     @media (max-width: 640px) {
+      .pc { padding: 0; }
       .pc-event__date { width: 2rem; }
       .pc-event__day { font-size: 1.1rem; }
+      .pc-event { padding: 0.8rem; gap: 0.7rem; }
+      .pc-event__title { font-size: 0.92rem; }
+      .pc-event__links { gap: 0.4rem; }
+      .pc-event__link { padding: 0.25rem 0.6rem; font-size: 0.78rem; }
+      .pc-toolbar { flex-wrap: wrap; gap: 0.5rem; }
+      .pc-subscribe { font-size: 0.78rem; padding: 0.4rem 0.7rem; }
+      .pc-filter-row { flex-direction: column; gap: 0.3rem; }
+      .pc-filter-label { min-width: auto; padding-top: 0; }
+      .pc-search { font-size: 0.9rem; padding: 0.6rem 0.8rem; }
+      .pc-cross__card { padding: 0.8rem; }
+      .pc-month__num { font-size: 1.4rem; }
     }
   </style>
 </BaseLayout>

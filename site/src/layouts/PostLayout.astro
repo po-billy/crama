@@ -14,6 +14,7 @@ import GlossaryTooltips from '../components/GlossaryTooltips.astro';
 import TagList from '../components/TagList.astro';
 import AuthorBox from '../components/AuthorBox.astro';
 import ContentRail from '../components/ContentRail.astro';
+import SubscribeBox from '../components/SubscribeBox.astro';
 import { SITE, CATEGORIES, type CategorySlug } from '../consts';
 import { bylineLabel, resolveAuthorName, getPersona, REAL_AUTHOR } from '../data/personas';
 
@@ -154,6 +155,10 @@ const jsonLd = {
         <a class="signup-cta__btn" href="/login/">크라미 시작하기 →</a>
       </div>
     </aside>
+
+    <div class="measure" style="margin-top:2rem;">
+      <SubscribeBox />
+    </div>
 
     {related.length > 0 && (
       <section class="wrap" style="padding-inline:0;">

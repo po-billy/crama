@@ -81,8 +81,10 @@ async function main() {
   console.log('[threads] 대상 글:', art.title);
   const draft = await generateThreadsDraft({ title: art.title, description: art.description, url });
   if (!draft) throw new Error('드래프트 생성 실패(API 키 확인).');
+  // 서비스 CTA 자동 첨부
+  const svcLine = '\n\n💰 나에게 해당되는 지원금 찾기 → crama.app/benefits\n🩺 재무 건강 체크업 → crama.app/checkup';
   const out = path.join(outDir, 'threads-draft.txt');
-  await fs.writeFile(out, draft + '\n', 'utf8');
+  await fs.writeFile(out, draft + svcLine + '\n', 'utf8');
   console.log('\n──────── 스레드 초안 ────────\n' + draft + '\n────────────────────────────\n');
   console.log('저장:', out);
 }

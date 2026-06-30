@@ -116,7 +116,13 @@ async function main() {
     `import Callout from '../../components/Callout.astro';\n` +
     `import Checklist from '../../components/Checklist.astro';\n` +
     `import FAQ from '../../components/FAQ.astro';\n\n`;
-  const mdx = fm + imports + art.body.trim() + '\n';
+  // 카테고리별 서비스 CTA (본문 말미에 자동 삽입)
+  const svcCta = category.slug === 'income'
+    ? '\n\n---\n\n> 💰 **나에게 해당되는 지원금, 3분이면 찾아드려요.** [내 혜택 찾기 →](/benefits/)\n'
+    : category.slug === 'money'
+    ? '\n\n---\n\n> 🩺 **내 돈 관리, 건강한 걸까?** 5분이면 알 수 있어요. [재무 건강 체크업 →](/checkup/)\n'
+    : '';
+  const mdx = fm + imports + art.body.trim() + svcCta + '\n';
 
   const targetDir = dryRun ? OUTPUT_DIR : BLOG_DIR;
   await fs.mkdir(targetDir, { recursive: true });

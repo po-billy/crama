@@ -593,7 +593,7 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
             <span class="welcome-goal__arrow">→</span>
           </a>
         </div>
-        <button class="welcome-sheet__skip" id="welcome-skip">그냥 둘러볼게요</button>
+        <button class="welcome-sheet__skip" id="welcome-skip">3일간 보지 않기</button>
       </div>
     </div>
   </div>
@@ -634,10 +634,16 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
 </script>
 
 <script is:inline>
-  // ── 첫 방문 웰컴 바텀시트 ──
+  // ── 첫 방문 웰컴 바텀시트 (닫으면 3일 뒤 재노출, 목표 선택 시 영구 숨김) ──
   (() => {
-    var KEY = 'crama:welcomed';
-    try { if (localStorage.getItem(KEY)) return; } catch (e) { return; }
+    var WELCOMED = 'crama:welcomed';       // 목표 선택 등 확실한 관여 → 영구 숨김
+    var SNOOZE = 'crama:welcome:snooze';   // 닫기/둘러보기 → 3일간 숨김(타임스탬프)
+    var THREE_DAYS = 3 * 24 * 60 * 60 * 1000;
+    try {
+      if (localStorage.getItem(WELCOMED)) return;
+      var snoozed = localStorage.getItem(SNOOZE);
+      if (snoozed && (Date.now() - parseInt(snoozed, 10)) < THREE_DAYS) return;
+    } catch (e) { return; }
     var sheet = document.getElementById('welcome-sheet');
     if (!sheet) return;
     // 5초 후 표시
@@ -648,18 +654,19 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
         requestAnimationFrame(function () { sheet.classList.add('is-visible'); });
       });
     }, 5000);
-    function dismiss() {
+    // snooze=true → 3일간만 숨김 / false → 영구
+    function close(snooze) {
       sheet.classList.remove('is-visible');
       setTimeout(function () { sheet.style.display = 'none'; }, 350);
-      try { localStorage.setItem(KEY, '1'); } catch (e) {}
+      try { localStorage.setItem(snooze ? SNOOZE : WELCOMED, snooze ? String(Date.now()) : '1'); } catch (e) {}
     }
-    // 닫기 버튼 + 둘러보기 + 배경 클릭
-    document.getElementById('welcome-close').addEventListener('click', dismiss);
-    document.getElementById('welcome-skip').addEventListener('click', dismiss);
-    sheet.addEventListener('click', function (e) { if (e.target === sheet) dismiss(); });
-    // 골 선택 시: 다시 안 뜨게 플래그만 남기고 링크는 그대로 이동
+    // 닫기·둘러보기·배경 클릭 → 3일 스누즈(강제 이동/스크롤 없음)
+    document.getElementById('welcome-close').addEventListener('click', function () { close(true); });
+    document.getElementById('welcome-skip').addEventListener('click', function () { close(true); });
+    sheet.addEventListener('click', function (e) { if (e.target === sheet) close(true); });
+    // 골 선택 시: 영구 숨김 + 링크는 그대로 이동
     sheet.querySelectorAll('.welcome-goal').forEach(function (a) {
-      a.addEventListener('click', function () { try { localStorage.setItem(KEY, '1'); } catch (e) {} });
+      a.addEventListener('click', function () { try { localStorage.setItem(WELCOMED, '1'); } catch (e) {} });
     });
   })();
 </script>

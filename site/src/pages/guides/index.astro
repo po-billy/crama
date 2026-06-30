@@ -32,5 +32,42 @@ const guides = slugs
         />
       ))}
     </div>
+
+    <section class="guide-svc">
+      <h2>가이드를 읽었다면, 직접 해보세요</h2>
+      <div class="guide-svc__grid">
+        <a href="/benefits/" class="guide-svc__card">
+          <span class="guide-svc__icon">💰</span>
+          <strong>내 혜택 찾기</strong>
+          <p>나에게 해당되는 지원금·대출·공제를 3분 만에</p>
+        </a>
+        <a href="/checkup/" class="guide-svc__card">
+          <span class="guide-svc__icon">🩺</span>
+          <strong>재무 건강 체크업</strong>
+          <p>내 저축률·비상금·부채 상태를 5분 만에 진단</p>
+        </a>
+        <a href="/policy-calendar/" class="guide-svc__card">
+          <span class="guide-svc__icon">📅</span>
+          <strong>정책 캘린더</strong>
+          <p>놓치면 손해인 세금·지원금 마감일을 내 캘린더에</p>
+        </a>
+      </div>
+    </section>
   </div>
+
+  <style>
+    .guide-svc { margin: 3rem 0 1rem; }
+    .guide-svc h2 { font-family: var(--font-serif); font-size: 1.2rem; margin: 0 0 1rem; }
+    .guide-svc__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; }
+    .guide-svc__card {
+      display: flex; flex-direction: column; gap: 0.3rem; padding: 1.2rem;
+      border: 1px solid var(--line); border-radius: 12px; background: var(--paper);
+      text-decoration: none; color: var(--ink); transition: border-color 0.12s, transform 0.12s;
+    }
+    .guide-svc__card:hover { border-color: var(--accent); transform: translateY(-2px); color: var(--ink); }
+    .guide-svc__icon { font-size: 1.4rem; }
+    .guide-svc__card strong { font-size: 0.92rem; }
+    .guide-svc__card p { font-size: 0.78rem; color: var(--muted); margin: 0; line-height: 1.4; }
+    @media (max-width: 640px) { .guide-svc__grid { grid-template-columns: 1fr; } }
+  </style>
 </BaseLayout>

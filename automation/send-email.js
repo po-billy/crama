@@ -152,31 +152,36 @@ async function main() {
   // Resend는 배치(최대 100명)를 지원하지만, 구독 해지 링크에 이메일을 넣어야 하므로 개별 발송
   for (const email of subscribers) {
     const html = htmlTemplate.replace('{{EMAIL}}', encodeURIComponent(email));
-    try {
-      const res = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${RESEND_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          from: 'Crama 브리핑 <brief@crama.app>',
-          to: email,
-          subject: `☕ ${brief.hook || brief.title}`,
-          html,
-        }),
-      });
-      if (res.ok) {
-        sent++;
-      } else {
-        const err = await res.text();
-        console.log(`  실패 (${email}): ${res.status} ${err}`);
-        failed++;
+    let ok = false;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const res = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${RESEND_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: 'Crama 브리핑 <brief@crama.app>',
+            to: email,
+            subject: `☕ ${brief.hook || brief.title}`,
+            html,
+          }),
+        });
+        if (res.ok) { ok = true; break; }
+        if (res.status >= 400 && res.status < 500) {
+          const err = await res.text();
+          console.log(`  실패 (${email}): ${res.status} ${err}`);
+          break; // 4xx는 재시도 무의미
+        }
+        // 5xx → 재시도
+        if (attempt < 2) await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)));
+      } catch (e) {
+        if (attempt === 2) console.log(`  에러 (${email}): ${e.message}`);
+        else await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)));
       }
-    } catch (e) {
-      console.log(`  에러 (${email}): ${e.message}`);
-      failed++;
     }
+    if (ok) sent++; else failed++;
   }
 
   // 5) 발송 기록 저장

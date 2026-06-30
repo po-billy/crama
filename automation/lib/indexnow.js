@@ -22,11 +22,20 @@ export async function submit(urls) {
     urlList: list,
   };
 
-  const res = await fetch('https://api.indexnow.org/IndexNow', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json; charset=utf-8' },
-    body: JSON.stringify(body),
-  });
+  let res;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      res = await fetch('https://api.indexnow.org/IndexNow', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json; charset=utf-8' },
+        body: JSON.stringify(body),
+      });
+      break;
+    } catch (e) {
+      if (attempt === 2) return { ok: false, status: 0, count: list.length, error: e.message };
+      await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)));
+    }
+  }
 
   // 200=수락, 202=수락(키 검증 대기). 4xx=키/URL/호스트 문제.
   return { ok: res.status === 200 || res.status === 202, status: res.status, count: list.length };

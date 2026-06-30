@@ -36,7 +36,16 @@ const faqLd = {
           <span class="ck-gauge__label">?점</span>
         </div>
       </div>
-      <button class="ck-cta" type="button" id="ck-start">체크업 시작하기 →</button>
+      <!-- 30초 미리보기 -->
+      <div class="ck-preview">
+        <label class="ck-preview__label">월 소득(만원)을 입력하면 예상 등급을 미리 볼 수 있어요</label>
+        <div class="ck-preview__row">
+          <input type="number" class="ck-preview__input" id="ck-preview-income" placeholder="월 소득" inputmode="numeric" min="0" />
+          <span class="ck-preview__result" id="ck-preview-result"></span>
+        </div>
+      </div>
+
+      <button class="ck-cta" type="button" id="ck-start">정확한 체크업 시작하기 →</button>
       <p class="ck-hero__note">입력 정보는 기기에만 저장됩니다.</p>
     </section>
 
@@ -334,7 +343,23 @@ const faqLd = {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
 
-      $('ck-start').addEventListener('click', function () { showSection('ck-flow'); step = 0; renderStep(); });
+      // 30초 미리보기
+      var previewInp = $('ck-preview-income');
+      if (previewInp) previewInp.addEventListener('input', function () {
+        var inc = parseInt(this.value) || 0;
+        var res = $('ck-preview-result');
+        if (inc <= 0) { res.textContent = ''; return; }
+        // 간이 예상 등급 (소득 기반 평균)
+        var est = inc < 200 ? 'C~D' : inc < 350 ? 'B~C' : inc < 500 ? 'B+~A' : 'A~A+';
+        res.innerHTML = '예상 등급 <strong>' + est + '</strong>';
+      });
+
+      $('ck-start').addEventListener('click', function () {
+        // 미리보기 소득을 체크업 초기값으로 반영
+        var pv = parseInt(($('ck-preview-income') || {}).value) || 0;
+        if (pv > 0) data.monthlyIncome = pv;
+        showSection('ck-flow'); step = 0; renderStep();
+      });
       $('ck-back').addEventListener('click', function () { if (step > 0) { step--; renderStep(); } else showSection('ck-hero'); });
       $('ck-next').addEventListener('click', function () { if (step < STEPS.length - 1) { step++; renderStep(); } else { showSection('ck-result'); showResults(); } });
       $('ck-retry').addEventListener('click', function () { showSection('ck-flow'); step = 0; renderStep(); });
@@ -411,6 +436,13 @@ const faqLd = {
     .ck-hero__badge { display: inline-block; padding: 0.3rem 0.8rem; background: var(--accent-soft); color: var(--accent); font-size: 0.78rem; font-weight: 700; border-radius: 20px; letter-spacing: 0.05em; margin-bottom: 1rem; }
     .ck-hero__title { font-family: var(--font-serif); font-size: clamp(1.8rem, 5vw, 2.6rem); line-height: 1.3; margin: 0 0 1rem; }
     .ck-hero__lead { color: var(--muted); font-size: 1.05rem; line-height: 1.7; margin: 0 0 1.5rem; }
+    .ck-preview { margin: 1.5rem 0; padding: 1rem; background: var(--paper-2); border-radius: 12px; }
+    .ck-preview__label { font-size: 0.82rem; color: var(--muted); display: block; margin-bottom: 0.5rem; }
+    .ck-preview__row { display: flex; gap: 0.6rem; align-items: center; }
+    .ck-preview__input { flex: 1; padding: 0.65rem 0.8rem; font: inherit; font-size: 1rem; border: 2px solid var(--line); border-radius: 8px; background: var(--paper); color: var(--ink); min-height: 2.5rem; }
+    .ck-preview__input:focus { outline: none; border-color: var(--accent); }
+    .ck-preview__result { font-size: 0.9rem; color: var(--accent); font-weight: 600; white-space: nowrap; min-width: 6rem; text-align: center; }
+    .ck-preview__result strong { font-size: 1.1rem; }
     .ck-hero__note { font-size: 0.75rem; color: var(--muted); margin-top: 1rem; opacity: 0.7; }
     .ck-hero__gauge { margin: 0 auto 2rem; max-width: 180px; }
 

@@ -47,11 +47,13 @@ interface Props {
   guide?: { title: string; href: string };
   prevNav?: { href: string; title: string };
   nextNav?: { href: string; title: string };
+  seriesName?: string;
+  seriesItems?: { href: string; title: string; current: boolean; num: number }[];
 }
 const {
   title, description, pubDate, updatedDate, category, author, format = 'guide', heroImage,
   readingTime, premium = false, audioSrc, tags = [], headings = [], related = [], nextHref = '', nextHrefCat = '', guide,
-  prevNav, nextNav,
+  prevNav, nextNav, seriesName, seriesItems = [],
 } = Astro.props;
 
 const cat = CATEGORIES[category];
@@ -122,6 +124,22 @@ const jsonLd = {
     )}
 
     <ListenButton audioSrc={audioSrc} />
+
+    {seriesItems.length > 1 && (
+      <nav class="series-nav measure" aria-label={`${seriesName} 시리즈`}>
+        <p class="series-nav__title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          {seriesName} 시리즈
+        </p>
+        <ol class="series-nav__list">
+          {seriesItems.map((s) =>
+            s.current
+              ? <li class="series-nav__item is-current"><span>{s.num}. {s.title}</span></li>
+              : <li class="series-nav__item"><a href={s.href}>{s.num}. {s.title}</a></li>
+          )}
+        </ol>
+      </nav>
+    )}
 
     <TableOfContents headings={headings} />
 

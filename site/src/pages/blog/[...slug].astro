@@ -60,6 +60,15 @@ const nextPost = catIdx >= 0 && catIdx < catPosts.length - 1 ? catPosts[catIdx +
 const prevNav = prevPost ? { href: `/blog/${prevPost.id}/`, title: prevPost.data.title } : undefined;
 const nextNav = nextPost ? { href: `/blog/${nextPost.id}/`, title: nextPost.data.title } : undefined;
 
+// 시리즈 — 같은 series 값을 가진 글을 seriesOrder(없으면 pubDate) 순으로 정렬
+const seriesName = post.data.series;
+const seriesItems = seriesName
+  ? all
+      .filter((p) => p.data.series === seriesName)
+      .sort((a, b) => (a.data.seriesOrder ?? a.data.pubDate.valueOf()) - (b.data.seriesOrder ?? b.data.pubDate.valueOf()))
+      .map((p, i) => ({ href: `/blog/${p.id}/`, title: p.data.title, current: p.id === post.id, num: i + 1 }))
+  : [];
+
 // 이 글이 속한 필러(허브) 가이드 — 자기 자신이 아니면 백링크 제공(양방향 링크)
 const pillarSlug = PILLARS[post.data.category];
 const pillarPost = pillarSlug && pillarSlug !== post.id ? all.find((p) => p.id === pillarSlug) : null;
@@ -85,6 +94,8 @@ const guide = pillarPost ? { title: pillarPost.data.title, href: `/blog/${pillar
   guide={guide}
   prevNav={prevNav}
   nextNav={nextNav}
+  seriesName={seriesName}
+  seriesItems={seriesItems}
 >
   <Content />
 </PostLayout>

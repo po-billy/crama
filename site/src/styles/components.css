@@ -671,6 +671,23 @@
 }
 .tag:hover { border-color: var(--accent); color: var(--accent); }
 
+/* ---------- 시리즈 네비게이션 ---------- */
+.series-nav {
+  border: 1px solid var(--line); border-left: 3px solid var(--accent);
+  border-radius: var(--radius); background: var(--paper-2);
+  padding: 1rem 1.3rem; margin: 0 auto 1.5rem;
+}
+.series-nav__title {
+  font-family: var(--font-sans); font-size: 0.85rem; font-weight: 700;
+  color: var(--accent); margin: 0 0 0.6rem; display: flex; align-items: center; gap: 0.4rem;
+}
+.series-nav__list { list-style: none; margin: 0; padding: 0; }
+.series-nav__item { margin: 0.3rem 0; font-size: 0.9rem; }
+.series-nav__item a { color: var(--ink-soft); text-decoration: none; }
+.series-nav__item a:hover { color: var(--accent); }
+.series-nav__item.is-current span { font-weight: 700; color: var(--ink); }
+.series-nav__item.is-current::marker { color: var(--accent); }
+
 /* ---------- 글 피드백 ("도움이 됐나요?") ---------- */
 .article-feedback {
   text-align: center; margin: 2.5rem auto 0; padding: 1.5rem;

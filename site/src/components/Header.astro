@@ -39,7 +39,7 @@ import DuoIcon from './DuoIcon.astro';
             </div>
           </div>
         ) : (
-          <a href={item.href}>{item.label}</a>
+          <a href={item.href} class={item.href === '/briefing/' ? 'nav-shine' : ''}>{item.label}</a>
         )
       )}
     </nav>

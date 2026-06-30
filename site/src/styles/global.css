@@ -233,6 +233,25 @@ hr {
 .nav { order: 2; display: flex; align-items: center; gap: 1.8rem; }
 .nav > a, .nav-group__trigger { font-size: 0.92rem; font-weight: 600; color: var(--ink); text-decoration: none; }
 .nav > a:hover, .nav-group__trigger:hover { color: var(--accent); }
+
+/* Today 브리핑 — 빛 반사 CTA */
+.nav-shine {
+  position: relative; overflow: hidden;
+  color: var(--accent) !important; font-weight: 700 !important;
+}
+.nav-shine::after {
+  content: ''; position: absolute; top: -50%; left: -80%; width: 40%; height: 200%;
+  background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.7) 45%, rgba(255,255,255,0.4) 50%, transparent 55%);
+  animation: nav-shine-sweep 3s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes nav-shine-sweep {
+  0%, 100% { left: -80%; }
+  50% { left: 120%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-shine::after { animation: none; display: none; }
+}
 .nav-toggle { order: 0; display: none; background: none; border: 0; cursor: pointer; color: var(--ink); align-items: center; padding: 0.25rem; line-height: 0; }
 
 /* 드롭다운 그룹 */

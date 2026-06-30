@@ -51,13 +51,6 @@ const currentMonth = now.getMonth() + 1;
 const currentDay = now.getDate();
 const eventsJson = JSON.stringify(EVENTS);
 
-// 다가오는 일정 (30일 이내)
-const upcoming = EVENTS
-  .map(ev => ({ ...ev, date: new Date(2026, ev.month - 1, ev.day), dday: Math.ceil((new Date(2026, ev.month - 1, ev.day).getTime() - now.getTime()) / 86400000) }))
-  .filter(ev => ev.dday >= 0 && ev.dday <= 30)
-  .sort((a, b) => a.dday - b.dday)
-  .slice(0, 4);
-
 const faqLd = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
@@ -86,29 +79,6 @@ const faqLd = {
       </button>
       <p class="pc-hero__note">Google Calendar, Apple Calendar 등에 바로 연동됩니다.</p>
     </header>
-
-    <!-- ━━ 다가오는 일정 카드 ━━ -->
-    {upcoming.length > 0 && (
-      <section class="pc-upcoming">
-        <h2 class="pc-section-title">다가오는 일정</h2>
-        <div class="pc-upcoming__grid">
-          {upcoming.map(ev => {
-            const cat = CATS[ev.cat];
-            return (
-              <div class={`pc-ucard ${ev.dday <= 7 ? 'is-urgent' : ''}`} data-month={ev.month} data-day={ev.day}>
-                <div class="pc-ucard__dday">{ev.dday === 0 ? 'D-Day' : `D-${ev.dday}`}</div>
-                <div class="pc-ucard__body">
-                  <span class="pc-ucard__cat" style={`color:${cat.color}`}>{cat.icon} {cat.name}</span>
-                  <h3>{ev.title}</h3>
-                  <p>{ev.month}/{ev.day} · {ev.desc}</p>
-                </div>
-                {ev.url && <a href={ev.url} target="_blank" rel="noopener" class="pc-ucard__link">확인 →</a>}
-              </div>
-            );
-          })}
-        </div>
-      </section>
-    )}
 
     <!-- ━━ 고정 필터 바 → 바텀시트 모달 ━━ -->
     <button type="button" class="pc-fbar" id="pc-filter-open">
@@ -412,26 +382,13 @@ const faqLd = {
       renderGrid();
       renderMonthList();
       updateFilterUI();
-
-      // 다가오는 일정 카드 클릭 → 해당 월로 이동 + 그 날짜 선택(같은 정보 → 달력에서 SELECTED)
-      document.querySelectorAll('.pc-ucard').forEach(function (card) {
-        var um = parseInt(card.dataset.month, 10), ud = parseInt(card.dataset.day, 10);
-        if (!um || !ud) return;
-        card.classList.add('is-clickable');
-        card.addEventListener('click', function (ev) {
-          if (ev.target.closest('a')) return; // '확인 →' 링크는 그대로
-          gridMonth = um - 1;
-          renderGrid();
-          renderMonthList();
-          selectDay(ud);
-          if (isDesktop()) { var b = document.querySelector('.pc-board'); if (b) b.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-        });
-      });
     })();
   </script>
 
   <style is:global>
-    .pc-page { max-width: 56rem; margin: 0 auto; padding: 0 1rem 3rem; }
+    .pc-page { max-width: 90rem; margin: 0 auto; padding: 0 1rem 3rem; }
+    /* 읽기 영역(히어로·다음단계·주석)은 좁게 유지, 캘린더 보드만 넓게 */
+    .pc-hero, .pc-note, .pc-page .svc-next-label { max-width: 48rem; margin-left: auto; margin-right: auto; }
 
     /* ── 히어로 ── */
     .pc-hero { text-align: center; padding: 1.8rem 0 1.2rem; }
@@ -463,27 +420,6 @@ const faqLd = {
     .pc-hero__note { font-size: 0.75rem; color: var(--muted); margin-top: 1rem; opacity: 0.7; }
 
     .pc-section-title { font-size: 1rem; font-weight: 700; margin: 0 0 0.8rem; color: var(--ink); }
-
-    /* ── 다가오는 일정 ── */
-    .pc-upcoming { margin-bottom: 2rem; }
-    .pc-upcoming__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); gap: 0.7rem; }
-    .pc-ucard {
-      display: flex; flex-direction: column; gap: 0.4rem;
-      padding: 1rem; border: 1px solid var(--line); border-radius: 12px;
-      background: var(--paper); transition: border-color 0.12s;
-    }
-    .pc-ucard:hover { border-color: var(--accent); }
-    .pc-ucard.is-urgent { border-color: #fca5a5; }
-    .pc-ucard.is-clickable { cursor: pointer; }
-    .pc-ucard__dday {
-      display: inline-block; font-size: 0.72rem; font-weight: 800; padding: 0.15rem 0.5rem;
-      background: var(--paper-2); color: var(--ink-soft); border-radius: 6px; width: fit-content;
-    }
-    .pc-ucard.is-urgent .pc-ucard__dday { background: #fee2e2; color: #dc2626; }
-    .pc-ucard__cat { font-size: 0.72rem; font-weight: 600; }
-    .pc-ucard__body h3 { font-size: 0.9rem; font-weight: 700; margin: 0.2rem 0; line-height: 1.35; }
-    .pc-ucard__body p { font-size: 0.78rem; color: var(--muted); margin: 0; }
-    .pc-ucard__link { font-size: 0.8rem; font-weight: 600; color: var(--accent); text-decoration: none; margin-top: auto; }
 
     /* ── 고정 필터 바 ── */
     .pc-fbar {
@@ -596,7 +532,7 @@ const faqLd = {
     .pc-empty p { margin: 0; }
 
     /* ── 크로스 ── */
-    .pc-cross { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; margin: 1.5rem 0; }
+    .pc-cross { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; margin: 1.5rem auto; max-width: 48rem; }
     .pc-cross__card {
       display: flex; align-items: center; gap: 0.7rem; padding: 1rem;
       border: 1px solid var(--line); border-radius: 12px; background: var(--paper);
@@ -613,7 +549,7 @@ const faqLd = {
 
     /* ── 데스크톱: 달력 | 이 달 목록 좌우 2단 (같은 정보 → 클릭 시 SELECTED 하이라이트) ── */
     @media (min-width: 769px) {
-      .pc-board { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); gap: 1.3rem; align-items: start; }
+      .pc-board { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 1.6rem; align-items: start; }
       .pc-board > .pc-cal { grid-column: 1; margin-bottom: 0; }
       .pc-board > .pc-month { grid-column: 2; margin-bottom: 0; }
       .pc-board > .pc-day { display: none; } /* 데스크톱은 옆 목록 하이라이트로 대체 */
@@ -621,10 +557,18 @@ const faqLd = {
       .pc-month .pc-ev:hover { border-color: var(--accent); }
     }
 
+    /* 넓은 화면: 큰 달력 가독성 보정 */
+    @media (min-width: 1200px) {
+      .pc-cal { padding: 1.3rem; }
+      .pc-cal__grid { gap: 4px; }
+      .pc-cell__num { font-size: 1.05rem; }
+      .pc-cell.is-today .pc-cell__num { width: 2rem; height: 2rem; }
+      .pc-cell__dots span { width: 6px; height: 6px; }
+    }
+
     /* ── 반응형 ── */
     @media (max-width: 768px) {
       .pc-cross { grid-template-columns: 1fr; }
-      .pc-upcoming__grid { grid-template-columns: 1fr 1fr; }
     }
     @media (max-width: 480px) {
       .pc-page { padding: 0 0.6rem 2rem; }
@@ -633,8 +577,6 @@ const faqLd = {
       .pc-hero__lead { font-size: 0.9rem; margin-bottom: 1rem; }
       .pc-hero__stats { gap: 1rem; padding: 0.8rem; margin-bottom: 1rem; }
       .pc-hero__stat-num { font-size: 1.15rem; }
-      .pc-upcoming__grid { grid-template-columns: 1fr; }
-      .pc-ucard { padding: 0.8rem; }
       .pc-cal { padding: 0.7rem; border-radius: 12px; }
       .pc-cell__num { font-size: 0.85rem; }
     }

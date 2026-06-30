@@ -57,8 +57,18 @@ const upcoming = EVENTS
   .filter(ev => ev.dday >= 0 && ev.dday <= 30)
   .sort((a, b) => a.dday - b.dday)
   .slice(0, 4);
+
+const faqLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    { '@type': 'Question', name: '정책 캘린더란 무엇인가요?', acceptedAnswer: { '@type': 'Answer', text: '크라마 정책 캘린더는 2026년 주요 세금 납부, 지원금 신청, 투자 절세 마감일을 한눈에 보여주는 무료 서비스입니다. 내 캘린더에 연동하면 마감일을 놓치지 않을 수 있습니다.' } },
+    { '@type': 'Question', name: '캘린더를 내 휴대폰에 연동할 수 있나요?', acceptedAnswer: { '@type': 'Answer', text: '네. ICS 파일을 다운로드하면 Google Calendar, Apple Calendar, Outlook 등에 바로 연동됩니다. 필터를 적용하면 내게 맞는 일정만 선택적으로 연동할 수도 있습니다.' } },
+    { '@type': 'Question', name: '어떤 일정이 포함되어 있나요?', acceptedAnswer: { '@type': 'Answer', text: '세금(연말정산, 부가세, 재산세 등), 지원금(청년도약계좌, 장려금, 월세 지원 등), 투자·절세(IRP, ISA 등), 주거, 취업·창업, 출산·육아 분야의 33건 일정이 포함되어 있습니다.' } },
+  ],
+};
 ---
-<BaseLayout title="정책 캘린더 2026 — 놓치면 손해인 일정 한눈에" description="지원금 신청, 세금 납부, 투자 절세 마감일을 월별로 정리. 2026년 핵심 정책 일정을 한 곳에서.">
+<BaseLayout title="정책 캘린더 2026 — 놓치면 손해인 일정 한눈에" description="지원금 신청, 세금 납부, 투자 절세 마감일을 월별로 정리. 2026년 핵심 정책 일정을 한 곳에서." jsonLd={faqLd}>
   <div class="pc-page">
     <!-- ━━ 히어로 ━━ -->
     <header class="pc-hero">

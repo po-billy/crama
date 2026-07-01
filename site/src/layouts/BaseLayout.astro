@@ -15,8 +15,9 @@ interface Props {
   publishedTime?: Date;
   jsonLd?: Record<string, unknown>;
   spa?: boolean; // 글 페이지에서 SPA(View Transitions) — 오디오 끊김 없는 글↔글 이동
+  footer?: 'full' | 'slim' | 'none'; // 앱/코어서비스는 slim(법적 링크만)·none 으로 마케팅 푸터 축소·제거
 }
-const { spa, ...props } = Astro.props;
+const { spa, footer = 'full', ...props } = Astro.props;
 ---
 <!doctype html>
 <html lang="ko">
@@ -24,7 +25,7 @@ const { spa, ...props } = Astro.props;
     <BaseHead {...props} />
     {spa && <ClientRouter />}
   </head>
-  <body>
+  <body data-footer={footer}>
     <script is:inline>
       // 전역 지속 오디오 컨트롤러 — 목록(홈)·본문 공용. 1회 생성, SPA 소프트 내비를 넘어 유지(이벤트는 페이지 훅으로 위임).
       if (!window.__cramaCtl) {
@@ -113,10 +114,18 @@ const { spa, ...props } = Astro.props;
     <main id="main">
       <slot />
     </main>
-    <Footer />
+    {footer === 'full' && <Footer />}
+    {footer === 'slim' && <Footer variant="slim" />}
     <BackToTop />
     <CookieConsent />
     <CalcEnhance />
+    <style is:global>
+      /* 앱/코어서비스(slim·none): main 이 화면을 채우고 푸터는 바닥에 — 마케팅 푸터 제거 후 빈 공백 방지 */
+      body[data-footer='slim'], body[data-footer='none'] {
+        min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column;
+      }
+      body[data-footer='slim'] > main, body[data-footer='none'] > main { flex: 1 0 auto; }
+    </style>
     <script is:inline>
       // 읽은 글 카드에 '읽음' 뱃지 표시
       (() => {

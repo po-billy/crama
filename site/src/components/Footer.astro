@@ -4,7 +4,21 @@ import SubscribeBox from './SubscribeBox.astro';
 import PodcastLinks from './PodcastLinks.astro';
 const year = new Date().getFullYear();
 const EMAIL = 'gmlthd94@gmail.com';
+interface Props { variant?: 'full' | 'slim'; }
+const { variant = 'full' } = Astro.props;
 ---
+{variant === 'slim' ? (
+  <footer class="site-footer site-footer--slim">
+    <div class="wrap foot-legal">
+      <div class="foot-legal__links">
+        <a href="/privacy/">개인정보 처리방침</a><span aria-hidden="true">|</span>
+        <a href="/terms/">이용약관</a><span aria-hidden="true">|</span>
+        <a href="/contact/">문의</a>
+      </div>
+      <p class="foot-copy">© {year} {SITE.name}</p>
+    </div>
+  </footer>
+) : (
 <footer class="site-footer">
   <!-- 뉴스레터 슬림 밴드 -->
   <div class="foot-news"><div class="wrap"><SubscribeBox /></div></div>
@@ -75,6 +89,7 @@ const EMAIL = 'gmlthd94@gmail.com';
     <p class="foot-copy">© {year} {SITE.name}. ALL RIGHTS RESERVED.</p>
   </div>
 </footer>
+)}
 
 <style is:global>
   footer.site-footer {
@@ -163,4 +178,15 @@ const EMAIL = 'gmlthd94@gmail.com';
     .site-footer .foot-news .subscribe { grid-template-columns: 1fr; gap: 1rem; align-items: stretch; }
     .site-footer .foot-cols { grid-template-columns: 1fr 1fr; gap: 1.6rem 1.2rem; }
   }
+
+  /* ── 슬림 푸터(코어서비스): 마케팅 요소 제거, 법적 링크만 라이트하게 ── */
+  footer.site-footer--slim {
+    margin-top: 3rem; background: transparent; color: var(--muted);
+    border-top: 1px solid var(--line);
+  }
+  .site-footer--slim .foot-legal { border-top: 0; padding-block: 1.3rem 1.6rem; }
+  .site-footer--slim .foot-legal__links a { color: var(--muted); }
+  .site-footer--slim .foot-legal__links a:hover { color: var(--ink); }
+  .site-footer--slim .foot-legal__links span { color: var(--line); }
+  .site-footer--slim .foot-copy { color: var(--muted); }
 </style>

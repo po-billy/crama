@@ -138,7 +138,7 @@ const faqLd = {
         </button>
         <button type="button" id="pc-ics-filtered" class="pc-month__ics">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-          이 조건으로 캘린더 연동
+          이 조건으로 캘린더 연동 <span id="pc-ics-count">0</span>건
         </button>
       </div>
       <div id="pc-month-list"></div>
@@ -214,6 +214,12 @@ const faqLd = {
       var MK = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
       function $(id) { return document.getElementById(id); }
 
+      // 연동 선택 상태 — 각 일정에 안정 키(_k), deselected=제외된 키(기본 비어있음=전체 선택)
+      ALL.forEach(function (e, i) { e._k = e.id || ('ev' + i); });
+      var deselected = {};
+      function selectedEvents() { return filtered().filter(function (e) { return !deselected[e._k]; }); }
+      function updateIcsCount() { var el = $('pc-ics-count'); if (el) el.textContent = selectedEvents().length; }
+
       function filtered() {
         return ALL.filter(function (e) {
           // 다중 선택: 선택 없으면 전체. 'all' 대상/분야 일정은 항상 노출. 선택된 것 중 하나라도 맞으면 통과(OR)
@@ -231,7 +237,10 @@ const faqLd = {
         var ddHtml = dd === 0 ? '<span class="pc-ev__dday is-soon">D-Day</span>'
           : (dd > 0 && dd <= 30) ? '<span class="pc-ev__dday is-soon">D-' + dd + '</span>'
           : dd > 0 ? '<span class="pc-ev__dday">D-' + dd + '</span>' : '';
-        return '<div class="pc-ev' + (e.important ? ' is-imp' : '') + '" data-day="' + e.day + '">' +
+        var _ex = deselected[e._k] ? ' is-excluded' : '';
+        return '<div class="pc-ev' + (e.important ? ' is-imp' : '') + _ex + '" data-day="' + e.day + '" data-key="' + e._k + '">' +
+          '<label class="pc-ev__check" title="캘린더 연동에 포함"><input type="checkbox"' + (deselected[e._k] ? '' : ' checked') + ' aria-label="연동 포함"></label>' +
+          '<div class="pc-ev__main">' +
           '<div class="pc-ev__head"><span class="pc-ev__date">' + e.month + '/' + e.day + '</span>' +
           '<span class="pc-ev__cat" style="color:' + c.color + '">' + c.icon + ' ' + c.name + '</span>' + ddHtml + '</div>' +
           '<h3 class="pc-ev__title">' + e.title + '</h3>' +
@@ -239,7 +248,7 @@ const faqLd = {
           '<div class="pc-ev__actions">' +
           (e.url ? '<a href="' + e.url + '" target="_blank" rel="noopener" class="pc-ev__btn">신청/확인 →</a>' : '') +
           (e.relatedSlug ? '<a href="/blog/' + e.relatedSlug + '/" class="pc-ev__btn pc-ev__btn--ghost">가이드 읽기</a>' : '') +
-          '</div></div>';
+          '</div></div></div>';
       }
 
       // ── 달력 그리드 ──
@@ -327,7 +336,7 @@ const faqLd = {
         // 목록 카드 클릭 → 달력에서 그 날짜 선택(데스크톱 인라인 / 모바일 시트 유지)
         $('pc-month-list').querySelectorAll('.pc-ev').forEach(function (el) {
           el.addEventListener('click', function (ev) {
-            if (ev.target.closest('a')) return; // 링크 버튼은 그대로
+            if (ev.target.closest('a') || ev.target.closest('.pc-ev__check')) return; // 링크·체크박스는 그대로
             var day = parseInt(el.dataset.day, 10);
             selDay = day;
             document.querySelectorAll('.pc-cell').forEach(function (b) { b.classList.toggle('is-sel', parseInt(b.dataset.d) === day); });
@@ -336,6 +345,7 @@ const faqLd = {
         });
         // 필터/월 변경으로 목록을 다시 그렸을 때 선택 상태 유지
         if (selDay != null) highlightMonthDay(selDay);
+        updateIcsCount();
       }
 
       function refresh() { renderGrid(); renderMonthList(); }
@@ -407,7 +417,7 @@ const faqLd = {
         if (fbar) fbar.scrollIntoView({ behavior: 'smooth', block: 'start' }); // 조건바를 헤더 밑 상단으로
         openSheet();
       });
-      document.getElementById('pc-ics-filtered').addEventListener('click', function () { downloadICS(filtered()); });
+      document.getElementById('pc-ics-filtered').addEventListener('click', function () { downloadICS(selectedEvents()); });
 
       renderGrid();
       renderMonthList();
@@ -452,6 +462,14 @@ const faqLd = {
         }, { passive: true });
       })();
 
+      // 일정 카드 체크박스 → 연동 포함/제외(1~12월 누적, 기본 전체 선택)
+      $('pc-month-list').addEventListener('change', function (ev) {
+        var cb = ev.target.closest('input[type="checkbox"]'); if (!cb) return;
+        var card = cb.closest('.pc-ev'); if (!card) return;
+        if (cb.checked) delete deselected[card.dataset.key]; else deselected[card.dataset.key] = true;
+        card.classList.toggle('is-excluded', !cb.checked);
+        updateIcsCount();
+      });
       matchBoardHeight();
       window.addEventListener('resize', matchBoardHeight);
     })();
@@ -555,7 +573,12 @@ const faqLd = {
     .pc-list-open, .pc-month__handle, .pc-month__nav, .pc-month__close, .pc-month__refilter, .pc-listsheet-backdrop { display: none; }
 
     /* 일정 카드 (날짜별·이 달 공용) */
-    .pc-ev { padding: 0.9rem 1rem; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 0.6rem; background: var(--paper); }
+    .pc-ev { padding: 0.9rem 1rem; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 0.6rem; background: var(--paper); display: flex; gap: 0.55rem; align-items: flex-start; }
+    .pc-ev__check { flex: none; margin-top: 0.1rem; }
+    .pc-ev__check input { width: 1.2rem; height: 1.2rem; accent-color: var(--accent); cursor: pointer; }
+    .pc-ev__main { flex: 1; min-width: 0; }
+    .pc-ev.is-excluded { opacity: 0.5; }
+    .pc-ev.is-excluded .pc-ev__title { text-decoration: line-through; }
     .pc-ev.is-imp { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
     .pc-ev.is-daysel { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); background: var(--accent-soft); }
     .pc-ev__head { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem; flex-wrap: wrap; }

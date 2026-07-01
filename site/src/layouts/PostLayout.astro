@@ -299,19 +299,29 @@ const jsonLd = {
   })();
 </script>
 
-<script is:inline>
-  // 읽은 글 기록 (localStorage) — 카드에 '읽음' 뱃지 표시용
+<script is:inline define:vars={{ rTitle: Astro.props.title, rCat: (CATEGORIES[Astro.props.category] && CATEGORIES[Astro.props.category].name) || '', rHero: Astro.props.heroImage || '' }}>
+  // 읽은 글 기록 + 최근 본 글(홈 이어보기 셸프용) — localStorage
   (() => {
     const m = location.pathname.match(/\/blog\/([^/]+)/);
     if (!m) return;
+    const slug = m[1];
     try {
       const KEY = 'crama:read';
       const list = JSON.parse(localStorage.getItem(KEY) || '[]');
-      if (!list.includes(m[1])) {
-        list.push(m[1]);
+      if (!list.includes(slug)) {
+        list.push(slug);
         if (list.length > 500) list.splice(0, list.length - 500);
         localStorage.setItem(KEY, JSON.stringify(list));
       }
+    } catch (e) {}
+    try {
+      const RK = 'crama:recent';
+      let r = JSON.parse(localStorage.getItem(RK) || '[]');
+      if (!Array.isArray(r)) r = [];
+      r = r.filter((x) => x && x.slug !== slug);
+      r.unshift({ slug: slug, title: rTitle, cat: rCat, thumb: (rHero || '').replace(/-hero\.webp$/, '-hero-thumb.webp'), href: '/blog/' + slug + '/', ts: Date.now() });
+      r = r.slice(0, 12);
+      localStorage.setItem(RK, JSON.stringify(r));
     } catch (e) {}
   })();
 </script>

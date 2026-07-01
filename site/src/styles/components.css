@@ -440,6 +440,31 @@
   .home-core__badge { top: 0.4rem; right: 0.4rem; }
 }
 
+/* 최근 본 글 — 이어보기 셸프(익명, 비어있으면 숨김) */
+.home-recent { margin-top: 2rem; }
+.home-recent[hidden] { display: none; }
+.home-recent .section-head { margin-bottom: 0.9rem; }
+.home-recent__clear { flex: none; background: none; border: 0; font: inherit; font-size: 0.8rem; color: var(--muted); cursor: pointer; text-decoration: underline; }
+.home-recent__row { display: flex; gap: 0.7rem; overflow-x: auto; padding-bottom: 0.4rem; scrollbar-width: none; -ms-overflow-style: none; scroll-snap-type: x proximity; }
+.home-recent__row::-webkit-scrollbar { display: none; }
+.home-recent__card {
+  flex: none; width: 12.5rem; text-decoration: none; color: var(--ink); scroll-snap-align: start;
+  border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--paper);
+  transition: transform .12s ease, border-color .12s ease;
+}
+.home-recent__card:hover { transform: translateY(-2px); border-color: var(--accent); }
+.home-recent__thumb { display: block; aspect-ratio: 16 / 9; background: var(--paper-2); }
+.home-recent__thumb img { width: 100%; height: 100%; object-fit: cover; }
+.home-recent__meta { display: block; padding: 0.6rem 0.7rem 0.75rem; }
+.home-recent__cat { display: block; font-size: 0.66rem; font-weight: 700; color: var(--accent); letter-spacing: .03em; margin-bottom: 0.15rem; }
+.home-recent__title {
+  font-size: 0.86rem; font-weight: 600; line-height: 1.35;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+@media (max-width: 560px) {
+  .home-recent__card { width: 10.5rem; }
+}
+
 /* 주목할 아티클 — 배너 아래 섹션(PC 2열) */
 .home-rank { margin-top: 2.2rem; }
 @media (min-width: 1024px) {

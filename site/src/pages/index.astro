@@ -186,6 +186,40 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
       ))}
     </nav>
 
+    <!-- 최근 본 글 — 돌아온 독자 이어보기(비어있으면 숨김, 익명 localStorage) -->
+    <section class="home-recent" id="home-recent" aria-label="최근 본 글" hidden>
+      <div class="section-head">
+        <div class="section-head__t">
+          <h2>이어서 볼까요?</h2>
+          <p class="section-head__dek">최근에 본 글, 다시 꺼내봤어요</p>
+        </div>
+        <button type="button" class="home-recent__clear" id="home-recent-clear">지우기</button>
+      </div>
+      <div class="home-recent__row" id="home-recent-row"></div>
+      <script is:inline>
+        function __recentInit() {
+          var sec = document.getElementById('home-recent');
+          var row = document.getElementById('home-recent-row');
+          if (!sec || !row) return;
+          var items = [];
+          try { items = JSON.parse(localStorage.getItem('crama:recent') || '[]'); } catch (e) {}
+          if (!Array.isArray(items) || !items.length) { sec.hidden = true; return; }
+          var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+          row.innerHTML = items.map(function (it) {
+            return '<a class="home-recent__card" href="' + esc(it.href) + '">' +
+              '<span class="home-recent__thumb">' + (it.thumb ? '<img src="' + esc(it.thumb) + '" alt="" loading="lazy">' : '') + '</span>' +
+              '<span class="home-recent__meta"><span class="home-recent__cat">' + esc(it.cat) + '</span>' +
+              '<span class="home-recent__title">' + esc(it.title) + '</span></span></a>';
+          }).join('');
+          sec.hidden = false;
+          var clr = document.getElementById('home-recent-clear');
+          if (clr && !clr.__bound) { clr.__bound = true; clr.addEventListener('click', function () { try { localStorage.removeItem('crama:recent'); } catch (e) {} sec.hidden = true; }); }
+        }
+        if (!window.__recentBound) { window.__recentBound = true; document.addEventListener('astro:page-load', __recentInit); }
+        if (document.readyState !== 'loading') __recentInit(); else document.addEventListener('DOMContentLoaded', __recentInit, { once: true });
+      </script>
+    </section>
+
     <section class="home-rank">
       <div class="section-head">
         <div class="section-head__t">

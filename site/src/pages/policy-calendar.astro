@@ -585,7 +585,7 @@ const faqLd = {
     .pc-ev.is-excluded .pc-ev__main { opacity: 0.45; }
     .pc-ev.is-excluded .pc-ev__title { text-decoration: line-through; }
     .pc-ev.is-imp { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
-    .pc-ev.is-daysel { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); background: var(--accent-soft); }
+    /* 날짜 클릭 시 스크롤 포커싱은 유지하되 시각 하이라이트(is-daysel)는 제거 — 체크박스 선택 상태와 겹침 방지 */
     .pc-ev__head { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem; flex-wrap: wrap; }
     .pc-ev__date { font-size: 0.72rem; font-weight: 800; color: var(--paper); background: var(--ink); border-radius: 5px; padding: 0.1rem 0.42rem; flex: none; }
     .pc-ev__cat { font-size: 0.75rem; font-weight: 600; }

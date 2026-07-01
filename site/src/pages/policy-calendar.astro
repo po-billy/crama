@@ -273,9 +273,17 @@ const faqLd = {
         grid.querySelectorAll('.pc-cell[data-d]').forEach(function (btn) {
           btn.addEventListener('click', function () { selectDay(parseInt(btn.dataset.d)); });
         });
+        requestAnimationFrame(matchBoardHeight);
       }
 
       function isDesktop() { return window.matchMedia('(min-width: 769px)').matches; }
+
+      // PC: 목록 컬럼 높이를 달력에 맞추고 내부 스크롤(앱형 2-pane)
+      function matchBoardHeight() {
+        var month = $('pc-month'), cal = document.querySelector('.pc-cal');
+        if (!month || !cal) return;
+        month.style.height = isDesktop() ? cal.offsetHeight + 'px' : '';
+      }
 
       // 데스크톱: 달력 옆 '이 달 목록'에서 같은 날짜 카드에 SELECTED 표시 + 스크롤(별도 섹션 없이)
       function highlightMonthDay(d) {
@@ -394,7 +402,11 @@ const faqLd = {
         URL.revokeObjectURL(a.href);
       }
 
-      document.getElementById('pc-ics-btn').addEventListener('click', function () { openSheet(); });
+      document.getElementById('pc-ics-btn').addEventListener('click', function () {
+        var fbar = document.querySelector('.pc-fbar');
+        if (fbar) fbar.scrollIntoView({ behavior: 'smooth', block: 'start' }); // 조건바를 헤더 밑 상단으로
+        openSheet();
+      });
       document.getElementById('pc-ics-filtered').addEventListener('click', function () { downloadICS(filtered()); });
 
       renderGrid();
@@ -439,6 +451,9 @@ const faqLd = {
           x0 = y0 = null;
         }, { passive: true });
       })();
+
+      matchBoardHeight();
+      window.addEventListener('resize', matchBoardHeight);
     })();
   </script>
 
@@ -484,7 +499,7 @@ const faqLd = {
       padding: 0.75rem 0.9rem; margin-bottom: 1rem;
       background: var(--paper); border: 1px solid var(--line); border-radius: 12px;
       font: inherit; color: var(--ink-soft); cursor: pointer;
-      position: sticky; top: 3.7rem; z-index: 20; box-shadow: 0 2px 12px rgba(0,0,0,.05);
+      position: sticky; top: 3.7rem; scroll-margin-top: 4.2rem; z-index: 20; box-shadow: 0 2px 12px rgba(0,0,0,.05);
       touch-action: manipulation; -webkit-tap-highlight-color: transparent;
     }
     .pc-fbar.is-active { border-color: var(--accent); color: var(--ink); }
@@ -611,7 +626,8 @@ const faqLd = {
     @media (min-width: 769px) {
       .pc-board { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 1.6rem; align-items: start; }
       .pc-board > .pc-cal { grid-column: 1; margin-bottom: 0; position: sticky; top: 6.9rem; align-self: start; z-index: 5; }
-      .pc-board > .pc-month { grid-column: 2; margin-bottom: 0; }
+      .pc-board > .pc-month { grid-column: 2; margin-bottom: 0; position: sticky; top: 6.9rem; align-self: start; display: flex; flex-direction: column; }
+      .pc-board > .pc-month #pc-month-list { flex: 1; overflow-y: auto; min-height: 0; }
       .pc-board > .pc-day { display: none; } /* 데스크톱은 옆 목록 하이라이트로 대체 */
       .pc-month .pc-ev { cursor: pointer; }
       .pc-month .pc-ev:hover { border-color: var(--accent); }

@@ -4,39 +4,45 @@ import { CATEGORIES } from '../consts';
 const catNames = Object.fromEntries(
   Object.values(CATEGORIES).map((c) => [c.slug, c.name]),
 );
+const POPULAR = ['청년도약계좌', 'ETF', '연말정산', '부업', 'AI 에이전트', '비상금', '절세', '프롬프트'];
 ---
 <BaseLayout title="검색" description="Crama의 글을 검색하세요 — 주식·재테크와 AI 트렌드.">
   <div class="wrap">
     <header class="page-hero">
       <span class="eyebrow">Search</span>
       <h1>검색</h1>
-      <p>제목·설명·태그로 글을 찾습니다.</p>
+      <p>제목·설명·태그로 글을 찾습니다. <span class="search-hint">↑↓ 이동 · Enter 열기</span></p>
     </header>
 
-    <div class="search-box" style="position:relative;">
+    <div class="search-box">
+      <svg class="search-box__ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
       <input
         type="search"
         id="q"
         class="search-input"
         placeholder="예: ETF, 배당, AI 에이전트, 프롬프트…"
         autocomplete="off"
+        enterkeyhint="search"
         autofocus
       />
-      <button type="button" id="search-clear" aria-label="검색어 지우기" style="display:none;position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:1.2rem;color:var(--muted,#94a3b8);cursor:pointer;padding:4px 8px;line-height:1;">&times;</button>
+      <button type="button" id="search-clear" class="search-clear" aria-label="검색어 지우기" hidden>&times;</button>
     </div>
 
     <div class="search-results" id="results" aria-live="polite"></div>
+
     <div class="search-suggest" id="search-suggest">
+      <div class="search-recent" id="search-recent" hidden>
+        <div class="search-recent__head">
+          <p class="search-suggest__title">최근 검색어</p>
+          <button type="button" id="search-recent-clear" class="search-recent__clear">지우기</button>
+        </div>
+        <div class="search-suggest__tags search-recent__tags"></div>
+      </div>
       <p class="search-suggest__title">인기 주제로 찾아보기</p>
       <div class="search-suggest__tags">
-        <button type="button" class="search-suggest__tag" data-q="청년도약계좌">청년도약계좌</button>
-        <button type="button" class="search-suggest__tag" data-q="ETF">ETF</button>
-        <button type="button" class="search-suggest__tag" data-q="연말정산">연말정산</button>
-        <button type="button" class="search-suggest__tag" data-q="부업">부업</button>
-        <button type="button" class="search-suggest__tag" data-q="AI 에이전트">AI 에이전트</button>
-        <button type="button" class="search-suggest__tag" data-q="비상금">비상금</button>
-        <button type="button" class="search-suggest__tag" data-q="절세">절세</button>
-        <button type="button" class="search-suggest__tag" data-q="프롬프트">프롬프트</button>
+        {POPULAR.map((q) => (
+          <button type="button" class="search-suggest__tag" data-q={q}>{q}</button>
+        ))}
       </div>
     </div>
   </div>
@@ -44,83 +50,200 @@ const catNames = Object.fromEntries(
   <script define:vars={{ catNames }}>
     const input = document.getElementById('q');
     const out = document.getElementById('results');
+    const suggest = document.getElementById('search-suggest');
+    const clearBtn = document.getElementById('search-clear');
+    const RKEY = 'crama:recent-search';
     let data = [];
+    let lastHits = [];
+    let activeCat = null;
+    let kbdIdx = -1;
+    let t;
+
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
     fetch('/search.json')
       .then((r) => r.json())
       .then((d) => {
-        data = d;
-        const params = new URLSearchParams(location.search);
-        const q = params.get('q');
-        if (q) { input.value = q; render(q); }
+        data = d.map((p, i) => ({ ...p, _i: i }));
+        const q = new URLSearchParams(location.search).get('q');
+        if (q) { input.value = q; updateClear(); doSearch(q); }
+        else renderRecent();
       });
 
-    function esc(s) {
-      return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    // ── 랭킹: 제목 > 태그 > 설명, 구절 일치·제목 시작 가산, 최신 우선 타이브레이크 ──
+    function scoreHit(p, tokens, phrase) {
+      const title = (p.title || '').toLowerCase();
+      const desc = (p.description || '').toLowerCase();
+      const tags = (p.tags || []).join(' ').toLowerCase();
+      let s = 0;
+      if (phrase && title.includes(phrase)) s += 100;
+      else if (phrase && (desc.includes(phrase) || tags.includes(phrase))) s += 40;
+      for (const tk of tokens) {
+        if (title.startsWith(tk)) s += 10;
+        if (title.includes(tk)) s += 20;
+        if (tags.includes(tk)) s += 12;
+        if (desc.includes(tk)) s += 6;
+      }
+      return s;
     }
 
-    function render(query) {
-      const q = query.trim().toLowerCase();
-      if (!q) { out.innerHTML = ''; return; }
-      const hits = data.filter((p) => {
-        const hay = (p.title + ' ' + p.description + ' ' + (p.tags || []).join(' ')).toLowerCase();
-        return q.split(/\s+/).every((t) => hay.includes(t));
-      });
-      if (hits.length === 0) {
-        out.innerHTML = `<p class="search-empty">"${esc(query)}"에 대한 결과가 없습니다.</p>
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.5rem;margin-top:1.5rem;max-width:480px;">
-            <a href="/benefits/" style="display:flex;flex-direction:column;align-items:center;gap:.3rem;padding:.8rem;border:1px solid var(--line);border-radius:10px;text-decoration:none;color:var(--ink);font-size:.85rem;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><defs><linearGradient id="sb" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse"><stop stop-color="#10b981"/><stop offset="1" stop-color="#22c55e"/></linearGradient></defs><circle cx="12" cy="12" r="9" fill="url(#sb)"/><path d="M8.5 12.5l2 2 5-5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><strong>내 혜택 찾기</strong></a>
-            <a href="/checkup/" style="display:flex;flex-direction:column;align-items:center;gap:.3rem;padding:.8rem;border:1px solid var(--line);border-radius:10px;text-decoration:none;color:var(--ink);font-size:.85rem;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><defs><linearGradient id="sc" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse"><stop stop-color="#f59e0b"/><stop offset="1" stop-color="#ef4444"/></linearGradient></defs><rect x="5" y="3" width="14" height="18" rx="3.5" fill="url(#sc)"/><path d="M9 9h6M9 12.5h4" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg><strong>재무 체크업</strong></a>
-            <a href="/policy-calendar/" style="display:flex;flex-direction:column;align-items:center;gap:.3rem;padding:.8rem;border:1px solid var(--line);border-radius:10px;text-decoration:none;color:var(--ink);font-size:.85rem;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><defs><linearGradient id="sd" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse"><stop stop-color="#3b82f6"/><stop offset="1" stop-color="#6366f1"/></linearGradient></defs><rect x="4" y="5" width="16" height="14" rx="3" fill="url(#sd)"/><path d="M8 3v3.5M16 3v3.5M4 9.5h16" stroke="url(#sd)" stroke-width="1.8" stroke-linecap="round"/><g fill="#fff"><circle cx="9" cy="13" r="1.1"/><circle cx="12" cy="13" r="1.1"/><circle cx="15" cy="13" r="1.1"/></g></svg><strong>정책 캘린더</strong></a>
-          </div>`;
-        return;
+    function highlight(text, tokens) {
+      const e = esc(text);
+      if (!tokens.length) return e;
+      try {
+        const re = new RegExp('(' + tokens.map(escRe).filter(Boolean).join('|') + ')', 'gi');
+        return e.replace(re, '<mark>$1</mark>');
+      } catch { return e; }
+    }
+
+    function syncURL(q) {
+      try { history.replaceState(null, '', q ? location.pathname + '?q=' + encodeURIComponent(q) : location.pathname); } catch {}
+    }
+
+    function updateClear() { clearBtn.hidden = !input.value; }
+
+    function doSearch(query) {
+      const q = (query || '').trim();
+      syncURL(q);
+      kbdIdx = -1;
+      if (!q) { out.innerHTML = ''; suggest.hidden = false; renderRecent(); return; }
+      suggest.hidden = true;
+      const tokens = q.toLowerCase().split(/\s+/).filter(Boolean);
+      const phrase = q.toLowerCase();
+      lastHits = data
+        .filter((p) => {
+          const hay = (p.title + ' ' + p.description + ' ' + (p.tags || []).join(' ')).toLowerCase();
+          return tokens.every((tk) => hay.includes(tk));
+        })
+        .map((p) => ({ p, score: scoreHit(p, tokens, phrase) }))
+        .sort((a, b) => b.score - a.score || a.p._i - b.p._i);
+      activeCat = null;
+      renderResults(tokens, query);
+      if (lastHits.length) saveRecent(q);
+    }
+
+    function currentTokens() {
+      return input.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    }
+
+    function renderResults(tokens, query) {
+      if (!lastHits.length) { renderEmpty(query); return; }
+      const counts = {};
+      lastHits.forEach((h) => { counts[h.p.category] = (counts[h.p.category] || 0) + 1; });
+      const cats = Object.keys(counts);
+      const filtered = activeCat ? lastHits.filter((h) => h.p.category === activeCat) : lastHits;
+
+      let meta = '<div class="search-meta"><span class="search-count">결과 <b>' + filtered.length + '</b>개</span>';
+      if (cats.length > 1) {
+        meta += '<div class="search-filter">';
+        meta += '<button type="button" class="search-filter__chip' + (!activeCat ? ' is-on' : '') + '" data-cat="">전체 ' + lastHits.length + '</button>';
+        cats.forEach((c) => {
+          meta += '<button type="button" class="search-filter__chip' + (activeCat === c ? ' is-on' : '') + '" data-cat="' + esc(c) + '">' + esc(catNames[c] || c) + ' ' + counts[c] + '</button>';
+        });
+        meta += '</div>';
       }
-      out.innerHTML = hits
-        .map(
-          (p) => `
-        <a class="search-result" href="${p.url}">
-          <span class="eyebrow">${esc(catNames[p.category] || p.category)}</span>
-          <h3>${esc(p.title)}${p.premium ? '<span class="premium-tag">멤버십</span>' : ''}</h3>
-          <p>${esc(p.description)}</p>
-        </a>`,
-        )
+      meta += '</div>';
+
+      const list = filtered.map((h) => {
+        const p = h.p;
+        return '<a class="search-result" href="' + p.url + '">' +
+          '<span class="eyebrow">' + esc(catNames[p.category] || p.category) + '</span>' +
+          '<h3>' + highlight(p.title, tokens) + (p.premium ? '<span class="premium-tag">멤버십</span>' : '') + '</h3>' +
+          '<p>' + highlight(p.description, tokens) + '</p>' +
+        '</a>';
+      }).join('');
+
+      out.innerHTML = meta + '<div class="search-list">' + list + '</div>';
+    }
+
+    const SVC = '<div class="search-empty__svc">' +
+      '<a href="/benefits/"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><defs><linearGradient id="sb" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse"><stop stop-color="#10b981"/><stop offset="1" stop-color="#22c55e"/></linearGradient></defs><circle cx="12" cy="12" r="9" fill="url(#sb)"/><path d="M8.5 12.5l2 2 5-5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><strong>내 혜택 찾기</strong></a>' +
+      '<a href="/checkup/"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><defs><linearGradient id="sc" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse"><stop stop-color="#f59e0b"/><stop offset="1" stop-color="#ef4444"/></linearGradient></defs><rect x="5" y="3" width="14" height="18" rx="3.5" fill="url(#sc)"/><path d="M9 9h6M9 12.5h4" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg><strong>재무 체크업</strong></a>' +
+      '<a href="/policy-calendar/"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><defs><linearGradient id="sd" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse"><stop stop-color="#3b82f6"/><stop offset="1" stop-color="#6366f1"/></linearGradient></defs><rect x="4" y="5" width="16" height="14" rx="3" fill="url(#sd)"/><path d="M8 3v3.5M16 3v3.5M4 9.5h16" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><g fill="#fff"><circle cx="9" cy="13" r="1.1"/><circle cx="12" cy="13" r="1.1"/><circle cx="15" cy="13" r="1.1"/></g></svg><strong>정책 캘린더</strong></a>' +
+    '</div>';
+
+    function renderEmpty(query) {
+      out.innerHTML = '<p class="search-empty">"' + esc(query) + '"에 대한 결과가 없습니다. 아래 서비스는 어떠세요?</p>' + SVC;
+    }
+
+    // ── 최근 검색어(localStorage) ──
+    function getRecent() { try { return JSON.parse(localStorage.getItem(RKEY) || '[]'); } catch { return []; } }
+    function saveRecent(q) {
+      if (!q) return;
+      let r = getRecent().filter((x) => x !== q);
+      r.unshift(q);
+      r = r.slice(0, 6);
+      try { localStorage.setItem(RKEY, JSON.stringify(r)); } catch {}
+    }
+    function renderRecent() {
+      const box = document.getElementById('search-recent');
+      if (!box) return;
+      const r = getRecent();
+      if (!r.length) { box.hidden = true; return; }
+      box.hidden = false;
+      box.querySelector('.search-recent__tags').innerHTML = r
+        .map((q) => '<button type="button" class="search-suggest__tag" data-q="' + esc(q) + '">' + esc(q) + '</button>')
         .join('');
     }
 
-    const clearBtn = document.getElementById('search-clear');
-    function updateClear() { clearBtn.style.display = input.value ? '' : 'none'; }
-    clearBtn.addEventListener('click', () => { input.value = ''; out.innerHTML = ''; updateClear(); input.focus(); });
-
-    const suggest = document.getElementById('search-suggest');
-    let t;
+    // ── 이벤트 ──
     input.addEventListener('input', () => {
       clearTimeout(t);
       updateClear();
-      if (suggest) suggest.hidden = !!input.value.trim();
-      t = setTimeout(() => render(input.value), 120);
+      if (!input.value.trim()) { suggest.hidden = false; renderRecent(); }
+      t = setTimeout(() => doSearch(input.value), 120);
     });
 
-    // 인기 주제 태그 클릭
-    document.querySelectorAll('.search-suggest__tag').forEach(btn => {
-      btn.addEventListener('click', () => {
-        input.value = btn.dataset.q;
-        if (suggest) suggest.hidden = true;
+    clearBtn.addEventListener('click', () => {
+      input.value = '';
+      out.innerHTML = '';
+      suggest.hidden = false;
+      renderRecent();
+      updateClear();
+      syncURL('');
+      input.focus();
+    });
+
+    // 카테고리 필터(결과 영역 위임)
+    out.addEventListener('click', (e) => {
+      const chip = e.target.closest('.search-filter__chip');
+      if (!chip) return;
+      e.preventDefault();
+      activeCat = chip.dataset.cat || null;
+      kbdIdx = -1;
+      renderResults(currentTokens(), input.value);
+    });
+
+    // 인기/최근 태그(추천 영역 위임)
+    suggest.addEventListener('click', (e) => {
+      const tag = e.target.closest('.search-suggest__tag');
+      if (tag) {
+        input.value = tag.dataset.q;
+        suggest.hidden = true;
         updateClear();
-        render(input.value);
+        doSearch(input.value);
         input.focus();
-      });
+        return;
+      }
+      if (e.target.closest('#search-recent-clear')) {
+        try { localStorage.removeItem(RKEY); } catch {}
+        renderRecent();
+      }
+    });
+
+    // 키보드 내비게이션
+    function updateKbd(items) {
+      items.forEach((el, i) => el.classList.toggle('is-kbd', i === kbdIdx));
+      if (items[kbdIdx]) items[kbdIdx].scrollIntoView({ block: 'nearest' });
+    }
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { clearBtn.click(); return; }
+      const items = [...out.querySelectorAll('.search-result')];
+      if (!items.length) return;
+      if (e.key === 'ArrowDown') { e.preventDefault(); kbdIdx = Math.min(kbdIdx + 1, items.length - 1); updateKbd(items); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); kbdIdx = Math.max(kbdIdx - 1, 0); updateKbd(items); }
+      else if (e.key === 'Enter' && kbdIdx >= 0 && items[kbdIdx]) { location.href = items[kbdIdx].getAttribute('href'); }
     });
   </script>
-
-  <style>
-    .search-suggest { margin-top: 2rem; }
-    .search-suggest__title { font-size: 0.85rem; font-weight: 600; color: var(--muted); margin: 0 0 0.8rem; }
-    .search-suggest__tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-    .search-suggest__tag {
-      padding: 0.45rem 0.9rem; border: 1px solid var(--line); border-radius: 20px;
-      background: var(--paper); font: inherit; font-size: 0.85rem; font-weight: 500;
-      color: var(--ink-soft); cursor: pointer; transition: all 0.12s;
-    }
-    .search-suggest__tag:hover { border-color: var(--accent); color: var(--accent); }
-  </style>
 </BaseLayout>

@@ -3,9 +3,8 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/PostCard.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
-import BriefSubscribe from '../../components/BriefSubscribe.astro';
 import DuoIcon from '../../components/DuoIcon.astro';
-import { CATEGORIES, type CategorySlug } from '../../consts';
+import { CATEGORIES, type CategorySlug, VAPID_PUBLIC_KEY } from '../../consts';
 const SU = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
 const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
 
@@ -41,24 +40,52 @@ const todayAudio = today ? !!today.data.audio : false;
           매일 아침 브리핑 받기
         </span>
         <div class="brief-subbar__toggles">
-          <button type="button" class="brief-tog" id="brief-push-switch" role="switch" aria-checked="false" aria-label="푸시 알림">
+          <button type="button" class="brief-tog" id="brief-push-switch" role="switch" aria-checked="false" aria-label="푸시 알림 받기">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
             <span>푸시</span>
           </button>
-          <button type="button" class="brief-tog" id="brief-email-switch" role="switch" aria-checked="false" aria-label="이메일">
+          <button type="button" class="brief-tog" id="brief-email-switch" aria-haspopup="dialog" aria-label="이메일로 받기">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
             <span>이메일</span>
           </button>
         </div>
       </div>
-      <form class="brief-sub__email" id="brief-email-form" hidden>
-        <input type="email" name="email" required placeholder="이메일 주소" aria-label="이메일 주소" />
-        <input type="text" name="hp" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
-        <button type="submit">신청하기</button>
-      </form>
-      <p class="brief-email-status" id="brief-email-status" role="status" aria-live="polite"></p>
-      <div class="brief-sub__cta-host"><BriefSubscribe /></div>
     </section>
+
+    <!-- 이메일 신청 바텀시트 -->
+    <div class="brief-sheet" id="brief-email-sheet" hidden>
+      <div class="brief-sheet__backdrop" data-close></div>
+      <div class="brief-sheet__panel" role="dialog" aria-modal="true" aria-labelledby="brief-email-h">
+        <button class="brief-sheet__x" type="button" data-close aria-label="닫기">×</button>
+        <span class="brief-sheet__ic" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+        </span>
+        <h3 id="brief-email-h">이메일로 브리핑 받기</h3>
+        <p class="brief-sheet__desc">매일 아침, 핵심만 담아 메일로 보내드려요. 광고 없이 무료예요.</p>
+        <form class="brief-sub__email" id="brief-email-form">
+          <input type="email" name="email" required placeholder="이메일 주소" aria-label="이메일 주소" />
+          <input type="text" name="hp" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
+          <button type="submit">신청하기</button>
+        </form>
+        <p class="brief-email-status" id="brief-email-status" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+
+    <!-- 푸시: iOS 설치 안내 + 토스트 -->
+    <div class="ios-guide" id="brief-ios-guide" hidden>
+      <div class="ios-guide__panel">
+        <button class="ios-guide__x" type="button" id="brief-ios-x" aria-label="닫기">×</button>
+        <h3>iPhone은 먼저 홈 화면에 추가</h3>
+        <ol>
+          <li><b>Safari</b>로 이 페이지를 열어주세요</li>
+          <li>하단 <b>공유</b> 버튼을 눌러주세요</li>
+          <li><b>홈 화면에 추가</b>를 선택해주세요</li>
+          <li>추가된 앱에서 다시 <b>푸시</b>를 누르면 알림이 켜져요</li>
+        </ol>
+        <p class="ios-guide__tip">iOS는 홈 화면에 추가한 앱에서만 알림을 받을 수 있어요(16.4 이상).</p>
+      </div>
+    </div>
+    <div class="brief-toast" id="brief-toast" role="status" aria-live="polite"></div>
 
     {today && (
       <section class="brief-section">
@@ -199,18 +226,44 @@ const todayAudio = today ? !!today.data.audio : false;
   .brief-tog svg { width: 1.05rem; height: 1.05rem; flex: none; }
   .brief-tog:hover { border-color: var(--accent); }
   .brief-tog[aria-checked="true"] { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
-  .brief-sub__email { display: flex; gap: 0.5rem; margin-top: 0.6rem; }
-  .brief-sub__email[hidden] { display: none; }
-  .brief-sub__email input[type="email"] { flex: 1; padding: 0.78rem 0.9rem; border: 1px solid var(--line); border-radius: 11px; font-size: 16px; background: var(--paper-2); color: var(--ink); min-width: 0; }
+  /* 이메일 신청 폼(바텀시트 내부) */
+  .brief-sub__email { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 1rem; }
+  .brief-sub__email input[type="email"] { padding: 0.85rem 0.95rem; border: 1px solid var(--line); border-radius: 12px; font-size: 16px; background: var(--paper-2); color: var(--ink); min-width: 0; }
   .brief-sub__email input[type="email"]:focus { outline: none; border-color: var(--accent); }
   .brief-sub__email .hp { display: none; }
-  .brief-sub__email button { flex: none; padding: 0.78rem 1.15rem; border: none; background: var(--accent); color: #fff; font-size: 0.9rem; font-weight: 700; cursor: pointer; border-radius: 11px; transition: filter 0.15s; }
+  .brief-sub__email button { padding: 0.9rem 1.15rem; border: none; background: var(--accent); color: #fff; font-size: 0.95rem; font-weight: 700; cursor: pointer; border-radius: 12px; transition: filter 0.15s; }
   .brief-sub__email button:hover { filter: brightness(1.1); }
-  .brief-email-status { margin: 0.55rem 0 0; font-size: 0.8rem; color: var(--muted); }
+  .brief-sub__email button:disabled { opacity: 0.6; cursor: default; }
+  .brief-email-status { margin: 0.7rem 0 0; font-size: 0.85rem; color: var(--muted); text-align: center; }
   .brief-email-status:empty { display: none; }
   .brief-email-status.is-ok { color: #22c55e; }
   .brief-email-status.is-err { color: #ef4444; }
-  .brief-sub__cta-host #brief-cta { display: none; }
+
+  /* 이메일 신청 바텀시트 */
+  .brief-sheet { position: fixed; inset: 0; z-index: 400; display: flex; align-items: flex-end; justify-content: center; background: rgba(0,0,0,0.5); }
+  .brief-sheet[hidden] { display: none; }
+  .brief-sheet__backdrop { position: absolute; inset: 0; }
+  .brief-sheet__panel { position: relative; width: 100%; max-width: 27rem; background: var(--paper); color: var(--ink); border-radius: 20px 20px 0 0; padding: 1.7rem 1.4rem calc(1.6rem + env(safe-area-inset-bottom)); box-shadow: 0 -10px 40px rgba(0,0,0,0.16); }
+  .brief-sheet__x { position: absolute; top: 0.7rem; right: 0.9rem; background: none; border: 0; font-size: 1.6rem; line-height: 1; color: var(--muted); cursor: pointer; }
+  .brief-sheet__ic { display: inline-flex; align-items: center; justify-content: center; width: 2.9rem; height: 2.9rem; border-radius: 50%; background: var(--accent-soft); color: var(--accent); margin-bottom: 0.7rem; }
+  .brief-sheet__ic svg { width: 1.4rem; height: 1.4rem; }
+  .brief-sheet__panel h3 { font-family: var(--font-serif); font-size: 1.25rem; margin: 0 0 0.4rem; color: var(--ink); }
+  .brief-sheet__desc { margin: 0; font-size: 0.92rem; line-height: 1.5; color: var(--ink-soft); }
+  @media (min-width: 640px) { .brief-sheet { align-items: center; padding: 1rem; } .brief-sheet__panel { border-radius: 20px; } }
+
+  /* 푸시 iOS 안내 + 토스트 (BriefSubscribe에서 이관) */
+  .ios-guide { position: fixed; inset: 0; z-index: 400; display: flex; align-items: flex-end; justify-content: center; background: rgba(0,0,0,0.55); }
+  .ios-guide[hidden] { display: none; }
+  .ios-guide__panel { position: relative; width: 100%; max-width: 26rem; background: var(--paper); color: var(--ink); border-radius: 18px 18px 0 0; padding: 1.6rem 1.4rem calc(1.6rem + env(safe-area-inset-bottom)); }
+  .ios-guide__x { position: absolute; top: 0.7rem; right: 0.9rem; background: none; border: 0; font-size: 1.6rem; line-height: 1; color: var(--muted); cursor: pointer; }
+  .ios-guide__panel h3 { font-family: var(--font-serif); font-size: 1.2rem; margin: 0 0 1rem; color: var(--ink); }
+  .ios-guide__panel ol { margin: 0; padding-left: 1.2rem; display: grid; gap: 0.55rem; color: var(--ink-soft); font-size: 0.96rem; line-height: 1.5; }
+  .ios-guide__panel b { color: var(--accent); }
+  .ios-guide__tip { margin: 1rem 0 0; font-size: 0.82rem; color: var(--muted); }
+  @media (min-width: 640px) { .ios-guide { align-items: center; padding: 1rem; } .ios-guide__panel { border-radius: 18px; } }
+
+  .brief-toast { position: fixed; left: 50%; bottom: 1.5rem; transform: translateX(-50%); z-index: 410; background: var(--ink); color: var(--paper); padding: 0.7rem 1.1rem; border-radius: 999px; font-size: 0.9rem; opacity: 0; transition: opacity .2s; pointer-events: none; max-width: calc(100vw - 2rem); text-align: center; }
+  .brief-toast.show { opacity: 1; }
 
   /* ── 왜 3분 브리핑 ── */
   .brief-why {
@@ -258,6 +311,7 @@ const todayAudio = today ? !!today.data.audio : false;
           f.reset();
           s.textContent = '완료! 매일 아침 메일로 보내드릴게요.';
           s.className = 'brief-email-status is-ok';
+          setTimeout(() => { const sheet = document.getElementById('brief-email-sheet'); if (sheet) sheet.hidden = true; s.textContent = ''; s.className = 'brief-email-status'; }, 1800);
         } else {
           const t = await r.text().catch(() => '');
           s.textContent = t.includes('duplicate') ? '이미 신청되어 있어요.' : '실패했습니다. 다시 시도해 주세요.';
@@ -274,25 +328,104 @@ const todayAudio = today ? !!today.data.audio : false;
 
 <script is:inline>
   (() => {
-    // 푸시 토글 → BriefSubscribe(#brief-cta) 구동 + 상태 반영
-    var pushSw = document.getElementById('brief-push-switch');
-    var cta = document.getElementById('brief-cta');
-    if (pushSw && cta) {
-      var syncPush = function () { pushSw.setAttribute('aria-checked', cta.classList.contains('is-on') ? 'true' : 'false'); };
-      new MutationObserver(syncPush).observe(cta, { attributes: true, attributeFilter: ['class'] });
-      setTimeout(syncPush, 300);
-      pushSw.addEventListener('click', function () { cta.click(); });
-    }
-    // 이메일 토글 → 폼 노출
+    // 이메일 토글 → 바텀시트 열기/닫기
     var emailSw = document.getElementById('brief-email-switch');
-    var form = document.getElementById('brief-email-form');
-    if (emailSw && form) {
-      emailSw.addEventListener('click', function () {
-        var on = emailSw.getAttribute('aria-checked') !== 'true';
-        emailSw.setAttribute('aria-checked', on ? 'true' : 'false');
-        form.hidden = !on;
-        if (on) { var inp = form.querySelector('input[type=email]'); if (inp) setTimeout(function () { inp.focus(); }, 60); }
-      });
+    var sheet = document.getElementById('brief-email-sheet');
+    if (!emailSw || !sheet) return;
+    var openSheet = function () {
+      sheet.hidden = false;
+      var inp = sheet.querySelector('input[type=email]');
+      if (inp) setTimeout(function () { inp.focus(); }, 60);
+    };
+    var closeSheet = function () { sheet.hidden = true; };
+    emailSw.addEventListener('click', openSheet);
+    sheet.querySelectorAll('[data-close]').forEach(function (el) { el.addEventListener('click', closeSheet); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !sheet.hidden) closeSheet(); });
+  })();
+</script>
+
+<script is:inline define:vars={{ VAPID_PUBLIC_KEY, SU, AK }}>
+  (() => {
+    // 푸시 토글 → Web Push 구독/해제 (BriefSubscribe 이벤트 프로세스 이관)
+    const sw = document.getElementById('brief-push-switch');
+    if (!sw || sw.dataset.bound) return;
+    sw.dataset.bound = '1';
+    const guide = document.getElementById('brief-ios-guide');
+    const toastEl = document.getElementById('brief-toast');
+    const toast = (m) => { if (!toastEl) return; toastEl.textContent = m; toastEl.classList.add('show'); setTimeout(() => toastEl.classList.remove('show'), 2600); };
+
+    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+    const supported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+
+    const b64ToU8 = (b64) => {
+      const pad = '='.repeat((4 - (b64.length % 4)) % 4);
+      const s = (b64 + pad).replace(/-/g, '+').replace(/_/g, '/');
+      const raw = atob(s);
+      return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
+    };
+    let subscribed = false;
+    const setOn = () => { subscribed = true; sw.setAttribute('aria-checked', 'true'); };
+    const setOff = () => { subscribed = false; sw.setAttribute('aria-checked', 'false'); };
+
+    (async () => {
+      if (!supported) return;
+      try { const reg = await navigator.serviceWorker.ready; const s = await reg.pushManager.getSubscription(); if (s && Notification.permission === 'granted') setOn(); else setOff(); } catch (e) {}
+    })();
+
+    async function subscribe() {
+      let reg; try { reg = await navigator.serviceWorker.ready; } catch (e) { toast('서비스워커 준비 안 됨'); return; }
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') { toast('알림 권한이 필요해요 (' + perm + ')'); return; }
+      let s;
+      try {
+        s = await reg.pushManager.getSubscription();
+        if (!s) s = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToU8(VAPID_PUBLIC_KEY) });
+      } catch (e) { toast('구독 생성 실패: ' + (e && e.message || e)); console.error('[push] subscribe', e); return; }
+      const j = s.toJSON();
+      if (!SU || !AK) { toast('구독 설정(env) 누락'); return; }
+      let res;
+      try {
+        res = await fetch(SU + '/rest/v1/rpc/subscribe_push', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', apikey: AK, Authorization: 'Bearer ' + AK },
+          body: JSON.stringify({ p_endpoint: j.endpoint, p_p256dh: j.keys.p256dh, p_auth: j.keys.auth }),
+        });
+      } catch (e) { toast('네트워크 오류로 저장 실패'); return; }
+      if (!res.ok) { toast('구독 저장 실패 (' + res.status + ')'); return; }
+      setOn();
+      toast('매일 브리핑 알림을 켰어요');
+    }
+
+    async function unsubscribe() {
+      let reg; try { reg = await navigator.serviceWorker.ready; } catch (e) { setOff(); return; }
+      const s = await reg.pushManager.getSubscription();
+      if (s) {
+        const ep = s.endpoint;
+        try { await s.unsubscribe(); } catch (e) {}
+        if (SU && AK) {
+          try { await fetch(SU + '/rest/v1/rpc/unsubscribe_push', { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: AK, Authorization: 'Bearer ' + AK }, body: JSON.stringify({ p_endpoint: ep }) }); } catch (e) {}
+        }
+      }
+      setOff();
+      toast('알림을 껐어요');
+    }
+
+    sw.addEventListener('click', async () => {
+      if (!supported) { toast('이 브라우저는 알림을 지원하지 않아요'); return; }
+      if (subscribed) { await unsubscribe(); return; }
+      if (isIOS && !standalone) { guide.hidden = false; return; }
+      if (!standalone && window.__deferredInstall) {
+        try { window.__deferredInstall.prompt(); await window.__deferredInstall.userChoice; } catch (e) {}
+        window.__deferredInstall = null;
+      }
+      await subscribe();
+    });
+
+    if (guide) {
+      const x = document.getElementById('brief-ios-x');
+      if (x) x.onclick = () => { guide.hidden = true; };
+      guide.onclick = (e) => { if (e.target === guide) guide.hidden = true; };
     }
   })();
 </script>

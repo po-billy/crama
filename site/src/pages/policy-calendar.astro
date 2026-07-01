@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import DuoIcon from '../components/DuoIcon.astro';
 import policyEvents from '../data/policy-events.json';
 
 const BASE_EVENTS = [
@@ -184,12 +185,12 @@ const faqLd = {
     <p class="svc-next-label">이제 뭘 할까요? <span>내 돈, 더 챙기러 가기</span></p>
     <div class="pc-cross">
       <a href="/benefits/" class="pc-cross__card">
-        <span class="pc-cross__icon">💰</span>
+        <span class="svc-ic"><DuoIcon name="benefits" /></span>
         <div><strong>내 혜택 찾기</strong><p>나에게 해당되는 지원금을 찾아보세요</p></div>
         <span class="pc-cross__arrow">→</span>
       </a>
       <a href="/checkup/" class="pc-cross__card">
-        <span class="pc-cross__icon">🩺</span>
+        <span class="svc-ic"><DuoIcon name="checkup" /></span>
         <div><strong>재무 건강 체크업</strong><p>내 돈 관리 상태를 진단받아 보세요</p></div>
         <span class="pc-cross__arrow">→</span>
       </a>

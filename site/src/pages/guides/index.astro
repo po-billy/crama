@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/PostCard.astro';
+import DuoIcon from '../../components/DuoIcon.astro';
 import { PILLARS, GUIDE_EXTRA, CATEGORIES, type CategorySlug } from '../../consts';
 
 const all = (await getCollection('blog')).filter((p) => !p.data.draft);
@@ -37,17 +38,17 @@ const guides = slugs
       <h2>가이드를 읽었다면, 직접 해보세요</h2>
       <div class="guide-svc__grid">
         <a href="/benefits/" class="guide-svc__card">
-          <span class="guide-svc__icon">💰</span>
+          <span class="svc-ic"><DuoIcon name="benefits" /></span>
           <strong>내 혜택 찾기</strong>
           <p>나에게 해당되는 지원금·대출·공제를 3분 만에</p>
         </a>
         <a href="/checkup/" class="guide-svc__card">
-          <span class="guide-svc__icon">🩺</span>
+          <span class="svc-ic"><DuoIcon name="checkup" /></span>
           <strong>재무 건강 체크업</strong>
           <p>내 저축률·비상금·부채 상태를 5분 만에 진단</p>
         </a>
         <a href="/policy-calendar/" class="guide-svc__card">
-          <span class="guide-svc__icon">📅</span>
+          <span class="svc-ic"><DuoIcon name="calendar" /></span>
           <strong>정책 캘린더</strong>
           <p>놓치면 손해인 세금·지원금 마감일을 내 캘린더에</p>
         </a>

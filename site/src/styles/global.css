@@ -544,6 +544,9 @@ hr {
 }
 .welcome-goal:hover { border-color: var(--accent); background: var(--accent-soft); transform: translateY(-1px); color: var(--ink); }
 .welcome-goal__emoji { font-size: 1.5rem; flex: none; line-height: 1; }
+/* 서비스 아이콘 원형(카테고리 메뉴 스타일) — 이모지 대체 공용 */
+.svc-ic { flex: none; width: 2.7rem; height: 2.7rem; border-radius: 50%; background: var(--accent-soft); display: grid; place-items: center; }
+.svc-ic svg { width: 1.6rem; height: 1.6rem; display: block; }
 .welcome-goal__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.12rem; }
 .welcome-goal__body strong { font-size: 0.98rem; font-weight: 700; line-height: 1.25; }
 .welcome-goal__body small { font-size: 0.78rem; color: var(--muted); line-height: 1.3; }

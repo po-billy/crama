@@ -336,7 +336,11 @@ const faqLd = {
         // 목록 카드 클릭 → 달력에서 그 날짜 선택(데스크톱 인라인 / 모바일 시트 유지)
         $('pc-month-list').querySelectorAll('.pc-ev').forEach(function (el) {
           el.addEventListener('click', function (ev) {
-            if (ev.target.closest('a') || ev.target.closest('.pc-ev__check')) return; // 링크·체크박스는 그대로
+            if (ev.target.closest('a')) return; // 신청/확인·가이드 링크는 그대로
+            // 카드 전영역 클릭 → 연동 포함/제외 토글 (체크박스/라벨은 네이티브 토글)
+            var cb = el.querySelector('.pc-ev__check input');
+            if (cb && !ev.target.closest('.pc-ev__check')) { cb.checked = !cb.checked; cb.dispatchEvent(new Event('change', { bubbles: true })); }
+            // 해당 날짜 포커싱(달력·목록 하이라이트)은 유지
             var day = parseInt(el.dataset.day, 10);
             selDay = day;
             document.querySelectorAll('.pc-cell').forEach(function (b) { b.classList.toggle('is-sel', parseInt(b.dataset.d) === day); });
@@ -573,11 +577,12 @@ const faqLd = {
     .pc-list-open, .pc-month__handle, .pc-month__nav, .pc-month__close, .pc-month__refilter, .pc-listsheet-backdrop { display: none; }
 
     /* 일정 카드 (날짜별·이 달 공용) */
-    .pc-ev { padding: 0.9rem 1rem; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 0.6rem; background: var(--paper); display: flex; gap: 0.55rem; align-items: flex-start; }
+    .pc-ev { padding: 0.9rem 1rem; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 0.6rem; background: var(--paper); display: flex; gap: 0.6rem; align-items: flex-start; cursor: pointer; }
     .pc-ev__check { flex: none; margin-top: 0.1rem; }
-    .pc-ev__check input { width: 1.2rem; height: 1.2rem; accent-color: var(--accent); cursor: pointer; }
+    .pc-ev__check input { width: 1.25rem; height: 1.25rem; accent-color: var(--accent); cursor: pointer; }
     .pc-ev__main { flex: 1; min-width: 0; }
-    .pc-ev.is-excluded { opacity: 0.5; }
+    /* 제외(연동 안 함): 본문만 흐리게+취소선 — 포커스(is-daysel 액센트 테두리)와 구분 */
+    .pc-ev.is-excluded .pc-ev__main { opacity: 0.45; }
     .pc-ev.is-excluded .pc-ev__title { text-decoration: line-through; }
     .pc-ev.is-imp { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
     .pc-ev.is-daysel { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); background: var(--accent-soft); }

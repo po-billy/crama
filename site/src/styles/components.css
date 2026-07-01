@@ -415,6 +415,31 @@
   .hcircle__svg { width: 3rem; height: 3rem; }
 }
 
+/* 코어 서비스 — CTA 바로 아래 강조 3열(가장 중요한 서비스 승격) */
+.home-core { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.7rem; margin-top: 0.9rem; }
+.home-core__card {
+  position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 0.28rem;
+  padding: 1rem 1.1rem; border: 1px solid var(--line); border-radius: 12px;
+  background: var(--paper); text-decoration: none; color: var(--ink);
+  transition: transform .12s ease, border-color .12s ease, box-shadow .12s ease;
+}
+.home-core__card:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 12px 26px -18px rgba(0,0,0,.32); }
+.home-core__ic { width: 2.3rem; height: 2.3rem; }
+.home-core__label { font-size: 0.98rem; font-weight: 700; line-height: 1.25; }
+.home-core__desc { font-size: 0.8rem; color: var(--muted); line-height: 1.4; }
+.home-core__badge {
+  position: absolute; top: 0.85rem; right: 0.9rem;
+  background: color-mix(in srgb, #22c55e 16%, var(--paper)); color: #16a34a;
+  font-size: 0.6rem; font-weight: 800; letter-spacing: .02em; padding: 0.16rem 0.48rem; border-radius: 999px;
+}
+@media (max-width: 560px) {
+  .home-core { gap: 0.5rem; margin-top: 0.7rem; }
+  .home-core__card { padding: 0.9rem 0.5rem; align-items: center; text-align: center; gap: 0.4rem; }
+  .home-core__desc { display: none; }
+  .home-core__label { font-size: 0.8rem; }
+  .home-core__badge { top: 0.4rem; right: 0.4rem; }
+}
+
 /* 주목할 아티클 — 배너 아래 섹션(PC 2열) */
 .home-rank { margin-top: 2.2rem; }
 @media (min-width: 1024px) {

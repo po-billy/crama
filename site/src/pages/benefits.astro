@@ -413,7 +413,7 @@ const faqLd = {
               : b.applyMethod.indexOf('방문') !== -1
               ? '<span class="bf-card__ease bf-card__ease--visit">방문 필요</span>'
               : '') +
-            (b.deadline && b.deadline !== '상시' ? '<button class="bf-card__ical" type="button" data-title="' + b.name + '" data-date="' + b.deadline + '" title="캘린더에 추가">📅</button>' : '') +
+            (b.deadline && b.deadline !== '상시' ? '<button class="bf-card__ical" type="button" data-title="' + b.name + '" data-date="' + b.deadline + '" title="캘린더에 추가"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></button>' : '') +
             '<a class="bf-card__apply" href="' + b.applyUrl + '" target="_blank" rel="noopener">신청하기 →</a></div>' +
             (b.relatedSlug ? '<a class="bf-card__related" href="/blog/' + b.relatedSlug + '/">자세한 가이드 읽기 →</a>' : '') +
           '</div>';

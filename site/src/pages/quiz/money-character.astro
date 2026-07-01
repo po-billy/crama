@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import DuoIcon from '../../components/DuoIcon.astro';
 
 // 단계형 성향 테스트 — 각 선택지가 유형(key)에 점수를 더하고, 최다 득점 유형이 결과.
 // 유형명은 밈/드립, 동물은 이미지 표현 수단.
@@ -269,10 +270,10 @@ const marquee = [...resultKeys, ...resultKeys];
       <div style="margin-top:2rem;display:flex;flex-direction:column;gap:.5rem;">
         <p style="font-size:.85rem;font-weight:600;color:var(--muted);text-align:center;">내 돈, 더 챙겨볼까요?</p>
         <a href="/benefits/" style="display:flex;align-items:center;gap:.6rem;padding:.8rem 1rem;border:1px solid var(--line);border-radius:10px;text-decoration:none;color:var(--ink);transition:border-color .12s;font-size:.9rem;">
-          <span>💰</span><strong>내 혜택 찾기</strong><span style="margin-left:auto;color:var(--accent);font-weight:700;">→</span>
+          <span class="svc-ic"><DuoIcon name="benefits" /></span><strong>내 혜택 찾기</strong><span style="margin-left:auto;color:var(--accent);font-weight:700;">→</span>
         </a>
         <a href="/checkup/" style="display:flex;align-items:center;gap:.6rem;padding:.8rem 1rem;border:1px solid var(--line);border-radius:10px;text-decoration:none;color:var(--ink);transition:border-color .12s;font-size:.9rem;">
-          <span>🩺</span><strong>재무 건강 체크업</strong><span style="margin-left:auto;color:var(--accent);font-weight:700;">→</span>
+          <span class="svc-ic"><DuoIcon name="checkup" /></span><strong>재무 건강 체크업</strong><span style="margin-left:auto;color:var(--accent);font-weight:700;">→</span>
         </a>
       </div>
     </section>

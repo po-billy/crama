@@ -2,6 +2,7 @@
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import BottomNav from '../components/BottomNav.astro';
 import BackToTop from '../components/BackToTop.astro';
 import CookieConsent from '../components/CookieConsent.astro';
 import CalcEnhance from '../components/CalcEnhance.astro';
@@ -116,6 +117,7 @@ const { spa, footer = 'full', ...props } = Astro.props;
     </main>
     {footer === 'full' && <Footer />}
     {footer === 'slim' && <Footer variant="slim" />}
+    <BottomNav />
     <BackToTop />
     <CookieConsent />
     <CalcEnhance />

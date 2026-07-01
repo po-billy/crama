@@ -1,0 +1,77 @@
+---
+// 모바일 하단 탭바 (앱형 내비) — 모바일에서만 노출, 데스크톱 숨김.
+// 활성 탭은 SSR 경로 기준 + SPA 소프트내비 시 스크립트로 갱신.
+const path = Astro.url.pathname;
+const tabs = [
+  { href: '/', label: '홈', m: (p) => p === '/', icon: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/>' },
+  { href: '/briefing/', label: '브리핑', m: (p) => p.indexOf('/briefing') === 0, icon: '<rect x="4" y="4" width="16" height="16" rx="1.6"/><path d="M8 9h8M8 13h8M8 17h5"/>' },
+  { href: '/benefits/', label: '혜택', m: (p) => p.indexOf('/benefits') === 0, icon: '<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 14h1.5"/>' },
+  { href: '/policy-calendar/', label: '캘린더', m: (p) => p.indexOf('/policy-calendar') === 0, icon: '<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/>' },
+  { href: '/me/', label: '마이', m: (p) => p.indexOf('/me') === 0, icon: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6 8-6s8 2 8 6"/>' },
+];
+---
+<nav class="bottom-nav" aria-label="주요 메뉴">
+  {tabs.map((t) => (
+    <a
+      href={t.href}
+      class={`bottom-nav__tab${t.m(path) ? ' is-active' : ''}`}
+      aria-current={t.m(path) ? 'page' : undefined}
+      data-match={t.href}
+    >
+      <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" set:html={t.icon}></svg>
+      <span>{t.label}</span>
+    </a>
+  ))}
+</nav>
+
+<script is:inline>
+  // SPA 소프트내비 시 활성 탭 갱신
+  (() => {
+    function syncBNav() {
+      var p = location.pathname;
+      document.querySelectorAll('.bottom-nav__tab').forEach(function (a) {
+        var h = a.getAttribute('data-match');
+        var on = h === '/' ? p === '/' : p.indexOf(h) === 0;
+        a.classList.toggle('is-active', on);
+        if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+      });
+    }
+    if (!window.__bnavBound) { window.__bnavBound = true; document.addEventListener('astro:page-load', syncBNav); }
+    syncBNav();
+  })();
+</script>
+
+<style is:global>
+  .bottom-nav {
+    display: none;
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 48;
+    background: color-mix(in srgb, var(--paper) 92%, transparent);
+    -webkit-backdrop-filter: saturate(150%) blur(12px);
+    backdrop-filter: saturate(150%) blur(12px);
+    border-top: 1px solid var(--line);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  .bottom-nav__tab {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    padding: 0.42rem 0 0.34rem; min-height: 3.3rem;
+    color: var(--muted); text-decoration: none; font-size: 0.66rem; font-weight: 600;
+    -webkit-tap-highlight-color: transparent; transition: color 0.12s;
+  }
+  .bottom-nav__tab.is-active { color: var(--accent); }
+  .bottom-nav__tab svg { display: block; }
+
+  /* 모바일: 탭바 노출 + 바닥 고정요소 전부 탭바 위로 + 본문 하단 여백 */
+  @media (max-width: 768px) {
+    .bottom-nav { display: flex; }
+    body:not(.audio-active) { padding-bottom: calc(3.4rem + env(safe-area-inset-bottom, 0)); }
+    .back-to-top { bottom: calc(4.6rem + env(safe-area-inset-bottom, 0)) !important; }
+    .fshare { bottom: calc(8.2rem + env(safe-area-inset-bottom, 0)) !important; }
+    .vfab { bottom: calc(4.4rem + env(safe-area-inset-bottom, 0)) !important; }
+    .cookie-card { bottom: calc(4.2rem + env(safe-area-inset-bottom, 0)) !important; }
+    .social-proof { bottom: calc(8rem + env(safe-area-inset-bottom, 0)) !important; }
+    /* 서비스 위저드의 sticky '다음' 푸터도 탭바 위로 (가림 방지) */
+    .bf-flow__footer, .ck-flow__footer { bottom: calc(3.4rem + env(safe-area-inset-bottom, 0)); }
+  }
+  /* 오디오 재생 중엔 하단 오디오바가 자리 → 탭바 숨김 */
+  body.audio-active .bottom-nav { display: none; }
+</style>

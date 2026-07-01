@@ -124,9 +124,13 @@ const faqLd = {
     </section>
 
     <!-- ━━ 이 달 전체 일정 (별도 섹션) ━━ -->
-    <section class="pc-month">
+    <section class="pc-month" id="pc-month">
+      <div class="pc-month__handle" aria-hidden="true"></div>
       <div class="pc-month__head">
+        <button type="button" class="pc-month__nav" id="pc-m-prev" aria-label="이전 달">‹</button>
         <h2 class="pc-section-title" id="pc-month-title">이번 달 일정</h2>
+        <button type="button" class="pc-month__nav" id="pc-m-next" aria-label="다음 달">›</button>
+        <button type="button" class="pc-month__close" id="pc-list-close" aria-label="목록 닫기">✕</button>
         <button type="button" id="pc-ics-filtered" class="pc-month__ics" hidden>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
           이 조건만 캘린더에 담기
@@ -136,6 +140,14 @@ const faqLd = {
       <div class="pc-empty" id="pc-month-empty" hidden><p>이 달에는 조건에 맞는 일정이 없어요</p></div>
     </section>
     </div>
+
+    <!-- 모바일: 이 달 목록 바텀시트 트리거 + 배경 -->
+    <button type="button" class="pc-list-open" id="pc-list-open">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+      이 달 일정 <b id="pc-list-count">0</b>건 전체 보기
+      <span class="pc-list-open__arr" aria-hidden="true">›</span>
+    </button>
+    <div class="pc-listsheet-backdrop" id="pc-listsheet-backdrop"></div>
 
     <!-- ━━ 필터 바텀시트 모달 ━━ -->
     <div class="pc-sheet" id="pc-sheet" hidden>
@@ -275,21 +287,14 @@ const faqLd = {
       function selectDay(d) {
         selDay = d;
         document.querySelectorAll('.pc-cell').forEach(function (b) { b.classList.toggle('is-sel', parseInt(b.dataset.d) === d); });
-        // 데스크톱: 같은 정보라서 별도 섹션 대신 옆 목록에서 하이라이트
+        $('pc-day').hidden = true;
+        // 데스크톱: 옆 인라인 목록 하이라이트 / 모바일: 목록 바텀시트 열고 그 날 하이라이트
         if (isDesktop()) {
-          $('pc-day').hidden = true;
           highlightMonthDay(d);
-          return;
+        } else {
+          openListSheet();
+          setTimeout(function () { highlightMonthDay(d); }, 90);
         }
-        // 모바일: 선택한 날짜만 별도 강조 섹션으로
-        var evts = filtered().filter(function (e) { return e.month === gridMonth + 1 && e.day === d; });
-        $('pc-day-title').textContent = (gridMonth + 1) + '월 ' + d + '일' + (evts.length ? ' · ' + evts.length + '건' : '');
-        $('pc-day-list').innerHTML = evts.length
-          ? evts.map(evCard).join('')
-          : '<p class="pc-day__no">이 날에는 일정이 없어요. 점(•)이 있는 날짜를 눌러 보세요.</p>';
-        var sec = $('pc-day');
-        sec.hidden = false;
-        sec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
       function closeDay() {
         selDay = null;
@@ -303,20 +308,24 @@ const faqLd = {
         var m = gridMonth + 1;
         var evts = filtered().filter(function (e) { return e.month === m; }).sort(function (a, b) { return a.day - b.day; });
         $('pc-month-title').textContent = MK[gridMonth] + ' 전체 일정' + (evts.length ? ' (' + evts.length + '건)' : '');
+        var lc = $('pc-list-count'); if (lc) lc.textContent = evts.length;
         $('pc-month-list').innerHTML = evts.map(evCard).join('');
         $('pc-month-empty').hidden = evts.length > 0;
-        // 데스크톱: 목록 카드 클릭 → 달력에서 그 날짜 선택(양방향 크로스 하이라이트)
+        // 목록 카드 클릭 → 달력에서 그 날짜 선택(데스크톱 인라인 / 모바일 시트 유지)
         $('pc-month-list').querySelectorAll('.pc-ev').forEach(function (el) {
           el.addEventListener('click', function (ev) {
-            if (!isDesktop() || ev.target.closest('a')) return; // 링크 버튼은 그대로
-            selectDay(parseInt(el.dataset.day, 10));
+            if (ev.target.closest('a')) return; // 링크 버튼은 그대로
+            var day = parseInt(el.dataset.day, 10);
+            selDay = day;
+            document.querySelectorAll('.pc-cell').forEach(function (b) { b.classList.toggle('is-sel', parseInt(b.dataset.d) === day); });
+            highlightMonthDay(day);
           });
         });
-        // 필터/월 변경으로 목록을 다시 그렸을 때 선택 상태 유지(데스크톱)
-        if (isDesktop() && selDay != null) highlightMonthDay(selDay);
+        // 필터/월 변경으로 목록을 다시 그렸을 때 선택 상태 유지
+        if (selDay != null) highlightMonthDay(selDay);
       }
 
-      function refresh() { renderGrid(); renderMonthList(); if (selDay != null) selectDay(selDay); }
+      function refresh() { renderGrid(); renderMonthList(); }
 
       // ── 필터 바텀시트 ──
       function openSheet() { $('pc-sheet').hidden = false; document.body.style.overflow = 'hidden'; }
@@ -386,6 +395,44 @@ const faqLd = {
       renderGrid();
       renderMonthList();
       updateFilterUI();
+
+      // ── 모바일: 이 달 목록 바텀시트(좌우 월 이동) ──
+      function openListSheet() {
+        if (isDesktop()) return;
+        $('pc-month').classList.add('is-open');
+        $('pc-listsheet-backdrop').classList.add('is-open');
+        document.body.style.overflow = 'hidden';
+      }
+      function closeListSheet() {
+        $('pc-month').classList.remove('is-open');
+        $('pc-listsheet-backdrop').classList.remove('is-open');
+        document.body.style.overflow = '';
+      }
+      function sheetMonth(delta) {
+        gridMonth = Math.min(11, Math.max(0, gridMonth + delta));
+        selDay = null;
+        document.querySelectorAll('.pc-cell').forEach(function (b) { b.classList.remove('is-sel'); });
+        $('pc-day').hidden = true;
+        renderGrid(); renderMonthList();
+        var l = $('pc-month-list'); if (l) l.scrollTop = 0;
+      }
+      $('pc-list-open').addEventListener('click', function () { openListSheet(); });
+      $('pc-list-close').addEventListener('click', closeListSheet);
+      $('pc-listsheet-backdrop').addEventListener('click', closeListSheet);
+      $('pc-m-prev').addEventListener('click', function () { sheetMonth(-1); });
+      $('pc-m-next').addEventListener('click', function () { sheetMonth(1); });
+      // 시트 좌우 스와이프로 월 이동
+      (function () {
+        var sheet = $('pc-month'); if (!sheet) return;
+        var x0 = null, y0 = null;
+        sheet.addEventListener('touchstart', function (e) { var t = e.touches[0]; x0 = t.clientX; y0 = t.clientY; }, { passive: true });
+        sheet.addEventListener('touchend', function (e) {
+          if (x0 == null) return;
+          var t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0;
+          if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.4) sheetMonth(dx < 0 ? 1 : -1);
+          x0 = y0 = null;
+        }, { passive: true });
+      })();
     })();
   </script>
 
@@ -483,7 +530,8 @@ const faqLd = {
     .pc-month__ics { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; background: var(--accent); color: #fff; border: none; border-radius: 10px; padding: 0.62rem 1.05rem; font: inherit; font-size: 0.9rem; font-weight: 700; cursor: pointer; touch-action: manipulation; white-space: nowrap; min-height: 2.6rem; box-shadow: 0 6px 16px -6px rgba(0,0,0,0.28); transition: filter 0.12s, transform 0.12s; }
     .pc-month__ics:hover { filter: brightness(1.08); transform: translateY(-1px); }
     .pc-month__ics[hidden] { display: none; } /* display:inline-flex 가 [hidden] 을 덮지 않도록 */
-    @media (max-width: 560px) { .pc-month__ics { width: 100%; } }
+    /* 모바일 시트 전용 요소는 데스크톱에서 숨김(달력 자체 nav 사용) */
+    .pc-list-open, .pc-month__handle, .pc-month__nav, .pc-month__close, .pc-listsheet-backdrop { display: none; }
 
     /* 일정 카드 (날짜별·이 달 공용) */
     .pc-ev { padding: 0.9rem 1rem; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 0.6rem; background: var(--paper); }
@@ -556,7 +604,7 @@ const faqLd = {
     /* ── 데스크톱: 달력 | 이 달 목록 좌우 2단 (같은 정보 → 클릭 시 SELECTED 하이라이트) ── */
     @media (min-width: 769px) {
       .pc-board { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 1.6rem; align-items: start; }
-      .pc-board > .pc-cal { grid-column: 1; margin-bottom: 0; }
+      .pc-board > .pc-cal { grid-column: 1; margin-bottom: 0; position: sticky; top: 4.5rem; align-self: start; z-index: 5; }
       .pc-board > .pc-month { grid-column: 2; margin-bottom: 0; }
       .pc-board > .pc-day { display: none; } /* 데스크톱은 옆 목록 하이라이트로 대체 */
       .pc-month .pc-ev { cursor: pointer; }
@@ -575,6 +623,40 @@ const faqLd = {
     /* ── 반응형 ── */
     @media (max-width: 768px) {
       .pc-cross { grid-template-columns: 1fr; }
+
+      /* ── 이 달 목록 = 바텀시트 (좌우 월 이동) ── */
+      .pc-list-open {
+        display: flex; align-items: center; gap: 0.5rem; width: 100%;
+        margin: 0 0 0.4rem; padding: 0.9rem 1rem; border: 1px solid var(--line); border-radius: 12px;
+        background: var(--paper); color: var(--ink); font: inherit; font-size: 0.95rem; font-weight: 700;
+        cursor: pointer; touch-action: manipulation;
+      }
+      .pc-list-open > svg { color: var(--accent); flex: none; }
+      .pc-list-open b { color: var(--accent); }
+      .pc-list-open__arr { margin-left: auto; color: var(--muted); font-size: 1.2rem; }
+
+      .pc-month {
+        position: fixed; left: 0; right: 0; bottom: 0; z-index: 90; margin: 0;
+        max-height: 85vh; display: flex; flex-direction: column;
+        background: var(--paper); border-radius: 20px 20px 0 0;
+        box-shadow: 0 -8px 30px rgba(0,0,0,0.2);
+        transform: translateY(100%); transition: transform 0.28s cubic-bezier(.16,.84,.44,1);
+        padding: 0.4rem 1rem calc(1rem + env(safe-area-inset-bottom, 0));
+      }
+      .pc-month.is-open { transform: translateY(0); }
+      .pc-month__handle { display: block; width: 2.4rem; height: 0.28rem; background: var(--line); border-radius: 99px; margin: 0.3rem auto 0.7rem; flex: none; }
+      .pc-month__head { flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.3rem; flex: none; }
+      .pc-month__nav { display: grid; place-items: center; width: 2.3rem; height: 2.3rem; border: 1px solid var(--line); border-radius: 9px; background: none; color: var(--ink); font-size: 1.25rem; line-height: 1; cursor: pointer; flex: none; touch-action: manipulation; }
+      .pc-month__head #pc-month-title { flex: 1; text-align: center; font-size: 1.02rem; }
+      .pc-month__close { display: grid; place-items: center; width: 2.3rem; height: 2.3rem; border: none; background: none; color: var(--muted); font-size: 1.05rem; cursor: pointer; flex: none; touch-action: manipulation; }
+      .pc-month__ics { width: 100%; order: 10; margin-top: 0.15rem; }
+      .pc-month #pc-month-list { flex: 1; overflow-y: auto; margin-top: 0.5rem; -webkit-overflow-scrolling: touch; }
+
+      .pc-listsheet-backdrop {
+        display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 89;
+        opacity: 0; visibility: hidden; transition: opacity 0.22s;
+      }
+      .pc-listsheet-backdrop.is-open { opacity: 1; visibility: visible; }
     }
     @media (max-width: 480px) {
       .pc-page { padding: 0 0.6rem 2rem; }

@@ -158,6 +158,7 @@ const color = (c: string) => CAT_COLOR[c] || '#6c5ce7';
     .yp-mypicks:hover { text-decoration: underline; }
 
     .yp-card { position: relative; }
+    .yp-card[hidden] { display: none; }
     .yp-card__top { padding-right: 2.3rem; }
     .yp-save { position: absolute; top: 0.9rem; right: 0.9rem; width: 2rem; height: 2rem; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 50%; background: var(--paper); color: var(--muted); cursor: pointer; transition: all 0.12s; padding: 0; }
     .yp-save:hover { border-color: #e11d48; color: #e11d48; }

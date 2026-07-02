@@ -169,6 +169,11 @@
 .search-result p { color: var(--muted); font-size: 0.95rem; margin: 0; }
 .search-result .eyebrow { font-size: 0.7rem; }
 .search-result mark { background: var(--accent-soft); color: var(--accent); padding: 0 0.12em; border-radius: 3px; font-weight: 700; }
+.search-kind { display: inline-block; font-size: 0.62rem; font-weight: 800; color: #fff; background: var(--c, var(--accent)); padding: 0.1rem 0.42rem; border-radius: 4px; letter-spacing: 0.02em; vertical-align: middle; margin-right: 0.15rem; }
+.search-ext { color: var(--muted); font-size: 0.72rem; }
+
+/* home-saved-dday 등 hidden 배너가 display 규칙에 눌려 보이던 버그 방지 */
+.deadline-banner[hidden] { display: none !important; }
 
 /* 인기/최근 검색어 */
 .search-suggest { margin-top: 2rem; }

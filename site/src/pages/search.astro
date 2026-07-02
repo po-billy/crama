@@ -4,14 +4,20 @@ import { CATEGORIES } from '../consts';
 const catNames = Object.fromEntries(
   Object.values(CATEGORIES).map((c) => [c.slug, c.name]),
 );
-const POPULAR = ['청년도약계좌', 'ETF', '연말정산', '부업', 'AI 에이전트', '비상금', '절세', '프롬프트'];
+const KINDS = {
+  article: { label: '글', color: '#6c5ce7' },
+  youth: { label: '청년', color: '#06b6d4' },
+  welfare: { label: '복지', color: '#ec4899' },
+  benefit: { label: '혜택', color: '#10b981' },
+};
+const POPULAR = ['청년도약계좌', '월세 지원', 'ETF', '의료비', '창업 지원', '연말정산', '육아', '비상금'];
 ---
-<BaseLayout title="검색" description="Crama의 글을 검색하세요 — 주식·재테크와 AI 트렌드.">
+<BaseLayout title="검색" description="글·청년 정책·복지 서비스·혜택을 한 번에 검색하세요.">
   <div class="wrap">
     <header class="page-hero">
       <span class="eyebrow">Search</span>
       <h1>검색</h1>
-      <p>제목·설명·태그로 글을 찾습니다. <span class="search-hint">↑↓ 이동 · Enter 열기</span></p>
+      <p>글·청년 정책·복지·혜택을 한 번에 찾습니다. <span class="search-hint">↑↓ 이동 · Enter 열기</span></p>
     </header>
 
     <div class="search-box">
@@ -20,7 +26,7 @@ const POPULAR = ['청년도약계좌', 'ETF', '연말정산', '부업', 'AI 에�
         type="search"
         id="q"
         class="search-input"
-        placeholder="예: ETF, 배당, AI 에이전트, 프롬프트…"
+        placeholder="예: 월세 지원, 청년 창업, 의료비, ETF…"
         autocomplete="off"
         enterkeyhint="search"
         autofocus
@@ -47,31 +53,41 @@ const POPULAR = ['청년도약계좌', 'ETF', '연말정산', '부업', 'AI 에�
     </div>
   </div>
 
-  <script define:vars={{ catNames }}>
+  <script define:vars={{ catNames, KINDS }}>
     const input = document.getElementById('q');
     const out = document.getElementById('results');
     const suggest = document.getElementById('search-suggest');
     const clearBtn = document.getElementById('search-clear');
     const RKEY = 'crama:recent-search';
+    const KIND_ORDER = ['article', 'youth', 'welfare', 'benefit'];
     let data = [];
     let lastHits = [];
-    let activeCat = null;
+    let activeKind = null;
     let kbdIdx = -1;
     let t;
 
     const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-    fetch('/search.json')
-      .then((r) => r.json())
-      .then((d) => {
-        data = d.map((p, i) => ({ ...p, _i: i }));
-        const q = new URLSearchParams(location.search).get('q');
-        if (q) { input.value = q; updateClear(); doSearch(q); }
-        else renderRecent();
-      });
+    Promise.all([
+      fetch('/search.json').then((r) => r.json()).catch(() => []),
+      fetch('/search-services.json').then((r) => r.json()).catch(() => []),
+    ]).then(([articles, services]) => {
+      const arts = (articles || []).map((a) => ({
+        kind: 'article', title: a.title, description: a.description, tags: a.tags || [],
+        catLabel: catNames[a.category] || a.category, url: a.url, premium: a.premium, external: false,
+      }));
+      const svcs = (services || []).map((s) => ({
+        kind: s.kind, title: s.title, description: s.description, tags: s.tags || [],
+        catLabel: s.catLabel, url: s.url, external: !!s.external,
+      }));
+      data = arts.concat(svcs).map((p, i) => ({ ...p, _i: i }));
+      const q = new URLSearchParams(location.search).get('q');
+      if (q) { input.value = q; updateClear(); doSearch(q); }
+      else renderRecent();
+    });
 
-    // ── 랭킹: 제목 > 태그 > 설명, 구절 일치·제목 시작 가산, 최신 우선 타이브레이크 ──
+    // ── 랭킹: 제목 > 태그 > 설명, 구절 일치·제목 시작 가산, 등록순 타이브레이크 ──
     function scoreHit(p, tokens, phrase) {
       const title = (p.title || '').toLowerCase();
       const desc = (p.description || '').toLowerCase();
@@ -118,7 +134,7 @@ const POPULAR = ['청년도약계좌', 'ETF', '연말정산', '부업', 'AI 에�
         })
         .map((p) => ({ p, score: scoreHit(p, tokens, phrase) }))
         .sort((a, b) => b.score - a.score || a.p._i - b.p._i);
-      activeCat = null;
+      activeKind = null;
       renderResults(tokens, query);
       if (lastHits.length) saveRecent(q);
     }
@@ -130,16 +146,16 @@ const POPULAR = ['청년도약계좌', 'ETF', '연말정산', '부업', 'AI 에�
     function renderResults(tokens, query) {
       if (!lastHits.length) { renderEmpty(query); return; }
       const counts = {};
-      lastHits.forEach((h) => { counts[h.p.category] = (counts[h.p.category] || 0) + 1; });
-      const cats = Object.keys(counts);
-      const filtered = activeCat ? lastHits.filter((h) => h.p.category === activeCat) : lastHits;
+      lastHits.forEach((h) => { counts[h.p.kind] = (counts[h.p.kind] || 0) + 1; });
+      const kinds = KIND_ORDER.filter((k) => counts[k]);
+      const filtered = activeKind ? lastHits.filter((h) => h.p.kind === activeKind) : lastHits;
 
       let meta = '<div class="search-meta"><span class="search-count">결과 <b>' + filtered.length + '</b>개</span>';
-      if (cats.length > 1) {
+      if (kinds.length > 1) {
         meta += '<div class="search-filter">';
-        meta += '<button type="button" class="search-filter__chip' + (!activeCat ? ' is-on' : '') + '" data-cat="">전체 ' + lastHits.length + '</button>';
-        cats.forEach((c) => {
-          meta += '<button type="button" class="search-filter__chip' + (activeCat === c ? ' is-on' : '') + '" data-cat="' + esc(c) + '">' + esc(catNames[c] || c) + ' ' + counts[c] + '</button>';
+        meta += '<button type="button" class="search-filter__chip' + (!activeKind ? ' is-on' : '') + '" data-kind="">전체 ' + lastHits.length + '</button>';
+        kinds.forEach((k) => {
+          meta += '<button type="button" class="search-filter__chip' + (activeKind === k ? ' is-on' : '') + '" data-kind="' + k + '" style="--c:' + KINDS[k].color + '">' + KINDS[k].label + ' ' + counts[k] + '</button>';
         });
         meta += '</div>';
       }
@@ -147,8 +163,9 @@ const POPULAR = ['청년도약계좌', 'ETF', '연말정산', '부업', 'AI 에�
 
       const list = filtered.map((h) => {
         const p = h.p;
-        return '<a class="search-result" href="' + p.url + '">' +
-          '<span class="eyebrow">' + esc(catNames[p.category] || p.category) + '</span>' +
+        const K = KINDS[p.kind] || KINDS.article;
+        return '<a class="search-result" href="' + esc(p.url) + '"' + (p.external ? ' target="_blank" rel="noopener"' : '') + '>' +
+          '<span class="eyebrow"><span class="search-kind" style="--c:' + K.color + '">' + K.label + '</span> ' + esc(p.catLabel || '') + (p.external ? ' <span class="search-ext">↗</span>' : '') + '</span>' +
           '<h3>' + highlight(p.title, tokens) + (p.premium ? '<span class="premium-tag">멤버십</span>' : '') + '</h3>' +
           '<p>' + highlight(p.description, tokens) + '</p>' +
         '</a>';
@@ -159,8 +176,8 @@ const POPULAR = ['청년도약계좌', 'ETF', '연말정산', '부업', 'AI 에�
 
     const SVC = '<div class="search-empty__svc">' +
       '<a href="/benefits/"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><defs><linearGradient id="sb" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse"><stop stop-color="#10b981"/><stop offset="1" stop-color="#22c55e"/></linearGradient></defs><circle cx="12" cy="12" r="9" fill="url(#sb)"/><path d="M8.5 12.5l2 2 5-5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><strong>내 혜택 찾기</strong></a>' +
-      '<a href="/checkup/"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><defs><linearGradient id="sc" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse"><stop stop-color="#f59e0b"/><stop offset="1" stop-color="#ef4444"/></linearGradient></defs><rect x="5" y="3" width="14" height="18" rx="3.5" fill="url(#sc)"/><path d="M9 9h6M9 12.5h4" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg><strong>재무 체크업</strong></a>' +
-      '<a href="/policy-calendar/"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><defs><linearGradient id="sd" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse"><stop stop-color="#3b82f6"/><stop offset="1" stop-color="#6366f1"/></linearGradient></defs><rect x="4" y="5" width="16" height="14" rx="3" fill="url(#sd)"/><path d="M8 3v3.5M16 3v3.5M4 9.5h16" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><g fill="#fff"><circle cx="9" cy="13" r="1.1"/><circle cx="12" cy="13" r="1.1"/><circle cx="15" cy="13" r="1.1"/></g></svg><strong>정책 캘린더</strong></a>' +
+      '<a href="/youth/"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><defs><linearGradient id="sy" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse"><stop stop-color="#06b6d4"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs><circle cx="12" cy="8" r="3.8" fill="url(#sy)"/><path d="M5 20c0-3.7 3.2-6 7-6s7 2.3 7 6" fill="url(#sy)"/></svg><strong>청년 정책</strong></a>' +
+      '<a href="/welfare/"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><defs><linearGradient id="sw" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse"><stop stop-color="#ec4899"/><stop offset="1" stop-color="#f43f5e"/></linearGradient></defs><rect x="3" y="3" width="18" height="18" rx="6" fill="url(#sw)"/><path d="M12 17.2s-3.9-2.5-3.9-5.1c0-1.45 1.05-2.35 2.15-2.35.85 0 1.45.48 1.75.98.3-.5.9-.98 1.75-.98 1.1 0 2.15.9 2.15 2.35 0 2.6-3.9 5.1-3.9 5.1z" fill="#fff"/></svg><strong>복지 서비스</strong></a>' +
     '</div>';
 
     function renderEmpty(query) {
@@ -205,12 +222,12 @@ const POPULAR = ['청년도약계좌', 'ETF', '연말정산', '부업', 'AI 에�
       input.focus();
     });
 
-    // 카테고리 필터(결과 영역 위임)
+    // 종류 필터(결과 영역 위임)
     out.addEventListener('click', (e) => {
       const chip = e.target.closest('.search-filter__chip');
       if (!chip) return;
       e.preventDefault();
-      activeCat = chip.dataset.cat || null;
+      activeKind = chip.dataset.kind || null;
       kbdIdx = -1;
       renderResults(currentTokens(), input.value);
     });

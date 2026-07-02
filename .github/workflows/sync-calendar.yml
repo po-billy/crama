@@ -31,15 +31,21 @@ jobs:
           BIZINFO_KEY: ${{ secrets.BIZINFO_KEY }}
         run: node sync-policies.js
 
+      - name: 온통청년 정책 수집 → youth-policies.json
+        working-directory: automation
+        env:
+          ONTONG_YOUTH_KEY: ${{ secrets.ONTONG_YOUTH_KEY }}
+        run: node sync-youth.js
+
       - name: 변경 시에만 커밋·푸시
         run: |
           git config user.name "crama-bot"
           git config user.email "bot@crama.app"
-          git add site/src/data/policy-events.json
+          git add site/src/data/policy-events.json site/src/data/youth-policies.json
           if git diff --cached --quiet; then
             echo "변경 없음 — 커밋 스킵"
           else
-            git commit -m "chore(calendar): 청약 일정 자동 갱신 ($(date -u +%F))"
+            git commit -m "chore(data): 공공 API 자동 갱신 — 청약·청년정책 ($(date -u +%F))"
             git pull --rebase --autostash origin main || true
             git push
             echo "청약 일정 갱신 커밋·푸시 완료"

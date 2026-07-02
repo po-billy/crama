@@ -85,6 +85,7 @@ export const NAV: NavItem[] = [
     { label: '내 혜택 찾기', href: '/benefits/', icon: 'benefits' },
     { label: '재무 건강 체크업', href: '/checkup/', icon: 'checkup' },
     { label: '정책 캘린더', href: '/policy-calendar/', icon: 'calendar' },
+    { label: '청년 정책', href: '/youth/', icon: 'youth' },
     { label: '금융 계산기', href: '/tools/', icon: 'calc' },
   ]},
   { label: '쇼츠·칼럼', href: '/shorts/', children: [

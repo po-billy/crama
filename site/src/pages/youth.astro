@@ -1,0 +1,189 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import youth from '../data/youth-policies.json';
+
+const policies = (youth.policies || []) as any[];
+const generatedAt: string = youth.generatedAt || '';
+const total = policies.length;
+
+// 대분류(온통청년 표준 5분류) + 색상
+const CAT_COLOR: Record<string, string> = {
+  '일자리': '#3b82f6',
+  '주거': '#10b981',
+  '교육･직업훈련': '#8b5cf6',
+  '금융･복지･문화': '#f59e0b',
+  '참여･기반': '#f43f5e',
+};
+const catCount: Record<string, number> = {};
+policies.forEach((p) => { catCount[p.cat] = (catCount[p.cat] || 0) + 1; });
+const cats = Object.keys(CAT_COLOR).filter((c) => catCount[c]);
+const color = (c: string) => CAT_COLOR[c] || '#6c5ce7';
+---
+<BaseLayout
+  title="청년 정책 모아보기 — 일자리·주거·교육 지원"
+  description={`전국 청년 정책 ${total}개를 한곳에. 일자리·주거·교육·금융·복지 지원사업을 분류·검색으로 빠르게 찾고 바로 신청하세요. 출처: 온통청년(기준일 ${generatedAt}).`}
+>
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">Youth</span>
+      <h1>청년 정책 모아보기</h1>
+      <p>일자리·주거·교육·금융·복지까지, 전국 청년 지원 <b>{total}개</b>를 한곳에서 찾고 바로 신청하세요.</p>
+      <p class="yp-fresh">기준일 {generatedAt} · 출처 <a href="https://www.youthcenter.go.kr/" target="_blank" rel="noopener">온통청년</a> · 매일 자동 갱신</p>
+    </header>
+
+    <div class="yp-filters" id="yp-filters" role="tablist" aria-label="정책 분류">
+      <button type="button" class="yp-chip is-on" data-cat="">전체 {total}</button>
+      {cats.map((c) => (
+        <button type="button" class="yp-chip" data-cat={c} style={`--c:${color(c)}`}>{c} {catCount[c]}</button>
+      ))}
+    </div>
+
+    <div class="yp-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="search" id="yp-q" placeholder="정책명·기관·키워드 검색 (예: 월세, 창업, 자격증)" autocomplete="off" />
+    </div>
+
+    <p class="yp-count" id="yp-count"></p>
+
+    <div class="yp-grid" id="yp-grid">
+      {policies.map((p) => (
+        <article class="yp-card" data-cat={p.cat} data-q={`${p.name} ${p.org} ${p.keywords} ${p.sub}`.toLowerCase()}>
+          <div class="yp-card__top">
+            <span class="yp-card__cat" style={`--c:${color(p.cat)}`}>{p.cat}</span>
+            {p.minAge && <span class="yp-card__age">{p.minAge}~{p.maxAge}세</span>}
+          </div>
+          <h3 class="yp-card__title">{p.name}</h3>
+          {p.summary && <p class="yp-card__desc">{p.summary}</p>}
+          <div class="yp-card__foot">
+            <span class="yp-card__org">{p.org || '청년정책'}</span>
+            {p.url
+              ? <a class="yp-card__link" href={p.url} target="_blank" rel="noopener">신청·자세히 →</a>
+              : <a class="yp-card__link yp-card__link--muted" href="https://www.youthcenter.go.kr/" target="_blank" rel="noopener">온통청년에서 보기 →</a>}
+          </div>
+        </article>
+      ))}
+    </div>
+
+    <div class="yp-empty" id="yp-empty" hidden>
+      <p>조건에 맞는 청년 정책이 없어요. 다른 키워드로 찾아보세요.</p>
+    </div>
+
+    <button type="button" class="yp-more" id="yp-more" hidden>더 보기</button>
+
+    <div class="yp-cross">
+      <p>더 넓게 찾고 싶다면</p>
+      <div class="yp-cross__row">
+        <a href="/benefits/">내 혜택 찾기 →</a>
+        <a href="/policy-calendar/">정책 캘린더 →</a>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const grid = document.getElementById('yp-grid');
+      if (!grid) return;
+      const cards = Array.prototype.slice.call(grid.querySelectorAll('.yp-card'));
+      const chips = Array.prototype.slice.call(document.querySelectorAll('.yp-chip'));
+      const q = document.getElementById('yp-q');
+      const countEl = document.getElementById('yp-count');
+      const moreBtn = document.getElementById('yp-more');
+      const emptyEl = document.getElementById('yp-empty');
+      const STEP = 60;
+      let activeCat = '';
+      let limit = STEP;
+
+      function apply() {
+        const ql = (q.value || '').trim().toLowerCase();
+        let matched = 0, shown = 0;
+        for (let i = 0; i < cards.length; i++) {
+          const c = cards[i];
+          const ok = (!activeCat || c.dataset.cat === activeCat) && (!ql || c.dataset.q.indexOf(ql) !== -1);
+          if (ok) {
+            matched++;
+            if (shown < limit) { c.hidden = false; shown++; } else { c.hidden = true; }
+          } else {
+            c.hidden = true;
+          }
+        }
+        countEl.textContent = matched ? matched + '개 정책' : '';
+        emptyEl.hidden = matched !== 0;
+        moreBtn.hidden = matched <= limit;
+      }
+
+      chips.forEach(function (chip) {
+        chip.addEventListener('click', function () {
+          chips.forEach(function (c) { c.classList.remove('is-on'); });
+          chip.classList.add('is-on');
+          activeCat = chip.dataset.cat || '';
+          limit = STEP;
+          apply();
+          document.querySelector('.yp-filters').scrollIntoView({ block: 'nearest' });
+        });
+      });
+      var t;
+      q.addEventListener('input', function () { clearTimeout(t); t = setTimeout(function () { limit = STEP; apply(); }, 120); });
+      moreBtn.addEventListener('click', function () { limit += STEP; apply(); });
+
+      apply();
+    })();
+  </script>
+
+  <style>
+    .page-hero .yp-fresh { font-size: 0.82rem; color: var(--muted); margin-top: 0.5rem; }
+    .page-hero .yp-fresh a { color: var(--accent); }
+
+    .yp-filters { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 1.6rem 0 0.9rem; }
+    .yp-chip {
+      padding: 0.45rem 0.9rem; border: 1px solid var(--line); border-radius: 999px;
+      background: var(--paper); font: inherit; font-size: 0.85rem; font-weight: 600;
+      color: var(--ink-soft); cursor: pointer; transition: all 0.12s;
+    }
+    .yp-chip:hover { border-color: var(--c, var(--accent)); color: var(--c, var(--accent)); }
+    .yp-chip.is-on { background: var(--c, var(--accent)); border-color: var(--c, var(--accent)); color: #fff; }
+
+    .yp-search { position: relative; max-width: 34rem; }
+    .yp-search svg { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); width: 1.1rem; height: 1.1rem; color: var(--muted); pointer-events: none; }
+    .yp-search input {
+      width: 100%; font: inherit; font-size: 1rem; padding: 0.75rem 1rem 0.75rem 2.6rem;
+      border: 1px solid var(--line); border-radius: 12px; background: var(--paper); color: var(--ink);
+    }
+    .yp-search input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+    .yp-count { font-size: 0.88rem; color: var(--muted); margin: 1rem 0 0.6rem; }
+    .yp-count:empty { display: none; }
+
+    .yp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: 0.9rem; }
+    .yp-card {
+      display: flex; flex-direction: column; gap: 0.5rem; padding: 1.1rem 1.2rem;
+      border: 1px solid var(--line); border-radius: 14px; background: var(--paper);
+      transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+    }
+    .yp-card:hover { transform: translateY(-2px); border-color: var(--c, var(--accent)); box-shadow: 0 12px 26px -18px rgba(0,0,0,0.3); }
+    .yp-card__top { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+    .yp-card__cat { font-size: 0.72rem; font-weight: 800; color: var(--c, var(--accent)); background: color-mix(in srgb, var(--c, var(--accent)) 12%, var(--paper)); padding: 0.2rem 0.55rem; border-radius: 999px; white-space: nowrap; }
+    .yp-card__age { font-size: 0.72rem; font-weight: 700; color: var(--muted); white-space: nowrap; }
+    .yp-card__title { font-size: 1rem; font-weight: 700; line-height: 1.35; margin: 0; }
+    .yp-card__desc { font-size: 0.85rem; color: var(--muted); line-height: 1.45; margin: 0;
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .yp-card__foot { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-top: auto; padding-top: 0.5rem; }
+    .yp-card__org { font-size: 0.76rem; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .yp-card__link { flex: none; font-size: 0.82rem; font-weight: 700; color: var(--accent); text-decoration: none; }
+    .yp-card__link:hover { text-decoration: underline; }
+    .yp-card__link--muted { color: var(--muted); font-weight: 600; }
+
+    .yp-empty { text-align: center; color: var(--muted); padding: 3rem 0; }
+    .yp-more {
+      display: block; margin: 1.6rem auto 0; padding: 0.7rem 1.6rem; border: 1px solid var(--line);
+      border-radius: 999px; background: var(--paper); font: inherit; font-weight: 700; color: var(--ink);
+      cursor: pointer; transition: border-color 0.12s;
+    }
+    .yp-more:hover { border-color: var(--accent); color: var(--accent); }
+
+    .yp-cross { margin: 2.6rem 0 1rem; padding-top: 1.6rem; border-top: 1px solid var(--line); text-align: center; }
+    .yp-cross p { font-size: 0.9rem; color: var(--muted); margin: 0 0 0.7rem; }
+    .yp-cross__row { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
+    .yp-cross__row a { font-size: 0.9rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--line); border-radius: 999px; }
+    .yp-cross__row a:hover { border-color: var(--accent); }
+  </style>
+</BaseLayout>

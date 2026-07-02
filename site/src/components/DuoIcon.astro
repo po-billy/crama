@@ -25,6 +25,7 @@ const G: Record<string, [string, string]> = {
   checkup:  ['#f59e0b', '#ef4444'],
   calendar: ['#3b82f6', '#6366f1'],
   youth:    ['#06b6d4', '#8b5cf6'],
+  brief:    ['#0ea5e9', '#6366f1'],
 };
 const [c1, c2] = G[name] ?? G.start;
 const gid = `di-${name}-${Math.random().toString(36).slice(2, 8)}`;
@@ -124,6 +125,11 @@ const u = `url(#${gid})`;
   {name === 'youth' && (<>
     <circle cx="12" cy="8" r="3.8" fill={u} />
     <path d="M5 20c0-3.7 3.2-6 7-6s7 2.3 7 6" fill={u} />
+  </>)}
+
+  {name === 'brief' && (<>
+    <rect x="4" y="4" width="16" height="16" rx="3" fill={u} />
+    <path d="M8 9h8M8 12.5h8M8 16h5" stroke="#fff" stroke-width="1.6" stroke-linecap="round" />
   </>)}
 
   {(name === 'start' || !G[name]) && (<>

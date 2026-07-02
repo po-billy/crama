@@ -7,7 +7,6 @@ import AdSlot from '../components/AdSlot.astro';
 import { SITE, CATEGORIES, EDITOR_PICKS, PILLARS, GUIDE_EXTRA } from '../consts';
 import AudioPicks from '../components/AudioPicks.astro';
 import Curations from '../components/Curations.astro';
-import BriefSubscribe from '../components/BriefSubscribe.astro';
 import DuoIcon from '../components/DuoIcon.astro';
 
 const posts = (await getCollection('blog'))
@@ -55,16 +54,12 @@ const slides = [
   { title: '내 돈 성향은<br />어떤 캐릭터일까', desc: '10가지 질문으로 보는 머니 캐릭터 테스트', href: '/quiz/money-character/', cta: '자세히 보기', panel: '#17151f', ink: '#ffffff', img: '/img/generated/rotator-quiz-hero.webp', imgMobile: '/img/generated/rotator-quiz-hero-m.webp' },
 ];
 
-// 코어 서비스 — CTA 바로 아래 강조 행(가장 중요: 혜택·진단·마감)
-const coreServices = [
-  { label: '내 혜택 찾기', desc: '조건 입력 → 받을 수 있는 지원금·복지', href: '/benefits/', name: 'benefits', badge: 'NEW' },
-  { label: '재무 체크업', desc: '3분 진단으로 내 돈 상태 점검', href: '/checkup/', name: 'checkup', badge: 'NEW' },
-  { label: '정책 캘린더', desc: '놓치면 손해인 신청·마감일 한눈에', href: '/policy-calendar/', name: 'calendar' },
-];
-
-// 배너 하단 원형 퀵메뉴 — 둘러보기(서비스·테스트·콘텐츠). 코어 서비스는 위 home-core로 승격
+// 배너 하단 원형 퀵메뉴 — 둘러보기(서비스·계정·구독·콘텐츠·테스트). 코어 서비스는 상단 home-cta로 승격
 const circles = [
   { label: '청년 정책', href: '/youth/', name: 'youth', badge: 'NEW' },
+  { label: '브리핑', href: '/briefing/', name: 'brief' },
+  { label: '크라미', href: '/me/', name: 'start' },
+  { label: '오늘의 쇼츠', href: '/shorts/', name: 'shorts' },
   { label: '머니 캐릭터', href: '/quiz/money-character/', name: 'quiz' },
   { label: '빼꼼 투표', href: '/vote/', name: 'vote', badge: 'HOT' },
   { label: '투자 성향 진단', href: '/quiz/investor-type/', name: 'diagnose' },
@@ -149,31 +144,26 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
       </section>
     </section>
     <div class="home-cta">
-      <a class="cta-card cta-card--main" href="/me/">
-        <DuoIcon name="start" class="cta-card__ic" />
-        <span class="cta-card__badge">크라미</span>
-        <b>읽은 만큼 쌓이는 재미, 크라미</b>
-        <span class="cta-card__sub">로그인하면 글 읽을 때마다 밀웜을 모아 나만의 크라미를 꾸밀 수 있어요. 콘텐츠는 계속 무료예요.</span>
-        <span class="cta-card__cta">크라미 시작하기 →</span>
+      <a class="cta-card cta-card--main" href="/benefits/">
+        <DuoIcon name="benefits" class="cta-card__ic" />
+        <span class="cta-card__badge cta-card__badge--new">NEW</span>
+        <b>내 혜택 찾기</b>
+        <span class="cta-card__sub">조건만 입력하면, 내가 받을 수 있는 지원금·복지를 한 번에 찾아드려요. 무료예요.</span>
+        <span class="cta-card__cta">3분 만에 확인하기 →</span>
       </a>
-      <BriefSubscribe />
-      <a class="cta-card cta-card--shorts" href="/shorts/">
-        <DuoIcon name="shorts" class="cta-card__ic" />
-        <b>오늘의 쇼츠 보기</b>
+      <a class="cta-card" href="/checkup/">
+        <DuoIcon name="checkup" class="cta-card__ic" />
+        <span class="cta-card__badge cta-card__badge--new">NEW</span>
+        <b>재무 체크업</b>
+        <span class="cta-card__sub">3분 진단으로 내 돈 상태 점검</span>
+      </a>
+      <a class="cta-card" href="/policy-calendar/">
+        <DuoIcon name="calendar" class="cta-card__ic" />
+        <b>정책 캘린더</b>
+        <span class="cta-card__sub">놓치면 손해인 신청·마감일</span>
       </a>
     </div>
     </div>
-
-    <section class="home-core" aria-label="핵심 서비스">
-      {coreServices.map((s) => (
-        <a class="home-core__card" href={s.href}>
-          <DuoIcon name={s.name} class="home-core__ic" />
-          <span class="home-core__label">{s.label}</span>
-          <span class="home-core__desc">{s.desc}</span>
-          {s.badge && <span class="home-core__badge">{s.badge}</span>}
-        </a>
-      ))}
-    </section>
 
     <nav class="home-circles" aria-label="바로가기">
       {circles.map((c) => (

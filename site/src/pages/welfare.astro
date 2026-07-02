@@ -1,0 +1,185 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import welfare from '../data/welfare-services.json';
+
+const services = (welfare.services || []) as any[];
+const generatedAt: string = welfare.generatedAt || '';
+const total = services.length;
+const onlineN: number = welfare.online || 0;
+
+const themeCount: Record<string, number> = {};
+services.forEach((s) => { if (s.theme) themeCount[s.theme] = (themeCount[s.theme] || 0) + 1; });
+const themes = Object.keys(themeCount).sort((a, b) => themeCount[b] - themeCount[a]);
+
+const PALETTE = ['#3b82f6', '#10b981', '#f59e0b', '#6366f1', '#14b8a6', '#8b5cf6', '#ec4899', '#f97316', '#22c55e', '#ef4444', '#06b6d4', '#64748b', '#f43f5e', '#a855f7'];
+const color = (t: string) => PALETTE[Math.max(0, themes.indexOf(t)) % PALETTE.length] || '#6c5ce7';
+---
+<BaseLayout
+  title="복지 서비스 모아보기 — 생계·의료·주거·돌봄 지원"
+  description={`중앙부처 복지 서비스 ${total}개를 한곳에. 생활지원·의료·주거·일자리·돌봄까지 주제별로 찾고 복지로에서 바로 신청하세요. 출처: 복지로·보건복지부(기준일 ${generatedAt}).`}
+>
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">Welfare</span>
+      <h1>복지 서비스 모아보기</h1>
+      <p>생계·의료·주거·일자리·돌봄까지, 중앙부처 복지 <b>{total}개</b>를 주제별로 찾고 바로 신청하세요.</p>
+      <p class="wf-fresh">기준일 {generatedAt} · 출처 <a href="https://www.bokjiro.go.kr/" target="_blank" rel="noopener">복지로</a> · 온라인 신청 {onlineN}건 · 매일 자동 갱신</p>
+    </header>
+
+    <div class="wf-filters" id="wf-filters" role="tablist" aria-label="복지 주제">
+      <button type="button" class="wf-chip is-on" data-theme="">전체 {total}</button>
+      {themes.map((t) => (
+        <button type="button" class="wf-chip" data-theme={t} style={`--c:${color(t)}`}>{t} {themeCount[t]}</button>
+      ))}
+    </div>
+
+    <div class="wf-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="search" id="wf-q" placeholder="복지명·부처·키워드 검색 (예: 의료비, 돌봄, 바우처)" autocomplete="off" />
+    </div>
+
+    <p class="wf-count" id="wf-count"></p>
+
+    <div class="wf-grid" id="wf-grid">
+      {services.map((s) => (
+        <article class="wf-card" data-theme={s.theme} data-q={`${s.name} ${s.ministry} ${s.summary} ${s.theme}`.toLowerCase()}>
+          <div class="wf-card__top">
+            <span class="wf-card__theme" style={`--c:${color(s.theme)}`}>{s.theme || '복지'}</span>
+            {s.online && <span class="wf-card__online">온라인 신청</span>}
+          </div>
+          <h3 class="wf-card__title">{s.name}</h3>
+          {s.summary && <p class="wf-card__desc">{s.summary}</p>}
+          <div class="wf-card__foot">
+            <span class="wf-card__org">{s.ministry}{s.cycle ? ` · ${s.cycle}` : ''}</span>
+            {s.url
+              ? <a class="wf-card__link" href={s.url} target="_blank" rel="noopener">자세히·신청 →</a>
+              : <a class="wf-card__link wf-card__link--muted" href="https://www.bokjiro.go.kr/" target="_blank" rel="noopener">복지로에서 보기 →</a>}
+          </div>
+        </article>
+      ))}
+    </div>
+
+    <div class="wf-empty" id="wf-empty" hidden>
+      <p>조건에 맞는 복지 서비스가 없어요. 다른 키워드로 찾아보세요.</p>
+    </div>
+
+    <button type="button" class="wf-more" id="wf-more" hidden>더 보기</button>
+
+    <div class="wf-cross">
+      <p>더 넓게 찾고 싶다면</p>
+      <div class="wf-cross__row">
+        <a href="/benefits/">내 혜택 찾기 →</a>
+        <a href="/youth/">청년 정책 →</a>
+        <a href="/policy-calendar/">정책 캘린더 →</a>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const grid = document.getElementById('wf-grid');
+      if (!grid) return;
+      const cards = Array.prototype.slice.call(grid.querySelectorAll('.wf-card'));
+      const chips = Array.prototype.slice.call(document.querySelectorAll('.wf-chip'));
+      const q = document.getElementById('wf-q');
+      const countEl = document.getElementById('wf-count');
+      const moreBtn = document.getElementById('wf-more');
+      const emptyEl = document.getElementById('wf-empty');
+      const STEP = 60;
+      let activeTheme = '';
+      let limit = STEP;
+
+      function apply() {
+        const ql = (q.value || '').trim().toLowerCase();
+        let matched = 0, shown = 0;
+        for (let i = 0; i < cards.length; i++) {
+          const c = cards[i];
+          const ok = (!activeTheme || c.dataset.theme === activeTheme) && (!ql || c.dataset.q.indexOf(ql) !== -1);
+          if (ok) {
+            matched++;
+            if (shown < limit) { c.hidden = false; shown++; } else { c.hidden = true; }
+          } else {
+            c.hidden = true;
+          }
+        }
+        countEl.textContent = matched ? matched + '개 서비스' : '';
+        emptyEl.hidden = matched !== 0;
+        moreBtn.hidden = matched <= limit;
+      }
+
+      chips.forEach(function (chip) {
+        chip.addEventListener('click', function () {
+          chips.forEach(function (c) { c.classList.remove('is-on'); });
+          chip.classList.add('is-on');
+          activeTheme = chip.dataset.theme || '';
+          limit = STEP;
+          apply();
+          document.querySelector('.wf-filters').scrollIntoView({ block: 'nearest' });
+        });
+      });
+      var t;
+      q.addEventListener('input', function () { clearTimeout(t); t = setTimeout(function () { limit = STEP; apply(); }, 120); });
+      moreBtn.addEventListener('click', function () { limit += STEP; apply(); });
+
+      apply();
+    })();
+  </script>
+
+  <style>
+    .page-hero .wf-fresh { font-size: 0.82rem; color: var(--muted); margin-top: 0.5rem; }
+    .page-hero .wf-fresh a { color: var(--accent); }
+
+    .wf-filters { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 1.6rem 0 0.9rem; }
+    .wf-chip {
+      padding: 0.45rem 0.9rem; border: 1px solid var(--line); border-radius: 999px;
+      background: var(--paper); font: inherit; font-size: 0.85rem; font-weight: 600;
+      color: var(--ink-soft); cursor: pointer; transition: all 0.12s;
+    }
+    .wf-chip:hover { border-color: var(--c, var(--accent)); color: var(--c, var(--accent)); }
+    .wf-chip.is-on { background: var(--c, var(--accent)); border-color: var(--c, var(--accent)); color: #fff; }
+
+    .wf-search { position: relative; max-width: 34rem; }
+    .wf-search svg { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); width: 1.1rem; height: 1.1rem; color: var(--muted); pointer-events: none; }
+    .wf-search input {
+      width: 100%; font: inherit; font-size: 1rem; padding: 0.75rem 1rem 0.75rem 2.6rem;
+      border: 1px solid var(--line); border-radius: 12px; background: var(--paper); color: var(--ink);
+    }
+    .wf-search input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+    .wf-count { font-size: 0.88rem; color: var(--muted); margin: 1rem 0 0.6rem; }
+    .wf-count:empty { display: none; }
+
+    .wf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: 0.9rem; }
+    .wf-card {
+      display: flex; flex-direction: column; gap: 0.5rem; padding: 1.1rem 1.2rem;
+      border: 1px solid var(--line); border-radius: 14px; background: var(--paper);
+      transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+    }
+    .wf-card:hover { transform: translateY(-2px); border-color: var(--c, var(--accent)); box-shadow: 0 12px 26px -18px rgba(0,0,0,0.3); }
+    .wf-card__top { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+    .wf-card__theme { font-size: 0.72rem; font-weight: 800; color: var(--c, var(--accent)); background: color-mix(in srgb, var(--c, var(--accent)) 12%, var(--paper)); padding: 0.2rem 0.55rem; border-radius: 999px; white-space: nowrap; }
+    .wf-card__online { font-size: 0.68rem; font-weight: 700; color: #16a34a; background: color-mix(in srgb, #22c55e 14%, var(--paper)); padding: 0.2rem 0.5rem; border-radius: 999px; white-space: nowrap; }
+    .wf-card__title { font-size: 1rem; font-weight: 700; line-height: 1.35; margin: 0; }
+    .wf-card__desc { font-size: 0.85rem; color: var(--muted); line-height: 1.45; margin: 0;
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .wf-card__foot { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-top: auto; padding-top: 0.5rem; }
+    .wf-card__org { font-size: 0.76rem; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .wf-card__link { flex: none; font-size: 0.82rem; font-weight: 700; color: var(--accent); text-decoration: none; }
+    .wf-card__link:hover { text-decoration: underline; }
+    .wf-card__link--muted { color: var(--muted); font-weight: 600; }
+
+    .wf-empty { text-align: center; color: var(--muted); padding: 3rem 0; }
+    .wf-more {
+      display: block; margin: 1.6rem auto 0; padding: 0.7rem 1.6rem; border: 1px solid var(--line);
+      border-radius: 999px; background: var(--paper); font: inherit; font-weight: 700; color: var(--ink);
+      cursor: pointer; transition: border-color 0.12s;
+    }
+    .wf-more:hover { border-color: var(--accent); color: var(--accent); }
+
+    .wf-cross { margin: 2.6rem 0 1rem; padding-top: 1.6rem; border-top: 1px solid var(--line); text-align: center; }
+    .wf-cross p { font-size: 0.9rem; color: var(--muted); margin: 0 0 0.7rem; }
+    .wf-cross__row { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
+    .wf-cross__row a { font-size: 0.9rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--line); border-radius: 999px; }
+    .wf-cross__row a:hover { border-color: var(--accent); }
+  </style>
+</BaseLayout>

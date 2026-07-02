@@ -210,6 +210,7 @@ const faqLd = {
           const x = ev.target.closest('.bf-interest__x'); if (!x) return;
           const id = x.dataset.bfid;
           toggleInterest(id);
+          if (window.CramaSaved) window.CramaSaved.remove('benefit', id);
           renderInterestBar();
           const heart = document.querySelector('.bf-card__save[data-bfid="' + id + '"]');
           if (heart) { heart.classList.remove('is-on'); heart.setAttribute('aria-pressed', 'false'); }
@@ -523,6 +524,11 @@ const faqLd = {
           if (save) {
             var sid = save.dataset.bfid;
             var nowOn = toggleInterest(sid);
+            var bfRec = BENEFITS.filter(function (b) { return b.id === sid; })[0];
+            if (window.CramaSaved && bfRec) {
+              if (nowOn) window.CramaSaved.add({ type: 'benefit', id: bfRec.id, name: bfRec.name, url: bfRec.applyUrl, sub: (CATS[bfRec.category] && CATS[bfRec.category].name) || '혜택' });
+              else window.CramaSaved.remove('benefit', sid);
+            }
             save.classList.toggle('is-on', nowOn);
             save.setAttribute('aria-pressed', nowOn ? 'true' : 'false');
             renderInterestBar();

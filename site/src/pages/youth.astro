@@ -29,6 +29,7 @@ const color = (c: string) => CAT_COLOR[c] || '#6c5ce7';
       <h1>청년 정책 모아보기</h1>
       <p>일자리·주거·교육·금융·복지까지, 전국 청년 지원 <b>{total}개</b>를 한곳에서 찾고 바로 신청하세요.</p>
       <p class="yp-fresh">기준일 {generatedAt} · 출처 <a href="https://www.youthcenter.go.kr/" target="_blank" rel="noopener">온통청년</a> · 매일 자동 갱신</p>
+      <a class="yp-mypicks" href="/saved-picks/"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M12 21.23l-7.78-7.78-1.06-1.06a5.5 5.5 0 0 1 7.78-7.78L12 5.67l1.06-1.06a5.5 5.5 0 0 1 7.78 7.78l-1.06 1.06z"/></svg> 내 관심함 보기 →</a>
     </header>
 
     <div class="yp-filters" id="yp-filters" role="tablist" aria-label="정책 분류">
@@ -47,7 +48,8 @@ const color = (c: string) => CAT_COLOR[c] || '#6c5ce7';
 
     <div class="yp-grid" id="yp-grid">
       {policies.map((p) => (
-        <article class="yp-card" data-cat={p.cat} data-q={`${p.name} ${p.org} ${p.keywords} ${p.sub}`.toLowerCase()}>
+        <article class="yp-card" data-cat={p.cat} data-id={p.id} data-name={p.name} data-href={p.url || 'https://www.youthcenter.go.kr/'} data-q={`${p.name} ${p.org} ${p.keywords} ${p.sub}`.toLowerCase()}>
+          <button type="button" class="yp-save" aria-label="관심 저장" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
           <div class="yp-card__top">
             <span class="yp-card__cat" style={`--c:${color(p.cat)}`}>{p.cat}</span>
             {p.minAge && <span class="yp-card__age">{p.minAge}~{p.maxAge}세</span>}
@@ -126,12 +128,41 @@ const color = (c: string) => CAT_COLOR[c] || '#6c5ce7';
       moreBtn.addEventListener('click', function () { limit += STEP; apply(); });
 
       apply();
+
+      // 관심 저장(하트) — 통합 crama:saved
+      var S = window.CramaSaved;
+      if (S) {
+        var markSaved = function () {
+          cards.forEach(function (c) {
+            var btn = c.querySelector('.yp-save'); if (!btn) return;
+            var on = S.has('youth', c.dataset.id);
+            btn.classList.toggle('is-on', on); btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+          });
+        };
+        grid.addEventListener('click', function (e) {
+          var btn = e.target.closest('.yp-save'); if (!btn) return;
+          var c = btn.closest('.yp-card');
+          var on = S.toggle({ type: 'youth', id: c.dataset.id, name: c.dataset.name, url: c.dataset.href, sub: c.dataset.cat });
+          btn.classList.toggle('is-on', on); btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        markSaved();
+      }
     })();
   </script>
 
   <style>
     .page-hero .yp-fresh { font-size: 0.82rem; color: var(--muted); margin-top: 0.5rem; }
     .page-hero .yp-fresh a { color: var(--accent); }
+    .yp-mypicks { display: inline-flex; align-items: center; gap: 0.35rem; margin-top: 0.6rem; font-size: 0.85rem; font-weight: 700; color: var(--accent); text-decoration: none; }
+    .yp-mypicks svg { color: #e11d48; }
+    .yp-mypicks:hover { text-decoration: underline; }
+
+    .yp-card { position: relative; }
+    .yp-card__top { padding-right: 2.3rem; }
+    .yp-save { position: absolute; top: 0.9rem; right: 0.9rem; width: 2rem; height: 2rem; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 50%; background: var(--paper); color: var(--muted); cursor: pointer; transition: all 0.12s; padding: 0; }
+    .yp-save:hover { border-color: #e11d48; color: #e11d48; }
+    .yp-save.is-on { color: #e11d48; border-color: #e11d48; }
+    .yp-save.is-on svg { fill: #e11d48; }
 
     .yp-filters { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 1.6rem 0 0.9rem; }
     .yp-chip {

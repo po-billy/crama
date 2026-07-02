@@ -1,0 +1,82 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout title="내 관심 — 저장한 정책·복지" description="저장한 청년 정책·복지 서비스·혜택을 한곳에서 관리하세요. 로그인 없이 이 기기에 저장됩니다.">
+  <div class="wrap">
+    <header class="page-hero">
+      <span class="eyebrow">My Picks</span>
+      <h1>내 관심</h1>
+      <p>저장한 청년 정책·복지 서비스·혜택을 한곳에 모았어요. (이 기기에 저장 · 로그인 불필요)</p>
+    </header>
+
+    <div id="sp-body"><p class="sp-loading">불러오는 중…</p></div>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const body = document.getElementById('sp-body');
+      const S = window.CramaSaved;
+      if (!body || !S) return;
+      const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+      const TYPES = [
+        { key: 'youth', label: '청년 정책', href: '/youth/', color: '#06b6d4' },
+        { key: 'welfare', label: '복지 서비스', href: '/welfare/', color: '#ec4899' },
+        { key: 'benefit', label: '내 혜택', href: '/benefits/', color: '#10b981' },
+      ];
+      function render() {
+        const all = S.list();
+        if (!all.length) {
+          body.innerHTML = '<div class="sp-empty"><p>아직 저장한 항목이 없어요.<br>청년 정책·복지 서비스에서 하트를 눌러 저장해 보세요.</p>' +
+            '<div class="sp-empty__links"><a href="/youth/">청년 정책 →</a><a href="/welfare/">복지 서비스 →</a><a href="/benefits/">내 혜택 찾기 →</a></div></div>';
+          return;
+        }
+        let html = '';
+        TYPES.forEach((t) => {
+          const items = S.list(t.key);
+          if (!items.length) return;
+          html += '<section class="sp-group"><div class="sp-group__head"><h2 style="--c:' + t.color + '">' + t.label + ' <span>' + items.length + '</span></h2><a href="' + t.href + '">전체 보기 →</a></div><div class="sp-list">';
+          html += items.map((it) =>
+            '<div class="sp-item" data-type="' + t.key + '" data-id="' + esc(it.id) + '">' +
+            '<a class="sp-item__main" href="' + esc(it.url || t.href) + '"' + (it.url ? ' target="_blank" rel="noopener"' : '') + '>' +
+            (it.sub ? '<span class="sp-item__sub" style="--c:' + t.color + '">' + esc(it.sub) + '</span>' : '') +
+            '<strong>' + esc(it.name) + '</strong></a>' +
+            '<button type="button" class="sp-item__x" aria-label="삭제">×</button></div>'
+          ).join('');
+          html += '</div></section>';
+        });
+        body.innerHTML = html;
+      }
+      body.addEventListener('click', (e) => {
+        const x = e.target.closest('.sp-item__x'); if (!x) return;
+        const item = x.closest('.sp-item');
+        S.remove(item.dataset.type, item.dataset.id);
+        render();
+      });
+      render();
+      document.addEventListener('astro:page-load', render);
+    })();
+  </script>
+
+  <style>
+    .sp-loading { color: var(--muted); padding: 2rem 0; }
+    .sp-empty { text-align: center; color: var(--muted); padding: 2.5rem 0; }
+    .sp-empty__links { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; margin-top: 1.2rem; }
+    .sp-empty__links a { font-size: 0.9rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--line); border-radius: 999px; }
+    .sp-empty__links a:hover { border-color: var(--accent); }
+
+    .sp-group { margin-bottom: 2rem; }
+    .sp-group__head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 0.8rem; }
+    .sp-group__head h2 { font-size: 1.15rem; margin: 0; }
+    .sp-group__head h2 span { font-size: 0.85rem; font-weight: 700; color: var(--c, var(--accent)); }
+    .sp-group__head a { font-size: 0.85rem; font-weight: 600; color: var(--muted); text-decoration: none; }
+    .sp-group__head a:hover { color: var(--accent); }
+    .sp-list { display: grid; gap: 0.6rem; }
+    .sp-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.9rem 1rem; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); }
+    .sp-item__main { flex: 1; min-width: 0; text-decoration: none; color: var(--ink); display: flex; flex-direction: column; gap: 0.15rem; }
+    .sp-item__sub { font-size: 0.68rem; font-weight: 700; color: var(--c, var(--accent)); }
+    .sp-item__main strong { font-size: 0.95rem; font-weight: 700; line-height: 1.35; }
+    .sp-item__main:hover strong { color: var(--accent); }
+    .sp-item__x { flex: none; width: 2rem; height: 2rem; border: 0; background: var(--paper-2); border-radius: 50%; color: var(--muted); font-size: 1.2rem; line-height: 1; cursor: pointer; transition: all 0.12s; }
+    .sp-item__x:hover { background: #fee2e2; color: #ef4444; }
+  </style>
+</BaseLayout>

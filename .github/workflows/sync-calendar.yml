@@ -43,11 +43,17 @@ jobs:
           DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
         run: node sync-welfare.js
 
+      - name: 지자체 복지서비스 수집 → public/data/welfare-local.json
+        working-directory: automation
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+        run: node sync-welfare-local.js
+
       - name: 변경 시에만 커밋·푸시
         run: |
           git config user.name "crama-bot"
           git config user.email "bot@crama.app"
-          git add site/src/data/policy-events.json site/src/data/youth-policies.json site/src/data/welfare-services.json
+          git add site/src/data/policy-events.json site/src/data/youth-policies.json site/src/data/welfare-services.json site/public/data/welfare-local.json
           if git diff --cached --quiet; then
             echo "변경 없음 — 커밋 스킵"
           else

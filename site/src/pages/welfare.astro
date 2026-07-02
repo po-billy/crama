@@ -13,6 +13,9 @@ const themes = Object.keys(themeCount).sort((a, b) => themeCount[b] - themeCount
 
 const PALETTE = ['#3b82f6', '#10b981', '#f59e0b', '#6366f1', '#14b8a6', '#8b5cf6', '#ec4899', '#f97316', '#22c55e', '#ef4444', '#06b6d4', '#64748b', '#f43f5e', '#a855f7'];
 const color = (t: string) => PALETTE[Math.max(0, themes.indexOf(t)) % PALETTE.length] || '#6c5ce7';
+
+// 지자체 복지(온디맨드) — 표준 17개 시·도
+const REGIONS = ['서울특별시', '부산광역시', '대구광역시', '인천광역시', '광주광역시', '대전광역시', '울산광역시', '세종특별자치시', '경기도', '강원특별자치도', '충청북도', '충청남도', '전북특별자치도', '전라남도', '경상북도', '경상남도', '제주특별자치도'];
 ---
 <BaseLayout
   title="복지 서비스 모아보기 — 생계·의료·주거·돌봄 지원"
@@ -25,6 +28,30 @@ const color = (t: string) => PALETTE[Math.max(0, themes.indexOf(t)) % PALETTE.le
       <p>생계·의료·주거·일자리·돌봄까지, 중앙부처 복지 <b>{total}개</b>를 주제별로 찾고 바로 신청하세요.</p>
       <p class="wf-fresh">기준일 {generatedAt} · 출처 <a href="https://www.bokjiro.go.kr/" target="_blank" rel="noopener">복지로</a> · 온라인 신청 {onlineN}건 · 매일 자동 갱신</p>
     </header>
+
+    <!-- 우리 지역 복지 — 온디맨드(시·도 선택 시 /data/welfare-local.json fetch) -->
+    <section class="wf-local" aria-label="우리 지역 복지">
+      <div class="wf-local__head">
+        <h2><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.4-7-11a7 7 0 0 1 14 0c0 5.6-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg> 우리 지역 복지 찾기</h2>
+        <p>시·도를 선택하면 우리 지역의 복지 서비스를 보여드려요. (전국 4,600건)</p>
+      </div>
+      <div class="wf-local__controls">
+        <select id="wf-region" class="wf-region" aria-label="시도 선택">
+          <option value="">시·도 선택…</option>
+          {REGIONS.map((r) => <option value={r}>{r}</option>)}
+        </select>
+        <div class="wf-search wf-local__search" id="wf-local-search" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="search" id="wf-local-q" placeholder="지역 복지 검색 (예: 출산, 청년, 어르신)" autocomplete="off" />
+        </div>
+      </div>
+      <p class="wf-count" id="wf-local-count"></p>
+      <div class="wf-loading" id="wf-local-loading" hidden>불러오는 중…</div>
+      <div class="wf-grid" id="wf-local-grid"></div>
+      <button type="button" class="wf-more" id="wf-local-more" hidden>더 보기</button>
+    </section>
+
+    <h2 class="wf-section-title">전국 공통 복지 <span>중앙부처 {total}건</span></h2>
 
     <div class="wf-filters" id="wf-filters" role="tablist" aria-label="복지 주제">
       <button type="button" class="wf-chip is-on" data-theme="">전체 {total}</button>
@@ -125,9 +152,76 @@ const color = (t: string) => PALETTE[Math.max(0, themes.indexOf(t)) % PALETTE.le
     })();
   </script>
 
+  <script is:inline>
+    (() => {
+      const sel = document.getElementById('wf-region');
+      const grid = document.getElementById('wf-local-grid');
+      const q = document.getElementById('wf-local-q');
+      const searchWrap = document.getElementById('wf-local-search');
+      const countEl = document.getElementById('wf-local-count');
+      const moreBtn = document.getElementById('wf-local-more');
+      const loadingEl = document.getElementById('wf-local-loading');
+      if (!sel || !grid) return;
+      const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+      let data = null, limit = 60, t;
+
+      async function ensureData() {
+        if (data) return data;
+        loadingEl.hidden = false;
+        try { const r = await fetch('/data/welfare-local.json'); data = (await r.json()).services || []; }
+        catch (e) { data = []; }
+        loadingEl.hidden = true;
+        return data;
+      }
+      function card(s) {
+        return '<article class="wf-card">' +
+          '<div class="wf-card__top"><span class="wf-card__theme">' + esc(s.theme || '복지') + '</span>' +
+          (s.sgg ? '<span class="wf-card__sgg">' + esc(s.sgg) + '</span>' : '') + '</div>' +
+          '<h3 class="wf-card__title">' + esc(s.name) + '</h3>' +
+          (s.summary ? '<p class="wf-card__desc">' + esc(s.summary) + '</p>' : '') +
+          '<div class="wf-card__foot"><span class="wf-card__org">' + esc(s.dept || '') + (s.apply ? ' · ' + esc(s.apply) : '') + '</span>' +
+          (s.url ? '<a class="wf-card__link" href="' + esc(s.url) + '" target="_blank" rel="noopener">자세히·신청 →</a>' : '<a class="wf-card__link wf-card__link--muted" href="https://www.bokjiro.go.kr/" target="_blank" rel="noopener">복지로에서 보기 →</a>') +
+          '</div></article>';
+      }
+      function render() {
+        const region = sel.value;
+        if (!region || !data) { grid.innerHTML = ''; countEl.textContent = ''; moreBtn.hidden = true; return; }
+        const ql = (q.value || '').trim().toLowerCase();
+        const matches = data.filter((s) => s.region === region && (!ql || (s.name + ' ' + s.dept + ' ' + s.theme + ' ' + (s.sgg || '')).toLowerCase().indexOf(ql) !== -1));
+        grid.innerHTML = matches.slice(0, limit).map(card).join('');
+        countEl.textContent = matches.length ? region + ' ' + matches.length + '개 서비스' : '해당 지역 결과가 없어요';
+        moreBtn.hidden = matches.length <= limit;
+      }
+      sel.addEventListener('change', async () => {
+        limit = 60;
+        searchWrap.hidden = !sel.value;
+        if (!sel.value) { render(); return; }
+        await ensureData();
+        render();
+      });
+      q.addEventListener('input', () => { clearTimeout(t); t = setTimeout(() => { limit = 60; render(); }, 120); });
+      moreBtn.addEventListener('click', () => { limit += 60; render(); });
+    })();
+  </script>
+
   <style>
     .page-hero .wf-fresh { font-size: 0.82rem; color: var(--muted); margin-top: 0.5rem; }
     .page-hero .wf-fresh a { color: var(--accent); }
+
+    /* 우리 지역 복지(온디맨드) */
+    .wf-local { margin: 1.6rem 0 2rem; padding: 1.2rem 1.3rem; border: 1px solid var(--line); border-radius: 16px; background: var(--paper-2); }
+    .wf-local__head h2 { display: flex; align-items: center; gap: 0.5rem; font-size: 1.15rem; margin: 0 0 0.3rem; }
+    .wf-local__head h2 svg { color: #f43f5e; flex: none; }
+    .wf-local__head p { font-size: 0.86rem; color: var(--muted); margin: 0 0 0.9rem; }
+    .wf-local__controls { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+    .wf-region { font: inherit; font-size: 0.95rem; padding: 0.6rem 0.9rem; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); min-width: 10rem; cursor: pointer; }
+    .wf-region:focus { outline: none; border-color: var(--accent); }
+    .wf-local__search { flex: 1; min-width: 12rem; max-width: none; }
+    .wf-local .wf-grid { margin-top: 1rem; }
+    .wf-loading { color: var(--muted); font-size: 0.9rem; padding: 1rem 0; }
+    .wf-card__sgg { font-size: 0.68rem; font-weight: 700; color: var(--muted); white-space: nowrap; }
+    .wf-section-title { font-size: 1.15rem; margin: 0 0 0.2rem; }
+    .wf-section-title span { font-size: 0.82rem; font-weight: 600; color: var(--muted); }
 
     .wf-filters { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 1.6rem 0 0.9rem; }
     .wf-chip {

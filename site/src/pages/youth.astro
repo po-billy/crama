@@ -211,6 +211,7 @@ const color = (c: string) => CAT_COLOR[c] || '#6c5ce7';
       cursor: pointer; transition: border-color 0.12s;
     }
     .yp-more:hover { border-color: var(--accent); color: var(--accent); }
+    .yp-more[hidden] { display: none; }
 
     .yp-cross { margin: 2.6rem 0 1rem; padding-top: 1.6rem; border-top: 1px solid var(--line); text-align: center; }
     .yp-cross p { font-size: 0.9rem; color: var(--muted); margin: 0 0 0.7rem; }

@@ -526,7 +526,7 @@ const faqLd = {
             var nowOn = toggleInterest(sid);
             var bfRec = BENEFITS.filter(function (b) { return b.id === sid; })[0];
             if (window.CramaSaved && bfRec) {
-              if (nowOn) window.CramaSaved.add({ type: 'benefit', id: bfRec.id, name: bfRec.name, url: bfRec.applyUrl, sub: (CATS[bfRec.category] && CATS[bfRec.category].name) || '혜택' });
+              if (nowOn) window.CramaSaved.add({ type: 'benefit', id: bfRec.id, name: bfRec.name, url: bfRec.applyUrl, sub: (CATS[bfRec.category] && CATS[bfRec.category].name) || '혜택', deadline: bfRec.deadline || '' });
               else window.CramaSaved.remove('benefit', sid);
             }
             save.classList.toggle('is-on', nowOn);

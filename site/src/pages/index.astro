@@ -109,13 +109,37 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
         .sort((a, b) => a.dday - b.dday);
       const item = soon[0];
       return item ? (
-        <a href={item.href} class="deadline-banner">
+        <a href={item.href} class="deadline-banner" id="home-gen-deadline">
           <span class="deadline-banner__dday">D-{item.dday}</span>
           <span class="deadline-banner__title">{item.title}</span>
           <span class="deadline-banner__cta">확인하기 →</span>
         </a>
       ) : null;
     })()}
+
+    <a id="home-saved-dday" class="deadline-banner" href="/saved-picks/" hidden></a>
+    <script is:inline>
+      (() => {
+        var el = document.getElementById('home-saved-dday');
+        var S = window.CramaSaved;
+        if (!el || !S) return;
+        var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+        function dday(ds) { if (!ds || !/^\d{4}-\d{2}-\d{2}$/.test(ds)) return null; var pt = ds.split('-'); var dl = new Date(+pt[0], +pt[1] - 1, +pt[2]); var n = new Date(); var today = new Date(n.getFullYear(), n.getMonth(), n.getDate()); return Math.round((dl - today) / 86400000); }
+        function render() {
+          var gen = document.getElementById('home-gen-deadline');
+          var items = S.list('benefit').map(function (x) { return { x: x, d: dday(x.deadline) }; }).filter(function (o) { return o.d !== null && o.d >= 0 && o.d <= 30; }).sort(function (a, b) { return a.d - b.d; });
+          if (!items.length) { el.hidden = true; return; }
+          var top = items[0]; var nm = top.x.name.length > 16 ? top.x.name.slice(0, 16) + '…' : top.x.name;
+          if (gen) gen.style.display = 'none';
+          el.hidden = false;
+          el.innerHTML = '<span class="deadline-banner__dday">' + (top.d === 0 ? 'D-Day' : 'D-' + top.d) + '</span>' +
+            '<span class="deadline-banner__title">내 관심 · ' + esc(nm) + ' 마감' + (items.length > 1 ? ' 외 ' + (items.length - 1) + '건' : '') + '</span>' +
+            '<span class="deadline-banner__cta">내 관심함 →</span>';
+        }
+        render();
+        document.addEventListener('astro:page-load', render);
+      })();
+    </script>
 
     <header class="home-masthead">
       <h1>돈과 AI, <em>먼저 읽는 사람들.</em></h1>

@@ -23,6 +23,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         { key: 'welfare', label: '복지 서비스', href: '/welfare/', color: '#ec4899' },
         { key: 'benefit', label: '내 혜택', href: '/benefits/', color: '#10b981' },
       ];
+      function dday(ds) {
+        if (!ds || !/^\d{4}-\d{2}-\d{2}$/.test(ds)) return null;
+        var pt = ds.split('-'); var dl = new Date(+pt[0], +pt[1] - 1, +pt[2]);
+        var n = new Date(); var today = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+        return Math.round((dl - today) / 86400000);
+      }
+      function ddayBadge(it) {
+        var dd = dday(it.deadline);
+        if (dd === null || dd < 0) return '';
+        var cls = dd <= 7 ? ' is-urgent' : (dd <= 30 ? ' is-soon' : '');
+        return '<span class="sp-dday' + cls + '">' + (dd === 0 ? 'D-Day' : 'D-' + dd) + '</span>';
+      }
       function render() {
         const all = S.list();
         if (!all.length) {
@@ -30,16 +42,19 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             '<div class="sp-empty__links"><a href="/youth/">청년 정책 →</a><a href="/welfare/">복지 서비스 →</a><a href="/benefits/">내 혜택 찾기 →</a></div></div>';
           return;
         }
-        let html = '';
+        var urgent = all.filter(function (x) { var d = dday(x.deadline); return d !== null && d >= 0 && d <= 30; }).length;
+        let html = urgent ? '<p class="sp-urgent">마감 30일 이내 <b>' + urgent + '건</b> — 서둘러 신청하세요.</p>' : '';
         TYPES.forEach((t) => {
           const items = S.list(t.key);
           if (!items.length) return;
+          items.sort(function (a, b) { var da = dday(a.deadline), db = dday(b.deadline); if (da === null && db === null) return 0; if (da === null) return 1; if (db === null) return -1; return da - db; });
           html += '<section class="sp-group"><div class="sp-group__head"><h2 style="--c:' + t.color + '">' + t.label + ' <span>' + items.length + '</span></h2><a href="' + t.href + '">전체 보기 →</a></div><div class="sp-list">';
           html += items.map((it) =>
             '<div class="sp-item" data-type="' + t.key + '" data-id="' + esc(it.id) + '">' +
             '<a class="sp-item__main" href="' + esc(it.url || t.href) + '"' + (it.url ? ' target="_blank" rel="noopener"' : '') + '>' +
             (it.sub ? '<span class="sp-item__sub" style="--c:' + t.color + '">' + esc(it.sub) + '</span>' : '') +
             '<strong>' + esc(it.name) + '</strong></a>' +
+            ddayBadge(it) +
             '<button type="button" class="sp-item__x" aria-label="삭제">×</button></div>'
           ).join('');
           html += '</div></section>';
@@ -78,5 +93,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .sp-item__main:hover strong { color: var(--accent); }
     .sp-item__x { flex: none; width: 2rem; height: 2rem; border: 0; background: var(--paper-2); border-radius: 50%; color: var(--muted); font-size: 1.2rem; line-height: 1; cursor: pointer; transition: all 0.12s; }
     .sp-item__x:hover { background: #fee2e2; color: #ef4444; }
+    .sp-urgent { background: color-mix(in srgb, #f43f5e 8%, var(--paper)); color: #e11d48; font-size: 0.9rem; font-weight: 600; padding: 0.7rem 1rem; border: 1px solid color-mix(in srgb, #f43f5e 20%, var(--paper)); border-radius: 10px; margin: 0 0 1.4rem; }
+    .sp-dday { flex: none; font-size: 0.72rem; font-weight: 800; color: var(--muted); padding: 0.2rem 0.5rem; border-radius: 999px; background: var(--paper-2); white-space: nowrap; }
+    .sp-dday.is-soon { color: #d97706; background: color-mix(in srgb, #f59e0b 15%, var(--paper)); }
+    .sp-dday.is-urgent { color: #e11d48; background: color-mix(in srgb, #f43f5e 15%, var(--paper)); }
   </style>
 </BaseLayout>

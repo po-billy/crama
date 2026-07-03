@@ -652,12 +652,105 @@ const faqLd = {
         showSection('bf-hero'); // 초기화 = 페이지 첫 화면으로
       });
 
+      // ── 결과 공유: 매칭 수치를 담은 이미지 카드(1080×1350) 생성 → 파일 공유, 폴백 PNG 다운로드+링크 복사 ──
+      function buildShareCard() {
+        var W = 1080, H = 1350;
+        var cv = document.createElement('canvas');
+        cv.width = W; cv.height = H;
+        var ctx = cv.getContext('2d');
+
+        // 배경 — 딥 네이비 + 은은한 액센트 글로우
+        ctx.fillStyle = '#17151f';
+        ctx.fillRect(0, 0, W, H);
+        var glow = ctx.createRadialGradient(W * 0.85, H * 0.12, 60, W * 0.85, H * 0.12, 620);
+        glow.addColorStop(0, 'rgba(108,92,231,0.45)');
+        glow.addColorStop(1, 'rgba(108,92,231,0)');
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, W, H);
+
+        var sans = "'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif";
+        // 브랜드
+        ctx.fillStyle = '#a29bfe';
+        ctx.font = '800 44px ' + sans;
+        ctx.fillText('Crama · 내 혜택 찾기', 80, 130);
+
+        // 프로필 요약
+        var profBits = [];
+        if (profile.age) profBits.push('만 ' + profile.age + '세');
+        if (REGIONS[profile.region]) profBits.push(REGIONS[profile.region]);
+        if (EMP_LABEL[profile.employment]) profBits.push(EMP_LABEL[profile.employment]);
+        ctx.fillStyle = 'rgba(255,255,255,0.55)';
+        ctx.font = '600 40px ' + sans;
+        ctx.fillText(profBits.join(' · '), 80, 240);
+
+        // 메인 수치 — 혜택 건수·총액(결과 DOM에서)
+        var cntText = ($('bf-result-title').textContent.match(/([\d,]+)건/) || [])[1] || '';
+        var amtText = ($('bf-result-amount').textContent.match(/([\d,]+)만원/) || [])[1] || '';
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '800 76px ' + sans;
+        ctx.fillText('받을 수 있는 혜택', 80, 400);
+        ctx.fillStyle = '#6c5ce7';
+        ctx.font = '900 150px ' + sans;
+        ctx.fillText(cntText + '건', 80, 560);
+        if (amtText) {
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '800 66px ' + sans;
+          ctx.fillText('예상 연 ' + amtText + '만원', 80, 680);
+        }
+
+        // 확장 매칭(청년·지역복지) — 있으면 추가
+        var extRows = [];
+        document.querySelectorAll('#bf-ext .bf-ext__head h3').forEach(function (h) {
+          var t = h.textContent.replace(/\s+/g, ' ').trim();
+          if (t) extRows.push('+ ' + t);
+        });
+        ctx.font = '600 46px ' + sans;
+        extRows.slice(0, 2).forEach(function (t, i) {
+          ctx.fillStyle = 'rgba(255,255,255,0.8)';
+          ctx.fillText(t, 80, 830 + i * 84);
+        });
+
+        // 구분선 + 푸터 CTA
+        ctx.strokeStyle = 'rgba(255,255,255,0.14)';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(80, 1130); ctx.lineTo(W - 80, 1130); ctx.stroke();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '800 52px ' + sans;
+        ctx.fillText('나는 몇 건일까?  3분이면 확인', 80, 1215);
+        ctx.fillStyle = '#a29bfe';
+        ctx.font = '700 46px ' + sans;
+        ctx.fillText('crama.app/benefits', 80, 1290);
+        return cv;
+      }
+
       $('bf-share-result').addEventListener('click', async function () {
         var url = location.origin + '/benefits/';
         try {
-          if (navigator.share) await navigator.share({ title: '내 혜택 찾기 · 크라마', url: url });
-          else { await navigator.clipboard.writeText(url); alert('링크를 복사했어요!'); }
-        } catch (_) {}
+          var cv = buildShareCard();
+          var blob = await new Promise(function (res) { cv.toBlob(res, 'image/png'); });
+          window.__shareCardBytes = blob ? blob.size : 0; // 검증용
+          var file = blob ? new File([blob], 'crama-benefits.png', { type: 'image/png' }) : null;
+          // 모바일만 OS 공유 시트(파일) — 데스크톱은 다운로드가 실사용(스레드 업로드)에 맞고, 헤드리스/일부 환경에서 share가 매달리는 문제도 회피
+          var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+          if (isMobile && file && navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({ title: '내 혜택 찾기 · 크라마', text: '나는 받을 수 있는 혜택이 몇 건일까? 3분이면 확인 →', url: url, files: [file] });
+            return;
+          }
+          if (blob) {
+            var a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'crama-benefits.png';
+            a.click();
+            setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+          }
+          try { navigator.clipboard.writeText(url).catch(function () {}); } catch (_) {} // 논블로킹 — 일부 환경에서 응답 지연 방지
+          alert('결과 카드를 저장했어요! 링크도 복사됐으니 같이 올려보세요 🙂');
+        } catch (_) {
+          try {
+            if (navigator.share) await navigator.share({ title: '내 혜택 찾기 · 크라마', url: url });
+            else { await navigator.clipboard.writeText(url); alert('링크를 복사했어요!'); }
+          } catch (__) {}
+        }
       });
 
       // 소셜 프루프 — 이용 횟수 기반

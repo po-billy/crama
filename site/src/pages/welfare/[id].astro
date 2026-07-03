@@ -55,6 +55,11 @@ const sections = [
   { title: '지원 내용', body: rich.benefit },
 ].filter((x) => x.body && x.body.length > 2);
 
+// 설명이 사실상 없는 페이지만 색인 제외(<30자) — 디렉터리 페이지 가치는 구조화 정보(지역·담당·신청방법·관련)에 있으므로
+// 길이 기준을 과하게 잡지 않는다. 크론 보강으로 채워지면 자동 복귀.
+const bodyLen = sections.reduce((a, x) => a + (x.body || '').length, 0);
+const noindex = bodyLen < 30;
+
 const jsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
@@ -78,7 +83,7 @@ const jsonLd = {
   ],
 };
 ---
-<BaseLayout title={pageTitle} description={pageDesc} jsonLd={jsonLd}>
+<BaseLayout title={pageTitle} description={pageDesc} jsonLd={jsonLd} noindex={noindex}>
   <div class="wrap wfd">
     <nav class="wfd-crumb" aria-label="브레드크럼">
       <a href="/">홈</a><span>›</span><a href="/welfare/">복지 서비스</a><span>›</span><b>{isLocal ? regionLabel : (s.theme || '복지')}</b>

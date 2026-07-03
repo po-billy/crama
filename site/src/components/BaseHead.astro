@@ -10,6 +10,7 @@ interface Props {
   type?: 'website' | 'article';
   publishedTime?: Date;
   jsonLd?: Record<string, unknown>;
+  noindex?: boolean; // 얇은 자동생성 페이지 색인 제외(보강되면 다음 빌드에서 자동 복귀)
 }
 
 const {
@@ -19,6 +20,7 @@ const {
   type = 'website',
   publishedTime,
   jsonLd,
+  noindex = false,
 } = Astro.props;
 
 const canonical = new URL(Astro.url.pathname, Astro.site ?? SITE.url).href;
@@ -106,7 +108,7 @@ const siteJsonLd = {
 <meta name="generator" content={Astro.generator} />
 
 <!-- 색인/리치결과: 큰 이미지 미리보기(Google Discover) + 스니펫·동영상 제한 해제 -->
-<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+<meta name="robots" content={noindex ? 'noindex, follow' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'} />
 
 <!-- 사이트 소유 확인 -->
 <meta name="naver-site-verification" content="c69b0220b12e6057b3e2906976c33f3a2ea703e4" />

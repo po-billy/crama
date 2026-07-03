@@ -35,6 +35,10 @@ const sections = [
   { key: 'docs', title: '제출 서류', body: p.docs },
 ].filter((s) => s.body && s.body.length > 2);
 
+// 설명이 사실상 없는 페이지만 색인 제외(<30자) — 상세 정보(연령·기간·기관·관련)가 구조화되어 있으므로 과한 기준 지양
+const bodyLen = sections.reduce((a, x) => a + (x.body || '').length, 0) + (p.summary || '').length;
+const noindex = bodyLen < 30;
+
 const jsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
@@ -58,7 +62,7 @@ const jsonLd = {
   ],
 };
 ---
-<BaseLayout title={pageTitle} description={pageDesc} jsonLd={jsonLd}>
+<BaseLayout title={pageTitle} description={pageDesc} jsonLd={jsonLd} noindex={noindex}>
   <div class="wrap ypd">
     <nav class="ypd-crumb" aria-label="브레드크럼">
       <a href="/">홈</a><span>›</span><a href="/youth/">청년 정책</a><span>›</span><b>{p.cat}</b>

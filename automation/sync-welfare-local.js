@@ -39,6 +39,7 @@ function normalize(block) {
     theme: firstOf(tag(block, 'intrsThemaNmArray')),     // 관심주제
     life: firstOf(tag(block, 'lifeNmArray')),            // 생애주기
     summary: trunc(tag(block, 'servDgst'), 160),
+    detail: trunc(tag(block, 'servDgst'), 600),   // 상세 페이지 본문용
     dept: clean(tag(block, 'bizChrDeptNm')),             // 담당부서
     apply: clean(tag(block, 'aplyMtdNm')),               // 신청방법
     url: /^https?:\/\//.test(rawUrl) ? rawUrl : '',

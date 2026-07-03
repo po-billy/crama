@@ -1,0 +1,107 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { computeSalary, salaryAmounts, RATE_BASIS, fmt, fmtMan } from '../../lib/salary';
+
+const amounts = salaryAmounts();
+const rows = amounts.map((man) => ({ man, s: computeSalary(man * 10_000) }));
+---
+<BaseLayout
+  title="연봉 실수령액 표 2026 — 월급 계산기"
+  description={`연봉 2,000만~2억원의 월 실수령액을 한 표로. 국민연금·건강보험·소득세 공제 후 실제 통장에 들어오는 금액을 확인하세요. (${RATE_BASIS})`}
+>
+  <div class="wrap salx">
+    <header class="page-hero">
+      <span class="eyebrow">Salary</span>
+      <h1>연봉 실수령액 표 <span class="salx-year">2026</span></h1>
+      <p>세전 연봉에서 4대보험·소득세를 빼고 <b>실제 통장에 들어오는 금액</b>을 확인하세요.</p>
+      <p class="salx-basis">{RATE_BASIS} · 1인 가구(본인 공제)·비과세 없음 가정</p>
+    </header>
+
+    <div class="salx-jump">
+      <label for="salx-input">내 연봉으로 바로가기</label>
+      <div class="salx-jump__row">
+        <input id="salx-input" type="number" inputmode="numeric" placeholder="예: 4200" min="2000" max="20000" step="100" />
+        <span>만원</span>
+        <button type="button" id="salx-go">확인 →</button>
+      </div>
+    </div>
+
+    <table class="salx-table">
+      <thead>
+        <tr><th>연봉</th><th>월 실수령액</th><th>월 공제 합계</th><th></th></tr>
+      </thead>
+      <tbody>
+        {rows.map(({ man, s }) => (
+          <tr>
+            <th><a href={`/salary/${man}/`}>{man >= 10000 ? `${Math.floor(man / 10000)}억 ${man % 10000 ? fmt(man % 10000) + '만' : ''}` : fmt(man) + '만'}원</a></th>
+            <td class="salx-net">{fmt(s.monthlyNet)}원</td>
+            <td class="salx-ded">-{fmt(s.totalDeduct)}원</td>
+            <td class="salx-more"><a href={`/salary/${man}/`}>상세 →</a></td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+
+    <div class="salx-cross">
+      <p>월급을 더 지키고 싶다면</p>
+      <div class="salx-cross__row">
+        <a href="/benefits/">내가 받을 수 있는 지원금 찾기 →</a>
+        <a href="/tools/">금융 계산기 23종 →</a>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const input = document.getElementById('salx-input');
+      const go = document.getElementById('salx-go');
+      if (!input || !go) return;
+      const AMOUNTS = (() => {
+        const a = [];
+        for (let m = 2000; m <= 10000; m += 100) a.push(m);
+        for (let m = 10500; m <= 20000; m += 500) a.push(m);
+        return a;
+      })();
+      const jump = () => {
+        const v = Number(input.value);
+        if (!v) return;
+        let best = AMOUNTS[0], bd = Infinity;
+        for (const m of AMOUNTS) { const d = Math.abs(m - v); if (d < bd) { bd = d; best = m; } }
+        location.href = '/salary/' + best + '/';
+      };
+      go.addEventListener('click', jump);
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') jump(); });
+    })();
+  </script>
+
+  <style>
+    .salx { max-width: 44rem; }
+    .salx-year { color: var(--accent); }
+    .page-hero .salx-basis { font-size: 0.82rem; color: var(--muted); margin-top: 0.5rem; }
+
+    .salx-jump { margin: 1.4rem 0 1.6rem; padding: 1rem 1.2rem; border: 1px solid var(--line); border-radius: 14px; background: var(--paper-2); }
+    .salx-jump label { display: block; font-size: 0.88rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .salx-jump__row { display: flex; align-items: center; gap: 0.5rem; }
+    .salx-jump__row input { flex: 1; min-width: 0; font: inherit; font-size: 1rem; padding: 0.65rem 0.9rem; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); }
+    .salx-jump__row input:focus { outline: none; border-color: var(--accent); }
+    .salx-jump__row span { color: var(--muted); font-size: 0.9rem; flex: none; }
+    .salx-jump__row button { flex: none; font: inherit; font-weight: 700; font-size: 0.9rem; padding: 0.65rem 1.1rem; border: 0; border-radius: 10px; background: var(--accent); color: #fff; cursor: pointer; }
+
+    .salx-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    .salx-table thead th { font-size: 0.78rem; color: var(--muted); font-weight: 700; text-align: left; padding: 0.5rem 0.7rem; border-bottom: 2px solid var(--line); }
+    .salx-table tbody th, .salx-table tbody td { padding: 0.58rem 0.7rem; border-bottom: 1px solid var(--line); text-align: left; }
+    .salx-table tbody th a { color: var(--ink); text-decoration: none; font-weight: 700; }
+    .salx-table tbody th a:hover { color: var(--accent); }
+    .salx-net { font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+    .salx-ded { color: var(--muted); font-variant-numeric: tabular-nums; }
+    .salx-more a { font-size: 0.8rem; color: var(--muted); text-decoration: none; }
+    .salx-more a:hover { color: var(--accent); }
+    @media (max-width: 560px) { .salx-ded { display: none; } .salx-table thead th:nth-child(3) { display: none; } }
+
+    .salx-cross { margin: 2.2rem 0 1rem; padding-top: 1.5rem; border-top: 1px solid var(--line); text-align: center; }
+    .salx-cross p { font-size: 0.9rem; color: var(--muted); margin: 0 0 0.7rem; }
+    .salx-cross__row { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
+    .salx-cross__row a { font-size: 0.88rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--line); border-radius: 999px; }
+    .salx-cross__row a:hover { border-color: var(--accent); }
+  </style>
+</BaseLayout>

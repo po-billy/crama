@@ -88,6 +88,7 @@ export const NAV: NavItem[] = [
     { label: '청년 정책', href: '/youth/', icon: 'youth' },
     { label: '복지 서비스', href: '/welfare/', icon: 'welfare' },
     { label: '내 관심함', href: '/saved-picks/', icon: 'saved' },
+    { label: '연봉 실수령액', href: '/salary/', icon: 'income' },
     { label: '금융 계산기', href: '/tools/', icon: 'calc' },
   ]},
   { label: '쇼츠·칼럼', href: '/shorts/', children: [

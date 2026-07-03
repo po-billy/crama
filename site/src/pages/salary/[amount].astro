@@ -1,0 +1,151 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { computeSalary, salaryAmounts, RATE_BASIS, fmt, fmtMan } from '../../lib/salary';
+
+export async function getStaticPaths() {
+  const amounts = salaryAmounts();
+  return amounts.map((man, i) => ({
+    params: { amount: String(man) },
+    props: { man, prev: amounts[i - 1] ?? null, next: amounts[i + 1] ?? null },
+  }));
+}
+
+const { man, prev, next } = Astro.props; // 연봉(만원)
+const s = computeSalary(man * 10_000);
+
+const manLabel = man >= 10000 ? `${Math.floor(man / 10000)}억${man % 10000 ? ' ' + fmt(man % 10000) + '만' : ''}` : `${fmt(man)}만`;
+const netMan = fmtMan(s.monthlyNet);
+const pageTitle = `연봉 ${manLabel}원 실수령액 — 월 ${netMan}만원`;
+const pageDesc = `연봉 ${manLabel}원의 월 실수령액은 약 ${netMan}만원입니다. 국민연금·건강보험·소득세 등 공제 내역과 연간 실수령액을 표로 확인하세요. (${RATE_BASIS})`;
+
+const rows = [
+  { label: '국민연금 (4.5%)', v: s.np },
+  { label: '건강보험 (3.545%)', v: s.hi },
+  { label: '장기요양보험', v: s.ltc },
+  { label: '고용보험 (0.9%)', v: s.ei },
+  { label: '소득세', v: s.incomeTax },
+  { label: '지방소득세', v: s.localTax },
+];
+
+// 주변 연봉 비교(빠른 탐색) — 앞뒤 3개씩
+const all = salaryAmounts();
+const idx = all.indexOf(man);
+const nearby = all.slice(Math.max(0, idx - 3), idx + 4);
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: '홈', item: 'https://crama.app/' },
+    { '@type': 'ListItem', position: 2, name: '연봉 실수령액', item: 'https://crama.app/salary/' },
+    { '@type': 'ListItem', position: 3, name: `연봉 ${manLabel}원` },
+  ],
+};
+---
+<BaseLayout title={pageTitle} description={pageDesc} jsonLd={jsonLd}>
+  <div class="wrap sal">
+    <nav class="sal-crumb"><a href="/">홈</a><span>›</span><a href="/salary/">연봉 실수령액</a><span>›</span><b>{manLabel}원</b></nav>
+
+    <header class="sal-head">
+      <h1>연봉 {manLabel}원 실수령액</h1>
+      <div class="sal-hero">
+        <div class="sal-hero__main">
+          <span>월 실수령액</span>
+          <b>{fmt(s.monthlyNet)}원</b>
+          <em>약 {netMan}만원</em>
+        </div>
+        <dl class="sal-hero__side">
+          <div><dt>월 급여(세전)</dt><dd>{fmt(s.monthlyGross)}원</dd></div>
+          <div><dt>월 공제 합계</dt><dd>-{fmt(s.totalDeduct)}원 ({s.effectiveRate}%)</dd></div>
+          <div><dt>연 실수령액</dt><dd>{fmt(s.annualNet)}원</dd></div>
+        </dl>
+      </div>
+    </header>
+
+    <section class="sal-sec">
+      <h2>월 공제 내역</h2>
+      <table class="sal-table">
+        <tbody>
+          {rows.map((r) => (
+            <tr><th>{r.label}</th><td>{fmt(r.v)}원</td></tr>
+          ))}
+          <tr class="sal-table__total"><th>공제 합계</th><td>{fmt(s.totalDeduct)}원</td></tr>
+          <tr class="sal-table__net"><th>월 실수령액</th><td>{fmt(s.monthlyNet)}원</td></tr>
+        </tbody>
+      </table>
+      <p class="sal-note">※ {RATE_BASIS} · 1인 가구(본인 공제만)·비과세 수당 없음 가정. 부양가족·비과세식대 등에 따라 실제 원천징수와 차이가 날 수 있어요.</p>
+    </section>
+
+    <section class="sal-sec">
+      <h2>주변 연봉과 비교</h2>
+      <div class="sal-near">
+        {nearby.map((m) => {
+          const n = computeSalary(m * 10_000);
+          return m === man
+            ? <span class="sal-near__item is-cur"><b>{fmt(m)}만</b><i>월 {fmtMan(n.monthlyNet)}만원</i></span>
+            : <a class="sal-near__item" href={`/salary/${m}/`}><b>{fmt(m)}만</b><i>월 {fmtMan(n.monthlyNet)}만원</i></a>;
+        })}
+      </div>
+      <div class="sal-pn">
+        {prev && <a href={`/salary/${prev}/`}>← 연봉 {fmt(prev)}만원</a>}
+        <a href="/salary/">전체 표 보기</a>
+        {next && <a href={`/salary/${next}/`}>연봉 {fmt(next)}만원 →</a>}
+      </div>
+    </section>
+
+    <section class="sal-sec sal-cross">
+      <p>월급을 더 지키고 싶다면</p>
+      <div class="sal-cross__row">
+        <a href="/benefits/">내가 받을 수 있는 지원금 찾기 →</a>
+        <a href="/tools/">금융 계산기 23종 →</a>
+        <a href="/checkup/">재무 건강 체크업 →</a>
+      </div>
+    </section>
+  </div>
+
+  <style>
+    .sal { max-width: 44rem; }
+    .sal-crumb { display: flex; align-items: center; gap: 0.45rem; font-size: 0.8rem; color: var(--muted); margin: 0.4rem 0 1.2rem; flex-wrap: wrap; }
+    .sal-crumb a { color: var(--muted); text-decoration: none; }
+    .sal-crumb a:hover { color: var(--accent); }
+    .sal-crumb b { color: var(--ink-soft); font-weight: 600; }
+    .sal-head h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 4.5vw, 2.1rem); margin: 0 0 1rem; }
+
+    .sal-hero { display: grid; grid-template-columns: 1.2fr 1fr; gap: 0.8rem; margin-bottom: 1.8rem; }
+    .sal-hero__main { background: var(--accent); color: #fff; border-radius: 16px; padding: 1.3rem 1.4rem; display: flex; flex-direction: column; }
+    .sal-hero__main span { font-size: 0.85rem; opacity: 0.85; }
+    .sal-hero__main b { font-size: clamp(1.6rem, 5vw, 2.2rem); line-height: 1.2; margin-top: 0.25rem; }
+    .sal-hero__main em { font-style: normal; font-size: 0.9rem; opacity: 0.9; margin-top: 0.2rem; }
+    .sal-hero__side { display: flex; flex-direction: column; gap: 0.55rem; margin: 0; border: 1px solid var(--line); border-radius: 16px; padding: 1.1rem 1.2rem; background: var(--paper); justify-content: center; }
+    .sal-hero__side div { display: flex; justify-content: space-between; gap: 0.6rem; }
+    .sal-hero__side dt { color: var(--muted); font-size: 0.85rem; }
+    .sal-hero__side dd { margin: 0; font-weight: 700; font-size: 0.9rem; }
+    @media (max-width: 560px) { .sal-hero { grid-template-columns: 1fr; } }
+
+    .sal-sec { margin-bottom: 1.8rem; }
+    .sal-sec h2 { font-size: 1.12rem; margin: 0 0 0.7rem; }
+    .sal-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+    .sal-table th, .sal-table td { padding: 0.65rem 0.8rem; border-bottom: 1px solid var(--line); text-align: left; }
+    .sal-table td { text-align: right; font-variant-numeric: tabular-nums; }
+    .sal-table th { color: var(--ink-soft); font-weight: 600; }
+    .sal-table__total th, .sal-table__total td { font-weight: 800; background: var(--paper-2); }
+    .sal-table__net th, .sal-table__net td { font-weight: 800; color: var(--accent); font-size: 1.02rem; }
+    .sal-note { font-size: 0.8rem; color: var(--muted); margin: 0.7rem 0 0; line-height: 1.5; }
+
+    .sal-near { display: flex; gap: 0.45rem; flex-wrap: wrap; }
+    .sal-near__item { display: flex; flex-direction: column; align-items: center; gap: 0.1rem; padding: 0.55rem 0.8rem; border: 1px solid var(--line); border-radius: 10px; text-decoration: none; color: var(--ink); background: var(--paper); }
+    .sal-near__item b { font-size: 0.86rem; }
+    .sal-near__item i { font-style: normal; font-size: 0.72rem; color: var(--muted); }
+    .sal-near__item:hover { border-color: var(--accent); }
+    .sal-near__item.is-cur { background: var(--accent-soft); border-color: var(--accent); }
+    .sal-pn { display: flex; justify-content: space-between; gap: 0.6rem; margin-top: 0.9rem; flex-wrap: wrap; }
+    .sal-pn a { font-size: 0.86rem; font-weight: 700; color: var(--accent); text-decoration: none; }
+    .sal-pn a:hover { text-decoration: underline; }
+
+    .sal-cross { border-top: 1px solid var(--line); padding-top: 1.4rem; text-align: center; }
+    .sal-cross p { font-size: 0.9rem; color: var(--muted); margin: 0 0 0.7rem; }
+    .sal-cross__row { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
+    .sal-cross__row a { font-size: 0.88rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--line); border-radius: 999px; }
+    .sal-cross__row a:hover { border-color: var(--accent); }
+  </style>
+</BaseLayout>

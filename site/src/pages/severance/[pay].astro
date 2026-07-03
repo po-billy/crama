@@ -1,0 +1,82 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export function sevSalaries(): number[] {
+  return [2400, 2600, 2800, 3000, 3200, 3400, 3600, 3800, 4000, 4500, 5000, 5500, 6000, 6500, 7000, 8000, 9000, 10000, 12000, 15000, 20000]; // 연봉(만원)
+}
+export async function getStaticPaths() {
+  const list = sevSalaries();
+  return list.map((s, i) => ({ params: { pay: String(s) }, props: { man: s, prev: list[i - 1] ?? null, next: list[i + 1] ?? null } }));
+}
+
+const YEARS = [1, 2, 3, 4, 5, 7, 10, 15, 20, 30];
+const { man, prev, next } = Astro.props;
+// 30일치 평균임금(약식: 월 급여 기준)
+const monthly = (man * 10000) / 12;
+const fmt = (n: number) => Math.round(n).toLocaleString('ko-KR');
+const manLabel = man >= 10000 ? `${Math.floor(man / 10000)}억${man % 10000 ? ' ' + (man % 10000).toLocaleString() + '만' : ''}` : `${man.toLocaleString()}만`;
+const sev = (y: number) => monthly * y;
+const pageTitle = `연봉 ${manLabel}원 퇴직금 — 10년 근속 ${fmt(sev(10))}원`;
+const pageDesc = `연봉 ${manLabel}원 직장인의 퇴직금은? 근속 1년 ${fmt(sev(1))}원, 10년 ${fmt(sev(10))}원, 20년 ${fmt(sev(20))}원. 근속연수별 퇴직금 표(세전)로 확인하세요.`;
+---
+<BaseLayout title={pageTitle} description={pageDesc}>
+  <div class="wrap sv">
+    <nav class="sv-crumb"><a href="/">홈</a><span>›</span><a href="/severance/">퇴직금 표</a><span>›</span><b>연봉 {manLabel}원</b></nav>
+    <h1>연봉 {manLabel}원, 퇴직금 얼마?</h1>
+    <p class="sv-sub">퇴직금 ≈ <b>30일치 평균임금 × 근속연수</b> — 월 환산 {fmt(monthly)}원 기준(세전)</p>
+
+    <div class="sv-hero">
+      <div><span>근속 5년</span><b>{fmt(sev(5))}원</b></div>
+      <div class="sv-hero__main"><span>근속 10년</span><b>{fmt(sev(10))}원</b></div>
+      <div><span>근속 20년</span><b>{fmt(sev(20))}원</b></div>
+    </div>
+
+    <table class="sv-table">
+      <thead><tr><th>근속연수</th><th>퇴직금 (세전)</th></tr></thead>
+      <tbody>
+        {YEARS.map((y) => (
+          <tr class={y === 10 ? 'is-hl' : ''}><th>{y}년</th><td>{fmt(sev(y))}원</td></tr>
+        ))}
+      </tbody>
+    </table>
+    <p class="sv-note">※ 약식 계산(퇴직 전 3개월 평균임금이 월 급여와 같다고 가정, 상여·수당 제외). 퇴직소득세는 근속연수공제로 실효세율이 낮은 편이며 별도 공제됩니다. DC형 퇴직연금은 매년 적립액 기준이라 다를 수 있어요.</p>
+
+    <div class="sv-links">
+      <a href="/tools/severance-pay-calculator/">상여·수당 포함 정확히 계산 →</a>
+      <a href={`/salary/${Math.min(man, 10000)}/`}>연봉 {Math.min(man, 10000).toLocaleString()}만원 실수령액 →</a>
+    </div>
+    <div class="sv-pn">
+      {prev && <a href={`/severance/${prev}/`}>← 연봉 {prev.toLocaleString()}만</a>}
+      <a href="/severance/">전체 표</a>
+      {next && <a href={`/severance/${next}/`}>연봉 {next.toLocaleString()}만 →</a>}
+    </div>
+  </div>
+
+  <style>
+    .sv { max-width: 40rem; }
+    .sv-crumb { display: flex; gap: 0.45rem; font-size: 0.8rem; color: var(--muted); margin: 0.4rem 0 1.1rem; flex-wrap: wrap; }
+    .sv-crumb a { color: var(--muted); text-decoration: none; }
+    .sv-crumb a:hover { color: var(--accent); }
+    .sv h1 { font-family: var(--font-serif); font-size: clamp(1.4rem, 4.5vw, 2rem); margin: 0 0 0.4rem; }
+    .sv-sub { font-size: 0.9rem; color: var(--muted); margin: 0 0 1.2rem; }
+    .sv-hero { display: grid; grid-template-columns: 1fr 1.25fr 1fr; gap: 0.6rem; margin-bottom: 1.5rem; }
+    .sv-hero > div { border: 1px solid var(--line); border-radius: 14px; padding: 0.95rem 1rem; background: var(--paper-2); display: flex; flex-direction: column; gap: 0.15rem; }
+    .sv-hero span { font-size: 0.76rem; color: var(--muted); font-weight: 600; }
+    .sv-hero b { font-size: 1.1rem; }
+    .sv-hero__main { background: var(--accent) !important; border-color: var(--accent) !important; color: #fff; }
+    .sv-hero__main span { color: rgba(255,255,255,0.85); }
+    .sv-hero__main b { font-size: 1.3rem; }
+    @media (max-width: 560px) { .sv-hero { grid-template-columns: 1fr; } }
+    .sv-table { width: 100%; border-collapse: collapse; font-size: 0.94rem; }
+    .sv-table thead th { font-size: 0.76rem; color: var(--muted); text-align: left; padding: 0.45rem 0.7rem; border-bottom: 2px solid var(--line); }
+    .sv-table tbody th, .sv-table tbody td { padding: 0.55rem 0.7rem; border-bottom: 1px solid var(--line); text-align: left; font-variant-numeric: tabular-nums; }
+    .sv-table tbody td { text-align: right; font-weight: 600; }
+    .is-hl th, .is-hl td { background: var(--accent-soft); color: var(--accent); font-weight: 800; }
+    .sv-note { font-size: 0.78rem; color: var(--muted); line-height: 1.55; margin: 0.8rem 0 1.4rem; }
+    .sv-links { display: grid; gap: 0.5rem; margin-bottom: 1.6rem; }
+    .sv-links a { font-size: 0.9rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.7rem 1rem; border: 1px solid var(--line); border-radius: 12px; }
+    .sv-links a:hover { border-color: var(--accent); }
+    .sv-pn { display: flex; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; padding-top: 1.2rem; border-top: 1px solid var(--line); }
+    .sv-pn a { font-size: 0.86rem; font-weight: 700; color: var(--accent); text-decoration: none; }
+  </style>
+</BaseLayout>

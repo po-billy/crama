@@ -1,0 +1,109 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import rates from '../../data/rates.json';
+
+export function interestAmounts(): number[] {
+  return [100, 200, 300, 500, 700, 1000, 1500, 2000, 3000, 4000, 5000, 7000, 10000, 15000, 20000, 30000, 50000, 100000]; // 만원
+}
+export async function getStaticPaths() {
+  const list = interestAmounts();
+  return list.map((man, i) => ({ params: { amount: String(man) }, props: { man, prev: list[i - 1] ?? null, next: list[i + 1] ?? null } }));
+}
+
+// 오늘의 12개월 예금 최고우대금리(rates.json — 크론 일일 갱신)
+function bestDeposit() {
+  let best: { rate: number; bank: string } | null = null;
+  for (const p of (rates as any).deposits || []) for (const o of p.options || [])
+    if (o.trm === 12 && o.rate2 != null && (!best || o.rate2 > best.rate)) best = { rate: o.rate2, bank: p.bank };
+  return best;
+}
+const { man, prev, next } = Astro.props;
+const best = bestDeposit();
+const P = man * 10_000;
+const TAX = 0.154; // 이자소득세 15.4%
+const fmt = (n: number) => Math.round(n).toLocaleString('ko-KR');
+const manLabel = man >= 10000 ? `${Math.floor(man / 10000)}억${man % 10000 ? ' ' + (man % 10000).toLocaleString() + '만' : ''}` : `${man.toLocaleString()}만`;
+const calc = (r: number) => { const g = P * (r / 100); const t = g * TAX; return { g, t, n: g - t }; };
+const bestCalc = best ? calc(best.rate) : null;
+
+// 금리별 표(2.5~5.0% + 오늘 최고금리 행)
+const rows: number[] = [];
+for (let r = 2.5; r <= 5.01; r += 0.25) rows.push(Math.round(r * 100) / 100);
+if (best && !rows.includes(best.rate)) { rows.push(best.rate); rows.sort((a, b) => a - b); }
+
+const pageTitle = `${manLabel}원 예금 이자 — 1년 세후 ${bestCalc ? fmt(bestCalc.n) : ''}원`;
+const pageDesc = `${manLabel}원을 정기예금(12개월)에 맡기면? 오늘 최고금리 연 ${best?.rate}% 기준 세전 ${bestCalc ? fmt(bestCalc.g) : ''}원, 세후 ${bestCalc ? fmt(bestCalc.n) : ''}원. 금리별 이자표와 최고금리 은행까지.`;
+---
+<BaseLayout title={pageTitle} description={pageDesc}>
+  <div class="wrap it">
+    <nav class="it-crumb"><a href="/">홈</a><span>›</span><a href="/interest/">예금 이자 계산표</a><span>›</span><b>{manLabel}원</b></nav>
+    <h1>{manLabel}원 예금 이자, 1년에 얼마?</h1>
+    <p class="it-sub">오늘 최고금리 <b>연 {best?.rate}%</b> ({best?.bank}) · 12개월 정기예금 단리 기준 · <a href="/rates/">전체 금리 비교 →</a></p>
+
+    {bestCalc && (
+      <div class="it-hero">
+        <div><span>세전 이자</span><b>{fmt(bestCalc.g)}원</b></div>
+        <div class="it-hero__main"><span>세후 이자 (15.4% 공제)</span><b>{fmt(bestCalc.n)}원</b><em>월 약 {fmt(bestCalc.n / 12)}원</em></div>
+        <div><span>만기 수령액</span><b>{fmt(P + bestCalc.n)}원</b></div>
+      </div>
+    )}
+
+    <h2>금리별 이자표 (원금 {manLabel}원 · 12개월)</h2>
+    <table class="it-table">
+      <thead><tr><th>금리</th><th>세전 이자</th><th>세후 이자</th><th>만기 수령</th></tr></thead>
+      <tbody>
+        {rows.map((r) => { const c = calc(r); const isBest = best && r === best.rate; return (
+          <tr class={isBest ? 'is-best' : ''}>
+            <th>연 {r}%{isBest ? ' (오늘 최고)' : ''}</th>
+            <td>{fmt(c.g)}원</td>
+            <td>{fmt(c.n)}원</td>
+            <td>{fmt(P + c.n)}원</td>
+          </tr>
+        ); })}
+      </tbody>
+    </table>
+    <p class="it-note">※ 12개월 단리·일반과세(15.4%) 기준. 만기 전 해지 시 약정금리보다 낮은 중도해지금리가 적용돼요. 비과세·세금우대 상품은 세후 이자가 더 큽니다.</p>
+
+    <div class="it-links">
+      <a href="/rates/">지금 최고금리 상품 보기 →</a>
+      <a href="/tools/deposit-interest-calculator/">기간·복리로 정확히 계산 →</a>
+    </div>
+    <div class="it-pn">
+      {prev && <a href={`/interest/${prev}/`}>← {prev >= 10000 ? Math.floor(prev / 10000) + '억' : prev.toLocaleString() + '만'}원</a>}
+      <a href="/interest/">전체 표</a>
+      {next && <a href={`/interest/${next}/`}>{next >= 10000 ? Math.floor(next / 10000) + '억' : next.toLocaleString() + '만'}원 →</a>}
+    </div>
+  </div>
+
+  <style>
+    .it { max-width: 42rem; }
+    .it-crumb { display: flex; gap: 0.45rem; font-size: 0.8rem; color: var(--muted); margin: 0.4rem 0 1.1rem; flex-wrap: wrap; }
+    .it-crumb a { color: var(--muted); text-decoration: none; }
+    .it-crumb a:hover { color: var(--accent); }
+    .it h1 { font-family: var(--font-serif); font-size: clamp(1.4rem, 4.5vw, 2rem); margin: 0 0 0.4rem; }
+    .it-sub { font-size: 0.9rem; color: var(--muted); margin: 0 0 1.2rem; }
+    .it-sub a { color: var(--accent); }
+    .it-hero { display: grid; grid-template-columns: 1fr 1.3fr 1fr; gap: 0.6rem; margin-bottom: 1.6rem; }
+    .it-hero > div { border: 1px solid var(--line); border-radius: 14px; padding: 0.95rem 1rem; background: var(--paper-2); display: flex; flex-direction: column; gap: 0.15rem; }
+    .it-hero span { font-size: 0.76rem; color: var(--muted); font-weight: 600; }
+    .it-hero b { font-size: 1.12rem; }
+    .it-hero__main { background: var(--accent) !important; border-color: var(--accent) !important; color: #fff; }
+    .it-hero__main span { color: rgba(255,255,255,0.85); }
+    .it-hero__main b { font-size: 1.35rem; }
+    .it-hero__main em { font-style: normal; font-size: 0.78rem; opacity: 0.9; }
+    @media (max-width: 560px) { .it-hero { grid-template-columns: 1fr; } }
+    .it h2 { font-size: 1.1rem; margin: 0 0 0.7rem; }
+    .it-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    .it-table thead th { font-size: 0.76rem; color: var(--muted); text-align: left; padding: 0.45rem 0.6rem; border-bottom: 2px solid var(--line); }
+    .it-table tbody th, .it-table tbody td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--line); text-align: left; font-variant-numeric: tabular-nums; }
+    .it-table tbody td { text-align: right; }
+    .it-table tbody th { font-weight: 600; color: var(--ink-soft); }
+    .is-best th, .is-best td { background: var(--accent-soft); color: var(--accent); font-weight: 800; }
+    .it-note { font-size: 0.78rem; color: var(--muted); line-height: 1.55; margin: 0.8rem 0 1.4rem; }
+    .it-links { display: grid; gap: 0.5rem; margin-bottom: 1.6rem; }
+    .it-links a { font-size: 0.9rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.7rem 1rem; border: 1px solid var(--line); border-radius: 12px; }
+    .it-links a:hover { border-color: var(--accent); }
+    .it-pn { display: flex; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; padding-top: 1.2rem; border-top: 1px solid var(--line); }
+    .it-pn a { font-size: 0.86rem; font-weight: 700; color: var(--accent); text-decoration: none; }
+  </style>
+</BaseLayout>

@@ -1,0 +1,64 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+// [salary].astro의 sevSalaries와 동일하게 유지할 것(페이지 목록)
+const list = [2400, 2600, 2800, 3000, 3200, 3400, 3600, 3800, 4000, 4500, 5000, 5500, 6000, 6500, 7000, 8000, 9000, 10000, 12000, 15000, 20000];
+const fmt = (n: number) => Math.round(n).toLocaleString('ko-KR');
+const sev = (man: number, y: number) => ((man * 10_000) / 12) * y;
+---
+<BaseLayout
+  title="퇴직금 계산표 — 연봉·근속연수별"
+  description="연봉 2,400만~2억원, 근속 1~30년 퇴직금을 한 표로. 30일치 평균임금 × 근속연수(세전) 기준, 연봉별 상세표 제공."
+>
+  <div class="wrap svx">
+    <header class="page-hero">
+      <span class="eyebrow">Severance</span>
+      <h1>퇴직금 계산표</h1>
+      <p><b>퇴직금 ≈ 30일치 평균임금 × 근속연수</b>. 내 연봉 줄에서 근속연수별 금액을 확인하세요. (세전)</p>
+    </header>
+
+    <div class="svx-scroll">
+      <table class="svx-table">
+        <thead><tr><th>연봉</th><th>3년</th><th>5년</th><th>10년</th><th>20년</th><th></th></tr></thead>
+        <tbody>
+          {list.map((man) => (
+            <tr>
+              <th><a href={`/severance/${man}/`}>{man >= 10000 ? `${Math.floor(man / 10000)}억${man % 10000 ? ' ' + (man % 10000).toLocaleString() + '만' : ''}` : man.toLocaleString() + '만'}원</a></th>
+              <td>{fmt(sev(man, 3))}</td>
+              <td>{fmt(sev(man, 5))}</td>
+              <td class="svx-hl">{fmt(sev(man, 10))}</td>
+              <td>{fmt(sev(man, 20))}</td>
+              <td><a href={`/severance/${man}/`}>상세 →</a></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="svx-note">단위: 원 · 약식 계산(상여·수당 제외), 퇴직소득세 별도 · <a href="/tools/severance-pay-calculator/">정확한 계산기 →</a></p>
+
+    <div class="svx-cross">
+      <a href="/salary/">연봉 실수령액 표 →</a>
+      <a href="/interest/">퇴직금 맡기면 이자는? →</a>
+      <a href="/rates/">예·적금 금리 비교 →</a>
+    </div>
+  </div>
+
+  <style>
+    .svx { max-width: 44rem; }
+    .svx-scroll { overflow-x: auto; margin-top: 1.2rem; }
+    .svx-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; min-width: 34rem; }
+    .svx-table thead th { font-size: 0.76rem; color: var(--muted); text-align: right; padding: 0.5rem 0.6rem; border-bottom: 2px solid var(--line); }
+    .svx-table thead th:first-child { text-align: left; }
+    .svx-table tbody th, .svx-table tbody td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; text-align: right; }
+    .svx-table tbody th { text-align: left; }
+    .svx-table tbody th a { color: var(--ink); font-weight: 700; text-decoration: none; }
+    .svx-table tbody th a:hover { color: var(--accent); }
+    .svx-hl { color: var(--accent); font-weight: 700; }
+    .svx-table td:last-child a { font-size: 0.78rem; color: var(--muted); text-decoration: none; }
+    .svx-note { font-size: 0.78rem; color: var(--muted); margin: 0.8rem 0 0; }
+    .svx-note a { color: var(--accent); }
+    .svx-cross { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; margin: 2rem 0 1rem; padding-top: 1.4rem; border-top: 1px solid var(--line); }
+    .svx-cross a { font-size: 0.88rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--line); border-radius: 999px; }
+    .svx-cross a:hover { border-color: var(--accent); }
+  </style>
+</BaseLayout>

@@ -1,0 +1,68 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import rates from '../../data/rates.json';
+
+// [amount].astro의 interestAmounts와 동일하게 유지할 것(페이지 목록)
+const interestAmounts = () => [100, 200, 300, 500, 700, 1000, 1500, 2000, 3000, 4000, 5000, 7000, 10000, 15000, 20000, 30000, 50000, 100000];
+
+function bestDeposit() {
+  let best: { rate: number; bank: string } | null = null;
+  for (const p of (rates as any).deposits || []) for (const o of p.options || [])
+    if (o.trm === 12 && o.rate2 != null && (!best || o.rate2 > best.rate)) best = { rate: o.rate2, bank: p.bank };
+  return best;
+}
+const best = bestDeposit();
+const list = interestAmounts();
+const fmt = (n: number) => Math.round(n).toLocaleString('ko-KR');
+const label = (man: number) => (man >= 10000 ? `${Math.floor(man / 10000)}억${man % 10000 ? ' ' + (man % 10000).toLocaleString() + '만' : ''}` : `${man.toLocaleString()}만`);
+const net = (man: number) => man * 10000 * ((best?.rate ?? 3) / 100) * (1 - 0.154);
+---
+<BaseLayout
+  title="예금 이자 계산표 — 오늘 최고금리 기준"
+  description={`100만원부터 10억원까지, 오늘 최고금리 연 ${best?.rate}% 기준 1년 예금 이자(세전·세후)를 한 표로. 매일 금리 자동 갱신.`}
+>
+  <div class="wrap itx">
+    <header class="page-hero">
+      <span class="eyebrow">Interest</span>
+      <h1>예금 이자 계산표</h1>
+      <p>내 돈을 12개월 정기예금에 맡기면 이자가 얼마일까? <b>오늘 최고금리 연 {best?.rate}%</b> ({best?.bank}) 기준으로 매일 갱신됩니다.</p>
+      <p class="itx-fresh">이자소득세 15.4% 공제 후 세후 기준 · <a href="/rates/">전체 금리 비교 →</a></p>
+    </header>
+
+    <table class="itx-table">
+      <thead><tr><th>원금</th><th>세후 이자 (1년)</th><th>월 환산</th><th></th></tr></thead>
+      <tbody>
+        {list.map((man) => (
+          <tr>
+            <th><a href={`/interest/${man}/`}>{label(man)}원</a></th>
+            <td>{fmt(net(man))}원</td>
+            <td>{fmt(net(man) / 12)}원</td>
+            <td><a href={`/interest/${man}/`}>상세 →</a></td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+
+    <div class="itx-cross">
+      <a href="/rates/">오늘 최고금리 상품 →</a>
+      <a href="/tools/deposit-interest-calculator/">복리·기간 계산기 →</a>
+      <a href="/salary/">연봉 실수령액 →</a>
+    </div>
+  </div>
+
+  <style>
+    .itx { max-width: 40rem; }
+    .page-hero .itx-fresh { font-size: 0.82rem; color: var(--muted); margin-top: 0.5rem; }
+    .page-hero .itx-fresh a { color: var(--accent); }
+    .itx-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; margin-top: 1.2rem; }
+    .itx-table thead th { font-size: 0.78rem; color: var(--muted); text-align: left; padding: 0.5rem 0.7rem; border-bottom: 2px solid var(--line); }
+    .itx-table tbody th, .itx-table tbody td { padding: 0.55rem 0.7rem; border-bottom: 1px solid var(--line); text-align: left; font-variant-numeric: tabular-nums; }
+    .itx-table tbody th a { color: var(--ink); font-weight: 700; text-decoration: none; }
+    .itx-table tbody th a:hover { color: var(--accent); }
+    .itx-table tbody td:nth-child(2) { color: var(--accent); font-weight: 700; }
+    .itx-table td:last-child a { font-size: 0.8rem; color: var(--muted); text-decoration: none; }
+    .itx-cross { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; margin: 2rem 0 1rem; padding-top: 1.4rem; border-top: 1px solid var(--line); }
+    .itx-cross a { font-size: 0.88rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--line); border-radius: 999px; }
+    .itx-cross a:hover { border-color: var(--accent); }
+  </style>
+</BaseLayout>

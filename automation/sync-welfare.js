@@ -103,6 +103,13 @@ async function main() {
     services,
   };
   await fs.mkdir(path.dirname(OUT), { recursive: true });
+  // 내용(generatedAt 제외)이 동일하면 파일 유지 — 날짜만 바뀐 무의미 일일 커밋 방지
+  try {
+    const prev = JSON.parse(await fs.readFile(OUT, 'utf8'));
+    const a = { ...prev }; delete a.generatedAt;
+    const b = { ...out }; delete b.generatedAt;
+    if (JSON.stringify(a) === JSON.stringify(b)) { console.log('내용 변경 없음 — 파일 유지(커밋 스킵)'); return; }
+  } catch {}
   await fs.writeFile(OUT, JSON.stringify(out, null, 2) + '\n');
 
   console.log(`\n중앙부처 복지서비스 ${services.length}건(온라인신청 ${out.online}건) → ${OUT}`);

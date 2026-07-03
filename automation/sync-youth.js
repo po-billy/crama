@@ -74,6 +74,13 @@ async function main() {
     policies,
   };
   await fs.mkdir(path.dirname(OUT), { recursive: true });
+  // 내용(generatedAt 제외)이 동일하면 파일 유지 — 날짜만 바뀐 3MB급 무의미 일일 커밋 방지
+  try {
+    const prev = JSON.parse(await fs.readFile(OUT, 'utf8'));
+    const a = { ...prev }; delete a.generatedAt;
+    const b = { ...out }; delete b.generatedAt;
+    if (JSON.stringify(a) === JSON.stringify(b)) { console.log('내용 변경 없음 — 파일 유지(커밋 스킵)'); return; }
+  } catch {}
   await fs.writeFile(OUT, JSON.stringify(out, null, 2) + '\n');
 
   console.log(`\n청년정책 ${policies.length}건(신청링크 ${out.withUrl}건) → ${OUT}`);

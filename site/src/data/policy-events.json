@@ -1,48 +1,6 @@
 [
   {
     "month": 7,
-    "day": 2,
-    "title": "이천 서희스타힐스 SKY(조합원 취소분) 청약접수",
-    "cat": "housing",
-    "desc": "경기도 이천시 안흥동 279-1번지 일원 · 접수 2026-07-02~2026-07-03",
-    "url": "https://www.applyhome.co.kr/ai/aia/selectAPTLttotPblancDetail.do?houseManageNo=2026000281&pblancNo=2026000281",
-    "target": "all",
-    "field": "housing",
-    "ageGroup": "all",
-    "region": "gyeonggi",
-    "source": "applyhome",
-    "id": "apt-2026000281"
-  },
-  {
-    "month": 7,
-    "day": 2,
-    "title": "양주 회천지구 A-8BL 로제비앙 엘가 청약접수",
-    "cat": "housing",
-    "desc": "경기도 양주시 회정동 양주신도시 회천지구 A8블록 · 접수 2026-07-02~2026-07-06",
-    "url": "https://www.applyhome.co.kr/ai/aia/selectAPTLttotPblancDetail.do?houseManageNo=2026000278&pblancNo=2026000278",
-    "target": "all",
-    "field": "housing",
-    "ageGroup": "all",
-    "region": "gyeonggi",
-    "source": "applyhome",
-    "id": "apt-2026000278"
-  },
-  {
-    "month": 7,
-    "day": 2,
-    "title": "함안가야 휴니온아르떼 청약접수",
-    "cat": "housing",
-    "desc": "경상남도 함안군 가야읍 말산리 58-1외 4필지 · 접수 2026-07-02~2026-07-06",
-    "url": "https://www.applyhome.co.kr/ai/aia/selectAPTLttotPblancDetail.do?houseManageNo=2026000272&pblancNo=2026000272",
-    "target": "all",
-    "field": "housing",
-    "ageGroup": "all",
-    "region": "all",
-    "source": "applyhome",
-    "id": "apt-2026000272"
-  },
-  {
-    "month": 7,
     "day": 3,
     "title": "신제주 동문디이스트 시그니처원Ⅱ 청약접수",
     "cat": "housing",
@@ -110,6 +68,20 @@
     "region": "jeonbuk",
     "source": "applyhome",
     "id": "apt-2026000274"
+  },
+  {
+    "month": 7,
+    "day": 13,
+    "title": "센텀 엘카사 청약접수",
+    "cat": "housing",
+    "desc": "울산광역시 울주군 온양읍 화산발리로 706 · 접수 2026-07-13~2026-07-15",
+    "url": "https://www.applyhome.co.kr/ai/aia/selectAPTLttotPblancDetail.do?houseManageNo=2026000328&pblancNo=2026000328",
+    "target": "all",
+    "field": "housing",
+    "ageGroup": "all",
+    "region": "ulsan",
+    "source": "applyhome",
+    "id": "apt-2026000328"
   },
   {
     "month": 7,

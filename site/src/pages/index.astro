@@ -8,6 +8,7 @@ import { SITE, CATEGORIES, EDITOR_PICKS, PILLARS, GUIDE_EXTRA } from '../consts'
 import AudioPicks from '../components/AudioPicks.astro';
 import Curations from '../components/Curations.astro';
 import DuoIcon from '../components/DuoIcon.astro';
+import ratesData from '../data/rates.json';
 
 const posts = (await getCollection('blog'))
   .filter((p) => !p.data.draft)
@@ -84,6 +85,16 @@ const catHome = {
 
 // 작은 썸네일(160px) 경로 — 랭킹/리스트의 48~90px 썸네일에 풀사이즈 hero 대신 사용(이미지 용량 절감)
 const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.webp$/, '-hero-thumb.webp') : h);
+
+// 오늘의 최고금리(12개월 최고우대) — 데일리 재방문 훅. rates.json은 크론이 매일 갱신
+function bestRate(list: any[]) {
+  let best: { rate: number; bank: string } | null = null;
+  for (const p of list || []) for (const o of p.options || [])
+    if (o.trm === 12 && o.rate2 != null && (!best || o.rate2 > best.rate)) best = { rate: o.rate2, bank: p.bank };
+  return best;
+}
+const bestDep = bestRate((ratesData as any).deposits);
+const bestSav = bestRate((ratesData as any).savings);
 ---
 <BaseLayout spa title={SITE.title} description={SITE.description} image="/og-home.png">
   <div class="wrap wrap--home">
@@ -202,6 +213,15 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
         </a>
       ))}
     </nav>
+
+    {bestDep && bestSav && (
+      <a class="home-rates" href="/rates/">
+        <span class="home-rates__label">오늘의 최고금리</span>
+        <span class="home-rates__item">예금 <b>연 {bestDep.rate}%</b> <i>{bestDep.bank}</i></span>
+        <span class="home-rates__item">적금 <b>연 {bestSav.rate}%</b> <i>{bestSav.bank}</i></span>
+        <span class="home-rates__cta">전체 비교 →</span>
+      </a>
+    )}
 
     <!-- 최근 본 글 — 돌아온 독자 이어보기(비어있으면 숨김, 익명 localStorage) -->
     <section class="home-recent" id="home-recent" aria-label="최근 본 글" hidden>

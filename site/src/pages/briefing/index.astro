@@ -4,7 +4,18 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/PostCard.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
 import DuoIcon from '../../components/DuoIcon.astro';
+import ratesData from '../../data/rates.json';
 import { CATEGORIES, type CategorySlug, VAPID_PUBLIC_KEY } from '../../consts';
+
+// 오늘의 숫자 — 12개월 최고금리(rates.json 일일 갱신)
+function bestRate(list: any[]) {
+  let best: number | null = null;
+  for (const p of list || []) for (const o of p.options || [])
+    if (o.trm === 12 && o.rate2 != null && (best == null || o.rate2 > best)) best = o.rate2;
+  return best;
+}
+const numDep = bestRate((ratesData as any).deposits);
+const numSav = bestRate((ratesData as any).savings);
 const SU = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
 const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
 
@@ -31,6 +42,15 @@ const todayAudio = today ? !!today.data.audio : false;
         <div class="brief-hero__stat"><b>0원</b><span>완전 무료</span></div>
       </div>
     </header>
+
+    {numDep && numSav && (
+      <a class="brief-nums" href="/rates/">
+        <span class="brief-nums__label">오늘의 숫자</span>
+        <span>예금 최고 <b>연 {numDep}%</b></span>
+        <span>적금 최고 <b>연 {numSav}%</b></span>
+        <span class="brief-nums__cta">금리 비교 →</span>
+      </a>
+    )}
 
     <!-- 구독 — 컴팩트 토글 바 (한 줄, 스크롤 최소) -->
     <section class="brief-sub">
@@ -217,6 +237,13 @@ const todayAudio = today ? !!today.data.audio : false;
   .brief-today__cta { margin-top: .45rem; font-weight: 800; color: var(--accent); font-size: .96rem; }
 
   /* ── 구독 — 컴팩트 토글 바 ── */
+  /* 오늘의 숫자 — 매일 갱신되는 금리 훅 */
+  .brief-nums { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; margin: 0 0 0.8rem; padding: 0.65rem 1.05rem; border: 1px solid var(--line); border-radius: 12px; background: var(--paper-2); text-decoration: none; color: var(--ink-soft); font-size: 0.86rem; transition: border-color 0.12s; }
+  .brief-nums:hover { border-color: var(--accent); }
+  .brief-nums__label { font-size: 0.75rem; font-weight: 800; color: var(--accent); flex: none; }
+  .brief-nums b { color: var(--ink); }
+  .brief-nums__cta { margin-left: auto; font-size: 0.78rem; font-weight: 700; color: var(--accent); flex: none; }
+
   .brief-sub { margin-bottom: 2.4rem; }
   .brief-subbar { display: flex; align-items: center; justify-content: space-between; gap: 0.7rem; flex-wrap: wrap; padding: 0.8rem 1.05rem; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); }
   .brief-subbar__title { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.98rem; font-weight: 800; }

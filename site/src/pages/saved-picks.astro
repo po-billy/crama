@@ -6,7 +6,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <header class="page-hero">
       <span class="eyebrow">My Picks</span>
       <h1>내 관심</h1>
-      <p>저장한 청년 정책·복지 서비스·혜택을 한곳에 모았어요. (이 기기에 저장 · 로그인 불필요)</p>
+      <p>저장한 청년 정책·복지 서비스·혜택을 한곳에. 계정에 저장되어 <b>어느 기기에서나</b> 볼 수 있어요.</p>
     </header>
 
     <div id="sp-body"><p class="sp-loading">불러오는 중…</p></div>
@@ -36,6 +36,19 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         return '<span class="sp-dday' + cls + '">' + (dd === 0 ? 'D-Day' : 'D-' + dd) + '</span>';
       }
       function render() {
+        if (!S.authed) {
+          body.innerHTML = '<div class="sp-login">' +
+            '<h2>관심 목록은 로그인하고 쓸 수 있어요</h2>' +
+            '<p>하트로 저장한 정책·복지·혜택이 계정에 안전하게 보관되고,<br>폰·PC 어디서나 이어서 볼 수 있어요. 곧 <b>마감 임박 알림</b>도 보내드려요.</p>' +
+            '<button type="button" class="sp-login__btn" id="sp-login-go">무료 로그인 · 30초 →</button>' +
+            '<div class="sp-empty__links"><a href="/youth/">청년 정책 둘러보기 →</a><a href="/welfare/">복지 서비스 →</a><a href="/benefits/">내 혜택 찾기 →</a></div></div>';
+          const go = document.getElementById('sp-login-go');
+          if (go) go.addEventListener('click', () => {
+            try { localStorage.setItem('crama:login-return', '/saved-picks/'); } catch (e) {}
+            location.href = '/login/';
+          });
+          return;
+        }
         const all = S.list();
         if (!all.length) {
           body.innerHTML = '<div class="sp-empty"><p>아직 저장한 항목이 없어요.<br>청년 정책·복지 서비스에서 하트를 눌러 저장해 보세요.</p>' +
@@ -69,11 +82,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       });
       render();
       document.addEventListener('astro:page-load', render);
+      document.addEventListener('crama:saved-sync', render); // 서버 동기화 완료 시 최신 목록 반영
     })();
   </script>
 
   <style>
     .sp-loading { color: var(--muted); padding: 2rem 0; }
+    .sp-login { text-align: center; padding: 2.2rem 1rem; border: 1px solid var(--line); border-radius: 16px; background: var(--paper-2); }
+    .sp-login h2 { font-size: 1.2rem; margin: 0 0 0.6rem; }
+    .sp-login p { font-size: 0.92rem; color: var(--ink-soft); line-height: 1.6; margin: 0 0 1.1rem; }
+    .sp-login__btn { font: inherit; font-weight: 800; font-size: 0.95rem; padding: 0.8rem 1.6rem; border: 0; border-radius: 12px; background: var(--accent); color: #fff; cursor: pointer; margin-bottom: 1.2rem; }
+    .sp-login__btn:hover { filter: brightness(1.1); }
     .sp-empty { text-align: center; color: var(--muted); padding: 2.5rem 0; }
     .sp-empty__links { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; margin-top: 1.2rem; }
     .sp-empty__links a { font-size: 0.9rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--line); border-radius: 999px; }

@@ -525,6 +525,8 @@ const faqLd = {
         $('bf-cards').addEventListener('click', function (ev) {
           var save = ev.target.closest('.bf-card__save');
           if (save) {
+            // 관심 저장은 로그인 전용 — 통합 스토어의 게이트/유도 재사용
+            if (window.CramaSaved && !window.CramaSaved.authed) { window.CramaSaved.promptLogin(); return; }
             var sid = save.dataset.bfid;
             var nowOn = toggleInterest(sid);
             var bfRec = BENEFITS.filter(function (b) { return b.id === sid; })[0];

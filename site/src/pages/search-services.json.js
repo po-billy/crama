@@ -26,8 +26,8 @@ export async function GET() {
       description: s.summary || '',
       tags: [s.theme, s.ministry].filter(Boolean),
       catLabel: s.theme || '복지',
-      url: s.url || '/welfare/',
-      external: !!s.url,
+      url: `/welfare/${s.id}/`, // 내부 상세 페이지(신청은 상세에서 복지로로)
+      external: false,
     });
   });
 

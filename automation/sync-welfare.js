@@ -35,6 +35,7 @@ function normalize(block) {
     name: clean(tag(block, 'servNm')),
     theme: firstOf(tag(block, 'intrsThemaArray')),   // 관심주제(이름)
     summary: trunc(tag(block, 'servDgst'), 180),
+    detail: trunc(tag(block, 'servDgst'), 1000),   // 상세 페이지 본문용(전문에 가깝게)
     ministry: clean(tag(block, 'jurMnofNm')),          // 소관부처
     cycle: clean(tag(block, 'sprtCycNm')),             // 지원주기(1회성/매월…)
     ptype: clean(tag(block, 'srvPvsnNm')),             // 제공유형(현금/현물/서비스…)
@@ -44,6 +45,25 @@ function normalize(block) {
   };
 }
 
+// ── 상세조회 증분 보강 — 일 100회 제한이라 실행당 BUDGET건씩, 기존 보강분은 유지(6일 내 전량) ──
+const DETAIL_BUDGET = Number(process.env.WELFARE_DETAIL_BUDGET || 80);
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function fetchRich(servId) {
+  const url = `${ENDPOINT.replace('NationalWelfarelistV001', 'NationalWelfaredetailedV001')}?serviceKey=${KEY}&callTp=D&servId=${servId}`;
+  const res = await fetch(url);
+  if (!res.ok) return null;
+  const xml = await res.text();
+  const pick = (n, cap) => trunc(tag(xml, n), cap);
+  const rich = {
+    outline: pick('wlfareInfoOutlCn', 600),
+    target: pick('tgtrDtlCn', 900),
+    criteria: pick('slctCritCn', 1200),
+    benefit: pick('alwServCn', 1200),
+  };
+  return (rich.target || rich.criteria || rich.benefit || rich.outline) ? rich : null;
+}
+
 async function main() {
   if (!KEY) { console.warn('⚠ DATA_GO_KR_KEY 없음 — 복지 스킵(기존 데이터 유지)'); return; }
   const blocks = await fetchAll();
@@ -51,6 +71,26 @@ async function main() {
   const services = blocks
     .map(normalize)
     .filter((s) => s.id && s.name && !seen.has(s.id) && seen.add(s.id));
+
+  // 이전 보강분(rich) 이어받기
+  let prevRich = {};
+  try {
+    const prev = JSON.parse(await fs.readFile(OUT, 'utf8'));
+    (prev.services || []).forEach((s) => { if (s.rich) prevRich[s.id] = s.rich; });
+  } catch {}
+  services.forEach((s) => { if (prevRich[s.id]) s.rich = prevRich[s.id]; });
+
+  // 미보강분에서 BUDGET건 상세조회
+  const pending = services.filter((s) => !s.rich);
+  let enriched = 0;
+  for (const s of pending.slice(0, DETAIL_BUDGET)) {
+    try {
+      const r = await fetchRich(s.id);
+      if (r) { s.rich = r; enriched++; }
+    } catch {}
+    await sleep(120);
+  }
+  console.log(`상세 보강: 이번 ${enriched}건 / 누적 ${services.filter((s) => s.rich).length}/${services.length} (남은 ${services.filter((s) => !s.rich).length}건은 다음 크론에서)`);
 
   const byTheme = {};
   services.forEach((s) => { if (s.theme) byTheme[s.theme] = (byTheme[s.theme] || 0) + 1; });

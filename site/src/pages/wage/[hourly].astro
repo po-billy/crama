@@ -1,0 +1,86 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export function wageAmounts(): number[] {
+  const a = [10320]; // 2026 최저시급
+  for (let w = 10000; w <= 25000; w += 500) if (w !== 10320) a.push(w);
+  return a.sort((x, y) => x - y);
+}
+export async function getStaticPaths() {
+  const list = wageAmounts();
+  return list.map((w, i) => ({ params: { hourly: String(w) }, props: { w, prev: list[i - 1] ?? null, next: list[i + 1] ?? null } }));
+}
+
+const MIN_WAGE = 10320;
+const { w, prev, next } = Astro.props;
+const fmt = (n: number) => Math.round(n).toLocaleString('ko-KR');
+const monthly = w * 209;        // 주 40h + 주휴수당 포함(월 209시간)
+const monthlyNoHoliday = w * 174; // 주휴 미포함(월 174시간)
+const daily = w * 8;
+const weekly = w * 48;          // 주 40h + 주휴 8h
+const yearly = monthly * 12;
+const isMin = w === MIN_WAGE;
+const vsMin = Math.round((w / MIN_WAGE) * 100);
+const salaryMan = Math.round(yearly / 10_000 / 100) * 100; // 실수령 페이지 점프용(100만 단위)
+const pageTitle = `시급 ${fmt(w)}원 월급 — ${fmt(monthly)}원 (주휴수당 포함)`;
+const pageDesc = `시급 ${fmt(w)}원의 월급은 주휴수당 포함 ${fmt(monthly)}원(주 40시간·월 209시간 기준), 연봉 환산 ${fmt(yearly)}원입니다. 2026 최저시급(${fmt(MIN_WAGE)}원) 대비 ${vsMin}%.`;
+---
+<BaseLayout title={pageTitle} description={pageDesc}>
+  <div class="wrap wg">
+    <nav class="wg-crumb"><a href="/">홈</a><span>›</span><a href="/wage/">시급 환산표</a><span>›</span><b>{fmt(w)}원</b></nav>
+    <h1>시급 {fmt(w)}원, 월급으로 얼마?</h1>
+    <p class="wg-badge">{isMin ? '2026년 최저시급' : `2026 최저시급 대비 ${vsMin}%`} · 주 40시간 근무 기준</p>
+
+    <div class="wg-hero">
+      <span>월급 (주휴수당 포함)</span>
+      <b>{fmt(monthly)}원</b>
+      <em>연봉 환산 {fmt(yearly)}원</em>
+    </div>
+
+    <table class="wg-table">
+      <tbody>
+        <tr><th>일급 (8시간)</th><td>{fmt(daily)}원</td></tr>
+        <tr><th>주급 (주휴 포함 48시간)</th><td>{fmt(weekly)}원</td></tr>
+        <tr><th>월급 (주휴 미포함 · 174시간)</th><td>{fmt(monthlyNoHoliday)}원</td></tr>
+        <tr class="wg-hl"><th>월급 (주휴 포함 · 209시간)</th><td>{fmt(monthly)}원</td></tr>
+        <tr><th>연봉 환산</th><td>{fmt(yearly)}원</td></tr>
+      </tbody>
+    </table>
+    <p class="wg-note">※ 주휴수당: 주 15시간 이상 근무 시 1일치 유급휴일 수당이 발생해요(주 40시간 근무 = 월 209시간 환산). 세전 금액 기준.</p>
+
+    <div class="wg-links">
+      <a href={`/salary/${Math.min(Math.max(salaryMan, 2000), 10000)}/`}>연봉 {fmt(Math.min(Math.max(salaryMan, 2000), 10000))}만원 실수령액 보기 →</a>
+      <a href="/tools/hourly-wage-calculator/">내 근무시간으로 정확히 계산 →</a>
+    </div>
+
+    <div class="wg-pn">
+      {prev && <a href={`/wage/${prev}/`}>← 시급 {fmt(prev)}원</a>}
+      <a href="/wage/">전체 표</a>
+      {next && <a href={`/wage/${next}/`}>시급 {fmt(next)}원 →</a>}
+    </div>
+  </div>
+
+  <style>
+    .wg { max-width: 40rem; }
+    .wg-crumb { display: flex; gap: 0.45rem; font-size: 0.8rem; color: var(--muted); margin: 0.4rem 0 1.1rem; }
+    .wg-crumb a { color: var(--muted); text-decoration: none; }
+    .wg-crumb a:hover { color: var(--accent); }
+    .wg h1 { font-family: var(--font-serif); font-size: clamp(1.4rem, 4.5vw, 2rem); margin: 0 0 0.4rem; }
+    .wg-badge { font-size: 0.84rem; color: var(--muted); margin: 0 0 1.1rem; }
+    .wg-hero { background: var(--accent); color: #fff; border-radius: 16px; padding: 1.2rem 1.4rem; display: flex; flex-direction: column; margin-bottom: 1.4rem; }
+    .wg-hero span { font-size: 0.85rem; opacity: 0.85; }
+    .wg-hero b { font-size: clamp(1.6rem, 5vw, 2.1rem); margin-top: 0.2rem; }
+    .wg-hero em { font-style: normal; font-size: 0.88rem; opacity: 0.9; margin-top: 0.2rem; }
+    .wg-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+    .wg-table th, .wg-table td { padding: 0.65rem 0.8rem; border-bottom: 1px solid var(--line); text-align: left; }
+    .wg-table td { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+    .wg-table th { color: var(--ink-soft); font-weight: 600; }
+    .wg-hl th, .wg-hl td { color: var(--accent); font-weight: 800; background: var(--accent-soft); }
+    .wg-note { font-size: 0.8rem; color: var(--muted); line-height: 1.55; margin: 0.8rem 0 1.4rem; }
+    .wg-links { display: grid; gap: 0.5rem; margin-bottom: 1.6rem; }
+    .wg-links a { font-size: 0.9rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.7rem 1rem; border: 1px solid var(--line); border-radius: 12px; }
+    .wg-links a:hover { border-color: var(--accent); }
+    .wg-pn { display: flex; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; padding-top: 1.2rem; border-top: 1px solid var(--line); }
+    .wg-pn a { font-size: 0.86rem; font-weight: 700; color: var(--accent); text-decoration: none; }
+  </style>
+</BaseLayout>

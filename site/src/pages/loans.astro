@@ -1,0 +1,129 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import loans from '../data/loans.json';
+
+const mortgages = (loans.mortgages || []) as any[];
+const rents = (loans.rents || []) as any[];
+const credits = (loans.credits || []) as any[];
+const dcls = loans.dclsMonth ? `${String(loans.dclsMonth).slice(0, 4)}년 ${Number(String(loans.dclsMonth).slice(4))}월` : '';
+const f = (n: number | null) => (n == null ? '-' : n.toFixed(2).replace(/\.00$/, '').replace(/0$/, ''));
+const bestM = Math.min(...mortgages.map((p) => p.min ?? 99));
+const bestR = Math.min(...rents.map((p) => p.min ?? 99));
+const bestC = Math.min(...credits.map((p) => p.avg ?? 99));
+---
+<BaseLayout
+  title="대출 금리 비교 — 주담대·전세자금·신용대출"
+  description={`전 은행 주택담보대출 ${mortgages.length}개·전세자금대출 ${rents.length}개·신용대출 ${credits.length}개 금리를 매일 비교. 주담대 최저 ${f(bestM)}%부터. 출처: 금융감독원.`}
+>
+  <div class="wrap ln">
+    <header class="page-hero">
+      <span class="eyebrow">Loans</span>
+      <h1>대출 금리 비교</h1>
+      <p>전 은행 <b>주담대·전세자금·신용대출</b> 금리를 낮은 순으로 비교하세요.</p>
+      <p class="ln-fresh">공시 기준 {dcls} · 출처 <a href="https://finlife.fss.or.kr/" target="_blank" rel="noopener">금융감독원 금융상품통합비교공시</a> · 매일 자동 갱신</p>
+    </header>
+
+    <div class="ln-best">
+      <div><span>주담대 최저</span><b>연 {f(bestM)}%</b></div>
+      <div><span>전세대출 최저</span><b>연 {f(bestR)}%</b></div>
+      <div><span>신용대출 평균 최저</span><b>연 {f(bestC)}%</b></div>
+    </div>
+
+    <div class="ln-tabs" role="tablist">
+      <button type="button" class="ln-tab is-on" data-kind="m">주담대 {mortgages.length}</button>
+      <button type="button" class="ln-tab" data-kind="r">전세자금 {rents.length}</button>
+      <button type="button" class="ln-tab" data-kind="c">신용 {credits.length}</button>
+    </div>
+    <p class="ln-count" id="ln-count"></p>
+
+    <div class="ln-list" id="ln-list">
+      {[...mortgages.map((p) => ({ ...p, kind: 'm' })), ...rents.map((p) => ({ ...p, kind: 'r' })), ...credits.map((p) => ({ ...p, kind: 'c' }))].map((p) => (
+        <details class="ln-card" data-kind={p.kind} data-sort={p.kind === 'c' ? p.avg : p.min}>
+          <summary>
+            <span class="ln-card__co"><b>{p.bank}</b></span>
+            <span class="ln-card__nm">{p.name}</span>
+            <span class="ln-card__rate">
+              {p.kind === 'c'
+                ? <><em>연 {f(p.avg)}%</em><small>평균 · 고신용 {f(p.best)}%</small></>
+                : <><em>연 {f(p.min)}~{f(p.max)}%</em><small>평균 {f(p.avg)}%</small></>}
+            </span>
+          </summary>
+          <div class="ln-card__body">
+            {p.kind !== 'c' && p.options.slice(0, 8).map((o: any) => (
+              <p class="ln-opt">{o.mrtg ? `${o.mrtg} · ` : ''}{o.rateType} · {o.rpay} — <b>{f(o.min)}~{f(o.max)}%</b> (평균 {f(o.avg)}%)</p>
+            ))}
+            {p.kind === 'c' && p.options.slice(0, 6).map((o: any) => (
+              <p class="ln-opt">{o.prdt} · {o.rateType} — 평균 <b>{f(o.avg)}%</b>{o.g1 != null ? ` · 900점↑ ${f(o.g1)}%` : ''}</p>
+            ))}
+            {p.limit && <p><b>한도</b> {p.limit}</p>}
+            {p.earlyFee && <p><b>중도상환수수료</b> {p.earlyFee}</p>}
+            {p.joinWay && <p><b>가입</b> {p.joinWay}</p>}
+          </div>
+        </details>
+      ))}
+    </div>
+
+    <p class="ln-note">※ 실제 금리는 신용점수·LTV·우대조건에 따라 달라집니다. 신용대출 금리는 CB 점수대별 공시 평균입니다.</p>
+    <div class="ln-cross">
+      <a href="/rates/">예·적금 금리 비교 →</a>
+      <a href="/tools/dsr-calculator/">DSR 계산기 →</a>
+      <a href="/salary/">연봉 실수령액 →</a>
+    </div>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const list = document.getElementById('ln-list');
+      if (!list) return;
+      const cards = Array.prototype.slice.call(list.querySelectorAll('.ln-card'));
+      const countEl = document.getElementById('ln-count');
+      let kind = 'm';
+      function apply() {
+        const matched = cards.filter((c) => c.dataset.kind === kind);
+        cards.forEach((c) => { c.hidden = c.dataset.kind !== kind; c.open = false; });
+        matched.sort((a, b) => Number(a.dataset.sort) - Number(b.dataset.sort));
+        matched.forEach((c) => list.appendChild(c));
+        countEl.textContent = matched.length + '개 상품 · 낮은 금리 순';
+      }
+      document.querySelectorAll('.ln-tab').forEach((t) => t.addEventListener('click', () => {
+        document.querySelectorAll('.ln-tab').forEach((x) => x.classList.remove('is-on'));
+        t.classList.add('is-on');
+        kind = t.dataset.kind; apply();
+      }));
+      apply();
+    })();
+  </script>
+
+  <style>
+    .ln { max-width: 46rem; }
+    .page-hero .ln-fresh { font-size: 0.82rem; color: var(--muted); margin-top: 0.5rem; }
+    .page-hero .ln-fresh a { color: var(--accent); }
+    .ln-best { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; margin: 1.3rem 0; }
+    .ln-best div { border: 1px solid var(--line); border-radius: 14px; padding: 0.85rem 1rem; background: var(--paper-2); display: flex; flex-direction: column; gap: 0.1rem; }
+    .ln-best span { font-size: 0.76rem; color: var(--muted); font-weight: 600; }
+    .ln-best b { font-size: 1.2rem; color: var(--accent); }
+    @media (max-width: 560px) { .ln-best { grid-template-columns: 1fr; } .ln-best div { flex-direction: row; justify-content: space-between; align-items: center; } }
+    .ln-tabs { display: flex; gap: 0.45rem; margin-bottom: 0.7rem; }
+    .ln-tab { flex: 1; padding: 0.6rem 0.5rem; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); font: inherit; font-weight: 700; font-size: 0.9rem; color: var(--ink-soft); cursor: pointer; }
+    .ln-tab.is-on { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .ln-count { font-size: 0.85rem; color: var(--muted); margin: 0 0 0.6rem; }
+    .ln-list { display: grid; gap: 0.55rem; }
+    .ln-card { border: 1px solid var(--line); border-radius: 12px; background: var(--paper); }
+    .ln-card[hidden] { display: none; }
+    .ln-card summary { display: grid; grid-template-columns: 7.5rem 1fr auto; align-items: center; gap: 0.7rem; padding: 0.8rem 1rem; cursor: pointer; list-style: none; }
+    .ln-card summary::-webkit-details-marker { display: none; }
+    .ln-card__co b { font-size: 0.88rem; }
+    .ln-card__nm { font-size: 0.88rem; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ln-card__rate { text-align: right; display: flex; flex-direction: column; }
+    .ln-card__rate em { font-style: normal; font-weight: 800; color: var(--accent); font-size: 0.98rem; white-space: nowrap; }
+    .ln-card__rate small { font-size: 0.7rem; color: var(--muted); white-space: nowrap; }
+    .ln-card__body { padding: 0 1rem 0.9rem; border-top: 1px dashed var(--line); }
+    .ln-card__body p { font-size: 0.83rem; color: var(--ink-soft); line-height: 1.5; margin: 0.55rem 0 0; }
+    .ln-card__body b { color: var(--ink); }
+    @media (max-width: 560px) { .ln-card summary { grid-template-columns: 1fr auto; } .ln-card__nm { grid-column: 1 / -1; grid-row: 2; } }
+    .ln-note { font-size: 0.78rem; color: var(--muted); margin: 1.3rem 0 0; }
+    .ln-cross { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; margin: 2rem 0 1rem; padding-top: 1.4rem; border-top: 1px solid var(--line); }
+    .ln-cross a { font-size: 0.88rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--line); border-radius: 999px; }
+    .ln-cross a:hover { border-color: var(--accent); }
+  </style>
+</BaseLayout>

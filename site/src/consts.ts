@@ -90,6 +90,7 @@ export const NAV: NavItem[] = [
     { label: '내 관심함', href: '/saved-picks/', icon: 'saved' },
     { label: '연봉 실수령액', href: '/salary/', icon: 'income' },
     { label: '예·적금 금리', href: '/rates/', icon: 'money' },
+    { label: '대출 금리', href: '/loans/', icon: 'diagnose' },
     { label: '금융 계산기', href: '/tools/', icon: 'calc' },
   ]},
   { label: '쇼츠·칼럼', href: '/shorts/', children: [

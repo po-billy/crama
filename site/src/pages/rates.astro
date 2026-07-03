@@ -1,0 +1,211 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import rates from '../data/rates.json';
+
+const TERMS = [6, 12, 24, 36];
+const deposits = (rates.deposits || []) as any[];
+const savings = (rates.savings || []) as any[];
+const generatedAt: string = rates.generatedAt || '';
+const dclsMonth: string = rates.dclsMonth || '';
+const dclsLabel = dclsMonth ? `${dclsMonth.slice(0, 4)}년 ${Number(dclsMonth.slice(4))}월` : '';
+
+// 카드용: 기간별 최고우대/기본 금리(같은 기간 옵션 중 최대)
+function termRates(p: any) {
+  const out: Record<string, { r: number; b: number } | null> = {};
+  for (const t of TERMS) {
+    const os = p.options.filter((o: any) => o.trm === t && o.rate2 != null);
+    out[t] = os.length
+      ? { r: Math.max(...os.map((o: any) => o.rate2)), b: Math.max(...os.map((o: any) => o.rate ?? 0)) }
+      : null;
+  }
+  return out;
+}
+const prep = (list: any[], kind: string) => list.map((p) => ({ ...p, kind, tr: termRates(p) }));
+const all = [...prep(deposits, 'deposit'), ...prep(savings, 'saving')];
+
+const fmtRate = (n: number) => n.toFixed(2).replace(/\.?0+$/, (m) => (m === '.00' ? '' : m.replace(/0+$/, '')));
+---
+<BaseLayout
+  title="예금·적금 금리 비교 — 오늘의 최고 금리"
+  description={`전 은행·저축은행 예금 ${deposits.length}개·적금 ${savings.length}개 금리를 매일 비교. 12개월 최고 예금 ${rates.best?.deposit12}%·적금 ${rates.best?.saving12}%. 출처: 금융감독원 금융상품통합비교공시.`}
+>
+  <div class="wrap rt">
+    <header class="page-hero">
+      <span class="eyebrow">Rates</span>
+      <h1>예금·적금 금리 비교</h1>
+      <p>전 은행·저축은행 <b>{deposits.length + savings.length}개 상품</b>의 오늘 금리를 높은 순으로 비교하세요.</p>
+      <p class="rt-fresh">공시 기준 {dclsLabel} · 출처 <a href="https://finlife.fss.or.kr/" target="_blank" rel="noopener">금융감독원 금융상품통합비교공시</a> · 매일 자동 갱신 ({generatedAt})</p>
+    </header>
+
+    <div class="rt-best">
+      <div class="rt-best__item"><span>12개월 예금 최고</span><b>연 {rates.best?.deposit12}%</b></div>
+      <div class="rt-best__item"><span>12개월 적금 최고</span><b>연 {rates.best?.saving12}%</b></div>
+    </div>
+
+    <div class="rt-controls">
+      <div class="rt-tabs" role="tablist">
+        <button type="button" class="rt-tab is-on" data-kind="deposit">정기예금 {deposits.length}</button>
+        <button type="button" class="rt-tab" data-kind="saving">적금 {savings.length}</button>
+      </div>
+      <div class="rt-row">
+        <div class="rt-chips" id="rt-terms">
+          {TERMS.map((t) => <button type="button" class={t === 12 ? 'rt-chip is-on' : 'rt-chip'} data-trm={t}>{t}개월</button>)}
+        </div>
+        <div class="rt-chips" id="rt-groups">
+          <button type="button" class="rt-chip is-on" data-group="">전체</button>
+          <button type="button" class="rt-chip" data-group="은행">은행</button>
+          <button type="button" class="rt-chip" data-group="저축은행">저축은행</button>
+        </div>
+      </div>
+    </div>
+
+    <p class="rt-count" id="rt-count"></p>
+
+    <div class="rt-list" id="rt-list">
+      {all.map((p) => (
+        <details
+          class="rt-card"
+          data-kind={p.kind}
+          data-group={p.group}
+          data-r6={p.tr[6]?.r} data-b6={p.tr[6]?.b}
+          data-r12={p.tr[12]?.r} data-b12={p.tr[12]?.b}
+          data-r24={p.tr[24]?.r} data-b24={p.tr[24]?.b}
+          data-r36={p.tr[36]?.r} data-b36={p.tr[36]?.b}
+        >
+          <summary>
+            <span class="rt-card__co">
+              <b>{p.bank}</b>
+              {p.group === '저축은행' && <i class="rt-card__grp">저축은행</i>}
+            </span>
+            <span class="rt-card__nm">{p.name}</span>
+            <span class="rt-card__rate"><em class="rt-r">-</em><small>최고 · 기본 <span class="rt-b">-</span></small></span>
+          </summary>
+          <div class="rt-card__body">
+            {p.special && <p><b>우대 조건</b> {p.special}</p>}
+            {p.joinWay && <p><b>가입 방법</b> {p.joinWay}</p>}
+            {p.joinMember && <p><b>가입 대상</b> {p.joinMember} {p.joinDeny && `(${p.joinDeny})`}</p>}
+            {p.maxLimit ? <p><b>최고 한도</b> {p.maxLimit.toLocaleString('ko-KR')}원</p> : null}
+            <p class="rt-card__opts"><b>기간별 최고</b> {TERMS.filter((t) => p.tr[t]).map((t) => `${t}개월 ${fmtRate(p.tr[t].r)}%`).join(' · ')}</p>
+          </div>
+        </details>
+      ))}
+    </div>
+
+    <button type="button" class="rt-more" id="rt-more" hidden>더 보기</button>
+
+    <p class="rt-note">※ 우대금리는 급여이체·카드실적 등 조건 충족 시 적용됩니다. 가입 전 각 금융사 공시를 꼭 확인하세요. 예금자보호는 금융사별 원리금 합산 1억원까지입니다.</p>
+
+    <div class="rt-cross">
+      <p>모은 돈, 더 굴리고 싶다면</p>
+      <div class="rt-cross__row">
+        <a href="/salary/">연봉 실수령액 표 →</a>
+        <a href="/benefits/">내가 받을 수 있는 지원금 →</a>
+        <a href="/tools/">금융 계산기 →</a>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const list = document.getElementById('rt-list');
+      if (!list) return;
+      const cards = Array.prototype.slice.call(list.querySelectorAll('.rt-card'));
+      const countEl = document.getElementById('rt-count');
+      const moreBtn = document.getElementById('rt-more');
+      const STEP = 50;
+      let kind = 'deposit', trm = 12, group = '', limit = STEP;
+
+      const fmt = (v) => { const n = Number(v); return Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/0$/, ''); };
+
+      function apply() {
+        const matched = [];
+        for (const c of cards) {
+          const r = c.dataset['r' + trm];
+          const ok = c.dataset.kind === kind && (!group || c.dataset.group === group) && r !== undefined;
+          if (ok) matched.push(c); else c.hidden = true;
+        }
+        matched.sort((a, b) => Number(b.dataset['r' + trm]) - Number(a.dataset['r' + trm]));
+        matched.forEach((c, i) => {
+          c.hidden = i >= limit;
+          c.open = false;
+          c.querySelector('.rt-r').textContent = '연 ' + fmt(c.dataset['r' + trm]) + '%';
+          c.querySelector('.rt-b').textContent = fmt(c.dataset['b' + trm] || c.dataset['r' + trm]) + '%';
+          list.appendChild(c); // 정렬 순서로 재배치
+        });
+        countEl.textContent = matched.length + '개 상품 · ' + trm + '개월 최고우대 순';
+        moreBtn.hidden = matched.length <= limit;
+      }
+
+      document.querySelectorAll('.rt-tab').forEach((t) => t.addEventListener('click', () => {
+        document.querySelectorAll('.rt-tab').forEach((x) => x.classList.remove('is-on'));
+        t.classList.add('is-on');
+        kind = t.dataset.kind; limit = STEP; apply();
+      }));
+      document.querySelectorAll('#rt-terms .rt-chip').forEach((t) => t.addEventListener('click', () => {
+        document.querySelectorAll('#rt-terms .rt-chip').forEach((x) => x.classList.remove('is-on'));
+        t.classList.add('is-on');
+        trm = Number(t.dataset.trm); limit = STEP; apply();
+      }));
+      document.querySelectorAll('#rt-groups .rt-chip').forEach((t) => t.addEventListener('click', () => {
+        document.querySelectorAll('#rt-groups .rt-chip').forEach((x) => x.classList.remove('is-on'));
+        t.classList.add('is-on');
+        group = t.dataset.group; limit = STEP; apply();
+      }));
+      moreBtn.addEventListener('click', () => { limit += STEP; apply(); });
+
+      apply();
+    })();
+  </script>
+
+  <style>
+    .rt { max-width: 46rem; }
+    .page-hero .rt-fresh { font-size: 0.82rem; color: var(--muted); margin-top: 0.5rem; }
+    .page-hero .rt-fresh a { color: var(--accent); }
+
+    .rt-best { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; margin: 1.3rem 0; }
+    .rt-best__item { border: 1px solid var(--line); border-radius: 14px; padding: 0.9rem 1.1rem; background: var(--paper-2); display: flex; flex-direction: column; gap: 0.15rem; }
+    .rt-best__item span { font-size: 0.8rem; color: var(--muted); font-weight: 600; }
+    .rt-best__item b { font-size: 1.35rem; color: var(--accent); }
+
+    .rt-controls { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 0.9rem; }
+    .rt-tabs { display: flex; gap: 0.45rem; }
+    .rt-tab { flex: 1; padding: 0.6rem 0.9rem; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); font: inherit; font-weight: 700; font-size: 0.92rem; color: var(--ink-soft); cursor: pointer; }
+    .rt-tab.is-on { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .rt-row { display: flex; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; }
+    .rt-chips { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+    .rt-chip { padding: 0.4rem 0.75rem; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); font: inherit; font-size: 0.82rem; font-weight: 600; color: var(--ink-soft); cursor: pointer; }
+    .rt-chip.is-on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+
+    .rt-count { font-size: 0.85rem; color: var(--muted); margin: 0 0 0.6rem; }
+    .rt-list { display: grid; gap: 0.55rem; }
+    .rt-card { border: 1px solid var(--line); border-radius: 12px; background: var(--paper); }
+    .rt-card[hidden] { display: none; }
+    .rt-card summary { display: grid; grid-template-columns: 8.5rem 1fr auto; align-items: center; gap: 0.7rem; padding: 0.8rem 1rem; cursor: pointer; list-style: none; }
+    .rt-card summary::-webkit-details-marker { display: none; }
+    .rt-card__co { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+    .rt-card__co b { font-size: 0.88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .rt-card__grp { font-style: normal; font-size: 0.62rem; font-weight: 800; color: #d97706; background: color-mix(in srgb, #f59e0b 15%, var(--paper)); padding: 0.1rem 0.4rem; border-radius: 999px; width: fit-content; }
+    .rt-card__nm { font-size: 0.88rem; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .rt-card__rate { text-align: right; display: flex; flex-direction: column; gap: 0.05rem; }
+    .rt-card__rate em { font-style: normal; font-weight: 800; color: var(--accent); font-size: 1.02rem; white-space: nowrap; }
+    .rt-card__rate small { font-size: 0.7rem; color: var(--muted); white-space: nowrap; }
+    .rt-card__body { padding: 0 1rem 0.95rem; border-top: 1px dashed var(--line); }
+    .rt-card__body p { font-size: 0.84rem; color: var(--ink-soft); line-height: 1.55; margin: 0.6rem 0 0; }
+    .rt-card__body b { color: var(--ink); margin-right: 0.3rem; }
+    @media (max-width: 560px) {
+      .rt-card summary { grid-template-columns: 1fr auto; }
+      .rt-card__nm { grid-column: 1 / -1; grid-row: 2; }
+    }
+
+    .rt-more { display: block; margin: 1.4rem auto 0; padding: 0.7rem 1.6rem; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); font: inherit; font-weight: 700; color: var(--ink); cursor: pointer; }
+    .rt-more[hidden] { display: none; }
+    .rt-more:hover { border-color: var(--accent); color: var(--accent); }
+    .rt-note { font-size: 0.78rem; color: var(--muted); line-height: 1.55; margin: 1.4rem 0 0; }
+
+    .rt-cross { margin: 2.2rem 0 1rem; padding-top: 1.5rem; border-top: 1px solid var(--line); text-align: center; }
+    .rt-cross p { font-size: 0.9rem; color: var(--muted); margin: 0 0 0.7rem; }
+    .rt-cross__row { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
+    .rt-cross__row a { font-size: 0.88rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--line); border-radius: 999px; }
+    .rt-cross__row a:hover { border-color: var(--accent); }
+  </style>
+</BaseLayout>

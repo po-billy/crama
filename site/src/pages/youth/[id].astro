@@ -1,0 +1,184 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import youth from '../../data/youth-policies.json';
+
+export async function getStaticPaths() {
+  return (youth.policies || []).map((p: any) => ({ params: { id: p.id }, props: { p } }));
+}
+
+const { p } = Astro.props;
+const generatedAt: string = youth.generatedAt || '';
+const all = (youth.policies || []) as any[];
+
+const CAT_COLOR: Record<string, string> = {
+  '일자리': '#3b82f6',
+  '주거': '#10b981',
+  '교육･직업훈련': '#8b5cf6',
+  '금융･복지･문화': '#f59e0b',
+  '참여･기반': '#f43f5e',
+};
+const color = CAT_COLOR[p.cat] || '#6c5ce7';
+
+// 관련 정책 — 같은 대분류에서 6개
+const related = all.filter((x) => x.cat === p.cat && x.id !== p.id).slice(0, 6);
+
+const pageTitle = `${p.name} — 청년 정책`;
+const pageDesc = (p.summary || p.support || `${p.cat} 분야 청년 정책. 대상·신청 방법·지원 내용을 확인하세요.`).slice(0, 150);
+
+// 상세 섹션(있는 것만)
+const sections = [
+  { key: 'support', title: '지원 내용', body: p.support },
+  { key: 'qualify', title: '신청 자격', body: p.qualify },
+  { key: 'income', title: '소득 조건', body: p.income },
+  { key: 'applyMethod', title: '신청 방법', body: p.applyMethod },
+  { key: 'screening', title: '심사·선정', body: p.screening },
+  { key: 'docs', title: '제출 서류', body: p.docs },
+].filter((s) => s.body && s.body.length > 2);
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'GovernmentService',
+      name: p.name,
+      description: pageDesc,
+      serviceType: p.cat,
+      provider: { '@type': 'GovernmentOrganization', name: p.org || '대한민국 정부' },
+      audience: { '@type': 'PeopleAudience', suggestedMinAge: p.minAge || undefined, suggestedMaxAge: p.maxAge || undefined },
+      url: `https://crama.app/youth/${p.id}/`,
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: '홈', item: 'https://crama.app/' },
+        { '@type': 'ListItem', position: 2, name: '청년 정책', item: 'https://crama.app/youth/' },
+        { '@type': 'ListItem', position: 3, name: p.name },
+      ],
+    },
+  ],
+};
+---
+<BaseLayout title={pageTitle} description={pageDesc} jsonLd={jsonLd}>
+  <div class="wrap ypd">
+    <nav class="ypd-crumb" aria-label="브레드크럼">
+      <a href="/">홈</a><span>›</span><a href="/youth/">청년 정책</a><span>›</span><b>{p.cat}</b>
+    </nav>
+
+    <header class="ypd-head">
+      <div class="ypd-head__meta">
+        <span class="ypd-cat" style={`--c:${color}`}>{p.cat}{p.sub ? ` · ${p.sub}` : ''}</span>
+        {p.minAge && <span class="ypd-age">{p.minAge}~{p.maxAge}세</span>}
+        {p.apply && <span class="ypd-period">신청기간 {p.apply}</span>}
+      </div>
+      <h1>{p.name}</h1>
+      {p.summary && <p class="ypd-lead">{p.summary}</p>}
+      <div class="ypd-actions">
+        {p.url
+          ? <a class="ypd-apply" href={p.url} target="_blank" rel="noopener">신청·공고 확인하기 →</a>
+          : <a class="ypd-apply" href="https://www.youthcenter.go.kr/" target="_blank" rel="noopener">온통청년에서 확인하기 →</a>}
+        <button type="button" class="ypd-save" id="ypd-save" aria-pressed="false" data-id={p.id} data-name={p.name} data-cat={p.cat}>
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          <span id="ypd-save-label">관심 저장</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="ypd-body">
+      {sections.map((s) => (
+        <section class="ypd-sec">
+          <h2>{s.title}</h2>
+          <p>{s.body}</p>
+        </section>
+      ))}
+
+      <section class="ypd-sec ypd-sec--org">
+        <h2>기관 정보</h2>
+        <dl class="ypd-org">
+          {p.org && <><dt>주관</dt><dd>{p.org}</dd></>}
+          {p.operOrg && <><dt>운영</dt><dd>{p.operOrg}</dd></>}
+          {p.keywords && <><dt>키워드</dt><dd>{p.keywords}</dd></>}
+        </dl>
+      </section>
+
+      <p class="ypd-fresh">기준일 {generatedAt} · 출처 <a href="https://www.youthcenter.go.kr/" target="_blank" rel="noopener">온통청년</a> · 정책 내용은 변경될 수 있으니 신청 전 공고를 꼭 확인하세요.</p>
+    </div>
+
+    {related.length > 0 && (
+      <section class="ypd-rel">
+        <h2>{p.cat} 분야, 이런 정책도 있어요</h2>
+        <div class="ypd-rel__grid">
+          {related.map((r) => (
+            <a class="ypd-rel__card" href={`/youth/${r.id}/`}>
+              <span class="ypd-rel__cat" style={`--c:${CAT_COLOR[r.cat] || '#6c5ce7'}`}>{r.sub || r.cat}</span>
+              <strong>{r.name}</strong>
+              {r.minAge && <span class="ypd-rel__age">{r.minAge}~{r.maxAge}세</span>}
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <div class="ypd-cross">
+      <a href="/youth/">청년 정책 500+ 전체 보기 →</a>
+      <a href="/benefits/">내 혜택 찾기 →</a>
+      <a href="/saved-picks/">내 관심함 →</a>
+    </div>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const btn = document.getElementById('ypd-save');
+      const S = window.CramaSaved;
+      if (!btn || !S) return;
+      const label = document.getElementById('ypd-save-label');
+      const rec = { type: 'youth', id: btn.dataset.id, name: btn.dataset.name, url: location.pathname, sub: btn.dataset.cat };
+      const sync = (on) => { btn.classList.toggle('is-on', on); btn.setAttribute('aria-pressed', on ? 'true' : 'false'); label.textContent = on ? '저장됨' : '관심 저장'; };
+      sync(S.has('youth', rec.id));
+      btn.addEventListener('click', () => sync(S.toggle(rec)));
+    })();
+  </script>
+
+  <style>
+    .ypd { max-width: 46rem; }
+    .ypd-crumb { display: flex; align-items: center; gap: 0.45rem; font-size: 0.8rem; color: var(--muted); margin: 0.4rem 0 1.2rem; flex-wrap: wrap; }
+    .ypd-crumb a { color: var(--muted); text-decoration: none; }
+    .ypd-crumb a:hover { color: var(--accent); }
+    .ypd-crumb b { color: var(--ink-soft); font-weight: 600; }
+
+    .ypd-head__meta { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-bottom: 0.7rem; }
+    .ypd-cat { font-size: 0.75rem; font-weight: 800; color: var(--c, var(--accent)); background: color-mix(in srgb, var(--c, var(--accent)) 12%, var(--paper)); padding: 0.25rem 0.65rem; border-radius: 999px; }
+    .ypd-age, .ypd-period { font-size: 0.75rem; font-weight: 700; color: var(--ink-soft); background: var(--paper-2); padding: 0.25rem 0.65rem; border-radius: 999px; }
+    .ypd-head h1 { font-family: var(--font-serif); font-size: clamp(1.45rem, 4vw, 2rem); line-height: 1.3; margin: 0 0 0.6rem; }
+    .ypd-lead { font-size: 1.02rem; color: var(--ink-soft); line-height: 1.6; margin: 0 0 1.1rem; }
+    .ypd-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; margin-bottom: 1.6rem; }
+    .ypd-apply { display: inline-flex; align-items: center; padding: 0.75rem 1.4rem; background: var(--accent); color: #fff; font-weight: 700; font-size: 0.95rem; text-decoration: none; border-radius: 12px; transition: filter 0.12s; }
+    .ypd-apply:hover { filter: brightness(1.1); }
+    .ypd-save { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.72rem 1.1rem; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); font: inherit; font-size: 0.9rem; font-weight: 700; color: var(--ink-soft); cursor: pointer; transition: all 0.12s; }
+    .ypd-save:hover { border-color: #e11d48; color: #e11d48; }
+    .ypd-save.is-on { color: #e11d48; border-color: #e11d48; }
+    .ypd-save.is-on svg { fill: #e11d48; }
+
+    .ypd-body { border-top: 1px solid var(--line); padding-top: 1.4rem; }
+    .ypd-sec { margin-bottom: 1.5rem; }
+    .ypd-sec h2 { font-size: 1.08rem; margin: 0 0 0.5rem; }
+    .ypd-sec p { font-size: 0.95rem; line-height: 1.7; color: var(--ink-soft); margin: 0; white-space: pre-line; }
+    .ypd-org { display: grid; grid-template-columns: 5rem 1fr; gap: 0.4rem 0.8rem; margin: 0; font-size: 0.92rem; }
+    .ypd-org dt { color: var(--muted); font-weight: 600; }
+    .ypd-org dd { margin: 0; color: var(--ink-soft); }
+    .ypd-fresh { font-size: 0.8rem; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 1rem; margin: 1.6rem 0 0; }
+    .ypd-fresh a { color: var(--accent); }
+
+    .ypd-rel { margin-top: 2.4rem; }
+    .ypd-rel h2 { font-size: 1.12rem; margin: 0 0 0.9rem; }
+    .ypd-rel__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 0.7rem; }
+    .ypd-rel__card { display: flex; flex-direction: column; gap: 0.3rem; padding: 0.95rem 1.05rem; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); text-decoration: none; color: var(--ink); transition: transform 0.12s, border-color 0.12s; }
+    .ypd-rel__card:hover { transform: translateY(-2px); border-color: var(--c, var(--accent)); }
+    .ypd-rel__cat { font-size: 0.68rem; font-weight: 800; color: var(--c, var(--accent)); }
+    .ypd-rel__card strong { font-size: 0.9rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .ypd-rel__age { font-size: 0.72rem; color: var(--muted); }
+
+    .ypd-cross { display: flex; flex-wrap: wrap; gap: 0.6rem; justify-content: center; margin: 2.4rem 0 1rem; padding-top: 1.5rem; border-top: 1px solid var(--line); }
+    .ypd-cross a { font-size: 0.88rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--line); border-radius: 999px; }
+    .ypd-cross a:hover { border-color: var(--accent); }
+  </style>
+</BaseLayout>

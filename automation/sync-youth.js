@@ -35,15 +35,21 @@ function normalize(p) {
     name: clean(p.plcyNm),
     cat: firstOf(p.lclsfNm),      // 대분류: 일자리/주거/교육･직업훈련/금융･복지･문화/참여･기반
     sub: firstOf(p.mclsfNm),      // 중분류
-    summary: trunc(p.plcyExplnCn, 150),
-    support: trunc(p.plcySprtCn, 220),
+    summary: trunc(p.plcyExplnCn, 200),
+    support: trunc(p.plcySprtCn, 1200),      // 상세 페이지 본문용 — 전문에 가깝게
     keywords: clean(p.plcyKywdNm),
     org: clean(p.sprvsnInstCdNm),
+    operOrg: clean(p.operInstCdNm),          // 운영기관
     url,
     minAge: String(p.sprtTrgtMinAge || '').trim(),
     maxAge: String(p.sprtTrgtMaxAge || '').trim(),
     ageLimit: p.sprtTrgtAgeLmtYn === 'Y',
-    apply: clean(p.aplyYmd),      // 신청기간(있으면)
+    apply: clean(p.aplyYmd),                 // 신청기간(있으면)
+    applyMethod: trunc(p.plcyAplyMthdCn, 400),
+    screening: trunc(p.srngMthdCn, 400),
+    docs: trunc(p.sbmsnDcmntCn, 400),
+    qualify: trunc(p.addAplyQlfcCndCn, 400), // 추가 자격 조건
+    income: trunc(p.earnEtcCn, 250),         // 소득 조건 비고
   };
 }
 

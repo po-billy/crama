@@ -14,8 +14,8 @@ export async function GET() {
       description: p.summary || '',
       tags: [p.cat, p.sub, p.keywords].filter(Boolean),
       catLabel: p.cat || '청년정책',
-      url: p.url || '/youth/',
-      external: !!p.url,
+      url: `/youth/${p.id}/`, // 내부 상세 페이지(신청 CTA는 상세에서)
+      external: false,
     });
   });
 

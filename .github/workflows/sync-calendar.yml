@@ -53,7 +53,7 @@ jobs:
         run: |
           git config user.name "crama-bot"
           git config user.email "bot@crama.app"
-          git add site/src/data/policy-events.json site/src/data/youth-policies.json site/src/data/welfare-services.json site/public/data/welfare-local.json
+          git add site/src/data/policy-events.json site/src/data/youth-policies.json site/src/data/welfare-services.json site/public/data/welfare-local.json site/public/data/youth-slim.json site/public/data/welfare-local-slim.json
           if git diff --cached --quiet; then
             echo "변경 없음 — 커밋 스킵"
           else

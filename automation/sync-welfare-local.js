@@ -70,6 +70,12 @@ async function main() {
     services,
   };
   await fs.mkdir(path.dirname(OUT), { recursive: true });
+
+  // 매칭용 슬림 사본 — /benefits 지역 매칭이 가볍게 fetch(풀본 3MB 대신 ~400KB). 내용 동일하면 바이트 동일(무 churn)
+  const SLIM = path.join(__dirname, '..', 'site', 'public', 'data', 'welfare-local-slim.json');
+  const slim = services.map((s) => ({ id: s.id, name: s.name, region: s.region, sgg: s.sgg, theme: s.theme, life: s.life }));
+  await fs.writeFile(SLIM, JSON.stringify({ services: slim }) + '\n');
+
   // 내용(generatedAt 제외)이 동일하면 파일 유지 — 2.9MB 무의미 일일 커밋 방지(저장소 비대 방어)
   try {
     const prev = JSON.parse(await fs.readFile(OUT, 'utf8'));

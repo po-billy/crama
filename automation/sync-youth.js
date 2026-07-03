@@ -74,6 +74,13 @@ async function main() {
     policies,
   };
   await fs.mkdir(path.dirname(OUT), { recursive: true });
+
+  // 매칭용 슬림 사본(공개 자산) — /benefits 프로필 매칭이 온디맨드 fetch. 내용 동일하면 바이트 동일(무 churn)
+  const SLIM = path.join(__dirname, '..', 'site', 'public', 'data', 'youth-slim.json');
+  const slim = policies.map((p) => ({ id: p.id, name: p.name, cat: p.cat, minAge: p.minAge, maxAge: p.maxAge, ageLimit: p.ageLimit }));
+  await fs.mkdir(path.dirname(SLIM), { recursive: true });
+  await fs.writeFile(SLIM, JSON.stringify({ policies: slim }) + '\n');
+
   // 내용(generatedAt 제외)이 동일하면 파일 유지 — 날짜만 바뀐 3MB급 무의미 일일 커밋 방지
   try {
     const prev = JSON.parse(await fs.readFile(OUT, 'utf8'));

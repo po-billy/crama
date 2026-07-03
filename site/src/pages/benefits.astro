@@ -107,6 +107,9 @@ const faqLd = {
         <!-- JS가 매칭 결과 카드를 렌더 -->
       </div>
 
+      <!-- 실데이터 확장 매칭 — 내 나이 청년정책 + 우리 지역 복지(온디맨드) -->
+      <div id="bf-ext" hidden></div>
+
       <div class="bf-result__actions">
         <button class="bf-cta" type="button" id="bf-share-result">공유하기</button>
       </div>
@@ -562,6 +565,58 @@ const faqLd = {
         try { if (window.gtag) gtag('event', 'benefits_result', { count: results.length, total: total, loggedIn: loggedIn }); } catch (e) {}
         updateCondBar();
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(profile)); } catch (e) {} // 자동 저장 — 재방문 시 마지막 조건 자동 복원
+        renderExtMatches(); // 실데이터 확장 매칭(청년·지역복지)
+      }
+
+      // ── 실데이터 확장 매칭: 청년 정책(나이) + 우리 지역 복지(지역) — 슬림 JSON 온디맨드 ──
+      const REGION_FULL = { seoul: '서울특별시', gyeonggi: '경기도', incheon: '인천광역시', busan: '부산광역시', daegu: '대구광역시', gwangju: '광주광역시', daejeon: '대전광역시', ulsan: '울산광역시', sejong: '세종특별자치시', gangwon: '강원특별자치도', chungbuk: '충청북도', chungnam: '충청남도', jeonbuk: '전북특별자치도', jeonnam: '전라남도', gyeongbuk: '경상북도', gyeongnam: '경상남도', jeju: '제주특별자치도' };
+      let extCache = null;
+      function esc2(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+      async function loadExtData() {
+        if (extCache) return extCache;
+        const [y, w] = await Promise.all([
+          fetch('/data/youth-slim.json').then((r) => r.json()).catch(() => ({ policies: [] })),
+          fetch('/data/welfare-local-slim.json').then((r) => r.json()).catch(() => ({ services: [] })),
+        ]);
+        extCache = { youth: y.policies || [], local: w.services || [] };
+        return extCache;
+      }
+      async function renderExtMatches() {
+        const host = $('bf-ext');
+        if (!host) return;
+        const age = Number(profile.age) || 0;
+        const regionFull = REGION_FULL[profile.region] || '';
+        const data = await loadExtData();
+        let html = '';
+
+        // 청년 정책 — 45세 이하만 의미(청년 대상)
+        if (age > 0 && age <= 45) {
+          const hits = data.youth.filter(function (p) {
+            const mn = parseInt(p.minAge, 10), mx = parseInt(p.maxAge, 10);
+            if (!p.ageLimit || isNaN(mn) || isNaN(mx)) return true;
+            return age >= mn && age <= mx;
+          });
+          if (hits.length) {
+            html += '<section class="bf-ext__sec"><div class="bf-ext__head"><h3>만 ' + age + '세가 신청할 수 있는 청년 정책 <b>' + hits.length + '건</b></h3><a href="/youth/">전체 보기 →</a></div><div class="bf-ext__list">' +
+              hits.slice(0, 6).map(function (p) {
+                return '<a class="bf-ext__item" href="/youth/' + esc2(p.id) + '/"><span class="bf-ext__tag">' + esc2(p.cat || '청년') + '</span><strong>' + esc2(p.name) + '</strong></a>';
+              }).join('') + '</div></section>';
+          }
+        }
+
+        // 우리 지역 복지
+        if (regionFull) {
+          const hits = data.local.filter(function (s) { return s.region === regionFull; });
+          if (hits.length) {
+            html += '<section class="bf-ext__sec"><div class="bf-ext__head"><h3>' + esc2(regionFull) + ' 복지 서비스 <b>' + hits.length + '건</b></h3><a href="/welfare/?region=' + encodeURIComponent(regionFull) + '">전체 보기 →</a></div><div class="bf-ext__list">' +
+              hits.slice(0, 6).map(function (s) {
+                return '<a class="bf-ext__item" href="/welfare/' + esc2(s.id) + '/"><span class="bf-ext__tag">' + esc2(s.sgg || s.theme || '복지') + '</span><strong>' + esc2(s.name) + '</strong></a>';
+              }).join('') + '</div></section>';
+          }
+        }
+
+        host.innerHTML = html;
+        host.hidden = !html;
       }
 
       // ── 네비게이션 ──
@@ -1037,6 +1092,20 @@ const faqLd = {
     .bf-empty__icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
 
     /* ── 하단 액션 ── */
+    /* 실데이터 확장 매칭(청년·지역복지) */
+    #bf-ext[hidden] { display: none; }
+    .bf-ext__sec { margin-top: 1.6rem; padding: 1.1rem 1.2rem; border: 1px solid var(--line); border-radius: 14px; background: var(--paper-2); }
+    .bf-ext__head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.6rem; margin-bottom: 0.7rem; flex-wrap: wrap; }
+    .bf-ext__head h3 { font-size: 1rem; margin: 0; }
+    .bf-ext__head h3 b { color: var(--accent); }
+    .bf-ext__head a { flex: none; font-size: 0.84rem; font-weight: 700; color: var(--accent); text-decoration: none; }
+    .bf-ext__head a:hover { text-decoration: underline; }
+    .bf-ext__list { display: grid; gap: 0.45rem; }
+    .bf-ext__item { display: flex; align-items: center; gap: 0.55rem; padding: 0.6rem 0.75rem; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; text-decoration: none; color: var(--ink); transition: border-color 0.12s; }
+    .bf-ext__item:hover { border-color: var(--accent); }
+    .bf-ext__tag { flex: none; font-size: 0.68rem; font-weight: 800; color: var(--accent); background: var(--accent-soft); padding: 0.16rem 0.5rem; border-radius: 999px; white-space: nowrap; }
+    .bf-ext__item strong { font-size: 0.88rem; font-weight: 600; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
     .bf-result__actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 2rem; }
     .bf-result__actions .bf-cta { flex: 1; min-width: 8rem; }
     .bf-result__cta-box {

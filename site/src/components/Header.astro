@@ -67,8 +67,9 @@ import DuoIcon from './DuoIcon.astro';
       nav.classList.toggle('is-open', o);
       t.setAttribute('aria-expanded', String(o));
       document.body.style.overflow = o ? 'hidden' : '';
-      if (o && focusables.length) focusables[0].focus();
-      else if (!o) t.focus();
+      // 첫 링크 포커스는 터치 사용자에게 포커스 링이 떠 깨져 보임 → 컨테이너에 포커스(키보드 Tab 흐름 유지)
+      if (o) { nav.setAttribute('tabindex', '-1'); nav.focus({ preventScroll: true }); }
+      else t.focus();
     };
     t.addEventListener('click', (e) => { e.stopPropagation(); set(!nav.classList.contains('is-open')); });
     nav.addEventListener('click', (e) => { if (e.target.closest('a')) set(false); });

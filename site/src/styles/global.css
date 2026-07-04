@@ -304,6 +304,10 @@ hr {
   .nav { max-height: calc(100dvh - 4.6rem); overflow-y: auto; overscroll-behavior: contain; }
   .nav > a { padding: 0.62rem 0.85rem; border-radius: 8px; white-space: nowrap; width: 100%; text-align: left; font-weight: 600; }
   .nav > a:hover { background: var(--paper-2); }
+  /* 모바일: 브리핑 광택 애니메이션이 풀폭에서 깨져 보임 → 은은한 강조 행으로 대체 */
+  .nav .nav-shine { overflow: visible; background: var(--accent-soft); margin-bottom: 0.25rem; }
+  .nav .nav-shine::after { display: none; animation: none; }
+  .nav:focus { outline: none; }
   /* 모바일: 그룹은 항상 펼침 — 토글 버튼은 섹션 라벨 역할만 */
   .nav-group__trigger { display: flex; width: 100%; padding: 0.55rem 0.85rem 0.25rem; font-size: 0.72rem; font-weight: 800; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; pointer-events: none; }
   .nav-group__chevron { display: none; }

@@ -1,0 +1,143 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+// 2026 기준 복무기간(개월): 전역일 = 입대일 + 개월 - 1일
+const BRANCHES = [
+  { id: 'army', name: '육군·해병대', months: 18 },
+  { id: 'navy', name: '해군', months: 20 },
+  { id: 'airforce', name: '공군', months: 21 },
+  { id: 'social', name: '사회복무요원', months: 21 },
+];
+---
+<BaseLayout
+  title="전역일 계산기 — 디데이·복무 진행률"
+  description="입대일과 군종만 넣으면 전역일·D-day·복무 진행률을 바로 계산. 하트로 저장하면 전역 임박 알림까지 보내드려요. 육군 18개월·해군 20·공군 21·사회복무 21개월 기준."
+>
+  <div class="wrap dc">
+    <header class="page-hero">
+      <span class="eyebrow">D-day</span>
+      <h1>전역일 계산기</h1>
+      <p>입대일만 넣으세요. <b>전역일·디데이·복무 진행률</b>이 바로 나옵니다.</p>
+    </header>
+
+    <div class="dc-form">
+      <label>군종
+        <select id="dc-branch">
+          {BRANCHES.map((b) => <option value={b.months} data-name={b.name}>{b.name} ({b.months}개월)</option>)}
+        </select>
+      </label>
+      <label>입대일
+        <input id="dc-date" type="date" />
+      </label>
+      <button type="button" id="dc-go">계산하기</button>
+    </div>
+
+    <div class="dc-result" id="dc-result" hidden>
+      <div class="dc-hero">
+        <div><span>전역일</span><b id="dc-out">-</b></div>
+        <div class="dc-hero__main"><span id="dc-dday-label">전역까지</span><b id="dc-dday">-</b><em id="dc-left">-</em></div>
+        <div><span>복무 진행률</span><b id="dc-pct">-</b></div>
+      </div>
+      <div class="dc-bar"><i id="dc-bar-fill"></i></div>
+      <button type="button" class="dc-save" id="dc-save" hidden>
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <span id="dc-save-label">전역일 저장하고 임박 알림 받기</span>
+      </button>
+    </div>
+
+    <section class="dc-sec">
+      <h2>복무기간 한눈에</h2>
+      <table class="dc-table"><tbody>
+        {BRANCHES.map((b) => <tr><th>{b.name}</th><td>{b.months}개월</td></tr>)}
+      </tbody></table>
+      <p class="dc-note">※ 전역일 = 입대일 + 복무개월 − 1일. 상근예비역은 육군과 동일, 산업기능요원 등 대체복무는 별도 기준이에요.</p>
+    </section>
+
+    <div class="dc-cross">
+      <a href="/youth/">전역 후 챙길 청년 정책 →</a>
+      <a href="/benefits/">내 지원금 찾기 →</a>
+      <a href="/salary/">첫 월급 실수령액 →</a>
+    </div>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const fmt = (d) => d.getFullYear() + '년 ' + (d.getMonth() + 1) + '월 ' + d.getDate() + '일';
+      const iso = (d) => d.toISOString().slice(0, 10);
+      let cur = null;
+      function calc() {
+        const v = $('dc-date').value;
+        if (!v) return;
+        const start = new Date(v + 'T00:00:00');
+        const months = Number($('dc-branch').value);
+        const end = new Date(start); end.setMonth(end.getMonth() + months); end.setDate(end.getDate() - 1);
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const total = Math.round((end - start) / 86400000);
+        const served = Math.min(total, Math.max(0, Math.round((today - start) / 86400000)));
+        const left = Math.max(0, Math.round((end - today) / 86400000));
+        const pct = Math.min(100, Math.max(0, Math.round((served / total) * 1000) / 10));
+        $('dc-out').textContent = fmt(end);
+        $('dc-dday').textContent = left === 0 ? '전역!' : 'D-' + left.toLocaleString();
+        $('dc-left').textContent = left ? left.toLocaleString() + '일 남음' : '고생하셨습니다 🎖';
+        $('dc-pct').textContent = pct + '%';
+        $('dc-bar-fill').style.width = pct + '%';
+        $('dc-result').hidden = false;
+        cur = { end: iso(end), branch: $('dc-branch').selectedOptions[0].dataset.name, start: v };
+        syncSave();
+      }
+      function syncSave() {
+        const S = window.CramaSaved, btn = $('dc-save');
+        if (!S || !cur) return;
+        btn.hidden = false;
+        const on = S.has('dday', 'discharge');
+        btn.classList.toggle('is-on', on);
+        $('dc-save-label').textContent = on ? '저장됨 — 전역 임박 알림 예정' : '전역일 저장하고 임박 알림 받기';
+      }
+      $('dc-go').addEventListener('click', calc);
+      $('dc-date').addEventListener('change', calc);
+      $('dc-branch').addEventListener('change', () => { if ($('dc-date').value) calc(); });
+      $('dc-save').addEventListener('click', () => {
+        const S = window.CramaSaved;
+        if (!S || !cur) return;
+        S.toggle({ type: 'dday', id: 'discharge', name: '전역 (' + cur.branch + ')', url: '/discharge/', sub: '전역일', deadline: cur.end });
+        syncSave();
+      });
+    })();
+  </script>
+
+  <style>
+    .dc { max-width: 40rem; }
+    .dc-form { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin: 1.4rem 0 1rem; padding: 1.1rem 1.2rem; border: 1px solid var(--line); border-radius: 14px; background: var(--paper-2); }
+    .dc-form label { font-size: 0.84rem; font-weight: 700; color: var(--ink-soft); display: flex; flex-direction: column; gap: 0.35rem; }
+    .dc-form select, .dc-form input { font: inherit; font-size: 0.95rem; padding: 0.6rem 0.8rem; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); }
+    .dc-form select:focus, .dc-form input:focus { outline: none; border-color: var(--accent); }
+    .dc-form button { grid-column: 1 / -1; font: inherit; font-weight: 800; font-size: 1rem; padding: 0.8rem; border: 0; border-radius: 12px; background: var(--accent); color: #fff; cursor: pointer; }
+    @media (max-width: 560px) { .dc-form { grid-template-columns: 1fr; } }
+    .dc-result[hidden] { display: none; }
+    .dc-hero { display: grid; grid-template-columns: 1.1fr 1fr 0.8fr; gap: 0.6rem; }
+    .dc-hero > div { border: 1px solid var(--line); border-radius: 14px; padding: 0.95rem 1rem; background: var(--paper); display: flex; flex-direction: column; gap: 0.15rem; }
+    .dc-hero span { font-size: 0.76rem; color: var(--muted); font-weight: 600; }
+    .dc-hero b { font-size: 1.05rem; }
+    .dc-hero__main { background: var(--accent) !important; border-color: var(--accent) !important; color: #fff; }
+    .dc-hero__main span { color: rgba(255,255,255,0.85); }
+    .dc-hero__main b { font-size: 1.5rem; }
+    .dc-hero__main em { font-style: normal; font-size: 0.78rem; opacity: 0.9; }
+    @media (max-width: 560px) { .dc-hero { grid-template-columns: 1fr; } }
+    .dc-bar { height: 0.6rem; border-radius: 999px; background: var(--paper-2); border: 1px solid var(--line); margin: 0.8rem 0; overflow: hidden; }
+    .dc-bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width 0.4s; }
+    .dc-save { display: inline-flex; align-items: center; gap: 0.45rem; font: inherit; font-weight: 700; font-size: 0.9rem; padding: 0.7rem 1.1rem; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); color: var(--ink-soft); cursor: pointer; }
+    .dc-save[hidden] { display: none; }
+    .dc-save:hover { border-color: #e11d48; color: #e11d48; }
+    .dc-save.is-on { color: #e11d48; border-color: #e11d48; }
+    .dc-save.is-on svg { fill: #e11d48; }
+    .dc-sec { margin: 1.8rem 0; }
+    .dc-sec h2 { font-size: 1.1rem; margin: 0 0 0.7rem; }
+    .dc-table { width: 100%; border-collapse: collapse; font-size: 0.94rem; }
+    .dc-table th, .dc-table td { padding: 0.55rem 0.7rem; border-bottom: 1px solid var(--line); text-align: left; }
+    .dc-table td { text-align: right; font-weight: 700; }
+    .dc-note { font-size: 0.8rem; color: var(--muted); margin: 0.7rem 0 0; }
+    .dc-cross { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; margin: 2rem 0 1rem; padding-top: 1.4rem; border-top: 1px solid var(--line); }
+    .dc-cross a { font-size: 0.88rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--line); border-radius: 999px; }
+    .dc-cross a:hover { border-color: var(--accent); }
+  </style>
+</BaseLayout>

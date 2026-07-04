@@ -4,7 +4,7 @@
 
 create table if not exists public.saved_items (
   user_id    uuid not null default auth.uid() references auth.users (id) on delete cascade,
-  item_type  text not null check (item_type in ('youth', 'welfare', 'benefit')),
+  item_type  text not null check (item_type in ('youth', 'welfare', 'benefit', 'exam', 'dday')),
   item_id    text not null,
   name       text not null,
   url        text,

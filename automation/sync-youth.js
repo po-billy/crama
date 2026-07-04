@@ -19,6 +19,19 @@ const trunc = (s, n) => { const c = clean(s); return c.length > n ? c.slice(0, n
 // lclsfNm/mclsfNm은 같은 값이 콤마로 중복되어 오는 경우가 있어 첫 고유값만 취함
 const firstOf = (s) => { const parts = [...new Set(clean(s).split(',').map((x) => x.trim()).filter(Boolean))]; return parts[0] || ''; };
 
+// 신청기간(aplyYmd: "20260601 ~ 20260930" 등)에서 종료일 추출 → 마감 D-day 알림용
+function parseDeadline(aply) {
+  const s = clean(aply);
+  if (!s || /상시|연중|수시/.test(s)) return '';
+  const m = s.match(/(\d{4})[.\-/]?(\d{2})[.\-/]?(\d{2})(?!.*\d{8})/) || null; // 마지막 날짜
+  const all = s.match(/(\d{4})[.\-/]?(\d{2})[.\-/]?(\d{2})/g);
+  if (!all || !all.length) return '';
+  const last = all[all.length - 1].replace(/[.\-/]/g, '');
+  const y = +last.slice(0, 4), mo = +last.slice(4, 6), d = +last.slice(6, 8);
+  if (y < 2020 || y > 2100 || mo < 1 || mo > 12 || d < 1 || d > 31) return '';
+  return `${y}-${String(mo).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+}
+
 async function fetchPage(pageNum) {
   const url = `https://www.youthcenter.go.kr/go/ythip/getPlcy?apiKeyNm=${KEY}&pageNum=${pageNum}&pageSize=${SIZE}&rtnType=json`;
   const res = await fetch(url);
@@ -45,6 +58,7 @@ function normalize(p) {
     maxAge: String(p.sprtTrgtMaxAge || '').trim(),
     ageLimit: p.sprtTrgtAgeLmtYn === 'Y',
     apply: clean(p.aplyYmd),                 // 신청기간(있으면)
+    deadline: parseDeadline(p.aplyYmd),      // 종료일(YYYY-MM-DD) — 저장 시 D-day 알림에 사용
     applyMethod: trunc(p.plcyAplyMthdCn, 400),
     screening: trunc(p.srngMthdCn, 400),
     docs: trunc(p.sbmsnDcmntCn, 400),

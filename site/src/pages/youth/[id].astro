@@ -80,7 +80,7 @@ const jsonLd = {
         {p.url
           ? <a class="ypd-apply" href={p.url} target="_blank" rel="noopener">신청·공고 확인하기 →</a>
           : <a class="ypd-apply" href="https://www.youthcenter.go.kr/" target="_blank" rel="noopener">온통청년에서 확인하기 →</a>}
-        <button type="button" class="ypd-save" id="ypd-save" aria-pressed="false" data-id={p.id} data-name={p.name} data-cat={p.cat}>
+        <button type="button" class="ypd-save" id="ypd-save" aria-pressed="false" data-id={p.id} data-name={p.name} data-cat={p.cat} data-deadline={p.deadline || ''}>
           <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
           <span id="ypd-save-label">관심 저장</span>
         </button>
@@ -135,7 +135,7 @@ const jsonLd = {
       const S = window.CramaSaved;
       if (!btn || !S) return;
       const label = document.getElementById('ypd-save-label');
-      const rec = { type: 'youth', id: btn.dataset.id, name: btn.dataset.name, url: location.pathname, sub: btn.dataset.cat };
+      const rec = { type: 'youth', id: btn.dataset.id, name: btn.dataset.name, url: location.pathname, sub: btn.dataset.cat, deadline: btn.dataset.deadline || '' };
       const sync = (on) => { btn.classList.toggle('is-on', on); btn.setAttribute('aria-pressed', on ? 'true' : 'false'); label.textContent = on ? '저장됨' : '관심 저장'; };
       sync(S.has('youth', rec.id));
       btn.addEventListener('click', () => sync(S.toggle(rec)));

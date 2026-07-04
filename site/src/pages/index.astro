@@ -138,7 +138,7 @@ const bestSav = bestRate((ratesData as any).savings);
         function dday(ds) { if (!ds || !/^\d{4}-\d{2}-\d{2}$/.test(ds)) return null; var pt = ds.split('-'); var dl = new Date(+pt[0], +pt[1] - 1, +pt[2]); var n = new Date(); var today = new Date(n.getFullYear(), n.getMonth(), n.getDate()); return Math.round((dl - today) / 86400000); }
         function render() {
           var gen = document.getElementById('home-gen-deadline');
-          var items = S.list('benefit').map(function (x) { return { x: x, d: dday(x.deadline) }; }).filter(function (o) { return o.d !== null && o.d >= 0 && o.d <= 30; }).sort(function (a, b) { return a.d - b.d; });
+          var items = S.list().map(function (x) { return { x: x, d: dday(x.deadline) }; }).filter(function (o) { return o.d !== null && o.d >= 0 && o.d <= 30; }).sort(function (a, b) { return a.d - b.d; });
           if (!items.length) { el.hidden = true; return; }
           var top = items[0]; var nm = top.x.name.length > 16 ? top.x.name.slice(0, 16) + '…' : top.x.name;
           if (gen) gen.style.display = 'none';

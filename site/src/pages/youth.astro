@@ -48,7 +48,7 @@ const color = (c: string) => CAT_COLOR[c] || '#6c5ce7';
 
     <div class="yp-grid" id="yp-grid">
       {policies.map((p) => (
-        <article class="yp-card" data-cat={p.cat} data-id={p.id} data-name={p.name} data-href={`/youth/${p.id}/`} data-q={`${p.name} ${p.org} ${p.keywords} ${p.sub}`.toLowerCase()}>
+        <article class="yp-card" data-cat={p.cat} data-id={p.id} data-name={p.name} data-href={`/youth/${p.id}/`} data-deadline={p.deadline || ''} data-q={`${p.name} ${p.org} ${p.keywords} ${p.sub}`.toLowerCase()}>
           <button type="button" class="yp-save" aria-label="관심 저장" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
           <div class="yp-card__top">
             <span class="yp-card__cat" style={`--c:${color(p.cat)}`}>{p.cat}</span>
@@ -140,7 +140,7 @@ const color = (c: string) => CAT_COLOR[c] || '#6c5ce7';
         grid.addEventListener('click', function (e) {
           var btn = e.target.closest('.yp-save'); if (!btn) return;
           var c = btn.closest('.yp-card');
-          var on = S.toggle({ type: 'youth', id: c.dataset.id, name: c.dataset.name, url: c.dataset.href, sub: c.dataset.cat });
+          var on = S.toggle({ type: 'youth', id: c.dataset.id, name: c.dataset.name, url: c.dataset.href, sub: c.dataset.cat, deadline: c.dataset.deadline || '' });
           btn.classList.toggle('is-on', on); btn.setAttribute('aria-pressed', on ? 'true' : 'false');
         });
         markSaved();

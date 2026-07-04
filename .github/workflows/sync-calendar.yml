@@ -61,6 +61,12 @@ jobs:
           FINLIFE_KEY: ${{ secrets.FINLIFE_KEY }}
         run: node sync-loans.js
 
+      - name: 자격증 시험일정 수집 → exams.json
+        working-directory: automation
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+        run: node sync-exams.js || true
+
       - name: 저장 항목 마감 D-day 알림 발송(D-1·D-3)
         working-directory: automation
         env:
@@ -78,7 +84,7 @@ jobs:
         run: |
           git config user.name "crama-bot"
           git config user.email "bot@crama.app"
-          git add site/src/data/policy-events.json site/src/data/youth-policies.json site/src/data/welfare-services.json site/public/data/welfare-local.json site/public/data/youth-slim.json site/public/data/welfare-local-slim.json site/src/data/rates.json site/src/data/loans.json
+          git add site/src/data/policy-events.json site/src/data/youth-policies.json site/src/data/welfare-services.json site/public/data/welfare-local.json site/public/data/youth-slim.json site/public/data/welfare-local-slim.json site/src/data/rates.json site/src/data/loans.json site/src/data/exams.json
           if git diff --cached --quiet; then
             echo "변경 없음 — 커밋 스킵"
           else

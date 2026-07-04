@@ -101,6 +101,7 @@ export const NAV: NavItem[] = [
     { label: '예·적금 금리', href: '/rates/', icon: 'money' },
     { label: '대출 금리', href: '/loans/', icon: 'diagnose' },
     { label: '예금 이자 계산표', href: '/interest/', icon: 'calc' },
+    { label: '금리 결정 캘린더', href: '/rate-calendar/', icon: 'calendar' },
     { label: '금융 계산기 23종', href: '/tools/', icon: 'calc' },
   ]},
   { label: '쇼츠·칼럼', href: '/shorts/', children: [

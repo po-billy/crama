@@ -1,0 +1,106 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// 2026 공식 일정 — 한국은행(금통위 통방 8회) · 미 연준(FOMC 8회, 발표=2일차·한국시간 다음날 새벽)
+const BOK = ['2026-01-15', '2026-02-26', '2026-04-10', '2026-05-28', '2026-07-16', '2026-08-27', '2026-10-22', '2026-11-26'];
+const FOMC = [
+  { d: '2026-01-28', s: '2026-01-27' }, { d: '2026-03-18', s: '2026-03-17', dot: true },
+  { d: '2026-04-29', s: '2026-04-28' }, { d: '2026-06-17', s: '2026-06-16', dot: true },
+  { d: '2026-07-29', s: '2026-07-28' }, { d: '2026-09-16', s: '2026-09-15', dot: true },
+  { d: '2026-10-28', s: '2026-10-27' }, { d: '2026-12-09', s: '2026-12-08', dot: true },
+];
+const events = [
+  ...BOK.map((d, i) => ({ id: `bok-${d}`, date: d, org: '한국은행', name: `금통위 통화정책방향 (${i + 1}차)`, note: '기준금리 결정 · 오전 발표' })),
+  ...FOMC.map((m, i) => ({ id: `fomc-${m.d}`, date: m.d, org: '미 연준', name: `FOMC (${i + 1}차)${m.dot ? ' · 점도표' : ''}`, note: `${m.s.slice(5).replace('-', '/')}~${m.d.slice(5).replace('-', '/')} 회의 · 한국시간 ${Number(m.d.slice(8)) + 1}일 새벽 발표` })),
+].sort((a, b) => a.date.localeCompare(b.date));
+
+const fmtD = (d: string) => `${Number(d.slice(5, 7))}월 ${Number(d.slice(8))}일`;
+const WD = ['일', '월', '화', '수', '목', '금', '토'];
+const wd = (d: string) => WD[new Date(d + 'T00:00:00').getDay()];
+---
+<BaseLayout
+  title="금리 결정 캘린더 2026 — 금통위·FOMC 일정"
+  description="2026년 한국은행 금통위(8회)와 미국 FOMC(8회) 기준금리 결정 일정을 한눈에. 하트로 저장하면 발표 전날 알림을 보내드려요."
+>
+  <div class="wrap rc">
+    <header class="page-hero">
+      <span class="eyebrow">Rate Calendar</span>
+      <h1>금리 결정 캘린더 <span class="rc-y">2026</span></h1>
+      <p>내 예금·대출 금리를 움직이는 날들. <b>한국은행 금통위 8회 + 미 연준 FOMC 8회</b>를 한 줄로 정리했어요. 하트를 누르면 <b>발표 전날 알림</b>을 보내드립니다.</p>
+      <p class="rc-src">출처: 한국은행·미 연방준비제도 공식 일정</p>
+    </header>
+
+    <ol class="rc-list">
+      {events.map((e) => (
+        <li class="rc-item" data-date={e.date} data-id={e.id} data-name={`${e.org} ${e.name}`}>
+          <span class={`rc-org ${e.org === '한국은행' ? 'is-bok' : 'is-fed'}`}>{e.org === '한국은행' ? 'KR' : 'US'}</span>
+          <div class="rc-main">
+            <b>{fmtD(e.date)} ({wd(e.date)}) · {e.org} {e.name}</b>
+            <span>{e.note}</span>
+          </div>
+          <span class="rc-dday" data-dday></span>
+          <button type="button" class="rc-save" aria-label="알림 저장" aria-pressed="false">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </button>
+        </li>
+      ))}
+    </ol>
+    <p class="rc-note">※ FOMC 결과는 미국 동부시간 오후 발표라 한국에서는 다음날 새벽에 확인됩니다. 3·6·9·12월 FOMC는 점도표(금리 전망) 공개 회의예요.</p>
+
+    <div class="rc-cross">
+      <a href="/rates/">오늘의 예·적금 최고금리 →</a>
+      <a href="/loans/">대출 금리 비교 →</a>
+      <a href="/policy-calendar/">정책 캘린더 →</a>
+    </div>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const S = window.CramaSaved;
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      document.querySelectorAll('.rc-item').forEach((li) => {
+        const d = new Date(li.dataset.date + 'T00:00:00');
+        const dd = Math.round((d - today) / 86400000);
+        const el = li.querySelector('[data-dday]');
+        if (dd < 0) { li.classList.add('is-past'); el.textContent = '종료'; }
+        else { el.textContent = dd === 0 ? 'D-Day' : 'D-' + dd; if (dd <= 7) el.classList.add('is-soon'); }
+        const btn = li.querySelector('.rc-save');
+        if (!S) { btn.hidden = true; return; }
+        const sync = (on) => { btn.classList.toggle('is-on', on); btn.setAttribute('aria-pressed', on ? 'true' : 'false'); };
+        sync(S.has('dday', li.dataset.id));
+        btn.addEventListener('click', () => {
+          sync(S.toggle({ type: 'dday', id: li.dataset.id, name: li.dataset.name, url: '/rate-calendar/', sub: '금리 결정', deadline: li.dataset.date }));
+        });
+      });
+      // 다가오는 첫 일정으로 스크롤 힌트
+      const next = document.querySelector('.rc-item:not(.is-past)');
+      if (next) next.classList.add('is-next');
+    })();
+  </script>
+
+  <style>
+    .rc { max-width: 42rem; }
+    .rc-y { color: var(--accent); }
+    .page-hero .rc-src { font-size: 0.82rem; color: var(--muted); margin-top: 0.5rem; }
+    .rc-list { list-style: none; margin: 1.4rem 0 0; padding: 0; display: grid; gap: 0.5rem; }
+    .rc-item { display: flex; align-items: center; gap: 0.7rem; padding: 0.75rem 0.9rem; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); }
+    .rc-item.is-past { opacity: 0.45; }
+    .rc-item.is-next { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+    .rc-org { flex: none; width: 2.2rem; height: 2.2rem; display: grid; place-items: center; border-radius: 50%; font-size: 0.72rem; font-weight: 800; color: #fff; }
+    .rc-org.is-bok { background: #3b82f6; }
+    .rc-org.is-fed { background: #6366f1; }
+    .rc-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.1rem; }
+    .rc-main b { font-size: 0.92rem; line-height: 1.35; }
+    .rc-main span { font-size: 0.76rem; color: var(--muted); }
+    .rc-dday { flex: none; font-size: 0.78rem; font-weight: 800; color: var(--muted); padding: 0.2rem 0.55rem; border-radius: 999px; background: var(--paper-2); white-space: nowrap; }
+    .rc-dday.is-soon { color: #e11d48; background: color-mix(in srgb, #f43f5e 14%, var(--paper)); }
+    .rc-save { flex: none; width: 2rem; height: 2rem; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 50%; background: var(--paper); color: var(--muted); cursor: pointer; padding: 0; }
+    .rc-save:hover { border-color: #e11d48; color: #e11d48; }
+    .rc-save.is-on { color: #e11d48; border-color: #e11d48; }
+    .rc-save.is-on svg { fill: #e11d48; }
+    .rc-note { font-size: 0.8rem; color: var(--muted); line-height: 1.55; margin: 1rem 0 0; }
+    .rc-cross { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; margin: 2rem 0 1rem; padding-top: 1.4rem; border-top: 1px solid var(--line); }
+    .rc-cross a { font-size: 0.88rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--line); border-radius: 999px; }
+    .rc-cross a:hover { border-color: var(--accent); }
+  </style>
+</BaseLayout>

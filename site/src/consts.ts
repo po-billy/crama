@@ -96,6 +96,7 @@ export const NAV: NavItem[] = [
     { label: '실업급여 계산', href: '/unemployment/', icon: 'diagnose' },
     { label: '전역일 계산', href: '/discharge/', icon: 'calendar' },
     { label: '재무 건강 체크업', href: '/checkup/', icon: 'checkup' },
+    { label: '건강검진 대상 조회', href: '/health-check/', icon: 'checkup' },
   ]},
   { label: '금리·계산기', href: '/rates/', children: [
     { label: '예·적금 금리', href: '/rates/', icon: 'money' },

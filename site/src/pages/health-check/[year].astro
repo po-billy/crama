@@ -1,0 +1,99 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const THIS_YEAR = 2026; // 짝수해 → 짝수년생 일반검진 대상(지역가입자·피부양자·직장 사무직 기준)
+
+export async function getStaticPaths() {
+  const list: number[] = [];
+  for (let y = 1947; y <= 2006; y++) list.push(y);
+  return list.map((y) => ({ params: { year: String(y) } }));
+}
+
+const year = Number(Astro.params.year);
+const age = THIS_YEAR - year; // 만 나이(생일 지난 기준)
+const eligible = year % 2 === THIS_YEAR % 2;
+const nextYear = eligible ? THIS_YEAR : THIS_YEAR + 1;
+
+// 연령별 국가암검진(만 나이 기준)
+const cancers = [
+  { name: '위암', ok: age >= 40, rule: '만 40세부터 2년마다 (위내시경)' },
+  { name: '대장암', ok: age >= 50, rule: '만 50세부터 매년 (분변잠혈검사)' },
+  { name: '유방암', ok: age >= 40, rule: '만 40세부터 2년마다 (여성)' },
+  { name: '자궁경부암', ok: age >= 20, rule: '만 20세부터 2년마다 (여성)' },
+  { name: '간암', ok: age >= 40, rule: '만 40세부터, 고위험군 6개월마다' },
+  { name: '폐암', ok: age >= 54 && age <= 74, rule: '만 54~74세 고위험군(장기 흡연) 2년마다' },
+];
+const myCancers = cancers.filter((c) => c.ok);
+const isTransition = age === 40 || age === 66; // 확대 검진 연령
+
+const pageTitle = `${year}년생 건강검진 — ${THIS_YEAR}년 대상${eligible ? '입니다' : ' 아님(내년)'}`;
+const pageDesc = `${year}년생(만 ${age}세)은 ${THIS_YEAR}년 국가건강검진 대상${eligible ? '입니다' : `이 아니며 ${nextYear}년 대상입니다`}. 받을 수 있는 암검진 ${myCancers.length}종과 신청 방법까지 정리했어요.`;
+---
+<BaseLayout title={pageTitle} description={pageDesc}>
+  <div class="wrap hc">
+    <nav class="hc-crumb"><a href="/">홈</a><span>›</span><a href="/health-check/">건강검진 조회</a><span>›</span><b>{year}년생</b></nav>
+    <h1>{year}년생, 올해 건강검진 대상일까?</h1>
+
+    <div class={`hc-hero ${eligible ? 'is-yes' : 'is-no'}`}>
+      <b>{eligible ? `✅ ${THIS_YEAR}년 검진 대상입니다` : `⏳ 올해는 아니에요 — ${nextYear}년 대상`}</b>
+      <span>만 {age}세 · {THIS_YEAR}년은 {THIS_YEAR % 2 === 0 ? '짝수' : '홀수'}해라 {THIS_YEAR % 2 === 0 ? '짝수' : '홀수'}년생이 대상 {isTransition ? `· 만 ${age}세 확대 검진(추가 항목) 해당` : ''}</span>
+      {eligible && <em>12월 31일까지 받으면 됩니다 — 연말엔 예약이 몰려요</em>}
+    </div>
+
+    <section class="hc-sec">
+      <h2>받을 수 있는 국가암검진 {myCancers.length}종</h2>
+      {myCancers.length ? (
+        <ul class="hc-list">
+          {myCancers.map((c) => <li><b>{c.name}</b><span>{c.rule}</span></li>)}
+        </ul>
+      ) : <p class="hc-empty">아직 암검진 대상 연령(만 20세~)이 아니에요. 일반검진(진찰·혈액·소변 등)은 만 20세부터!</p>}
+      <p class="hc-note">※ 유방암·자궁경부암은 여성 대상. 간암·폐암은 고위험군 기준. 비사무직 직장가입자는 일반검진을 매년 받아요.</p>
+    </section>
+
+    <section class="hc-sec">
+      <h2>어떻게 받나</h2>
+      <ul class="hc-steps">
+        <li><b>대상 확인</b> — 국민건강보험공단에서 검진표 발송(모바일 확인 가능)</li>
+        <li><b>병원 예약</b> — 공단 홈페이지·앱에서 가까운 검진기관 검색 후 예약</li>
+        <li><b>무료</b> — 국가검진 항목은 본인부담 없음(추가 선택 항목만 유료)</li>
+      </ul>
+    </section>
+
+    <div class="hc-pn">
+      {year > 1947 && <a href={`/health-check/${year - 1}/`}>← {year - 1}년생</a>}
+      <a href="/health-check/">전체 표</a>
+      {year < 2006 && <a href={`/health-check/${year + 1}/`}>{year + 1}년생 →</a>}
+    </div>
+    <div class="hc-cross">
+      <a href="/welfare/">의료비 지원 복지 찾기 →</a>
+      <a href="/benefits/">내 지원금 매칭 →</a>
+    </div>
+  </div>
+
+  <style>
+    .hc { max-width: 40rem; }
+    .hc-crumb { display: flex; gap: 0.45rem; font-size: 0.8rem; color: var(--muted); margin: 0.4rem 0 1.1rem; }
+    .hc-crumb a { color: var(--muted); text-decoration: none; }
+    .hc h1 { font-family: var(--font-serif); font-size: clamp(1.4rem, 4.5vw, 2rem); margin: 0 0 1rem; }
+    .hc-hero { border-radius: 16px; padding: 1.2rem 1.4rem; display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 1.6rem; }
+    .hc-hero.is-yes { background: color-mix(in srgb, #22c55e 12%, var(--paper)); border: 1.5px solid #22c55e; }
+    .hc-hero.is-no { background: var(--paper-2); border: 1px solid var(--line); }
+    .hc-hero b { font-size: 1.15rem; }
+    .hc-hero span { font-size: 0.86rem; color: var(--ink-soft); }
+    .hc-hero em { font-style: normal; font-size: 0.82rem; color: #16a34a; font-weight: 700; }
+    .hc-sec { margin-bottom: 1.7rem; }
+    .hc-sec h2 { font-size: 1.1rem; margin: 0 0 0.7rem; }
+    .hc-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.45rem; }
+    .hc-list li { display: flex; justify-content: space-between; gap: 0.8rem; align-items: baseline; padding: 0.6rem 0.85rem; border: 1px solid var(--line); border-radius: 10px; }
+    .hc-list b { font-size: 0.92rem; }
+    .hc-list span { font-size: 0.78rem; color: var(--muted); text-align: right; }
+    .hc-empty { font-size: 0.9rem; color: var(--ink-soft); }
+    .hc-note { font-size: 0.78rem; color: var(--muted); margin: 0.7rem 0 0; line-height: 1.5; }
+    .hc-steps { margin: 0; padding-left: 1.1rem; display: grid; gap: 0.5rem; font-size: 0.92rem; color: var(--ink-soft); line-height: 1.55; }
+    .hc-pn { display: flex; justify-content: space-between; gap: 0.6rem; padding-top: 1.2rem; border-top: 1px solid var(--line); }
+    .hc-pn a { font-size: 0.86rem; font-weight: 700; color: var(--accent); text-decoration: none; }
+    .hc-cross { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; margin: 1.6rem 0 1rem; }
+    .hc-cross a { font-size: 0.88rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--line); border-radius: 999px; }
+    .hc-cross a:hover { border-color: var(--accent); }
+  </style>
+</BaseLayout>

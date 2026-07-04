@@ -1,0 +1,37 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+const THIS_YEAR = 2026;
+const years: number[] = [];
+for (let y = 2006; y >= 1947; y--) years.push(y);
+---
+<BaseLayout
+  title="건강검진 대상 조회 2026 — 내 출생연도는?"
+  description="2026년 국가건강검진 대상은 짝수년생. 출생연도를 고르면 대상 여부·받을 수 있는 암검진·신청 방법을 바로 알려드려요."
+>
+  <div class="wrap hcx">
+    <header class="page-hero">
+      <span class="eyebrow">Health Check</span>
+      <h1>건강검진 대상 조회 <span class="hcx-y">2026</span></h1>
+      <p>{THIS_YEAR}년은 <b>짝수해 → 짝수년생</b>이 국가건강검진 대상입니다. 내 출생연도를 눌러 확인하세요.</p>
+    </header>
+    <div class="hcx-grid">
+      {years.map((y) => (
+        <a class={`hcx-y-item ${y % 2 === 0 ? 'is-on' : ''}`} href={`/health-check/${y}/`}>
+          {y}<small>{y % 2 === 0 ? '올해 대상' : '내년'}</small>
+        </a>
+      ))}
+    </div>
+    <p class="hcx-note">※ 지역가입자·피부양자·직장 사무직 기준(2년 주기). 비사무직 직장가입자는 매년 대상이에요.</p>
+  </div>
+  <style>
+    .hcx { max-width: 44rem; }
+    .hcx-y { color: var(--accent); }
+    .hcx-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(5.2rem, 1fr)); gap: 0.45rem; margin-top: 1.3rem; }
+    .hcx-y-item { display: flex; flex-direction: column; align-items: center; gap: 0.1rem; padding: 0.55rem 0.3rem; border: 1px solid var(--line); border-radius: 10px; text-decoration: none; color: var(--ink); font-weight: 700; font-size: 0.95rem; }
+    .hcx-y-item small { font-size: 0.62rem; font-weight: 600; color: var(--muted); }
+    .hcx-y-item.is-on { border-color: #22c55e; background: color-mix(in srgb, #22c55e 10%, var(--paper)); }
+    .hcx-y-item.is-on small { color: #16a34a; }
+    .hcx-y-item:hover { border-color: var(--accent); }
+    .hcx-note { font-size: 0.8rem; color: var(--muted); margin: 1rem 0 0; }
+  </style>
+</BaseLayout>

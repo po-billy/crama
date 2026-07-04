@@ -1,0 +1,35 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+const CARDS = [
+  { href: '/life/birth/', emoji: '👶', t: '출산하면 받는 돈', d: '부모급여·첫만남이용권·산후조리비까지' },
+  { href: '/life/marriage/', emoji: '💍', t: '결혼하면 받는 돈', d: '신혼부부 대출·결혼장려금·주거 지원' },
+  { href: '/life/moving/', emoji: '📦', t: '이사·독립하면 챙길 돈', d: '전월세 대출·월세 지원·중개보수' },
+];
+---
+<BaseLayout title="라이프이벤트 머니 — 인생 이벤트별 지원금 총정리" description="출산·결혼·이사 — 인생의 큰 이벤트마다 받을 수 있는 정부 지원금을 한 페이지씩 총정리했습니다.">
+  <div class="wrap lfx">
+    <header class="page-hero">
+      <span class="eyebrow">Life Events</span>
+      <h1>인생 이벤트마다, 챙길 돈이 있다</h1>
+      <p>큰일이 있을 때마다 정부 지원도 있습니다. 이벤트를 고르면 <b>받을 수 있는 돈 전부</b>를 보여드려요.</p>
+    </header>
+    <div class="lfx-grid">
+      {CARDS.map((c) => (
+        <a class="lfx-card" href={c.href}>
+          <span class="lfx-emoji">{c.emoji}</span>
+          <strong>{c.t}</strong>
+          <span class="lfx-d">{c.d}</span>
+        </a>
+      ))}
+    </div>
+  </div>
+  <style>
+    .lfx { max-width: 44rem; }
+    .lfx-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); gap: 0.8rem; margin-top: 1.4rem; }
+    .lfx-card { display: flex; flex-direction: column; gap: 0.35rem; padding: 1.3rem 1.2rem; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); text-decoration: none; color: var(--ink); transition: border-color 0.12s, transform 0.12s; }
+    .lfx-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .lfx-emoji { font-size: 1.6rem; }
+    .lfx-card strong { font-size: 1.02rem; }
+    .lfx-d { font-size: 0.82rem; color: var(--muted); line-height: 1.45; }
+  </style>
+</BaseLayout>

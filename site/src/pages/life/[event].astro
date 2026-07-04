@@ -1,0 +1,135 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import welfare from '../../data/welfare-services.json';
+import youth from '../../data/youth-policies.json';
+import { BENEFITS } from '../../data/benefits';
+
+export async function getStaticPaths() {
+  return ['birth', 'marriage', 'moving'].map((event) => ({ params: { event } }));
+}
+
+const EVENTS: Record<string, any> = {
+  birth: {
+    title: '출산하면 받는 돈, 한 번에',
+    emoji: '👶', name: '출산·육아',
+    desc: '임신·출산·육아 단계에서 신청할 수 있는 정부 지원을 전부 모았어요.',
+    kws: ['출산', '임신', '육아', '아기', '영아', '신생아', '돌봄', '보육', '기저귀', '분유', '아동', '부모급여', '어린이집', '산모'],
+    themes: ['임신', '보육'],
+  },
+  marriage: {
+    title: '결혼하면 받는 돈, 한 번에',
+    emoji: '💍', name: '결혼·신혼',
+    desc: '신혼부부·예비부부가 챙길 수 있는 지원금·주거 혜택을 모았어요.',
+    kws: ['결혼', '신혼', '혼인', '예비부부', '신혼부부'],
+    themes: [],
+  },
+  moving: {
+    title: '이사·독립하면 챙길 돈, 한 번에',
+    emoji: '📦', name: '이사·독립',
+    desc: '전월세·이사·주거 관련 지원을 전부 모았어요. 보증금·월세·중개보수까지.',
+    kws: ['이사', '전세', '월세', '주거', '임차', '보증금', '중개보수', '임대', '이주'],
+    themes: ['주거'],
+  },
+};
+
+const { event } = Astro.params;
+const E = EVENTS[event!];
+const hit = (text: string) => E.kws.some((k: string) => text.includes(k));
+
+// ① 대표 혜택(큐레이션 — 금액 있음)
+const picks = BENEFITS.filter((b: any) => hit(`${b.name} ${b.summary} ${(b.tags || []).join(' ')}`));
+const totalAmount = picks.reduce((a: number, b: any) => a + (b.amountValue || 0), 0);
+// ② 전국 공통 복지
+const wf = (welfare.services as any[]).filter((s) => E.themes.includes(s.theme) || hit(`${s.name} ${s.summary}`)).slice(0, 12);
+// ③ 청년 정책
+const yt = (youth.policies as any[]).filter((p) => hit(`${p.name} ${p.keywords} ${p.sub}`)).slice(0, 10);
+
+const pageTitle = `${E.title} — 지원금 총정리 2026`;
+const pageDesc = `${E.name} 시기에 신청 가능한 정부 지원 총정리: 대표 혜택 ${picks.length}건${totalAmount ? `(최대 연 ${totalAmount.toLocaleString()}만원 규모)` : ''} + 복지 ${wf.length}건 + 청년 정책 ${yt.length}건. 지역별 추가 지원까지 한 페이지에.`;
+---
+<BaseLayout title={pageTitle} description={pageDesc}>
+  <div class="wrap lf">
+    <nav class="lf-crumb"><a href="/">홈</a><span>›</span><a href="/life/">라이프이벤트</a><span>›</span><b>{E.name}</b></nav>
+    <header class="lf-head">
+      <h1>{E.emoji} {E.title}</h1>
+      <p>{E.desc}</p>
+      {totalAmount > 0 && <p class="lf-sum">대표 혜택만 합쳐도 <b>최대 연 {totalAmount.toLocaleString()}만원</b> 규모</p>}
+    </header>
+
+    {picks.length > 0 && (
+      <section class="lf-sec">
+        <h2>핵심 혜택 {picks.length}건</h2>
+        <div class="lf-picks">
+          {picks.map((b: any) => (
+            <a class="lf-pick" href={b.applyUrl} target="_blank" rel="noopener">
+              <strong>{b.name}</strong>
+              <em>{b.amount}</em>
+              <span>{b.summary}</span>
+            </a>
+          ))}
+        </div>
+        <p class="lf-more"><a href="/benefits/">내 조건으로 정확히 매칭하기 →</a></p>
+      </section>
+    )}
+
+    {wf.length > 0 && (
+      <section class="lf-sec">
+        <h2>전국 공통 복지</h2>
+        <ul class="lf-list">
+          {wf.map((s: any) => (
+            <li><a href={`/welfare/${s.id}/`}><b>{s.name}</b><span>{s.ministry}</span></a></li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    {yt.length > 0 && (
+      <section class="lf-sec">
+        <h2>청년이라면 추가로</h2>
+        <ul class="lf-list">
+          {yt.map((p: any) => (
+            <li><a href={`/youth/${p.id}/`}><b>{p.name}</b><span>{p.minAge ? `${p.minAge}~${p.maxAge}세` : p.cat}</span></a></li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    <section class="lf-sec lf-region">
+      <h2>우리 지역 추가 지원</h2>
+      <p>지자체마다 {E.name} 지원금이 따로 있어요(예: 결혼장려금·산후조리비·이사정착금). 지역을 고르면 다 보여드립니다.</p>
+      <a class="lf-region__btn" href="/welfare/">지역 선택하고 확인하기 →</a>
+    </section>
+
+    <p class="lf-note">※ 기준일 {welfare.generatedAt} · 정책은 변경될 수 있으니 신청 전 공고를 확인하세요. 항목을 하트로 저장하면 마감 알림을 보내드려요.</p>
+  </div>
+
+  <style>
+    .lf { max-width: 44rem; }
+    .lf-crumb { display: flex; gap: 0.45rem; font-size: 0.8rem; color: var(--muted); margin: 0.4rem 0 1.1rem; }
+    .lf-crumb a { color: var(--muted); text-decoration: none; }
+    .lf-crumb a:hover { color: var(--accent); }
+    .lf-head h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 4.6vw, 2.1rem); margin: 0 0 0.5rem; }
+    .lf-head p { color: var(--ink-soft); margin: 0 0 0.4rem; }
+    .lf-sum { font-size: 0.95rem; }
+    .lf-sum b { color: var(--accent); }
+    .lf-sec { margin: 1.8rem 0; }
+    .lf-sec h2 { font-size: 1.12rem; margin: 0 0 0.8rem; }
+    .lf-picks { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 0.7rem; }
+    .lf-pick { display: flex; flex-direction: column; gap: 0.25rem; padding: 1rem 1.1rem; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); text-decoration: none; color: var(--ink); transition: border-color 0.12s, transform 0.12s; }
+    .lf-pick:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .lf-pick strong { font-size: 0.95rem; }
+    .lf-pick em { font-style: normal; color: var(--accent); font-weight: 800; font-size: 0.9rem; }
+    .lf-pick span { font-size: 0.8rem; color: var(--muted); line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .lf-more { margin: 0.8rem 0 0; }
+    .lf-more a { font-size: 0.88rem; font-weight: 700; color: var(--accent); text-decoration: none; }
+    .lf-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.45rem; }
+    .lf-list a { display: flex; justify-content: space-between; gap: 0.8rem; align-items: baseline; padding: 0.65rem 0.85rem; border: 1px solid var(--line); border-radius: 10px; text-decoration: none; color: var(--ink); }
+    .lf-list a:hover { border-color: var(--accent); }
+    .lf-list b { font-size: 0.9rem; font-weight: 600; }
+    .lf-list span { flex: none; font-size: 0.75rem; color: var(--muted); }
+    .lf-region { padding: 1.1rem 1.2rem; border: 1px solid var(--line); border-radius: 14px; background: var(--paper-2); }
+    .lf-region p { font-size: 0.9rem; color: var(--ink-soft); margin: 0 0 0.8rem; }
+    .lf-region__btn { display: inline-flex; padding: 0.65rem 1.2rem; background: var(--accent); color: #fff; font-weight: 700; font-size: 0.9rem; border-radius: 10px; text-decoration: none; }
+    .lf-note { font-size: 0.78rem; color: var(--muted); margin: 1.6rem 0 0; }
+  </style>
+</BaseLayout>

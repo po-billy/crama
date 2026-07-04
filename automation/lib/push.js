@@ -30,7 +30,7 @@ function parsePg(uri) {
   return { host, port, user, password, database };
 }
 
-function pgConn() {
+export function pgConn() {
   const ref = process.env.SUPABASE_PROJECT_REF;
   const rawUrl = (process.env.SUPABASE_DB_URL || '').trim();
   const explicitPwd = (process.env.SUPABASE_DB_PASSWORD || '').trim();

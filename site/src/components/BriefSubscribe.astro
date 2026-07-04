@@ -67,6 +67,19 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
     const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
     const supported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
 
+    // 로그인 상태면 유저 토큰으로 RPC 호출 → 구독에 user_id 기록(저장 항목 마감 알림용)
+    const userTok = () => {
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && k.indexOf('sb-') === 0 && k.indexOf('-auth-token') !== -1) {
+            const o = JSON.parse(localStorage.getItem(k));
+            return (o && (o.access_token || (o.currentSession && o.currentSession.access_token))) || null;
+          }
+        }
+      } catch (e) {}
+      return null;
+    };
     const b64ToU8 = (b64) => {
       const pad = '='.repeat((4 - (b64.length % 4)) % 4);
       const s = (b64 + pad).replace(/-/g, '+').replace(/_/g, '/');
@@ -98,7 +111,7 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
       try {
         res = await fetch(SU + '/rest/v1/rpc/subscribe_push', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', apikey: AK, Authorization: 'Bearer ' + AK },
+          headers: { 'Content-Type': 'application/json', apikey: AK, Authorization: 'Bearer ' + (userTok() || AK) },
           body: JSON.stringify({ p_endpoint: j.endpoint, p_p256dh: j.keys.p256dh, p_auth: j.keys.auth }),
         });
       } catch (e) { toast('네트워크 오류로 저장 실패'); console.error('[push] insert net', e); return; }

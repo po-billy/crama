@@ -15,11 +15,14 @@ alter table public.push_subscriptions enable row level security;
 drop policy if exists "anyone can subscribe" on public.push_subscriptions;
 drop policy if exists "unsubscribe by endpoint" on public.push_subscriptions;
 
+-- 로그인 상태로 구독하면 user_id 기록 → 저장 항목 마감(D-day) 개인 알림에 사용
 create or replace function public.subscribe_push(p_endpoint text, p_p256dh text, p_auth text)
 returns void language sql security definer set search_path = public as $fn$
-  insert into public.push_subscriptions (endpoint, p256dh, auth)
-  values (p_endpoint, p_p256dh, p_auth)
-  on conflict (endpoint) do update set p256dh = excluded.p256dh, auth = excluded.auth;
+  insert into public.push_subscriptions (endpoint, p256dh, auth, user_id)
+  values (p_endpoint, p_p256dh, p_auth, auth.uid())
+  on conflict (endpoint) do update
+    set p256dh = excluded.p256dh, auth = excluded.auth,
+        user_id = coalesce(excluded.user_id, public.push_subscriptions.user_id);
 $fn$;
 grant execute on function public.subscribe_push(text, text, text) to anon, authenticated;
 

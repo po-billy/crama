@@ -61,6 +61,19 @@ jobs:
           FINLIFE_KEY: ${{ secrets.FINLIFE_KEY }}
         run: node sync-loans.js
 
+      - name: 저장 항목 마감 D-day 알림 발송(D-1·D-3)
+        working-directory: automation
+        env:
+          VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+          VAPID_SUBJECT: ${{ vars.VAPID_SUBJECT || 'mailto:gmlthd94@gmail.com' }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+        run: |
+          npm i --no-save pg web-push dotenv >/dev/null 2>&1 || true
+          node send-deadline-alerts.js || true
+
       - name: 변경 시에만 커밋·푸시
         run: |
           git config user.name "crama-bot"

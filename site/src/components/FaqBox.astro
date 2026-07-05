@@ -1,0 +1,30 @@
+---
+// 자주 묻는 질문 — 가시 아코디언 + FAQPage JSON-LD(리치 결과용). 고의도 허브 페이지 전용.
+interface Props { items: { q: string; a: string }[] }
+const { items } = Astro.props;
+const ld = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: items.map((i) => ({ '@type': 'Question', name: i.q, acceptedAnswer: { '@type': 'Answer', text: i.a } })),
+};
+---
+<section class="faqbox">
+  <h2>자주 묻는 질문</h2>
+  {items.map((i) => (
+    <details>
+      <summary>{i.q}</summary>
+      <p>{i.a}</p>
+    </details>
+  ))}
+</section>
+<script type="application/ld+json" set:html={JSON.stringify(ld)} />
+<style>
+  .faqbox { margin: 2rem 0 1.2rem; }
+  .faqbox h2 { font-size: 1.1rem; margin: 0 0 0.6rem; }
+  .faqbox details { border: 1px solid var(--line); border-radius: 12px; background: var(--paper); margin-bottom: 0.45rem; }
+  .faqbox summary { padding: 0.75rem 0.95rem; font-size: 0.9rem; font-weight: 700; cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+  .faqbox summary::-webkit-details-marker { display: none; }
+  .faqbox summary::after { content: '+'; color: var(--muted); font-weight: 600; }
+  .faqbox details[open] summary::after { content: '–'; }
+  .faqbox p { margin: 0; padding: 0 0.95rem 0.85rem; font-size: 0.86rem; line-height: 1.65; color: var(--ink-soft); }
+</style>

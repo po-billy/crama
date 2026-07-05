@@ -19,6 +19,7 @@ import SubscribeBox from '../components/SubscribeBox.astro';
 import { SITE, CATEGORIES, type CategorySlug } from '../consts';
 import { bylineLabel, resolveAuthorName, getPersona, REAL_AUTHOR } from '../data/personas';
 
+import RelatedTools from '../components/RelatedTools.astro';
 interface RelatedPost {
   href: string;
   title: string;
@@ -257,6 +258,8 @@ const jsonLd = {
         ) : <span />}
       </nav>
     )}
+
+    <RelatedTools text={`${title} ${description || ''} ${tags.join(' ')}`} />
 
     {related.length > 0 && (
       <section class="wrap" style="padding-inline:0;">

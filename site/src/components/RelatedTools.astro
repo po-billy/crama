@@ -1,0 +1,45 @@
+---
+// 글 키워드 → 계산기·허브 자동 매칭 내부링크(NerdWallet 토픽 클러스터 방식).
+// 렌더 타임 매칭이라 기존 글 전체 + 자동발행 새 글에 즉시 적용, MDX 수정 불필요.
+interface Props { text: string }
+const { text } = Astro.props;
+
+const MAP = [
+  { kw: ['연봉', '실수령', '월급', '급여'], href: '/salary/', label: '연봉 실수령액 표', desc: '내 연봉의 진짜 월급 확인' },
+  { kw: ['시급', '알바', '주휴'], href: '/wage/', label: '시급 → 월급 환산표', desc: '주휴수당 포함 계산' },
+  { kw: ['퇴직금'], href: '/severance/', label: '퇴직금 계산표', desc: '연봉×근속으로 바로 확인' },
+  { kw: ['실업급여', '퇴사', '이직', '구직급여'], href: '/unemployment/', label: '실업급여 계산기', desc: '하루 얼마, 총 얼마 받나' },
+  { kw: ['재산세', '공시가격', '보유세'], href: '/property-tax/', label: '재산세 계산기', desc: '7월·9월 낼 금액 미리 보기' },
+  { kw: ['자동차세', '연납'], href: '/car-tax/', label: '자동차세 계산기', desc: '연납 할인까지 계산' },
+  { kw: ['증여'], href: '/gift-tax/', label: '증여세 계산기', desc: '공제 후 실제 낼 세금' },
+  { kw: ['상속'], href: '/inheritance-tax/', label: '상속세 계산기', desc: '배우자 있으면 10억까지 0원' },
+  { kw: ['중위소득', '기초생활', '생계급여', '주거급여', '차상위'], href: '/median-income/', label: '중위소득 계산기', desc: '내 소득은 중위 몇 %?' },
+  { kw: ['예금', '적금', '파킹', '금리'], href: '/rates/', label: '예·적금 금리 비교', desc: '오늘 최고 금리(매일 갱신)' },
+  { kw: ['대출', '주담대', '전세자금', '신용대출'], href: '/loans/', label: '대출 금리 비교', desc: '주담대·전세·신용 최저금리' },
+  { kw: ['지원금', '혜택', '복지', '바우처'], href: '/benefits/', label: '내 혜택 찾기', desc: '3분 매칭으로 받을 돈 확인' },
+  { kw: ['청년'], href: '/youth/', label: '청년 정책 500', desc: '나이로 바로 필터' },
+  { kw: ['연말정산', '부가세', '종소세', '종합소득세', '세금'], href: '/tax/', label: '세금 캘린더', desc: '올해 낼 세금 일정+알림' },
+  { kw: ['건강검진'], href: '/health-check/', label: '건강검진 대상 조회', desc: '올해 대상인지 1초 확인' },
+  { kw: ['전역', '입대', '군'], href: '/discharge/', label: '전역일 계산기', desc: 'D-day와 남은 %' },
+];
+const hits = MAP.filter((m) => m.kw.some((k) => text.includes(k))).slice(0, 3);
+---
+{hits.length > 0 && (
+  <aside class="rel-tools" aria-label="관련 도구">
+    <span class="rel-tools__label">이 글과 연결된 도구</span>
+    <div class="rel-tools__row">
+      {hits.map((h) => (
+        <a href={h.href}><b>{h.label}</b><span>{h.desc}</span></a>
+      ))}
+    </div>
+  </aside>
+)}
+<style>
+  .rel-tools { max-width: var(--measure); margin: 2.2rem auto; padding: 1rem 1.1rem; border: 1px solid var(--line); border-radius: 14px; background: var(--paper-2); }
+  .rel-tools__label { display: block; font-size: 0.76rem; font-weight: 800; color: var(--accent); margin-bottom: 0.6rem; letter-spacing: 0.02em; }
+  .rel-tools__row { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 0.5rem; }
+  .rel-tools__row a { display: flex; flex-direction: column; gap: 0.15rem; padding: 0.7rem 0.85rem; border: 1px solid var(--line); border-radius: 11px; background: var(--paper); text-decoration: none; transition: border-color 0.12s; }
+  .rel-tools__row a:hover { border-color: var(--accent); }
+  .rel-tools__row b { font-size: 0.88rem; color: var(--ink); }
+  .rel-tools__row span { font-size: 0.72rem; color: var(--muted); }
+</style>

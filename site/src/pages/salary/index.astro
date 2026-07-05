@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import FaqBox from '../../components/FaqBox.astro';
 import { computeSalary, salaryAmounts, RATE_BASIS, fmt, fmtMan } from '../../lib/salary';
 
 const amounts = salaryAmounts();
@@ -41,6 +42,13 @@ const rows = amounts.map((man) => ({ man, s: computeSalary(man * 10_000) }));
         ))}
       </tbody>
     </table>
+
+    <FaqBox items={[
+      { q: '실수령액은 어떻게 계산되나요?', a: '세전 월급에서 국민연금(4.5%)·건강보험(3.545%)·장기요양보험·고용보험(0.9%)과 근로소득 간이세액표 기준 소득세·지방소득세를 뺀 금액입니다. 2026년 상반기 요율 기준입니다.' },
+      { q: '부양가족이 있으면 달라지나요?', a: '이 표는 1인 가구(본인 공제만) 기준입니다. 부양가족이 있으면 소득세가 줄어 실수령액이 표보다 늘어납니다. 비과세 식대(월 20만원) 등이 있어도 실수령액이 올라갑니다.' },
+      { q: '연봉 협상 때 세전·세후 어떤 걸 말하나요?', a: '연봉 계약서와 협상은 항상 세전 금액 기준입니다. 제안받은 세전 연봉을 이 표에서 찾으면 실제 통장에 들어올 월급을 바로 확인할 수 있습니다.' },
+      { q: '퇴직금은 연봉에 포함되나요?', a: '법적으로 퇴직금은 연봉과 별도입니다. “퇴직금 포함 연봉”이라는 표현이 있다면 실제 월급 기준 연봉은 13분의 12로 줄어드는 것이니 계약 전 꼭 확인하세요.' },
+    ]} />
 
     <div class="salx-cross">
       <p>월급을 더 지키고 싶다면</p>

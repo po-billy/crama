@@ -135,8 +135,8 @@ hr {
 @media (min-width: 900px) { .push-nudge { bottom: calc(1.2rem + env(safe-area-inset-bottom)); } }
 
 /* 헤더 밀웜 배지 — 프로필 아이콘 왼쪽, 로그인 시에만 JS로 노출 */
-.header-actions > a.hd-worm { display: inline-flex; align-items: center; gap: 0.24rem; padding: 0.22rem 0.6rem; border-radius: 999px; background: var(--accent-soft); color: var(--accent); text-decoration: none; }
-.header-actions > a.hd-worm:hover { color: var(--accent); background: var(--accent-soft); filter: brightness(0.95); }
+.header-actions > a.hd-worm { display: inline-flex; align-items: center; gap: 0.24rem; padding: 0.22rem 0.6rem; border-radius: 999px; /* background: var(--accent-soft); */ color: var(--accent); text-decoration: none; }
+.header-actions > a.hd-worm:hover { color: var(--accent); opacity: 0.72; }
 .header-actions > a.hd-worm[hidden] { display: none; }
 .header-actions > a.hd-worm svg { width: 15px; height: 15px; flex: none; }
 .hd-worm b { font-size: 0.76rem; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }

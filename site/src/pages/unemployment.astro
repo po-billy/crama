@@ -51,6 +51,7 @@ const DAYS = [
         <div><span>월 환산(30일)</span><b id="ub-monthly">-</b></div>
       </div>
       <p class="ub-note" id="ub-explain"></p>
+      <button type="button" class="ub-reg" id="ub-reg" hidden>나이·연봉을 내 정보로 저장 → 다른 계산기도 자동 입력</button>
     </div>
 
     <section class="ub-sec">
@@ -109,6 +110,25 @@ const DAYS = [
       }
       $('ub-go').addEventListener('click', calc);
       ['ub-pay', 'ub-age'].forEach((id) => $(id).addEventListener('keydown', (e) => { if (e.key === 'Enter') calc(); }));
+
+      // 프로필 사이클: 등록된 나이·연봉 프리필, 계산 후 '내 정보로 저장'
+      const P = window.CramaProfile;
+      if (P) {
+        const d = P.get();
+        if (d.age) $('ub-age').value = d.age;
+        if (d.salary) $('ub-pay').value = Math.round(d.salary / 12);
+        if (d.age && d.salary) calc();
+        const btn = $('ub-reg');
+        const sync = () => { const dd = P.get(); btn.hidden = false; btn.textContent = (dd.age && dd.salary) ? '내 정보 업데이트' : '나이·연봉을 내 정보로 저장 → 다른 계산기도 자동 입력'; };
+        $('ub-go').addEventListener('click', sync);
+        if (d.age || d.salary) sync();
+        btn.addEventListener('click', () => {
+          const patch = {};
+          const age = Number($('ub-age').value); if (age) patch.age = age;
+          const pay = Number($('ub-pay').value); if (pay) patch.salary = pay * 12;
+          if (P.set(patch)) { btn.textContent = '저장됐어요 — /me에서 관리'; setTimeout(sync, 2500); }
+        });
+      }
     })();
   </script>
 
@@ -126,6 +146,8 @@ const DAYS = [
     .ub-form button { grid-column: 1 / -1; font: inherit; font-weight: 800; font-size: 1rem; padding: 0.8rem; border: 0; border-radius: 12px; background: var(--accent); color: #fff; cursor: pointer; }
     @media (max-width: 560px) { .ub-form { grid-template-columns: 1fr; } }
     .ub-result[hidden] { display: none; }
+    .ub-reg { display: block; margin-top: 0.7rem; font: inherit; font-size: 0.85rem; font-weight: 700; color: var(--accent); background: var(--accent-soft); border: 1px dashed var(--accent); border-radius: 10px; padding: 0.6rem 1rem; cursor: pointer; width: 100%; }
+    .ub-reg[hidden] { display: none; }
     .ub-hero { display: grid; grid-template-columns: 1fr 1.3fr 1fr; gap: 0.6rem; margin-bottom: 0.6rem; }
     .ub-hero > div { border: 1px solid var(--line); border-radius: 14px; padding: 0.95rem 1rem; background: var(--paper); display: flex; flex-direction: column; gap: 0.15rem; }
     .ub-hero span { font-size: 0.76rem; color: var(--muted); font-weight: 600; }

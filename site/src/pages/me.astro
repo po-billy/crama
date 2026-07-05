@@ -44,7 +44,38 @@ import '../styles/app.css';
     <div class="me-actions">
       <a class="btn btn--line" href="/calendar/">출석 캘린더</a>
       <a class="btn btn--line" href="/saved/">내 스크랩</a>
+      <a class="btn btn--line" href="/saved-picks/">내 관심함</a>
     </div>
+
+    <!-- 내 정보 — 등록하면 계산기·매칭이 자동으로 채워지는 프로필 허브 -->
+    <section class="me-prof" id="me-prof">
+      <div class="me-prof__head">
+        <h2>내 정보</h2>
+        <span>등록해두면 연봉·자동차세·혜택 매칭이 자동으로 채워져요</span>
+      </div>
+      <div class="me-prof__grid">
+        <label>나이 <input id="mp-age" type="number" inputmode="numeric" placeholder="예: 32" min="14" max="100" /></label>
+        <label>지역
+          <select id="mp-region">
+            <option value="">선택…</option>
+            {['서울특별시','경기도','인천광역시','부산광역시','대구광역시','광주광역시','대전광역시','울산광역시','세종특별자치시','강원특별자치도','충청북도','충청남도','전북특별자치도','전라남도','경상북도','경상남도','제주특별자치도'].map((r) => <option value={r}>{r}</option>)}
+          </select>
+        </label>
+        <label>연봉(만원) <input id="mp-salary" type="number" inputmode="numeric" placeholder="예: 4200" min="0" max="100000" /></label>
+        <label>차량 배기량(cc) <input id="mp-cc" type="number" inputmode="numeric" placeholder="예: 1598" min="0" max="8000" /></label>
+        <label>차량 등록연도 <input id="mp-caryr" type="number" inputmode="numeric" placeholder="예: 2022" min="1990" max="2026" /></label>
+        <label class="me-prof__ev"><input id="mp-ev" type="checkbox" /> 전기·수소차</label>
+      </div>
+      <div class="me-prof__foot">
+        <button type="button" class="btn" id="mp-save">내 정보 저장</button>
+        <span class="me-prof__msg" id="mp-msg"></span>
+      </div>
+      <div class="me-prof__links" id="mp-links" hidden>
+        <a href="/salary/" id="mp-link-salary" hidden>내 연봉 실수령액 →</a>
+        <a href="/car-tax/" id="mp-link-car" hidden>내 자동차세 →</a>
+        <a href="/benefits/" id="mp-link-bf" hidden>내 혜택 매칭 →</a>
+      </div>
+    </section>
 
     <!-- 내 기록: 들은 시간 -->
     <div class="me-stat">
@@ -469,3 +500,62 @@ import '../styles/app.css';
     await renderMascot();
   })();
 </script>
+
+<script is:inline>
+  // 내 정보(프로필 허브) — CramaProfile 바인딩: 로드 시 채우고, 저장 시 서버 upsert + 바로가기 노출
+  (() => {
+    var $ = function (id) { return document.getElementById(id); };
+    var sec = $('me-prof');
+    if (!sec) return;
+    function fill() {
+      var P = window.CramaProfile;
+      if (!P) return;
+      var d = P.get();
+      if (d.age) $('mp-age').value = d.age;
+      if (d.region) $('mp-region').value = d.region;
+      if (d.salary) $('mp-salary').value = d.salary;
+      if (d.car) { if (d.car.cc) $('mp-cc').value = d.car.cc; if (d.car.year) $('mp-caryr').value = d.car.year; $('mp-ev').checked = !!d.car.ev; }
+      links(d);
+    }
+    function links(d) {
+      var any = false;
+      var s = $('mp-link-salary'), c = $('mp-link-car'), b = $('mp-link-bf');
+      if (d.salary) { var man = Math.min(Math.max(Math.round(d.salary / 100) * 100, 2000), 10000); s.href = '/salary/' + man + '/'; s.hidden = false; any = true; } else s.hidden = true;
+      if (d.car && (d.car.cc || d.car.ev)) { c.hidden = false; any = true; } else c.hidden = true;
+      if (d.age && d.region) { b.hidden = false; any = true; } else b.hidden = true;
+      $('mp-links').hidden = !any;
+    }
+    $('mp-save').addEventListener('click', function () {
+      var P = window.CramaProfile;
+      if (!P) return;
+      var d = {};
+      var age = Number($('mp-age').value); if (age) d.age = age;
+      var region = $('mp-region').value; if (region) d.region = region;
+      var salary = Number($('mp-salary').value); if (salary) d.salary = salary;
+      var cc = Number($('mp-cc').value), yr = Number($('mp-caryr').value), ev = $('mp-ev').checked;
+      if (cc || yr || ev) d.car = { cc: cc || undefined, year: yr || undefined, ev: ev || undefined };
+      if (P.set(d)) { $('mp-msg').textContent = '저장됐어요 — 계산기들이 자동으로 채워집니다'; links(P.get()); setTimeout(function () { $('mp-msg').textContent = ''; }, 3000); }
+    });
+    document.addEventListener('crama:profile-sync', fill);
+    fill();
+  })();
+</script>
+
+<style is:global>
+  .me-prof { margin: 1.2rem 0; padding: 1.1rem 1.2rem; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); }
+  .me-prof__head { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.9rem; }
+  .me-prof__head h2 { font-size: 1.08rem; margin: 0; }
+  .me-prof__head span { font-size: 0.78rem; color: var(--muted); }
+  .me-prof__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+  .me-prof__grid label { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.8rem; font-weight: 700; color: var(--ink-soft); }
+  .me-prof__grid input[type=number], .me-prof__grid select { font: inherit; font-size: 0.95rem; padding: 0.55rem 0.75rem; border: 1px solid var(--line); border-radius: 10px; background: var(--paper-2); color: var(--ink); }
+  .me-prof__grid input:focus, .me-prof__grid select:focus { outline: none; border-color: var(--accent); }
+  .me-prof__ev { flex-direction: row !important; align-items: center; gap: 0.4rem !important; }
+  .me-prof__foot { display: flex; align-items: center; gap: 0.7rem; margin-top: 0.9rem; }
+  .me-prof__msg { font-size: 0.8rem; color: #16a34a; font-weight: 600; }
+  .me-prof__links { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px dashed var(--line); }
+  .me-prof__links[hidden] { display: none; }
+  .me-prof__links a { font-size: 0.84rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.45rem 0.9rem; border: 1px solid var(--line); border-radius: 999px; }
+  .me-prof__links a:hover { border-color: var(--accent); }
+  .me-prof__links a[hidden] { display: none; }
+</style>

@@ -43,6 +43,7 @@ const fmt = (n: number) => Math.round(n).toLocaleString('ko-KR');
         <div><span>1월 연납 시</span><b id="ct-annual">-</b><em>약 2.7% 절약</em></div>
       </div>
       <p class="ct-explain" id="ct-explain"></p>
+      <button type="button" class="ct-reg" id="ct-reg" hidden>이 차를 내 정보로 저장 → 다음부터 자동 계산</button>
     </div>
 
     <section class="ct-sec">
@@ -112,6 +113,33 @@ const fmt = (n: number) => Math.round(n).toLocaleString('ko-KR');
       $('ct-go').addEventListener('click', calc);
       ['ct-cc', 'ct-yr'].forEach((id) => $(id).addEventListener('keydown', (e) => { if (e.key === 'Enter') calc(); }));
 
+      // 프로필 사이클: 등록된 차량이면 자동 프리필+계산, 아니면 계산 후 '내 정보로 저장'
+      const P = window.CramaProfile;
+      function regSync() {
+        const btn = $('ct-reg');
+        if (!P) { btn.hidden = true; return; }
+        const d = P.get();
+        const has = d.car && (d.car.cc || d.car.ev);
+        btn.hidden = false;
+        btn.textContent = has ? '내 차 정보 업데이트' : '이 차를 내 정보로 저장 → 다음부터 자동 계산';
+      }
+      if (P) {
+        const d = P.get();
+        if (d.car && (d.car.ev || (d.car.cc && d.car.year))) {
+          if (d.car.cc) $('ct-cc').value = d.car.cc;
+          if (d.car.year) $('ct-yr').value = d.car.year;
+          $('ct-isev').checked = !!d.car.ev;
+          calc(); regSync();
+        }
+        $('ct-reg').addEventListener('click', () => {
+          const car = { cc: Number($('ct-cc').value) || undefined, year: Number($('ct-yr').value) || undefined, ev: $('ct-isev').checked || undefined };
+          if (P.set({ car })) { $('ct-reg').textContent = '저장됐어요 — /me에서 관리'; setTimeout(regSync, 2500); }
+        });
+        document.addEventListener('crama:profile-sync', regSync);
+      }
+      const _calc = calc;
+      $('ct-go').addEventListener('click', regSync);
+
       const S = window.CramaSaved;
       document.querySelectorAll('.ct-alerts li').forEach((li) => {
         const btn = li.querySelector('.ct-save');
@@ -145,6 +173,8 @@ const fmt = (n: number) => Math.round(n).toLocaleString('ko-KR');
     .ct-hero__main b { font-size: 1.3rem; }
     @media (max-width: 560px) { .ct-hero { grid-template-columns: 1fr; } }
     .ct-explain { font-size: 0.82rem; color: var(--muted); margin: 0.6rem 0 0; }
+    .ct-reg { display: block; margin-top: 0.7rem; font: inherit; font-size: 0.85rem; font-weight: 700; color: var(--accent); background: var(--accent-soft); border: 1px dashed var(--accent); border-radius: 10px; padding: 0.6rem 1rem; cursor: pointer; width: 100%; }
+    .ct-reg[hidden] { display: none; }
     .ct-sec { margin: 1.8rem 0; }
     .ct-sec h2 { font-size: 1.1rem; margin: 0 0 0.7rem; }
     .ct-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }

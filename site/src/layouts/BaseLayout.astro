@@ -105,6 +105,55 @@ const SAVED_AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
         }
         return api;
       })();
+
+      // 내 정보(프로필) 스토어 — 나이·지역·연봉·차량(jsonb). 서버 user_profile + localStorage 캐시.
+      // 기능 페이지가 프리필로 읽고, 계산 후 '내 정보로 등록'으로 쓴다(양방향 사이클).
+      window.CramaProfile = window.CramaProfile || (function () {
+        var K = 'crama:profile';
+        var SU = SAVED_SU, AK = SAVED_AK;
+        function readTok() {
+          try {
+            for (var i = 0; i < localStorage.length; i++) {
+              var k = localStorage.key(i);
+              if (k && k.indexOf('sb-') === 0 && k.indexOf('-auth-token') !== -1) {
+                var o = JSON.parse(localStorage.getItem(k));
+                return (o && (o.access_token || (o.currentSession && o.currentSession.access_token))) || null;
+              }
+            }
+          } catch (e) {}
+          return null;
+        }
+        var tok = readTok();
+        function cache() { try { var o = JSON.parse(localStorage.getItem(K) || '{}'); return o && typeof o === 'object' ? o : {}; } catch (e) { return {}; } }
+        function putCache(o) { try { localStorage.setItem(K, JSON.stringify(o)); } catch (e) {} }
+        function hdrs(extra) { var h = { 'Content-Type': 'application/json', apikey: AK, Authorization: 'Bearer ' + tok }; if (extra) for (var k in extra) h[k] = extra[k]; return h; }
+        var api = {
+          authed: !!tok,
+          get: function () { return cache(); },
+          set: function (patch) {
+            if (!tok) { if (window.CramaSaved) window.CramaSaved.promptLogin(); return false; }
+            var merged = Object.assign({}, cache(), patch);
+            putCache(merged);
+            fetch(SU + '/rest/v1/user_profile', {
+              method: 'POST',
+              headers: hdrs({ Prefer: 'resolution=merge-duplicates' }),
+              body: JSON.stringify({ data: merged, updated_at: new Date().toISOString() }),
+            }).catch(function () {});
+            document.dispatchEvent(new CustomEvent('crama:profile-sync'));
+            return true;
+          },
+        };
+        if (tok && SU) {
+          fetch(SU + '/rest/v1/user_profile?select=data', { headers: hdrs() })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (rows) {
+              if (rows && rows[0] && rows[0].data) { putCache(rows[0].data); document.dispatchEvent(new CustomEvent('crama:profile-sync')); }
+            }).catch(function () {});
+        } else {
+          putCache({});
+        }
+        return api;
+      })();
     </script>
     <script is:inline>
       // 전역 지속 오디오 컨트롤러 — 목록(홈)·본문 공용. 1회 생성, SPA 소프트 내비를 넘어 유지(이벤트는 페이지 훅으로 위임).

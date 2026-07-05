@@ -83,6 +83,7 @@ export const NAV: NavItem[] = [
   ]},
   { label: '혜택·정책', href: '/benefits/', children: [
     { label: '내 혜택 찾기', href: '/benefits/', icon: 'benefits' },
+    { label: '내 돈 리포트', href: '/my-report/', icon: 'money' },
     { label: '청년 정책', href: '/youth/', icon: 'youth' },
     { label: '복지 서비스', href: '/welfare/', icon: 'welfare' },
     { label: '중위소득 계산', href: '/median-income/', icon: 'calc' },

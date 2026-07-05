@@ -1,0 +1,262 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import FaqBox from '../components/FaqBox.astro';
+
+const SU = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
+const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
+---
+<BaseLayout
+  title="7일 무지출 챌린지 — 목숨 2개로 일주일 버티기"
+  description="일주일 동안 불필요한 지출 0원에 도전하세요. 매일 체크인 +2밀웜, 완주 +20밀웜. 목숨 2개까지 봐드립니다 — 3번 무너지면 처음부터."
+  footer="none"
+>
+  <div class="ch wrap">
+    <header class="page-hero">
+      <span class="eyebrow">7-Day Challenge</span>
+      <h1>무지출 챌린지 <span class="ch-y">🔥</span></h1>
+      <p>일주일간 <b>불필요한 지출 0원</b>. 매일 스스로 체크하고, 무너져도 <b>목숨 2개</b>까지는 괜찮아요.</p>
+    </header>
+
+    <!-- 시작 전 -->
+    <div class="ch-intro" id="ch-intro" hidden>
+      <div class="ch-rules">
+        <div><b>⭕ 매일 체크인</b><span>지켰으면 +2밀웜, 어제 것도 소급 가능</span></div>
+        <div><b>💜 목숨 2개</b><span>실패 2번까지 OK — 3번째에 도전 종료</span></div>
+        <div><b>🏆 7일 완주</b><span>+20밀웜 보너스, 완주 횟수 영구 기록</span></div>
+      </div>
+      <button type="button" class="ch-start" id="ch-start">오늘부터 7일 도전 시작 🔥</button>
+      <p class="ch-note-inline">월세·공과금·교통비 같은 생존 지출은 제외 — 기준은 스스로 정하세요. 중요한 건 <b>매일 지출을 의식하는 것</b>.</p>
+      <p class="ch-dones" id="ch-dones" hidden></p>
+    </div>
+
+    <!-- 진행 중 -->
+    <div class="ch-active" id="ch-active" hidden>
+      <div class="ch-top">
+        <b id="ch-day">D+1</b>
+        <span class="ch-lives" id="ch-lives">💜💜</span>
+      </div>
+      <p class="ch-cheer" id="ch-cheer"></p>
+      <div class="ch-board" id="ch-board"></div>
+      <div class="ch-checkin" id="ch-checkin" hidden>
+        <span id="ch-checkin-label">오늘, 지켰나요?</span>
+        <div class="ch-checkin__btns">
+          <button type="button" class="is-ok" id="ch-ok">지켰다! ⭕</button>
+          <button type="button" class="is-no" id="ch-no">무너졌다 😭</button>
+        </div>
+      </div>
+      <p class="ch-msg" id="ch-msg" hidden></p>
+    </div>
+
+    <!-- 종료(완주/실패) -->
+    <div class="ch-end" id="ch-end" hidden>
+      <span class="ch-end__emoji" id="ch-end-emoji">🏆</span>
+      <b id="ch-end-title"></b>
+      <p id="ch-end-desc"></p>
+      <button type="button" class="ch-start" id="ch-restart">다시 도전하기 🔥</button>
+    </div>
+    <div class="pl-confetti" id="ch-confetti" aria-hidden="true">
+      {Array.from({ length: 18 }).map((_, i) => <i style={`--i:${i}`}></i>)}
+    </div>
+
+    <FaqBox items={[
+      { q: '무지출 기준이 뭔가요?', a: '월세·공과금·교통비·꼭 필요한 식료품 같은 생존 지출은 제외하고, 배달·커피·충동구매 같은 “안 써도 되는 돈”을 0원으로 만드는 게 목표입니다. 기준은 본인이 정하고 본인이 체크합니다 — 자신에게만 정직하면 돼요.' },
+      { q: '체크인을 깜빡했어요', a: '어제 것까지는 소급 체크인이 가능합니다. 이틀 이상 지난 날짜는 체크할 수 없으니 매일 들르는 게 안전해요.' },
+      { q: '실패하면 어떻게 되나요?', a: '목숨이 2개 있어서 두 번까지는 실패해도 도전이 계속됩니다. 세 번째 실패에 도전이 종료되고, 언제든 처음부터 다시 시작할 수 있어요. 성공한 날의 밀웜(+2)은 그대로 남습니다.' },
+      { q: '보상이 뭔가요?', a: '성공 체크인마다 +2밀웜, 7일 완주 시 +20밀웜 보너스. 완주 횟수는 영구 기록됩니다. 밀웜은 크라미 옷장·뽑기에서 쓸 수 있어요.' },
+    ]} />
+
+    <div class="ch-cross">
+      <a href="/play/">오르까 내리까 🔮</a>
+      <a href="/gacha/">밀웜 뽑기 🎰</a>
+      <a href="/blog/household-ledger-real-money-leak/">새는 돈 찾는 법 →</a>
+    </div>
+  </div>
+
+  <script is:inline define:vars={{ SU, AK }}>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      function tok() {
+        try {
+          for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && k.indexOf('sb-') === 0 && k.indexOf('-auth-token') !== -1) {
+              const o = JSON.parse(localStorage.getItem(k));
+              return (o && (o.access_token || (o.currentSession && o.currentSession.access_token))) || null;
+            }
+          }
+        } catch (e) {}
+        return null;
+      }
+      const T = tok();
+      const H = { 'Content-Type': 'application/json', apikey: AK, Authorization: 'Bearer ' + (T || AK) };
+      const rpc = (fn, body) => fetch(SU + '/rest/v1/rpc/' + fn, { method: 'POST', headers: H, body: JSON.stringify(body || {}) }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+
+      const CHEER = [
+        '시작이 반이에요. 오늘 하루만 생각해요.',
+        '이틀째 — 어제의 내가 오늘의 나를 응원해요.',
+        '3일째가 최대 고비. 여기만 넘기면 몸이 기억해요.',
+        '반환점! 통장이 벌써 편안해하는 소리가 들려요.',
+        '5일째 — 이제 안 쓰는 게 더 자연스럽죠?',
+        '하루만 더. 내일이면 전설이 됩니다.',
+        '마지막 날. 오늘 밤, 완주의 문이 열립니다 🏆',
+      ];
+      const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+      const yday = () => { const d = new Date(Date.now() - 864e5); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+
+      function show(view) {
+        ['ch-intro', 'ch-active', 'ch-end'].forEach((id) => { $(id).hidden = id !== view; });
+      }
+      function paint(ch, dones) {
+        if (!ch) {
+          show('ch-intro');
+          if (dones > 0) { $('ch-dones').textContent = '지금까지 완주 ' + dones + '회 — 또 해볼까요?'; $('ch-dones').hidden = false; }
+          return;
+        }
+        if (ch.status !== 'active') {
+          show('ch-end');
+          const done = ch.status === 'done';
+          $('ch-end-emoji').textContent = done ? '🏆' : '🌧️';
+          $('ch-end-title').textContent = done ? '7일 완주! +20밀웜' : '이번엔 여기까지';
+          $('ch-end-desc').textContent = done
+            ? '일주일을 지배했어요. 완주 ' + (dones || 1) + '회째 — 이 감각, 잊기 전에 한 번 더?'
+            : '괜찮아요, 성공한 날의 밀웜은 남아있어요. 무너진 이유를 알았으니 다음엔 더 멀리 갑니다.';
+          if (done) $('ch-confetti').classList.add('is-on');
+          return;
+        }
+        show('ch-active');
+        const start = new Date(ch.started_on + 'T00:00:00');
+        const dayN = Math.min(7, Math.floor((new Date(today() + 'T00:00:00') - start) / 864e5) + 1);
+        $('ch-day').textContent = 'D+' + dayN;
+        $('ch-cheer').textContent = CHEER[dayN - 1] || CHEER[0];
+        const fails = Object.values(ch.checkins).filter((v) => v === false).length;
+        $('ch-lives').textContent = '💜'.repeat(Math.max(0, 2 - fails)) + '🖤'.repeat(Math.min(2, fails));
+        // 7칸 보드
+        const board = $('ch-board');
+        board.innerHTML = '';
+        let succIdx = 0;
+        const dates = [];
+        for (let i = 0; i < 14; i++) { // 실패일 포함 최대 14칸 필요하지만 표시는 7칸(성공 기준)
+          const d = new Date(start.getTime() + i * 864e5);
+          dates.push(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'));
+        }
+        const succDates = dates.filter((d) => ch.checkins[d] === true);
+        for (let i = 0; i < 7; i++) {
+          const cell = document.createElement('div');
+          cell.className = 'ch-cell';
+          if (i < succDates.length) { cell.classList.add('is-ok'); cell.innerHTML = '<b>⭕</b><span>' + (i + 1) + '일</span>'; }
+          else if (i === succDates.length) { cell.classList.add('is-now'); cell.innerHTML = '<b>?</b><span>' + (i + 1) + '일</span>'; }
+          else { cell.innerHTML = '<b>·</b><span>' + (i + 1) + '일</span>'; }
+          board.appendChild(cell);
+        }
+        // 체크인 가능 날짜: 어제(시작일 이후, 미체크) 우선, 아니면 오늘
+        const box = $('ch-checkin');
+        const y = yday(), t = today();
+        let target = null;
+        if (y >= ch.started_on && !(y in ch.checkins)) target = y;
+        else if (!(t in ch.checkins)) target = t;
+        if (target) {
+          box.hidden = false;
+          box.dataset.date = target;
+          $('ch-checkin-label').textContent = target === t ? '오늘, 지켰나요?' : '어제(' + target.slice(5).replace('-', '/') + ')는 어땠나요?';
+        } else {
+          box.hidden = true;
+          msg('오늘 체크인 완료! 내일 또 만나요 — 지금까지 ' + succDates.length + '/7일 성공 중');
+        }
+      }
+      function msg(t) { const m = $('ch-msg'); m.textContent = t; m.hidden = !t; }
+
+      async function load() {
+        if (!T) { show('ch-intro'); return; }
+        const r = await rpc('my_challenge', {});
+        if (!r) { show('ch-intro'); return; }
+        paint(r.active || r.last, r.dones || 0);
+        if (!r.active && !r.last) show('ch-intro');
+        if (!r.active && r.last && r.last.finished_on && r.last.finished_on < today()) {
+          // 지난 결과는 하루 지나면 인트로로(재도전 유도)
+          paint(null, r.dones || 0);
+        }
+      }
+      async function start() {
+        if (!T) { if (window.CramaSaved) window.CramaSaved.promptLogin(); return; }
+        const r = await rpc('start_challenge', {});
+        if (r && r.ok) {
+          try { if (window.gtag) window.gtag('event', 'challenge_start'); } catch (e) {}
+          paint(r.challenge, 0);
+        } else if (r && r.error === 'already') load();
+      }
+      $('ch-start').addEventListener('click', start);
+      $('ch-restart').addEventListener('click', async () => { $('ch-confetti').classList.remove('is-on'); await start(); });
+
+      async function checkin(success) {
+        const date = $('ch-checkin').dataset.date;
+        if (!date) return;
+        $('ch-ok').disabled = $('ch-no').disabled = true;
+        const r = await rpc('checkin_challenge', { p_date: date, p_success: success });
+        $('ch-ok').disabled = $('ch-no').disabled = false;
+        if (!r || !r.ok) { if (r && r.error === 'already') load(); return; }
+        try { if (window.gtag) window.gtag('event', 'challenge_checkin', { success }); } catch (e) {}
+        const dones = r.challenge.status === 'done' ? 1 : 0;
+        paint(r.challenge, dones);
+        if (r.reward > 0) {
+          msg('+' + r.reward + ' 밀웜! ' + (r.challenge.status === 'done' ? '완주 보너스 포함 🏆' : '오늘도 지켰어요 ⭕ 내일 또 만나요.'));
+          try { localStorage.setItem('crama:bal', String(r.balance)); const n = document.getElementById('hd-worm-n'); if (n) n.textContent = Number(r.balance).toLocaleString('ko-KR'); } catch (e) {}
+        } else if (!success && r.challenge.status === 'active') {
+          msg('괜찮아요 — 목숨 하나로 막았어요. 내일 다시! 💜');
+        }
+      }
+      $('ch-ok').addEventListener('click', () => checkin(true));
+      $('ch-no').addEventListener('click', () => checkin(false));
+
+      load();
+    })();
+  </script>
+
+  <style is:global>
+    .ch { max-width: 40rem; }
+    .ch-y { filter: drop-shadow(0 2px 8px rgba(239, 68, 68, 0.4)); }
+    .ch-intro[hidden], .ch-active[hidden], .ch-end[hidden] { display: none; }
+    .ch-rules { display: grid; gap: 0.55rem; margin: 1.2rem 0; }
+    .ch-rules > div { display: flex; align-items: baseline; gap: 0.7rem; padding: 0.8rem 1rem; border: 1px solid var(--line); border-radius: 13px; background: var(--paper); }
+    .ch-rules b { font-size: 0.92rem; flex: none; }
+    .ch-rules span { font-size: 0.8rem; color: var(--muted); }
+    .ch-start { display: block; width: 100%; font: inherit; font-size: 1.02rem; font-weight: 800; color: #fff; background: linear-gradient(120deg, #ef4444, #f59e0b); border: 0; border-radius: 13px; padding: 0.9rem; cursor: pointer; box-shadow: 0 6px 18px rgba(239, 68, 68, 0.3); }
+    .ch-note-inline { font-size: 0.78rem; color: var(--muted); margin: 0.8rem 0 0; line-height: 1.55; }
+    .ch-dones { font-size: 0.84rem; font-weight: 700; color: var(--accent); margin: 0.6rem 0 0; }
+    .ch-dones[hidden] { display: none; }
+    .ch-top { display: flex; align-items: center; justify-content: space-between; margin: 1.2rem 0 0.3rem; }
+    .ch-top b { font-size: 1.3rem; color: #ef4444; }
+    .ch-lives { font-size: 1.05rem; letter-spacing: 2px; }
+    .ch-cheer { font-size: 0.92rem; font-weight: 700; color: var(--ink-soft); margin: 0 0 0.9rem; }
+    .ch-board { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.4rem; }
+    .ch-cell { aspect-ratio: 1; border: 1.5px dashed var(--line); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.1rem; background: var(--paper); }
+    .ch-cell b { font-size: 1.15rem; color: var(--muted); }
+    .ch-cell span { font-size: 0.62rem; color: var(--muted); }
+    .ch-cell.is-ok { border: 1.5px solid #16a34a; background: #dcfce7; }
+    :root[data-theme='dark'] .ch-cell.is-ok { background: #10301d; }
+    .ch-cell.is-ok b { color: #16a34a; animation: chStamp 0.3s ease; }
+    .ch-cell.is-now { border: 1.5px solid var(--accent); }
+    .ch-cell.is-now b { color: var(--accent); }
+    @keyframes chStamp { from { transform: scale(1.8); } to { transform: scale(1); } }
+    .ch-checkin { margin: 1rem 0 0; padding: 0.95rem 1rem; border: 1px solid var(--line); border-radius: 14px; background: var(--paper-2); }
+    .ch-checkin[hidden] { display: none; }
+    .ch-checkin > span { display: block; font-size: 0.9rem; font-weight: 800; margin-bottom: 0.6rem; }
+    .ch-checkin__btns { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+    .ch-checkin__btns button { font: inherit; font-size: 0.95rem; font-weight: 800; padding: 0.75rem; border-radius: 12px; border: 1.5px solid var(--line); background: var(--paper); cursor: pointer; }
+    .ch-checkin__btns .is-ok { border-color: #16a34a; color: #15803d; }
+    .ch-checkin__btns .is-ok:hover { background: #dcfce7; }
+    .ch-checkin__btns .is-no { color: var(--muted); }
+    .ch-msg { font-size: 0.86rem; font-weight: 700; color: var(--accent); margin: 0.8rem 0 0; }
+    .ch-msg[hidden] { display: none; }
+    .ch-end { text-align: center; margin: 1.6rem 0; padding: 1.6rem 1.2rem; border: 1px solid var(--line); border-radius: 18px; background: var(--paper-2); }
+    .ch-end__emoji { font-size: 2.6rem; display: block; margin-bottom: 0.4rem; }
+    .ch-end b { font-size: 1.15rem; }
+    .ch-end p { font-size: 0.88rem; color: var(--ink-soft); margin: 0.5rem auto 1rem; max-width: 24rem; line-height: 1.6; }
+    .ch-cross { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; margin: 2rem 0 1rem; padding-top: 1.4rem; border-top: 1px solid var(--line); }
+    .ch-cross a { font-size: 0.88rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--line); border-radius: 999px; }
+    .ch-cross a:hover { border-color: var(--accent); }
+    .pl-confetti { position: fixed; inset: 0; pointer-events: none; z-index: 60; }
+    .pl-confetti i { position: absolute; top: -10px; left: calc(var(--i) * 5.5%); width: 7px; height: 11px; opacity: 0; background: hsl(calc(var(--i) * 47), 85%, 60%); border-radius: 2px; }
+    .pl-confetti.is-on i { animation: plFall 1.6s ease-in calc(var(--i) * 0.07s) forwards; }
+    @keyframes plFall { 0% { opacity: 1; transform: translateY(0) rotate(0); } 100% { opacity: 0; transform: translateY(300px) rotate(540deg); } }
+  </style>
+</BaseLayout>

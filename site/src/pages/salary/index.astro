@@ -71,6 +71,8 @@ const rows = amounts.map((man) => ({ man, s: computeSalary(man * 10_000) }));
       };
       go.addEventListener('click', jump);
       input.addEventListener('keydown', (e) => { if (e.key === 'Enter') jump(); });
+      // 프로필 사이클: 등록된 연봉이 있으면 프리필
+      try { const s = window.CramaProfile && window.CramaProfile.get().salary; if (s && !input.value) input.value = s; } catch (e) {}
     })();
   </script>
 

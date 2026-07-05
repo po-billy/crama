@@ -107,6 +107,13 @@ const fmt = (n: number) => Math.round(n).toLocaleString('ko-KR');
         $('ct-half').textContent = fmt(total / 2) + '원';
         $('ct-disc').textContent = '6/16~30 · 12/16~31 납부';
         $('ct-annual').textContent = fmt(total * (1 - 0.03 * 334 / 365)) + '원';
+        // 정기검사 주기 추정(비사업용 승용: 최초 4년, 이후 2년마다) — 연식 입력 시에만
+        if (yr) {
+          var nowY = new Date().getFullYear();
+          var insp = yr + 4;
+          while (insp < nowY) insp += 2;
+          explain += ' 다음 자동차 정기검사는 ' + insp + '년경(등록월 전후 31일 이내)으로 추정돼요.';
+        }
         $('ct-explain').textContent = explain;
         $('ct-result').hidden = false;
       }

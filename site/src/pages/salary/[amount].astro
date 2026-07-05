@@ -60,6 +60,7 @@ const jsonLd = {
           <div><dt>연 실수령액</dt><dd>{fmt(s.annualNet)}원</dd></div>
         </dl>
       </div>
+      <button type="button" class="sal-reg" id="sal-reg" data-man={man} hidden>연봉 {manLabel}원을 내 정보로 저장 → 실업급여·혜택 매칭에 자동 사용</button>
     </header>
 
     <section class="sal-sec">
@@ -103,8 +104,30 @@ const jsonLd = {
     </section>
   </div>
 
+  <script is:inline>
+    (() => {
+      // 프로필 사이클: 이 연봉을 내 정보로 저장(등록 연봉과 다를 때만 노출)
+      var btn = document.getElementById('sal-reg');
+      var P = window.CramaProfile;
+      if (!btn || !P) return;
+      var man = Number(btn.dataset.man);
+      function sync() {
+        var cur = P.get().salary;
+        btn.hidden = cur === man;
+        if (cur && cur !== man) btn.textContent = '내 연봉을 ' + man.toLocaleString('ko-KR') + '만원으로 업데이트';
+      }
+      sync();
+      document.addEventListener('crama:profile-sync', sync);
+      btn.addEventListener('click', function () {
+        if (P.set({ salary: man })) { btn.textContent = '저장됐어요 — 실업급여·매칭에서 자동 입력됩니다'; setTimeout(sync, 2500); }
+      });
+    })();
+  </script>
+
   <style>
     .sal { max-width: 44rem; }
+    .sal-reg { display: block; width: 100%; margin: -0.9rem 0 1.6rem; font: inherit; font-size: 0.85rem; font-weight: 700; color: var(--accent); background: var(--accent-soft); border: 1px dashed var(--accent); border-radius: 10px; padding: 0.6rem 1rem; cursor: pointer; }
+    .sal-reg[hidden] { display: none; }
     .sal-crumb { display: flex; align-items: center; gap: 0.45rem; font-size: 0.8rem; color: var(--muted); margin: 0.4rem 0 1.2rem; flex-wrap: wrap; }
     .sal-crumb a { color: var(--muted); text-decoration: none; }
     .sal-crumb a:hover { color: var(--accent); }

@@ -251,9 +251,9 @@ const bestSav = bestRate((ratesData as any).savings);
         var KEY = 'crama:onboard-v1';
         var sec = document.getElementById('home-onb');
         if (!sec) return;
-        var done = false, prof = false;
-        try { done = !!localStorage.getItem(KEY); prof = !!localStorage.getItem('crama:benefits:profile'); } catch (e) {}
-        if (done || prof) return; // 이미 완료했거나 매칭 프로필 보유 → 미노출
+        var done = false, prof = false, myProf = {};
+        try { done = !!localStorage.getItem(KEY); prof = !!localStorage.getItem('crama:benefits:profile'); myProf = JSON.parse(localStorage.getItem('crama:profile') || '{}') || {}; } catch (e) {}
+        if (done || prof || (myProf.age && myProf.region)) return; // 완료·매칭 프로필·내 정보 보유 → 미노출
         sec.hidden = false;
 
         var REGIONS = { '서울': '서울특별시', '경기': '경기도', '인천': '인천광역시', '부산': '부산광역시', '대구': '대구광역시', '광주': '광주광역시', '대전': '대전광역시', '울산': '울산광역시', '세종': '세종특별자치시', '강원': '강원특별자치도', '충북': '충청북도', '충남': '충청남도', '전북': '전북특별자치도', '전남': '전라남도', '경북': '경상북도', '경남': '경상남도', '제주': '제주특별자치도' };
@@ -310,6 +310,16 @@ const bestSav = bestRate((ratesData as any).savings);
           html += '<a class="is-main" href="/benefits/">3분 정밀 매칭 받기 →</a>';
           acts.innerHTML = html;
           try { localStorage.setItem(KEY, JSON.stringify(ans)); } catch (e) {}
+          // 로그인 상태면 답변을 내 정보(프로필)에도 채움 — 비어있는 항목만
+          try {
+            var P = window.CramaProfile;
+            if (P && P.authed) {
+              var pd = P.get(), patch = {};
+              if (!pd.age && ans.age) patch.age = ans.age;
+              if (!pd.region && ans.region) patch.region = ans.region;
+              if (patch.age || patch.region) P.set(patch);
+            }
+          } catch (e) {}
         }
       })();
     </script>

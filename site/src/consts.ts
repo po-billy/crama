@@ -122,7 +122,7 @@ export const NAV: NavItem[] = [
 // 상단 공지/추천 배너 — 내용만 바꾸면 됨. key를 바꾸면 닫았던 사용자에게 다시 표시.
 export const NOTICE = {
   enabled: true,
-  key: '2026-07-benefits',
-  text: '🗓️ 청년미래적금 자격조회 7/3 마감 · 재산세 7월 — 이달 챙길 돈 한눈에',
+  key: '2026-07-benefits-b',
+  text: '🗓️ 재산세 7월(16~31일) 납부 · 여름 전기요금 아끼는 법 — 이달 챙길 돈 한눈에',
   href: '/blog/july-2026-money-calendar/',
 } as const;

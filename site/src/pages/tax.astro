@@ -44,6 +44,11 @@ const jsonLd = {
       <p>올해 내야 할 세금, <b>한 페이지에서 알림까지.</b> 하트를 누르면 마감 3일 전·1일 전에 알려드려요.</p>
     </header>
 
+    <button type="button" class="tx-all" id="tx-all" hidden>
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+      <b>남은 세금 일정 전부 알림 받기</b><span id="tx-all-sub">한 번에 등록 — 마감 3일 전·1일 전 푸시</span>
+    </button>
+
     <ul class="tx-list">
       {EVENTS.map((e) => (
         <li data-deadline={e.deadline} data-id={e.id} data-name={e.name}>
@@ -95,13 +100,48 @@ const jsonLd = {
         sync(S.has('dday', li.dataset.id));
         btn.addEventListener('click', () => sync(S.toggle({ type: 'dday', id: li.dataset.id, name: li.dataset.name, url: '/tax/', sub: '세금', deadline: li.dataset.deadline })));
       });
+
+      // 원탭: 남은 일정 전부 알림 — 미저장 항목만 일괄 등록(비로그인이면 첫 시도에서 로그인 유도)
+      const allBtn = document.getElementById('tx-all');
+      function pending() {
+        return [...document.querySelectorAll('.tx-list li')].filter((li) => !li.classList.contains('is-past') && !S.has('dday', li.dataset.id));
+      }
+      function syncAll() {
+        if (!S) { allBtn.hidden = true; return; }
+        const n = pending().length;
+        allBtn.hidden = n === 0;
+        const sub = document.getElementById('tx-all-sub');
+        if (n) sub.textContent = n + '건 한 번에 등록 — 마감 3일 전·1일 전 푸시';
+      }
+      if (S && allBtn) {
+        syncAll();
+        allBtn.addEventListener('click', () => {
+          let added = 0;
+          for (const li of pending()) {
+            const on = S.toggle({ type: 'dday', id: li.dataset.id, name: li.dataset.name, url: '/tax/', sub: '세금', deadline: li.dataset.deadline });
+            if (!on) break; // 비로그인 — promptLogin 후 중단
+            added++;
+            const hb = li.querySelector('.tx-save');
+            hb.classList.add('is-on');
+            hb.setAttribute('aria-pressed', 'true');
+          }
+          if (added) {
+            document.getElementById('tx-all-sub').textContent = added + '건 등록 완료 — 내 관심함에서 관리';
+            setTimeout(syncAll, 2000);
+          }
+        });
+      } else if (allBtn) { allBtn.hidden = true; }
     })();
   </script>
 
   <style is:global>
     .tx { max-width: 42rem; }
     .tx-y { color: var(--accent); }
-    .tx-list { list-style: none; margin: 1.4rem 0 0; padding: 0; display: grid; gap: 0.55rem; }
+    .tx-all { display: flex; align-items: center; gap: 0.55rem; width: 100%; margin: 1.4rem 0 0; padding: 0.8rem 1rem; font: inherit; text-align: left; color: var(--accent); background: var(--accent-soft); border: 1px dashed var(--accent); border-radius: 14px; cursor: pointer; flex-wrap: wrap; }
+    .tx-all[hidden] { display: none; }
+    .tx-all b { font-size: 0.92rem; font-weight: 800; }
+    .tx-all span { font-size: 0.76rem; color: var(--ink-soft); }
+    .tx-list { list-style: none; margin: 0.55rem 0 0; padding: 0; display: grid; gap: 0.55rem; }
     .tx-list li { display: flex; align-items: center; gap: 0.9rem; padding: 0.8rem 0.95rem; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); }
     .tx-list li.is-past { opacity: 0.45; }
     .tx-date { flex: none; width: 3.6rem; text-align: center; display: flex; flex-direction: column; gap: 0.1rem; }

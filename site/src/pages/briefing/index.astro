@@ -4,6 +4,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/PostCard.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
 import DuoIcon from '../../components/DuoIcon.astro';
+import StreakChip from '../../components/StreakChip.astro';
 import ratesData from '../../data/rates.json';
 import { CATEGORIES, type CategorySlug, VAPID_PUBLIC_KEY } from '../../consts';
 
@@ -42,6 +43,8 @@ const todayAudio = today ? !!today.data.audio : false;
         <div class="brief-hero__stat"><b>0원</b><span>완전 무료</span></div>
       </div>
     </header>
+
+    <StreakChip />
 
     {numDep && numSav && (
       <a class="brief-nums" href="/rates/">

@@ -1,0 +1,235 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// 증여세(상속세 및 증여세법) — 10년 합산 공제 + 5단계 누진세율 + 신고세액공제 3%
+const fmt = (n: number) => Math.round(n).toLocaleString('ko-KR');
+const DEDUCT: Record<string, { label: string; amt: number }> = {
+  spouse: { label: '배우자', amt: 600_000_000 },
+  adult: { label: '부모·조부모 → 성년 자녀', amt: 50_000_000 },
+  minor: { label: '부모·조부모 → 미성년 자녀', amt: 20_000_000 },
+  child: { label: '자녀 → 부모(직계존속)', amt: 50_000_000 },
+  etc: { label: '기타 친족(형제·사위·며느리 등)', amt: 10_000_000 },
+};
+function giftTax(amount: number, deduct: number) {
+  const base = Math.max(0, amount - deduct);
+  let tax = 0;
+  if (base <= 100_000_000) tax = base * 0.1;
+  else if (base <= 500_000_000) tax = base * 0.2 - 10_000_000;
+  else if (base <= 1_000_000_000) tax = base * 0.3 - 60_000_000;
+  else if (base <= 3_000_000_000) tax = base * 0.4 - 160_000_000;
+  else tax = base * 0.5 - 460_000_000;
+  const final = Math.floor((tax * 0.97) / 10) * 10; // 기한 내 신고 시 3% 공제
+  return { base, tax, final };
+}
+// 부모→성년 자녀 SEO 표
+const SAMPLE = [3000, 5000, 10000, 15000, 20000, 30000, 50000, 70000, 100000];
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: '홈', item: 'https://crama.app/' },
+    { '@type': 'ListItem', position: 2, name: '금융 계산기', item: 'https://crama.app/tools/' },
+    { '@type': 'ListItem', position: 3, name: '증여세 계산기' },
+  ],
+};
+---
+<BaseLayout
+  title="증여세 계산기 2026 — 부모 자식 증여, 얼마까지 세금 없나?"
+  description="증여액과 관계만 고르면 증여세를 바로 계산합니다. 배우자 6억·성년 자녀 5천만원 공제, 혼인·출산 1억 추가공제, 신고세액공제 3%와 신고기한(3개월)까지 한 번에."
+  jsonLd={jsonLd}
+>
+  <div class="wrap gt">
+    <header class="page-hero">
+      <span class="eyebrow">Gift Tax</span>
+      <h1>증여세 계산기 <span class="gt-y">2026</span></h1>
+      <p><b>누가 주는지</b>와 <b>금액</b>만 고르세요. 공제 후 실제 낼 세금과 신고기한이 바로 나옵니다.</p>
+      <p class="gt-basis">10년 합산 공제 기준 · 기한 내 신고 시 3% 세액공제 반영</p>
+    </header>
+
+    <div class="gt-form">
+      <label>누구에게 받나요? (증여자 기준)
+        <select id="gt-rel">
+          <option value="adult" selected>부모·조부모 → 성년 자녀 (공제 5천만)</option>
+          <option value="minor">부모·조부모 → 미성년 자녀 (공제 2천만)</option>
+          <option value="spouse">배우자 (공제 6억)</option>
+          <option value="child">자녀 → 부모 (공제 5천만)</option>
+          <option value="etc">기타 친족 (공제 1천만)</option>
+        </select>
+      </label>
+      <label>증여 금액
+        <div class="gt-in"><input id="gt-amt" type="number" inputmode="numeric" placeholder="예: 10000" min="0" max="10000000" step="500" /><span>만원</span></div>
+      </label>
+      <label class="gt-check" id="gt-marry-row"><input id="gt-marry" type="checkbox" /> 혼인·출산 증여공제 +1억 (혼인신고·출생 전후 2년 내, 직계존속만)</label>
+      <label>증여받은 달 (선택 — 신고기한 계산)
+        <input id="gt-month" type="month" />
+      </label>
+      <button type="button" id="gt-go">계산하기</button>
+    </div>
+
+    <div class="gt-result" id="gt-result" hidden>
+      <div class="gt-hero">
+        <div><span>공제 후 과세표준</span><b id="gt-base">-</b><em id="gt-ded">-</em></div>
+        <div class="gt-hero__main"><span>납부할 증여세</span><b id="gt-final">-</b><em>신고세액공제 3% 반영</em></div>
+        <div><span>신고 기한</span><b id="gt-due">-</b><em id="gt-due-sub">증여 달의 말일 + 3개월</em></div>
+      </div>
+      <p class="gt-explain" id="gt-explain"></p>
+      <div class="gt-alert" id="gt-alert" hidden>
+        <div><b>신고기한 알림 받기</b><span id="gt-alert-sub">기한을 넘기면 가산세 20%가 붙어요</span></div>
+        <button type="button" class="gt-save" id="gt-save" aria-pressed="false"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> 알림</button>
+      </div>
+    </div>
+
+    <section class="gt-sec">
+      <h2>부모 → 성년 자녀 증여세 표 (공제 5천만원 반영)</h2>
+      <div class="gt-scroll">
+        <table class="gt-table">
+          <thead><tr><th>증여액</th><th>과세표준</th><th>납부세액(3% 공제 후)</th></tr></thead>
+          <tbody>
+            {SAMPLE.map((man) => {
+              const r = giftTax(man * 10_000, DEDUCT.adult.amt);
+              return (
+                <tr>
+                  <th>{man >= 10000 ? `${man / 10000}억` : `${fmt(man)}만`}원</th>
+                  <td>{r.base > 0 ? fmt(r.base) + '원' : '—'}</td>
+                  <td class="gt-hl">{r.final > 0 ? fmt(r.final) + '원' : '0원 (공제 이내)'}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <p class="gt-note">※ 공제는 <b>10년간 합산</b> 기준입니다. 같은 사람에게 10년 내 받은 증여가 있으면 합산해 계산해야 해요. 부동산은 시가(감정가), 상장주식은 전후 2개월 평균가로 평가하는 등 실제 신고는 <a href="https://www.hometax.go.kr" target="_blank" rel="noopener">홈택스</a>·세무사 확인이 필요합니다.</p>
+    </section>
+
+    <section class="gt-sec">
+      <h2>증여세 핵심 규칙</h2>
+      <ul class="gt-list">
+        <li><b>세율</b>: 과세표준 1억 이하 10% → 5억 20% → 10억 30% → 30억 40% → 초과 50% (누진공제 자동 반영)</li>
+        <li><b>혼인·출산 공제</b>: 혼인신고일·자녀 출생일 전후 2년 안에 부모(직계존속)에게 받으면 <b>기본 5천만 + 1억 = 1억 5천만원</b>까지 세금 없이 가능</li>
+        <li><b>신고기한</b>: 증여받은 달의 말일부터 3개월 안에 홈택스 신고 — 기한 내 신고하면 3% 깎아주고, 늦으면 가산세 20%</li>
+        <li><b>10년 룰</b>: 공제 한도는 증여자별로 10년마다 리셋 — 장기 분산 증여가 절세의 기본</li>
+      </ul>
+    </section>
+
+    <div class="gt-cross">
+      <a href="/property-tax/">재산세 계산 →</a>
+      <a href="/tools/">금융 계산기 23종 →</a>
+      <a href="/benefits/">내 지원금 찾기 →</a>
+    </div>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const fmt = (n) => Math.round(n).toLocaleString('ko-KR');
+      const DEDUCT = { spouse: 600000000, adult: 50000000, minor: 20000000, child: 50000000, etc: 10000000 };
+      let dueISO = '';
+      function calc() {
+        const rel = $('gt-rel').value;
+        const man = Number($('gt-amt').value);
+        if (!man) return;
+        const amount = man * 10000;
+        let ded = DEDUCT[rel];
+        const marry = $('gt-marry').checked && (rel === 'adult' || rel === 'minor');
+        if (marry) ded += 100000000;
+        ded = Math.min(ded, amount);
+        const base = Math.max(0, amount - ded);
+        let tax = 0;
+        if (base <= 1e8) tax = base * 0.1;
+        else if (base <= 5e8) tax = base * 0.2 - 1e7;
+        else if (base <= 1e9) tax = base * 0.3 - 6e7;
+        else if (base <= 3e9) tax = base * 0.4 - 1.6e8;
+        else tax = base * 0.5 - 4.6e8;
+        const final = Math.floor((tax * 0.97) / 10) * 10;
+        $('gt-base').textContent = base > 0 ? fmt(base) + '원' : '0원';
+        $('gt-ded').textContent = '공제 ' + fmt(ded) + '원' + (marry ? ' (혼인·출산 +1억 포함)' : '');
+        $('gt-final').textContent = final > 0 ? fmt(final) + '원' : '0원';
+        $('gt-explain').textContent = base <= 0
+          ? '공제 한도 이내라 증여세가 없어요. 다만 10년 내 같은 증여자에게 받은 금액과 합산된다는 점은 기억하세요. 세금이 없어도 신고해두면 자금 출처 입증에 유리해요.'
+          : '과세표준 ' + fmt(base) + '원 × 누진세율 적용 → 산출세액 ' + fmt(tax) + '원, 기한 내 신고 시 3% 공제로 ' + fmt(final) + '원이에요.';
+        // 신고기한: 증여 달의 말일 + 3개월
+        const m = $('gt-month').value;
+        if (m) {
+          const [y, mo] = m.split('-').map(Number);
+          const due = new Date(y, mo + 3, 0); // (mo-1)+3 다음달 0일 = 3개월 후 말일
+          dueISO = due.getFullYear() + '-' + String(due.getMonth() + 1).padStart(2, '0') + '-' + String(due.getDate()).padStart(2, '0');
+          $('gt-due').textContent = (due.getMonth() + 1) + '/' + due.getDate();
+          $('gt-due-sub').textContent = dueISO + '까지 홈택스 신고';
+          $('gt-alert').hidden = !window.CramaSaved;
+          syncHeart();
+        } else {
+          dueISO = '';
+          $('gt-due').textContent = '증여 달 입력';
+          $('gt-due-sub').textContent = '증여 달의 말일 + 3개월';
+          $('gt-alert').hidden = true;
+        }
+        $('gt-result').hidden = false;
+      }
+      function heartId() { return 'gift-tax-due-' + dueISO; }
+      function syncHeart() {
+        const S = window.CramaSaved;
+        if (!S || !dueISO) return;
+        const on = S.has('dday', heartId());
+        const btn = $('gt-save');
+        btn.classList.toggle('is-on', on);
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      }
+      $('gt-go').addEventListener('click', calc);
+      $('gt-amt').addEventListener('keydown', (e) => { if (e.key === 'Enter') calc(); });
+      $('gt-save').addEventListener('click', () => {
+        const S = window.CramaSaved;
+        if (!S || !dueISO) return;
+        S.toggle({ type: 'dday', id: heartId(), name: '증여세 신고 기한', url: '/gift-tax/', sub: '증여세', deadline: dueISO });
+        syncHeart();
+      });
+    })();
+  </script>
+
+  <style is:global>
+    .gt { max-width: 42rem; }
+    .gt-y { color: var(--accent); }
+    .page-hero .gt-basis { font-size: 0.82rem; color: var(--muted); margin-top: 0.5rem; }
+    .gt-form { display: grid; gap: 0.8rem; margin: 1.4rem 0 1rem; padding: 1.1rem 1.2rem; border: 1px solid var(--line); border-radius: 14px; background: var(--paper-2); }
+    .gt-form > label { font-size: 0.84rem; font-weight: 700; color: var(--ink-soft); display: flex; flex-direction: column; gap: 0.35rem; }
+    .gt-in { display: flex; align-items: center; gap: 0.4rem; }
+    .gt-in input, .gt-form select, .gt-form input[type='month'] { font: inherit; font-size: 1rem; padding: 0.6rem 0.8rem; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); }
+    .gt-in input { flex: 1; min-width: 0; }
+    .gt-in span { color: var(--muted); font-size: 0.85rem; }
+    .gt-form input:focus, .gt-form select:focus { outline: none; border-color: var(--accent); }
+    .gt-check { flex-direction: row !important; align-items: center; gap: 0.45rem !important; font-weight: 600 !important; font-size: 0.82rem !important; }
+    .gt-form button { font: inherit; font-weight: 800; font-size: 1rem; padding: 0.8rem; border: 0; border-radius: 12px; background: var(--accent); color: #fff; cursor: pointer; }
+    .gt-result[hidden] { display: none; }
+    .gt-hero { display: grid; grid-template-columns: 1fr 1.3fr 1fr; gap: 0.6rem; margin-bottom: 0.6rem; }
+    .gt-hero > div { border: 1px solid var(--line); border-radius: 14px; padding: 0.95rem 1rem; background: var(--paper); display: flex; flex-direction: column; gap: 0.15rem; }
+    .gt-hero span { font-size: 0.76rem; color: var(--muted); font-weight: 600; }
+    .gt-hero b { font-size: 1.08rem; }
+    .gt-hero em { font-style: normal; font-size: 0.7rem; color: var(--muted); }
+    .gt-hero__main { background: var(--accent) !important; border-color: var(--accent) !important; color: #fff; }
+    .gt-hero__main span, .gt-hero__main em { color: rgba(255, 255, 255, 0.85); }
+    .gt-hero__main b { font-size: 1.3rem; }
+    @media (max-width: 560px) { .gt-hero { grid-template-columns: 1fr; } }
+    .gt-explain { font-size: 0.84rem; color: var(--muted); margin: 0.4rem 0 0; line-height: 1.55; }
+    .gt-alert { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; margin-top: 0.7rem; padding: 0.75rem 0.9rem; border: 1px solid var(--line); border-radius: 12px; }
+    .gt-alert[hidden] { display: none; }
+    .gt-alert b { font-size: 0.9rem; display: block; }
+    .gt-alert span { font-size: 0.76rem; color: var(--muted); }
+    .gt-save { flex: none; display: inline-flex; align-items: center; gap: 0.3rem; font: inherit; font-size: 0.8rem; font-weight: 700; padding: 0.45rem 0.8rem; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); color: var(--ink-soft); cursor: pointer; }
+    .gt-save:hover, .gt-save.is-on { color: #e11d48; border-color: #e11d48; }
+    .gt-sec { margin: 1.8rem 0; }
+    .gt-sec h2 { font-size: 1.1rem; margin: 0 0 0.7rem; }
+    .gt-scroll { overflow-x: auto; }
+    .gt-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; white-space: nowrap; }
+    .gt-table thead th { font-size: 0.75rem; color: var(--muted); text-align: right; padding: 0.45rem 0.7rem; border-bottom: 2px solid var(--line); }
+    .gt-table thead th:first-child { text-align: left; }
+    .gt-table tbody th { text-align: left; padding: 0.52rem 0.7rem; border-bottom: 1px solid var(--line); }
+    .gt-table tbody td { padding: 0.52rem 0.7rem; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; }
+    .gt-hl { font-weight: 800; color: var(--accent); }
+    .gt-list { margin: 0; padding-left: 1.1rem; display: grid; gap: 0.55rem; font-size: 0.92rem; line-height: 1.6; color: var(--ink-soft); }
+    .gt-note { font-size: 0.78rem; color: var(--muted); margin: 0.7rem 0 0; line-height: 1.5; }
+    .gt-note a { color: var(--accent); }
+    .gt-cross { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; margin: 2rem 0 1rem; padding-top: 1.4rem; border-top: 1px solid var(--line); }
+    .gt-cross a { font-size: 0.88rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--line); border-radius: 999px; }
+    .gt-cross a:hover { border-color: var(--accent); }
+  </style>
+</BaseLayout>

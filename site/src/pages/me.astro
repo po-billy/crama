@@ -3,6 +3,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import WormIcon from '../components/WormIcon.astro';
 import DuoIcon from '../components/DuoIcon.astro';
 import '../styles/app.css';
+const XP_SU = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
+const XP_AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
 ---
 
 <BaseLayout title="마이 — Crama" description="내 프로필 · 밀웜 · 크라미" footer="none">
@@ -169,6 +171,17 @@ import '../styles/app.css';
           <img class="base base-head" src="/img/generated/meerkat-head.webp" alt="" />
         </div>
       </div>
+    </div>
+
+    <!-- 크라미 레벨(XP = 평생 획득 밀웜) -->
+    <div class="me-level" id="me-level" hidden>
+      <div class="me-level__head">
+        <b id="me-level-n">Lv.1</b>
+        <span id="me-level-title">아기 미어캣</span>
+        <em id="me-level-up" hidden>LEVEL UP! 🎉</em>
+      </div>
+      <div class="me-level__bar"><i id="me-level-fill"></i></div>
+      <span class="me-level__sub" id="me-level-sub"></span>
     </div>
 
     <!-- 크라미 꾸미기 · 뽑기 -->
@@ -583,6 +596,52 @@ import '../styles/app.css';
   })();
 </script>
 
+<script is:inline define:vars={{ XP_SU, XP_AK }}>
+  // 크라미 레벨 — XP(평생 획득 밀웜) 기반, 레벨업 감지 시 연출
+  (() => {
+    var box = document.getElementById('me-level');
+    if (!box) return;
+    var tok = null;
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (k && k.indexOf('sb-') === 0 && k.indexOf('-auth-token') !== -1) {
+          var o = JSON.parse(localStorage.getItem(k));
+          tok = o && (o.access_token || (o.currentSession && o.currentSession.access_token));
+          break;
+        }
+      }
+    } catch (e) {}
+    if (!tok || !XP_SU) return;
+    var TITLE = [[10, '전설의 미어캣'], [7, '부자 미어캣'], [5, '어른 미어캣'], [3, '청소년 미어캣'], [1, '아기 미어캣']];
+    var need = function (n) { return 15 * n * (n - 1); }; // 레벨 n 도달 누적 XP
+    fetch(XP_SU + '/rest/v1/rpc/my_xp', { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: XP_AK, Authorization: 'Bearer ' + tok }, body: '{}' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (!d) return;
+        var xp = d.xp || 0;
+        var lv = Math.max(1, Math.floor((1 + Math.sqrt(1 + (4 * xp) / 15)) / 2));
+        var t = (TITLE.filter(function (x) { return lv >= x[0]; })[0] || TITLE[4])[1];
+        document.getElementById('me-level-n').textContent = 'Lv.' + lv;
+        document.getElementById('me-level-title').textContent = t;
+        var cur = need(lv), next = need(lv + 1);
+        var pct = Math.min(100, Math.round(((xp - cur) / (next - cur)) * 100));
+        document.getElementById('me-level-fill').style.width = pct + '%';
+        document.getElementById('me-level-sub').textContent = '평생 밀웜 ' + xp.toLocaleString('ko-KR') + ' · 다음 레벨까지 ' + (next - xp).toLocaleString('ko-KR');
+        box.hidden = false;
+        try {
+          var prev = Number(localStorage.getItem('crama:level') || 0);
+          if (prev && lv > prev) {
+            document.getElementById('me-level-up').hidden = false;
+            box.classList.add('is-up');
+          }
+          localStorage.setItem('crama:level', String(lv));
+        } catch (e) {}
+      })
+      .catch(function () {});
+  })();
+</script>
+
 <script is:inline>
   // 내 정보(프로필 허브) — 카드 요약 렌더 + 세그먼트 탭 수정 시트. CramaProfile로 로드/저장.
   (() => {
@@ -741,6 +800,20 @@ import '../styles/app.css';
 </script>
 
 <style is:global>
+  /* 크라미 레벨 바 */
+  .me-level { margin: 0 0 0.7rem; padding: 0.75rem 1rem; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); }
+  .me-level[hidden] { display: none; }
+  .me-level.is-up { border-color: #f59e0b; animation: meLvGlow 1.2s ease 2; }
+  @keyframes meLvGlow { 50% { box-shadow: 0 0 0 5px rgba(245, 158, 11, 0.25); } }
+  .me-level__head { display: flex; align-items: baseline; gap: 0.5rem; }
+  .me-level__head b { font-size: 1rem; color: var(--accent); }
+  .me-level__head span { font-size: 0.78rem; color: var(--muted); font-weight: 700; }
+  .me-level__head em { font-style: normal; margin-left: auto; font-size: 0.72rem; font-weight: 800; color: #b45309; }
+  .me-level__head em[hidden] { display: none; }
+  .me-level__bar { height: 8px; border-radius: 99px; background: var(--paper-2); margin: 0.45rem 0 0.3rem; overflow: hidden; }
+  .me-level__bar i { display: block; height: 100%; width: 0; border-radius: 99px; background: linear-gradient(90deg, var(--accent), #f59e0b); transition: width 0.8s ease; }
+  .me-level__sub { font-size: 0.7rem; color: var(--muted); }
+
   /* 세그먼트별 프로필 헤더 — 화면1: 계정 정보만 / 화면2: 크라미 미리보기만 */
   .me-top--info { margin-bottom: 0.9rem; }
   .me-top--info .me-profile { padding: 0.2rem 0.3rem; }

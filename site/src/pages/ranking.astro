@@ -1,0 +1,160 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const SU = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
+const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
+---
+<BaseLayout
+  title="랭킹 — 이번 주 밀웜 부자는 누구?"
+  description="이번 주 밀웜 획득, 예측 명중, 무지출 챌린지 완주 랭킹. 한 계단 위 미어캣을 추월하세요 — 매주 월요일 리셋."
+  footer="none"
+>
+  <div class="rk wrap">
+    <header class="page-hero">
+      <span class="eyebrow">Leaderboard</span>
+      <h1>랭킹 <span class="rk-y">🏆</span></h1>
+      <p>이번 주 가장 부지런한 미어캣은 누구일까요? <b>매주 월요일 0시 리셋.</b></p>
+    </header>
+
+    <div class="rk-tabs" role="tablist">
+      <button type="button" class="rk-tab is-on" data-kind="worms_week">🐛 이번 주 밀웜</button>
+      <button type="button" class="rk-tab" data-kind="predict">🔮 예측 명중</button>
+      <button type="button" class="rk-tab" data-kind="challenge">🔥 챌린지 완주</button>
+    </div>
+    <p class="rk-reset" id="rk-reset"></p>
+
+    <ol class="rk-list" id="rk-list"><li class="rk-empty">불러오는 중…</li></ol>
+
+    <div class="rk-me" id="rk-me" hidden>
+      <b id="rk-me-rank">-</b>
+      <div class="rk-me-body"><span>내 순위</span><em id="rk-me-gap"></em></div>
+      <span id="rk-me-val">-</span>
+    </div>
+    <p class="rk-login" id="rk-login" hidden>로그인하면 내 순위가 여기 떠요 — <a href="/login/">1분 가입</a></p>
+
+    <div class="rk-cross">
+      <a href="/play/">밀웜 벌기 🔮</a>
+      <a href="/challenge/">챌린지 🔥</a>
+      <a href="/gacha/">뽑기 🎰</a>
+    </div>
+  </div>
+
+  <script is:inline define:vars={{ SU, AK }}>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const fmt = (n) => Number(n).toLocaleString('ko-KR');
+      function tok() {
+        try {
+          for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && k.indexOf('sb-') === 0 && k.indexOf('-auth-token') !== -1) {
+              const o = JSON.parse(localStorage.getItem(k));
+              return (o && (o.access_token || (o.currentSession && o.currentSession.access_token))) || null;
+            }
+          }
+        } catch (e) {}
+        return null;
+      }
+      const T = tok();
+      const rpc = (fn, body) => fetch(SU + '/rest/v1/rpc/' + fn, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: AK, Authorization: 'Bearer ' + (T || AK) }, body: JSON.stringify(body || {}) }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+
+      // 레벨: 누적 XP → 레벨(15n(n-1) 곡선) + 타이틀
+      const level = (xp) => Math.max(1, Math.floor((1 + Math.sqrt(1 + (4 * xp) / 15)) / 2));
+      const TITLE = [[10, '전설의 미어캣'], [7, '부자 미어캣'], [5, '어른 미어캣'], [3, '청소년 미어캣'], [1, '아기 미어캣']];
+      const title = (lv) => (TITLE.find(([m]) => lv >= m) || TITLE[4])[1];
+
+      const UNIT = { worms_week: '밀웜', predict: '문항 적중', challenge: '회 완주' };
+      const MEDAL = ['🥇', '🥈', '🥉'];
+      let kind = 'worms_week';
+
+      function resetLabel() {
+        if (kind !== 'worms_week') { $('rk-reset').textContent = '통산 기록 — 꾸준함이 곧 순위'; return; }
+        const now = new Date();
+        const mon = new Date(now);
+        mon.setDate(now.getDate() + ((8 - now.getDay()) % 7 || 7));
+        mon.setHours(0, 0, 0, 0);
+        const d = Math.ceil((mon - now) / 864e5);
+        $('rk-reset').textContent = '리셋까지 D-' + d + ' — 지금이 추월 기회';
+      }
+
+      async function load() {
+        resetLabel();
+        const list = $('rk-list');
+        list.innerHTML = '<li class="rk-empty">불러오는 중…</li>';
+        const r = await rpc('leaderboard', { p_kind: kind });
+        if (!r || !r.top) { list.innerHTML = '<li class="rk-empty">잠시 후 다시 시도해 주세요.</li>'; return; }
+        list.innerHTML = '';
+        if (!r.top.length) {
+          list.innerHTML = '<li class="rk-empty">아직 아무도 없어요 — 지금 시작하면 당신이 1등 🥇</li>';
+        }
+        r.top.forEach((row, i) => {
+          const li = document.createElement('li');
+          li.className = 'rk-row' + (row.me ? ' is-me' : '');
+          const lv = level(row.xp || 0);
+          li.innerHTML =
+            '<span class="rk-row__rank">' + (MEDAL[i] || i + 1) + '</span>' +
+            '<span class="rk-row__nick"></span>' +
+            '<span class="rk-row__lv" title="' + title(lv) + '">Lv.' + lv + '</span>' +
+            '<b class="rk-row__val">' + fmt(row.val) + '<i>' + UNIT[kind] + '</i></b>';
+          li.querySelector('.rk-row__nick').textContent = row.nick + (row.me ? ' (나)' : '');
+          list.appendChild(li);
+        });
+        // 내 순위
+        if (!T) { $('rk-login').hidden = false; $('rk-me').hidden = true; }
+        else if (r.me) {
+          $('rk-me').hidden = false;
+          $('rk-login').hidden = true;
+          $('rk-me-rank').textContent = r.me.rank + '위';
+          $('rk-me-val').textContent = fmt(r.me.val) + ' ' + UNIT[kind];
+          $('rk-me-gap').textContent = r.me.rank === 1
+            ? '👑 현재 1위 — 왕좌를 지키세요'
+            : '한 계단 위 ' + (r.me.next_nick || '미어캣') + '까지 ' + fmt(r.me.gap_next) + ' ' + UNIT[kind];
+        } else {
+          $('rk-me').hidden = true;
+          $('rk-login').hidden = true;
+        }
+        try { if (window.gtag) window.gtag('event', 'ranking_view', { kind }); } catch (e) {}
+      }
+      document.querySelectorAll('.rk-tab').forEach((t) => t.addEventListener('click', () => {
+        document.querySelectorAll('.rk-tab').forEach((x) => x.classList.remove('is-on'));
+        t.classList.add('is-on');
+        kind = t.dataset.kind;
+        load();
+      }));
+      load();
+    })();
+  </script>
+
+  <style is:global>
+    .rk { max-width: 38rem; }
+    .rk-y { filter: drop-shadow(0 2px 8px rgba(245, 158, 11, 0.5)); }
+    .rk-tabs { display: flex; gap: 2px; padding: 3px; background: var(--paper-2); border: 1px solid var(--line); border-radius: 999px; margin: 1.1rem 0 0.4rem; }
+    .rk-tab { flex: 1; font: inherit; font-size: 0.82rem; font-weight: 700; color: var(--muted); background: transparent; border: 0; border-radius: 999px; padding: 0.5rem 0.2rem; cursor: pointer; }
+    .rk-tab.is-on { background: var(--accent); color: #fff; }
+    .rk-reset { font-size: 0.74rem; color: var(--muted); text-align: center; margin: 0 0 0.9rem; }
+    .rk-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.4rem; }
+    .rk-empty { text-align: center; padding: 1.6rem 1rem; color: var(--muted); font-size: 0.88rem; border: 1px dashed var(--line); border-radius: 12px; }
+    .rk-row { display: flex; align-items: center; gap: 0.6rem; padding: 0.65rem 0.9rem; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); }
+    .rk-row.is-me { border-color: var(--accent); background: var(--accent-soft); }
+    .rk-row__rank { flex: none; width: 2rem; text-align: center; font-weight: 800; font-size: 0.95rem; color: var(--ink-soft); }
+    .rk-row__nick { flex: 1; min-width: 0; font-size: 0.9rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .rk-row__lv { flex: none; font-size: 0.68rem; font-weight: 800; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 0.14rem 0.5rem; }
+    .rk-row.is-me .rk-row__lv { background: var(--paper); }
+    .rk-row__val { flex: none; font-size: 0.92rem; font-variant-numeric: tabular-nums; }
+    .rk-row__val i { font-style: normal; font-size: 0.68rem; color: var(--muted); margin-left: 0.2rem; }
+    .rk-me { position: sticky; bottom: calc(4.2rem + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 0.8rem; margin-top: 0.8rem; padding: 0.8rem 1rem; border-radius: 14px; background: var(--ink); color: var(--paper); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25); }
+    @media (min-width: 900px) { .rk-me { bottom: 1rem; } }
+    .rk-me[hidden] { display: none; }
+    .rk-me > b { font-size: 1.15rem; flex: none; }
+    .rk-me-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .rk-me-body span { font-size: 0.68rem; opacity: 0.7; }
+    .rk-me-body em { font-style: normal; font-size: 0.8rem; font-weight: 700; color: #ffd166; }
+    .rk-me > span { flex: none; font-size: 0.88rem; font-weight: 800; }
+    .rk-login { text-align: center; font-size: 0.84rem; color: var(--muted); margin: 1rem 0; }
+    .rk-login[hidden] { display: none; }
+    .rk-login a { color: var(--accent); font-weight: 700; }
+    .rk-cross { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; margin: 2rem 0 1rem; padding-top: 1.4rem; border-top: 1px solid var(--line); }
+    .rk-cross a { font-size: 0.88rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--line); border-radius: 999px; }
+    .rk-cross a:hover { border-color: var(--accent); }
+  </style>
+</BaseLayout>

@@ -112,6 +112,7 @@ export const NAV: NavItem[] = [
     { label: '오르까 내리까 🔮', href: '/play/', icon: 'quiz' },
     { label: '밀웜 뽑기 🎰', href: '/gacha/', icon: 'vote' },
     { label: '무지출 챌린지 🔥', href: '/challenge/', icon: 'checkup' },
+    { label: '랭킹 🏆', href: '/ranking/', icon: 'income' },
     { label: '쇼츠', href: '/shorts/', icon: 'shorts' },
     { label: '칼럼', href: '/column/', icon: 'column' },
     { label: '용어 사전', href: '/glossary/', icon: 'glossary' },

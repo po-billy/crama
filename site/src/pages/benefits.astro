@@ -221,10 +221,10 @@ const faqLd = {
         renderInterestBar();
       }
 
-      // ── 중위소득 계산 ──
-      const MEDIAN = { 1: 2392, 2: 3932, 3: 5025, 4: 6097, 5: 7108, 6: 8064 };
+      // ── 2026년 기준 중위소득(월, 원) → 연소득 기준(만원) 환산 ──
+      const MEDIAN = { 1: 2564238, 2: 4199292, 3: 5359036, 4: 6494738, 5: 7556719, 6: 8555952 };
       function medianIncome(fam, pct) {
-        return Math.round((MEDIAN[Math.min(fam, 6)] || MEDIAN[4]) * 12 * (pct / 100));
+        return Math.round((MEDIAN[Math.min(fam, 6)] || MEDIAN[4]) * 12 * (pct / 100) / 10000);
       }
 
       // ── 매칭 엔진 ──
@@ -840,7 +840,7 @@ const faqLd = {
         var a = $('bf-cond-apply'); if (a) a.addEventListener('click', applyCond);
       })();
 
-      // ── 저장된 프로필 복원 ──
+      // ── 저장된 프로필 복원 ── (없으면 내 정보(CramaProfile)로 위저드 기본값 프리필)
       try {
         var saved = localStorage.getItem(STORAGE_KEY);
         if (saved) {
@@ -849,6 +849,17 @@ const faqLd = {
           // 자동 저장된 프로필로 결과 바로 표시 (조건 수정·초기화는 상단 조건바에서)
           showSection('bf-result');
           showResults();
+        } else if (window.CramaProfile) {
+          var CP = window.CramaProfile.get();
+          if (CP.age) profile.age = CP.age;
+          if (CP.salary) profile.income = CP.salary;
+          else if (CP.hhIncome) profile.income = CP.hhIncome * 12;
+          if (CP.household) profile.familySize = Math.min(CP.household, 6);
+          if (CP.region) {
+            var RS = { '서울': 'seoul', '경기': 'gyeonggi', '인천': 'incheon', '부산': 'busan', '대구': 'daegu', '광주': 'gwangju', '대전': 'daejeon', '울산': 'ulsan', '세종': 'sejong', '강원': 'gangwon', '충청북': 'chungbuk', '충청남': 'chungnam', '전북': 'jeonbuk', '전라남': 'jeonnam', '경상북': 'gyeongbuk', '경상남': 'gyeongnam', '제주': 'jeju' };
+            var k3 = RS[CP.region.slice(0, 3)] || RS[CP.region.slice(0, 2)];
+            if (k3) profile.region = k3;
+          }
         }
       } catch (e) {}
     })();

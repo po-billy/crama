@@ -150,6 +150,18 @@ const desc = '나이·가구원수·소득 몇 개만 입력하면, 청년미래
         $(id).addEventListener('input', run);
         $(id).addEventListener('change', run);
       });
+      // 프로필 사이클: 내 정보가 있으면 기본값 대신 프리필
+      try {
+        const CP = window.CramaProfile && window.CramaProfile.get();
+        if (CP) {
+          if (CP.age) $('bf-age').value = CP.age;
+          if (CP.household) $('bf-size').value = Math.min(CP.household, 7);
+          if (CP.hhIncome) $('bf-hh').value = CP.hhIncome;
+          else if (CP.salary) $('bf-hh').value = Math.round(CP.salary / 12);
+          if (CP.salary) $('bf-pay').value = CP.salary;
+          if (CP.region) $('bf-region').value = ['서울특별시', '경기도', '인천광역시'].indexOf(CP.region) !== -1 ? 'capital' : 'non';
+        }
+      } catch (e) {}
       run();
     })();
   </script>

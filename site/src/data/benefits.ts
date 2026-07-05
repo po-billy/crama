@@ -79,18 +79,19 @@ export const REGIONS: Record<Region, string> = {
   jeju: '제주',
 };
 
-/* ── 2026년 중위소득 기준 (4인 가구 기준 비율 계산용) ── */
+/* ── 2026년 기준 중위소득 (월, 원 — 보건복지부 고시) ── */
 const MEDIAN_INCOME_2026: Record<number, number> = {
-  1: 2392,  // 1인 가구 월 239.2만원 → 연 2,870만원
-  2: 3932,
-  3: 5025,
-  4: 6097,
-  5: 7108,
-  6: 8064,
+  1: 2564238,
+  2: 4199292,
+  3: 5359036,
+  4: 6494738,
+  5: 7556719,
+  6: 8555952,
 };
+// 가구원수·비율(%) → 연소득 기준(만원). 예: 1인 100% → 3,077만원
 export function getMedianIncome(familySize: number, percentile: number): number {
   const base = MEDIAN_INCOME_2026[Math.min(familySize, 6)] ?? MEDIAN_INCOME_2026[4];
-  return Math.round(base * 12 * (percentile / 100));
+  return Math.round((base * 12 * (percentile / 100)) / 10000);
 }
 
 /* ── 혜택 데이터베이스 ── */

@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { computeSalary, salaryAmounts, RATE_BASIS, fmt, fmtMan } from '../../lib/salary';
+import { salaryTopPct } from '../../lib/salary-rank';
 
 export async function getStaticPaths() {
   const amounts = salaryAmounts();
@@ -12,6 +13,8 @@ export async function getStaticPaths() {
 
 const { man, prev, next } = Astro.props; // 연봉(만원)
 const s = computeSalary(man * 10_000);
+const topPct = salaryTopPct(man);
+const rankIn100 = Math.max(1, Math.round(topPct)); // 100명 줄 세우면 앞에서 N번째
 
 const manLabel = man >= 10000 ? `${Math.floor(man / 10000)}억${man % 10000 ? ' ' + fmt(man % 10000) + '만' : ''}` : `${fmt(man)}만`;
 const netMan = fmtMan(s.monthlyNet);
@@ -75,6 +78,15 @@ const jsonLd = {
         </dl>
       </div>
       <button type="button" class="sal-reg" id="sal-reg" data-man={man} hidden>연봉 {manLabel}원을 내 정보로 저장 → 실업급여·혜택 매칭에 자동 사용</button>
+
+      <div class="sal-rank">
+        <span class="sal-rank__badge">🏆</span>
+        <div class="sal-rank__body">
+          <b>근로소득자 상위 {topPct}%</b>
+          <span>월급쟁이 100명을 연봉순으로 줄 세우면 앞에서 <b>{rankIn100}번째</b>예요</span>
+        </div>
+        <div class="sal-rank__bar"><i style={`width:${Math.min(100, 100 - topPct)}%`}></i></div>
+      </div>
     </header>
 
     <section class="sal-sec">
@@ -107,7 +119,7 @@ const jsonLd = {
           <tr class="sal-table__net"><th>월 실수령액</th><td>{fmt(s.monthlyNet)}원</td></tr>
         </tbody>
       </table>
-      <p class="sal-note">※ {RATE_BASIS} · 1인 가구(본인 공제만)·비과세 수당 없음 가정. 부양가족·비과세식대 등에 따라 실제 원천징수와 차이가 날 수 있어요.</p>
+      <p class="sal-note">※ {RATE_BASIS} · 1인 가구(본인 공제만)·비과세 수당 없음 가정. 부양가족·비과세식대 등에 따라 실제 원천징수와 차이가 날 수 있어요. 상위 %는 국세청 근로소득 백분위(2023 귀속, 연내 계속근로자 기준)를 보간한 참고용 추정입니다.</p>
     </section>
 
     <section class="sal-sec">
@@ -160,6 +172,15 @@ const jsonLd = {
   <style>
     .sal { max-width: 44rem; }
     .sal-reg { display: block; width: 100%; margin: -0.9rem 0 1.6rem; font: inherit; font-size: 0.85rem; font-weight: 700; color: var(--accent); background: var(--accent-soft); border: 1px dashed var(--accent); border-radius: 10px; padding: 0.6rem 1rem; cursor: pointer; }
+    .sal-rank { display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; margin: 0 0 1.6rem; padding: 0.85rem 1rem; border: 1px solid #f59e0b; border-radius: 14px; background: linear-gradient(90deg, #fef3c7, var(--paper)); }
+    :root[data-theme='dark'] .sal-rank { background: linear-gradient(90deg, #3a2b10, var(--paper)); }
+    .sal-rank__badge { font-size: 1.4rem; flex: none; }
+    .sal-rank__body { flex: 1; min-width: 12rem; }
+    .sal-rank__body > b { display: block; font-size: 0.98rem; color: #b45309; }
+    :root[data-theme='dark'] .sal-rank__body > b { color: #fbbf24; }
+    .sal-rank__body span { font-size: 0.78rem; color: var(--ink-soft); }
+    .sal-rank__bar { flex-basis: 100%; height: 7px; border-radius: 99px; background: var(--paper-2); overflow: hidden; }
+    .sal-rank__bar i { display: block; height: 100%; background: linear-gradient(90deg, #f59e0b, #ef4444); border-radius: 99px; }
     .sal-reg[hidden] { display: none; }
     .sal-crumb { display: flex; align-items: center; gap: 0.45rem; font-size: 0.8rem; color: var(--muted); margin: 0.4rem 0 1.2rem; flex-wrap: wrap; }
     .sal-crumb a { color: var(--muted); text-decoration: none; }

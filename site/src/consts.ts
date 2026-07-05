@@ -105,6 +105,7 @@ export const NAV: NavItem[] = [
     { label: '예금 이자 계산표', href: '/interest/', icon: 'calc' },
     { label: '금리 결정 캘린더', href: '/rate-calendar/', icon: 'calendar' },
     { label: '자동차세 계산', href: '/car-tax/', icon: 'calc' },
+    { label: '재산세 계산', href: '/property-tax/', icon: 'calc' },
     { label: '금융 계산기 23종', href: '/tools/', icon: 'calc' },
   ]},
   { label: '쇼츠·칼럼', href: '/shorts/', children: [

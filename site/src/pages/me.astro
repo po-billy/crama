@@ -635,15 +635,40 @@ import '../styles/app.css';
     $('mp-close').addEventListener('click', closeSheet);
     $('mp-bs-backdrop').addEventListener('click', closeSheet);
 
-    // 카드 캐러셀 도트 동기화
+    // 카드 캐러셀 — 도트 동기화·클릭 이동 + PC 마우스 드래그(스냅은 드래그 중 해제)
     var rail = sec.querySelector('.me-cards');
     var dots = document.querySelectorAll('#me-dots i');
     if (rail && dots.length) {
+      var cardW = function () { return rail.firstElementChild.offsetWidth + 11; };
       rail.addEventListener('scroll', function () {
-        var w = rail.firstElementChild.offsetWidth + 11;
-        var i = Math.min(dots.length - 1, Math.max(0, Math.round(rail.scrollLeft / w)));
+        var i = Math.min(dots.length - 1, Math.max(0, Math.round(rail.scrollLeft / cardW())));
         dots.forEach(function (d, k) { d.classList.toggle('is-on', k === i); });
       }, { passive: true });
+      dots.forEach(function (d, k) {
+        d.addEventListener('click', function () { rail.scrollTo({ left: k * cardW(), behavior: 'smooth' }); });
+      });
+      var drag = { on: false, moved: false, x: 0, left: 0 };
+      rail.addEventListener('pointerdown', function (e) {
+        if (e.pointerType !== 'mouse') return; // 터치는 네이티브 스크롤
+        drag.on = true; drag.moved = false; drag.x = e.clientX; drag.left = rail.scrollLeft;
+        rail.style.scrollSnapType = 'none';
+      });
+      rail.addEventListener('pointermove', function (e) {
+        if (!drag.on) return;
+        var dx = e.clientX - drag.x;
+        if (Math.abs(dx) > 5) drag.moved = true;
+        rail.scrollLeft = drag.left - dx;
+      });
+      function endDrag() {
+        if (!drag.on) return;
+        drag.on = false;
+        var i = Math.min(dots.length - 1, Math.max(0, Math.round(rail.scrollLeft / cardW())));
+        rail.scrollTo({ left: i * cardW(), behavior: 'smooth' });
+        setTimeout(function () { rail.style.scrollSnapType = ''; }, 350);
+      }
+      rail.addEventListener('pointerup', endDrag);
+      rail.addEventListener('pointerleave', endDrag);
+      rail.addEventListener('click', function (e) { if (drag.moved) { e.preventDefault(); e.stopPropagation(); drag.moved = false; } }, true);
     }
 
     // 상단 뷰 세그먼트: 내 정보 | 크라미·밀웜 (마지막 선택 기억)
@@ -694,12 +719,13 @@ import '../styles/app.css';
   .me-prof__manage { margin-left: auto; font: inherit; font-size: 0.78rem; font-weight: 700; color: var(--accent); background: var(--accent-soft); border: 0; border-radius: 999px; padding: 0.35rem 0.9rem; cursor: pointer; }
   .me-prof__manage:hover { filter: brightness(0.96); }
   /* 신용카드식 좌우 스와이프 캐러셀 */
-  .me-cards { display: flex; gap: 0.7rem; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 4px; scrollbar-width: none; }
+  .me-cards { display: flex; gap: 0.7rem; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 4px; scrollbar-width: none; cursor: grab; }
+  .me-cards:active { cursor: grabbing; }
   .me-cards::-webkit-scrollbar { display: none; }
   .me-card { position: relative; overflow: hidden; border-radius: 18px; color: #fff; box-shadow: 0 6px 18px rgba(20, 24, 50, 0.16); flex: 0 0 88%; scroll-snap-align: center; display: flex; flex-direction: column; }
   .me-card__in { flex: 1; }
   .me-dots { display: flex; justify-content: center; gap: 6px; margin-top: 0.55rem; }
-  .me-dots i { width: 6px; height: 6px; border-radius: 999px; background: var(--line); transition: width 0.15s, background 0.15s; }
+  .me-dots i { width: 6px; height: 6px; border-radius: 999px; background: var(--line); transition: width 0.15s, background 0.15s; cursor: pointer; padding: 0; }
   .me-dots i.is-on { width: 16px; background: var(--accent); }
   .me-card--basic { background: linear-gradient(135deg, #5348cf 0%, #7a63ee 60%, #8f7bf4 100%); }
   .me-card--income { background: linear-gradient(135deg, #0b6b54 0%, #149a61 60%, #27b573 100%); }

@@ -1,0 +1,135 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// 개인 기준 연간 세금 일정(2026) — 지난 일정은 클라이언트에서 흐리게 처리
+const EVENTS = [
+  { id: 'cartax-annual-2026', name: '자동차세 연납 신청', period: '1/16 ~ 1/31', deadline: '2026-01-31', desc: '1월에 한 번에 내면 세액 공제 — 가장 큰 할인', href: '/car-tax/', tag: '차주' },
+  { id: 'income-tax-2026', name: '종합소득세 신고·납부', period: '5/1 ~ 6/1', deadline: '2026-06-01', desc: '프리랜서·부업·임대소득 있는 직장인 필수', href: '/tools/', tag: '사업·부업' },
+  { id: 'cartax-1st-2026', name: '자동차세 1기분 납부', period: '6/16 ~ 6/30', deadline: '2026-06-30', desc: '상반기분 — 연납했다면 해당 없음', href: '/car-tax/', tag: '차주' },
+  { id: 'vat-1st-2026', name: '부가가치세 1기 확정신고', period: '7/1 ~ 7/25', deadline: '2026-07-25', desc: '개인사업자(일반과세) — 주말이면 다음 영업일', href: '/tools/vat-calculator/', tag: '사업자' },
+  { id: 'proptax-july-2026', name: '재산세 1기분 납부', period: '7/16 ~ 7/31', deadline: '2026-07-31', desc: '주택 보유자 — 본세 20만원 이하면 7월 일괄', href: '/property-tax/', tag: '집주인' },
+  { id: 'proptax-sep-2026', name: '재산세 2기분 납부', period: '9/16 ~ 9/30', deadline: '2026-09-30', desc: '주택분 나머지 절반', href: '/property-tax/', tag: '집주인' },
+  { id: 'jongbuse-2026', name: '종합부동산세 납부', period: '12/1 ~ 12/15', deadline: '2026-12-15', desc: '공시가 합산 9억(1주택 12억) 초과 시', href: '/property-tax/', tag: '집주인' },
+  { id: 'cartax-2nd', name: '자동차세 2기분 납부', period: '12/16 ~ 12/31', deadline: '2026-12-31', desc: '하반기분 — 늦으면 3% 가산', href: '/car-tax/', tag: '차주' },
+  { id: 'vat-2nd-2027', name: '부가가치세 2기 확정신고', period: '2027 1/1 ~ 1/25', deadline: '2027-01-25', desc: '개인사업자 하반기분', href: '/tools/vat-calculator/', tag: '사업자' },
+  { id: 'cartax-annual-2027', name: '자동차세 연납 신청(2027)', period: '2027 1/16 ~ 1/31', deadline: '2027-01-31', desc: '내년 할인 놓치지 않기', href: '/car-tax/', tag: '차주' },
+];
+const CALCS = [
+  { href: '/car-tax/', title: '자동차세', desc: '배기량·연식으로 연세액·연납 할인' },
+  { href: '/property-tax/', title: '재산세', desc: '공시가격으로 7월·9월 납부액' },
+  { href: '/gift-tax/', title: '증여세', desc: '관계별 공제·혼인출산 1억' },
+  { href: '/inheritance-tax/', title: '상속세', desc: '배우자 있으면 10억까지 0원' },
+  { href: '/salary/', title: '연봉 실수령액', desc: '4대보험·소득세 공제 후 월급' },
+  { href: '/tools/vat-calculator/', title: '부가세', desc: '공급가액↔합계 10% 환산' },
+];
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: '홈', item: 'https://crama.app/' },
+    { '@type': 'ListItem', position: 2, name: '세금 캘린더' },
+  ],
+};
+---
+<BaseLayout
+  title="세금 캘린더 2026 — 자동차세·재산세·종소세·부가세 납부 일정 한눈에"
+  description="올해 내야 할 세금 일정을 한 페이지에. 자동차세 연납(1월)·종소세(5월)·재산세(7·9월)·종부세(12월)까지 마감 알림으로 챙기고, 계산기로 금액을 미리 확인하세요."
+  jsonLd={jsonLd}
+>
+  <div class="tx wrap">
+    <header class="page-hero">
+      <span class="eyebrow">Tax Calendar</span>
+      <h1>세금 캘린더 <span class="tx-y">2026</span></h1>
+      <p>올해 내야 할 세금, <b>한 페이지에서 알림까지.</b> 하트를 누르면 마감 3일 전·1일 전에 알려드려요.</p>
+    </header>
+
+    <ul class="tx-list">
+      {EVENTS.map((e) => (
+        <li data-deadline={e.deadline} data-id={e.id} data-name={e.name}>
+          <div class="tx-date"><b>{e.period.split(' ~ ')[1]}</b><span>{e.period}</span></div>
+          <div class="tx-body">
+            <div class="tx-head"><a href={e.href}>{e.name}</a><i class="tx-tag">{e.tag}</i><em class="tx-dday"></em></div>
+            <span class="tx-desc">{e.desc}</span>
+          </div>
+          <button type="button" class="tx-save" aria-pressed="false" aria-label="마감 알림 저장">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </button>
+        </li>
+      ))}
+    </ul>
+
+    <section class="tx-sec">
+      <h2>세금 계산기</h2>
+      <div class="tx-calcs">
+        {CALCS.map((c) => (
+          <a href={c.href}><b>{c.title}</b><span>{c.desc}</span></a>
+        ))}
+      </div>
+    </section>
+
+    <p class="tx-note">※ 기한이 주말·공휴일이면 다음 영업일까지입니다. 고지서 기준 실제 금액·기한은 <a href="https://www.wetax.go.kr" target="_blank" rel="noopener">위택스</a>·<a href="https://www.hometax.go.kr" target="_blank" rel="noopener">홈택스</a>에서 확인하세요.</p>
+
+    <div class="tx-cross">
+      <a href="/policy-calendar/">정책 마감 캘린더 →</a>
+      <a href="/rate-calendar/">금리 결정 캘린더 →</a>
+      <a href="/benefits/">내 지원금 찾기 →</a>
+    </div>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const S = window.CramaSaved;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      document.querySelectorAll('.tx-list li').forEach((li) => {
+        const due = new Date(li.dataset.deadline + 'T00:00:00');
+        const dd = Math.round((due - today) / 864e5);
+        const em = li.querySelector('.tx-dday');
+        if (dd < 0) { li.classList.add('is-past'); em.textContent = '지남'; }
+        else { em.textContent = dd === 0 ? 'D-Day' : 'D-' + dd; if (dd <= 14) em.classList.add('is-soon'); }
+        const btn = li.querySelector('.tx-save');
+        if (!S || dd < 0) { if (dd < 0) btn.hidden = true; }
+        if (!S) { btn.hidden = true; return; }
+        const sync = (on) => { btn.classList.toggle('is-on', on); btn.setAttribute('aria-pressed', on ? 'true' : 'false'); };
+        sync(S.has('dday', li.dataset.id));
+        btn.addEventListener('click', () => sync(S.toggle({ type: 'dday', id: li.dataset.id, name: li.dataset.name, url: '/tax/', sub: '세금', deadline: li.dataset.deadline })));
+      });
+    })();
+  </script>
+
+  <style is:global>
+    .tx { max-width: 42rem; }
+    .tx-y { color: var(--accent); }
+    .tx-list { list-style: none; margin: 1.4rem 0 0; padding: 0; display: grid; gap: 0.55rem; }
+    .tx-list li { display: flex; align-items: center; gap: 0.9rem; padding: 0.8rem 0.95rem; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); }
+    .tx-list li.is-past { opacity: 0.45; }
+    .tx-date { flex: none; width: 3.6rem; text-align: center; display: flex; flex-direction: column; gap: 0.1rem; }
+    .tx-date b { font-size: 0.98rem; color: var(--accent); }
+    .tx-date span { font-size: 0.62rem; color: var(--muted); }
+    .tx-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.15rem; }
+    .tx-head { display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; }
+    .tx-head a { font-size: 0.94rem; font-weight: 800; color: var(--ink); text-decoration: none; }
+    .tx-head a:hover { color: var(--accent); }
+    .tx-tag { font-style: normal; font-size: 0.64rem; font-weight: 700; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 0.1rem 0.45rem; }
+    .tx-dday { font-style: normal; font-size: 0.7rem; font-weight: 800; color: var(--muted); }
+    .tx-dday.is-soon { color: #e11d48; }
+    .tx-desc { font-size: 0.78rem; color: var(--muted); }
+    .tx-save { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); color: var(--ink-soft); cursor: pointer; }
+    .tx-save:hover, .tx-save.is-on { color: #e11d48; border-color: #e11d48; }
+    .tx-save[hidden] { display: none; }
+    .tx-sec { margin: 2rem 0 1rem; }
+    .tx-sec h2 { font-size: 1.1rem; margin: 0 0 0.7rem; }
+    .tx-calcs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.55rem; }
+    .tx-calcs a { display: flex; flex-direction: column; gap: 0.2rem; padding: 0.8rem 0.9rem; border: 1px solid var(--line); border-radius: 12px; text-decoration: none; background: var(--paper); transition: border-color 0.12s; }
+    .tx-calcs a:hover { border-color: var(--accent); }
+    .tx-calcs b { font-size: 0.9rem; color: var(--ink); }
+    .tx-calcs span { font-size: 0.72rem; color: var(--muted); line-height: 1.4; }
+    @media (max-width: 560px) { .tx-calcs { grid-template-columns: 1fr 1fr; } }
+    .tx-note { font-size: 0.78rem; color: var(--muted); margin: 1.2rem 0 0; line-height: 1.5; }
+    .tx-note a { color: var(--accent); }
+    .tx-cross { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; margin: 1.8rem 0 1rem; padding-top: 1.4rem; border-top: 1px solid var(--line); }
+    .tx-cross a { font-size: 0.88rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--line); border-radius: 999px; }
+    .tx-cross a:hover { border-color: var(--accent); }
+  </style>
+</BaseLayout>

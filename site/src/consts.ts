@@ -104,10 +104,7 @@ export const NAV: NavItem[] = [
     { label: '대출 금리', href: '/loans/', icon: 'diagnose' },
     { label: '예금 이자 계산표', href: '/interest/', icon: 'calc' },
     { label: '금리 결정 캘린더', href: '/rate-calendar/', icon: 'calendar' },
-    { label: '자동차세 계산', href: '/car-tax/', icon: 'calc' },
-    { label: '재산세 계산', href: '/property-tax/', icon: 'calc' },
-    { label: '증여세 계산', href: '/gift-tax/', icon: 'calc' },
-    { label: '상속세 계산', href: '/inheritance-tax/', icon: 'calc' },
+    { label: '세금 캘린더·계산기', href: '/tax/', icon: 'calc' },
     { label: '금융 계산기 23종', href: '/tools/', icon: 'calc' },
   ]},
   { label: '쇼츠·칼럼', href: '/shorts/', children: [

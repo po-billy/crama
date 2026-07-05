@@ -1,0 +1,399 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import FaqBox from '../components/FaqBox.astro';
+
+const SU = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
+const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
+
+// 문항은 고정 3종(라운드 데이터와 key 일치) — 기준가·마감은 클라이언트가 라운드에서 로드
+const QS = [
+  { key: 'kospi', label: '코스피', emoji: '📈', hint: '한국 증시의 체온계' },
+  { key: 'usd', label: '달러 환율', emoji: '💵', hint: '오르면 원화가 약해진 것' },
+  { key: 'btc', label: '비트코인', emoji: '🪙', hint: '주말에도 쉬지 않는 그 코인' },
+];
+---
+<BaseLayout
+  title="오르까 내리까 — 주간 금융 예측 게임"
+  description="다음 주 금요일, 코스피·달러 환율·비트코인은 오를까 내릴까? 예측하고 맞히면 밀웜을 받는 크라마의 주간 예측 게임. 더블다운과 역배 보너스로 짜릿하게."
+>
+  <div class="pl wrap">
+    <header class="page-hero">
+      <span class="eyebrow">Weekly Prediction</span>
+      <h1>오르까 내리까 <span class="pl-crystal">🔮</span></h1>
+      <p><b>다음 주 금요일</b>, 오를까 내릴까? 맞히면 밀웜 — 전부 맞히면 퍼펙트 보너스.</p>
+    </header>
+
+    <!-- 내 칭호(통산) -->
+    <div class="pl-rank" id="pl-rank" hidden>
+      <span class="pl-rank__badge" id="pl-rank-badge">🌱</span>
+      <div class="pl-rank__body">
+        <b id="pl-rank-name">새싹 점쟁이</b>
+        <span id="pl-rank-sub">통산 0문항 적중</span>
+        <div class="pl-rank__bar"><i id="pl-rank-fill"></i></div>
+      </div>
+      <span class="pl-rank__next" id="pl-rank-next"></span>
+    </div>
+
+    <!-- 지난 라운드 결과 리빌 -->
+    <section class="pl-reveal" id="pl-reveal" hidden>
+      <h2>지난 라운드 결과 <span id="pl-reveal-round"></span></h2>
+      <div class="pl-reveal__cards" id="pl-reveal-cards">
+        {QS.map((q) => (
+          <div class="pl-rcard" data-key={q.key}>
+            <span class="pl-rcard__emoji">{q.emoji}</span>
+            <b class="pl-rcard__label">{q.label}</b>
+            <span class="pl-rcard__change" data-role="change">…</span>
+            <span class="pl-rcard__mine" data-role="mine"></span>
+            <span class="pl-rcard__stamp" data-role="stamp" hidden></span>
+          </div>
+        ))}
+      </div>
+      <div class="pl-reveal__total" id="pl-reveal-total" hidden>
+        <span id="pl-reveal-msg"></span>
+        <b id="pl-reveal-worms"></b>
+      </div>
+      <div class="pl-confetti" id="pl-confetti" aria-hidden="true">
+        {Array.from({ length: 18 }).map((_, i) => <i style={`--i:${i}`}></i>)}
+      </div>
+    </section>
+
+    <!-- 이번 라운드 -->
+    <section class="pl-round">
+      <div class="pl-round__head">
+        <h2>이번 라운드 <span id="pl-round-id"></span></h2>
+        <div class="pl-timer" id="pl-timer" hidden>
+          <span>예측 마감까지</span>
+          <b id="pl-timer-val">--:--:--</b>
+        </div>
+      </div>
+      <p class="pl-round__desc" id="pl-round-desc">이번 주 금요일 15:30에 기준가가 정해지고, <b>다음 주 금요일 15:30</b> 가격으로 판정해요. 마감 전까지 얼마든지 마음을 바꿀 수 있어요.</p>
+
+      <div class="pl-cards" id="pl-cards">
+        {QS.map((q) => (
+          <div class="pl-card" data-key={q.key}>
+            <div class="pl-card__top">
+              <span class="pl-card__emoji">{q.emoji}</span>
+              <div class="pl-card__t"><b>{q.label}</b><span>{q.hint}</span></div>
+              <button type="button" class="pl-dd" data-role="dd" title="더블다운 — 맞히면 2.5배, 틀리면 0">🎯 더블</button>
+            </div>
+            <div class="pl-card__btns">
+              <button type="button" class="pl-btn pl-btn--up" data-dir="up"><i>▲</i> 오른다</button>
+              <button type="button" class="pl-btn pl-btn--down" data-dir="down"><i>▼</i> 내린다</button>
+            </div>
+            <div class="pl-dist" data-role="dist" hidden>
+              <div class="pl-dist__bar"><i class="is-up" data-role="up-bar"></i><i class="is-down" data-role="down-bar"></i></div>
+              <div class="pl-dist__nums"><span data-role="up-pct">-</span><span class="pl-dist__underdog" data-role="tag"></span><span data-role="down-pct">-</span></div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <button type="button" class="pl-submit" id="pl-submit" disabled>3개 모두 골라주세요</button>
+      <p class="pl-submitted" id="pl-submitted" hidden>제출 완료! <b id="pl-crowd"></b> 결과는 판정일에 이 페이지에서 짜릿하게 공개됩니다. 마감 전까지 수정 가능해요.</p>
+    </section>
+
+    <FaqBox items={[
+      { q: '보상은 어떻게 계산되나요?', a: '문항당 적중 +3밀웜. 더블다운을 건 문항은 적중 시 +8(틀리면 그 문항 0). 3문항 모두 맞히면 퍼펙트 +6. 소수파(참여자 40% 미만이 고른 쪽)로 적중하면 역배 보너스 +3이 추가됩니다. 이론상 한 주 최대 29밀웜.' },
+      { q: '판정 기준이 뭔가요?', a: '금요일 15:30에 기록한 기준가와 다음 주 금요일 15:30 가격(비트코인은 업비트, 코스피·환율은 종가 기준)을 비교합니다. 변동이 ±0.05% 미만이면 무승부로 전원 적중 처리하는 관대한 룰입니다.' },
+      { q: '언제까지 예측할 수 있나요?', a: '매주 금요일 15:30에 마감됩니다. 마감 전까지는 몇 번이든 예측을 바꿀 수 있어요. 마감 후에는 기준가가 확정되고 다음 라운드가 열립니다.' },
+      { q: '밀웜은 어디에 쓰나요?', a: '마이페이지의 크라미 옷장에서 마스코트 아이템을 살 수 있어요. 밀웜은 현금으로 바꿀 수 없는 재미용 포인트입니다.' },
+    ]} />
+
+    <div class="pl-cross">
+      <a href="/briefing/">오늘의 시장 브리핑 →</a>
+      <a href="/rate-calendar/">금리 결정 캘린더 →</a>
+      <a href="/me/">내 밀웜 확인 →</a>
+    </div>
+  </div>
+
+  <script is:inline define:vars={{ SU, AK }}>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const fmt = (n) => Number(n).toLocaleString('ko-KR');
+      function tok() {
+        try {
+          for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && k.indexOf('sb-') === 0 && k.indexOf('-auth-token') !== -1) {
+              const o = JSON.parse(localStorage.getItem(k));
+              return (o && (o.access_token || (o.currentSession && o.currentSession.access_token))) || null;
+            }
+          }
+        } catch (e) {}
+        return null;
+      }
+      const T = tok();
+      const H = (auth) => ({ 'Content-Type': 'application/json', apikey: AK, Authorization: 'Bearer ' + (auth && T ? T : AK) });
+      const rest = (path, auth) => fetch(SU + '/rest/v1/' + path, { headers: H(auth) }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+      const rpc = (fn, body, auth) => fetch(SU + '/rest/v1/rpc/' + fn, { method: 'POST', headers: H(auth), body: JSON.stringify(body || {}) }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+
+      const state = { round: null, picks: {}, dd: null, submitted: false };
+
+      // ── 칭호 ──
+      const RANKS = [
+        { min: 0, name: '새싹 점쟁이', badge: '🌱' },
+        { min: 6, name: '동네 촉', badge: '🏘️' },
+        { min: 15, name: '여의도 촉', badge: '📊' },
+        { min: 30, name: '골든 미어캣', badge: '🏆' },
+      ];
+      async function loadRank() {
+        if (!T) return;
+        const rec = await rpc('my_prediction_record', {}, true);
+        if (!rec || !rec.rounds) return;
+        const hits = rec.hits || 0;
+        let cur = RANKS[0], next = null;
+        for (const r of RANKS) { if (hits >= r.min) cur = r; else { next = r; break; } }
+        $('pl-rank-badge').textContent = cur.badge;
+        $('pl-rank-name').textContent = cur.name;
+        $('pl-rank-sub').textContent = '통산 ' + hits + '문항 적중 · ' + (rec.perfects || 0) + '번의 퍼펙트 · 밀웜 +' + fmt(rec.reward || 0);
+        if (next) {
+          const prev = cur.min;
+          $('pl-rank-fill').style.width = Math.min(100, ((hits - prev) / (next.min - prev)) * 100) + '%';
+          $('pl-rank-next').textContent = next.badge + ' ' + next.name + '까지 ' + (next.min - hits);
+        } else {
+          $('pl-rank-fill').style.width = '100%';
+          $('pl-rank-next').textContent = '최고 칭호!';
+        }
+        $('pl-rank').hidden = false;
+      }
+
+      // ── 지난 라운드 리빌 ──
+      async function loadReveal() {
+        if (!T) return;
+        const rounds = await rest('prediction_rounds?status=eq.settled&order=settles_at.desc&limit=1');
+        const round = rounds && rounds[0];
+        if (!round || !round.results) return;
+        const mine = await rest('prediction_picks?round_id=eq.' + encodeURIComponent(round.id) + '&select=*', true);
+        const my = mine && mine[0];
+        if (!my || !my.score) return;
+        $('pl-reveal-round').textContent = '#' + (round.id.split('-W')[1] || '') + '주차';
+        $('pl-reveal').hidden = false;
+        const seenKey = 'crama:play-seen';
+        const seen = localStorage.getItem(seenKey) === round.id;
+        const cards = [...document.querySelectorAll('.pl-rcard')];
+        const finish = () => {
+          const s = my.score;
+          const msgEl = $('pl-reveal-msg');
+          msgEl.textContent = s.perfect ? '🎉 퍼펙트! 3문항 모두 적중' : s.hits.length ? s.hits.length + '문항 적중!' : '이번엔 빗나갔어요 — 다음 주에 설욕전';
+          $('pl-reveal-worms').textContent = s.reward > 0 ? '+' + s.reward + ' 밀웜' : '';
+          $('pl-reveal-total').hidden = false;
+          if (s.reward > 0 && !seen) $('pl-confetti').classList.add('is-on');
+          localStorage.setItem(seenKey, round.id);
+        };
+        cards.forEach((card, idx) => {
+          const key = card.dataset.key;
+          const res = round.results[key];
+          const myDir = my.picks[key];
+          const hit = res.dir === 'push' || res.dir === myDir;
+          const fill = () => {
+            const ch = card.querySelector('[data-role=change]');
+            ch.textContent = (res.changePct > 0 ? '+' : '') + res.changePct + '%';
+            ch.classList.add(res.changePct > 0 ? 'is-up' : res.changePct < 0 ? 'is-down' : 'is-flat');
+            card.querySelector('[data-role=mine]').textContent = '내 예측: ' + (myDir === 'up' ? '▲ 오른다' : '▼ 내린다') + (my.score.double === key ? ' 🎯' : '');
+            const st = card.querySelector('[data-role=stamp]');
+            st.textContent = hit ? '적중!' : '빗나감';
+            st.classList.add(hit ? 'is-hit' : 'is-miss');
+            st.hidden = false;
+            card.classList.add('is-done');
+            if (idx === cards.length - 1) setTimeout(finish, seen ? 0 : 500);
+          };
+          if (seen) fill();
+          else setTimeout(fill, 600 + idx * 900); // 순차 리빌 연출
+        });
+      }
+
+      // ── 이번 라운드 ──
+      function updateSubmit() {
+        const btn = $('pl-submit');
+        const done = Object.keys(state.picks).length === 3;
+        btn.disabled = !done;
+        btn.textContent = state.submitted
+          ? '예측 수정하기'
+          : done ? (state.dd ? '제출 — 🎯 더블다운 포함' : '예측 제출하기') : (3 - Object.keys(state.picks).length) + '개 더 골라주세요';
+      }
+      async function loadStats() {
+        if (!state.round) return;
+        const st = await rpc('prediction_stats', { p_round: state.round.id });
+        if (!st) return;
+        document.querySelectorAll('.pl-card').forEach((card) => {
+          const key = card.dataset.key;
+          const d = (st.dist && st.dist[key]) || {};
+          const up = d.up || 0, down = d.down || 0, tot = up + down;
+          if (!tot) return;
+          const upPct = Math.round((up / tot) * 100);
+          const box = card.querySelector('[data-role=dist]');
+          box.hidden = false;
+          requestAnimationFrame(() => {
+            card.querySelector('[data-role=up-bar]').style.width = upPct + '%';
+            card.querySelector('[data-role=down-bar]').style.width = (100 - upPct) + '%';
+          });
+          card.querySelector('[data-role=up-pct]').textContent = '▲ ' + upPct + '%';
+          card.querySelector('[data-role=down-pct]').textContent = (100 - upPct) + '% ▼';
+          const my = state.picks[key];
+          const myShare = my === 'up' ? upPct : 100 - upPct;
+          const tag = card.querySelector('[data-role=tag]');
+          tag.textContent = my && myShare < 40 ? '🔥 소수파 — 적중 시 +3' : '';
+        });
+        if (state.submitted) $('pl-crowd').textContent = '지금까지 ' + fmt(st.total) + '명 참여 중.';
+      }
+      function paintPicks() {
+        document.querySelectorAll('.pl-card').forEach((card) => {
+          const key = card.dataset.key;
+          card.querySelectorAll('.pl-btn').forEach((b) => b.classList.toggle('is-on', state.picks[key] === b.dataset.dir));
+          card.querySelector('[data-role=dd]').classList.toggle('is-on', state.dd === key);
+          card.classList.toggle('is-dd', state.dd === key);
+        });
+        updateSubmit();
+      }
+      async function loadRound() {
+        const rounds = await rest('prediction_rounds?status=eq.open&order=locks_at.asc&limit=1');
+        state.round = rounds && rounds[0];
+        if (!state.round) { $('pl-round-desc').textContent = '다음 라운드를 준비 중이에요 — 내일 다시 와주세요!'; $('pl-cards').style.opacity = 0.4; return; }
+        $('pl-round-id').textContent = '#' + (state.round.id.split('-W')[1] || '') + '주차';
+        // 카운트다운
+        const locks = new Date(state.round.locks_at);
+        $('pl-timer').hidden = false;
+        setInterval(() => {
+          const ms = locks - new Date();
+          if (ms <= 0) { $('pl-timer-val').textContent = '마감!'; return; }
+          const d = Math.floor(ms / 864e5), h = Math.floor((ms % 864e5) / 36e5), m = Math.floor((ms % 36e5) / 6e4), s = Math.floor((ms % 6e4) / 1e3);
+          $('pl-timer-val').textContent = (d ? d + '일 ' : '') + String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+        }, 1000);
+        // 내 기존 픽
+        if (T) {
+          const mine = await rest('prediction_picks?round_id=eq.' + encodeURIComponent(state.round.id) + '&select=*', true);
+          if (mine && mine[0]) {
+            state.picks = mine[0].picks || {};
+            state.dd = mine[0].double_key || null;
+            state.submitted = true;
+            $('pl-submitted').hidden = false;
+          }
+        }
+        paintPicks();
+        loadStats();
+      }
+
+      document.querySelectorAll('.pl-card').forEach((card) => {
+        const key = card.dataset.key;
+        card.querySelectorAll('.pl-btn').forEach((b) => b.addEventListener('click', () => {
+          state.picks[key] = b.dataset.dir;
+          b.classList.remove('is-pop'); void b.offsetWidth; b.classList.add('is-pop');
+          paintPicks();
+        }));
+        card.querySelector('[data-role=dd]').addEventListener('click', () => {
+          state.dd = state.dd === key ? null : key;
+          paintPicks();
+        });
+      });
+      $('pl-submit').addEventListener('click', async () => {
+        if (!state.round) return;
+        if (!T) {
+          if (window.CramaSaved) window.CramaSaved.promptLogin();
+          return;
+        }
+        const btn = $('pl-submit');
+        btn.disabled = true;
+        const res = await rpc('submit_prediction', { p_round: state.round.id, p_picks: state.picks, p_double: state.dd }, true);
+        btn.disabled = false;
+        if (res && res.ok) {
+          state.submitted = true;
+          $('pl-submitted').hidden = false;
+          try { if (window.gtag) window.gtag('event', 'prediction_submit', { round: state.round.id, dd: state.dd || 'none' }); } catch (e) {}
+          loadStats();
+          updateSubmit();
+          $('pl-submitted').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else if (res && res.error === 'locked') {
+          btn.textContent = '이번 라운드는 마감됐어요';
+        }
+      });
+
+      loadRound();
+      loadRank();
+      loadReveal();
+    })();
+  </script>
+
+  <style is:global>
+    .pl { max-width: 42rem; }
+    .pl-crystal { filter: drop-shadow(0 2px 6px rgba(108, 92, 231, 0.4)); }
+
+    /* 칭호 */
+    .pl-rank { display: flex; align-items: center; gap: 0.8rem; margin: 1.2rem 0; padding: 0.85rem 1rem; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); }
+    .pl-rank[hidden] { display: none; }
+    .pl-rank__badge { font-size: 1.6rem; flex: none; }
+    .pl-rank__body { flex: 1; min-width: 0; }
+    .pl-rank__body b { font-size: 0.95rem; display: block; }
+    .pl-rank__body > span { font-size: 0.74rem; color: var(--muted); }
+    .pl-rank__bar { height: 5px; border-radius: 99px; background: var(--paper-2); margin-top: 0.35rem; overflow: hidden; }
+    .pl-rank__bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), #f59e0b); border-radius: 99px; transition: width 0.6s ease; }
+    .pl-rank__next { flex: none; font-size: 0.7rem; color: var(--muted); text-align: right; }
+
+    /* 지난 라운드 리빌 */
+    .pl-reveal { position: relative; margin: 1.6rem 0; padding: 1.1rem 1.2rem 1.2rem; border: 1px solid var(--line); border-radius: 16px; background: var(--paper-2); overflow: hidden; }
+    .pl-reveal[hidden] { display: none; }
+    .pl-reveal h2 { font-size: 1.05rem; margin: 0 0 0.8rem; }
+    .pl-reveal__cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.55rem; }
+    @media (max-width: 560px) { .pl-reveal__cards { grid-template-columns: 1fr; } }
+    .pl-rcard { position: relative; display: flex; flex-direction: column; gap: 0.15rem; padding: 0.8rem 0.9rem; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); opacity: 0.55; transition: opacity 0.4s; }
+    .pl-rcard.is-done { opacity: 1; }
+    .pl-rcard__emoji { font-size: 1.2rem; }
+    .pl-rcard__label { font-size: 0.84rem; }
+    .pl-rcard__change { font-size: 1.15rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .pl-rcard__change.is-up { color: #dc2626; }
+    .pl-rcard__change.is-down { color: #2563eb; }
+    .pl-rcard__mine { font-size: 0.7rem; color: var(--muted); }
+    .pl-rcard__stamp { position: absolute; top: 0.6rem; right: 0.6rem; font-size: 0.72rem; font-weight: 800; padding: 0.2rem 0.5rem; border-radius: 999px; transform: rotate(6deg); animation: plStamp 0.3s ease; }
+    .pl-rcard__stamp[hidden] { display: none; }
+    .pl-rcard__stamp.is-hit { background: #dcfce7; color: #15803d; border: 1.5px solid #16a34a; }
+    .pl-rcard__stamp.is-miss { background: var(--paper-2); color: var(--muted); border: 1.5px solid var(--line); transform: rotate(-5deg); }
+    @keyframes plStamp { from { transform: scale(2) rotate(6deg); opacity: 0; } to { transform: scale(1) rotate(6deg); opacity: 1; } }
+    .pl-reveal__total { display: flex; align-items: baseline; justify-content: space-between; gap: 0.6rem; margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px dashed var(--line); font-weight: 700; font-size: 0.92rem; }
+    .pl-reveal__total[hidden] { display: none; }
+    .pl-reveal__total b { font-size: 1.15rem; color: var(--accent); }
+    .pl-confetti { position: absolute; inset: 0; pointer-events: none; }
+    .pl-confetti i { position: absolute; top: -10px; left: calc(var(--i) * 5.5%); width: 7px; height: 11px; opacity: 0; background: hsl(calc(var(--i) * 47), 85%, 60%); border-radius: 2px; }
+    .pl-confetti.is-on i { animation: plFall 1.6s ease-in calc(var(--i) * 0.07s) forwards; }
+    @keyframes plFall { 0% { opacity: 1; transform: translateY(0) rotate(0); } 100% { opacity: 0; transform: translateY(240px) rotate(540deg); } }
+
+    /* 이번 라운드 */
+    .pl-round { margin: 1.6rem 0; }
+    .pl-round__head { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; flex-wrap: wrap; }
+    .pl-round__head h2 { font-size: 1.05rem; margin: 0; }
+    .pl-timer { display: flex; align-items: baseline; gap: 0.45rem; font-size: 0.74rem; color: var(--muted); }
+    .pl-timer[hidden] { display: none; }
+    .pl-timer b { font-size: 0.95rem; font-weight: 800; color: #e11d48; font-variant-numeric: tabular-nums; }
+    .pl-round__desc { font-size: 0.82rem; color: var(--muted); margin: 0.4rem 0 1rem; line-height: 1.55; }
+    .pl-cards { display: grid; gap: 0.7rem; }
+    .pl-card { padding: 0.95rem 1rem; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); transition: border-color 0.15s, box-shadow 0.15s; }
+    .pl-card.is-dd { border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15); }
+    .pl-card__top { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.65rem; }
+    .pl-card__emoji { font-size: 1.5rem; flex: none; }
+    .pl-card__t { flex: 1; min-width: 0; }
+    .pl-card__t b { display: block; font-size: 0.95rem; }
+    .pl-card__t span { font-size: 0.72rem; color: var(--muted); }
+    .pl-dd { flex: none; font: inherit; font-size: 0.74rem; font-weight: 800; padding: 0.32rem 0.7rem; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); color: var(--muted); cursor: pointer; transition: all 0.15s; }
+    .pl-dd.is-on { background: #fef3c7; border-color: #f59e0b; color: #b45309; }
+    .pl-card__btns { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+    .pl-btn { display: flex; align-items: center; justify-content: center; gap: 0.4rem; font: inherit; font-size: 0.95rem; font-weight: 800; padding: 0.75rem; border-radius: 12px; border: 1.5px solid var(--line); background: var(--paper); color: var(--muted); cursor: pointer; transition: all 0.12s; }
+    .pl-btn i { font-style: normal; font-size: 0.8rem; }
+    .pl-btn--up.is-on { background: #dc2626; border-color: #dc2626; color: #fff; }
+    .pl-btn--down.is-on { background: #2563eb; border-color: #2563eb; color: #fff; }
+    .pl-btn.is-pop { animation: plPop 0.25s ease; }
+    @keyframes plPop { 50% { transform: scale(1.06); } }
+    .pl-dist { margin-top: 0.6rem; }
+    .pl-dist[hidden] { display: none; }
+    .pl-dist__bar { display: flex; height: 8px; border-radius: 99px; overflow: hidden; background: var(--paper-2); }
+    .pl-dist__bar i { display: block; height: 100%; width: 0; transition: width 0.7s ease; }
+    .pl-dist__bar .is-up { background: #dc2626; }
+    .pl-dist__bar .is-down { background: #2563eb; }
+    .pl-dist__nums { display: flex; justify-content: space-between; gap: 0.5rem; margin-top: 0.3rem; font-size: 0.72rem; color: var(--muted); font-weight: 700; }
+    .pl-dist__underdog { color: #b45309; }
+    .pl-submit { display: block; width: 100%; margin-top: 0.9rem; font: inherit; font-size: 1rem; font-weight: 800; padding: 0.9rem; border: 0; border-radius: 13px; background: var(--accent); color: #fff; cursor: pointer; transition: opacity 0.15s; }
+    .pl-submit:disabled { opacity: 0.45; cursor: default; }
+    .pl-submitted { font-size: 0.84rem; color: var(--ink-soft); margin: 0.7rem 0 0; padding: 0.7rem 0.9rem; border: 1px dashed var(--accent); border-radius: 12px; background: var(--accent-soft); }
+    .pl-submitted[hidden] { display: none; }
+    .pl-cross { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; margin: 2rem 0 1rem; padding-top: 1.4rem; border-top: 1px solid var(--line); }
+    .pl-cross a { font-size: 0.88rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--line); border-radius: 999px; }
+    .pl-cross a:hover { border-color: var(--accent); }
+  </style>
+</BaseLayout>

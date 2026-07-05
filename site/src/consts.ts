@@ -108,6 +108,7 @@ export const NAV: NavItem[] = [
     { label: '금융 계산기 23종', href: '/tools/', icon: 'calc' },
   ]},
   { label: '쇼츠·칼럼', href: '/shorts/', children: [
+    { label: '오르까 내리까 🔮', href: '/play/', icon: 'quiz' },
     { label: '쇼츠', href: '/shorts/', icon: 'shorts' },
     { label: '칼럼', href: '/column/', icon: 'column' },
     { label: '용어 사전', href: '/glossary/', icon: 'glossary' },

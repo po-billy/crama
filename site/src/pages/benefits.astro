@@ -840,26 +840,54 @@ const faqLd = {
         var a = $('bf-cond-apply'); if (a) a.addEventListener('click', applyCond);
       })();
 
-      // ── 저장된 프로필 복원 ── (없으면 내 정보(CramaProfile)로 위저드 기본값 프리필)
+      // ── 저장된 조건 복원 + 내 정보(CramaProfile) 동기화 UX ──
+      // /me에서 온 경우(?src=profile)는 내 정보로 즉시 재매칭, 일반 진입은 조건이 다르면 '내 정보로 다시 찾기' 칩 노출
+      function applyCP() {
+        var CP = window.CramaProfile ? window.CramaProfile.get() : {};
+        if (CP.age) profile.age = CP.age;
+        if (CP.salary) profile.income = CP.salary;
+        else if (CP.hhIncome) profile.income = CP.hhIncome * 12;
+        if (CP.household) profile.familySize = Math.min(CP.household, 6);
+        if (CP.region) {
+          var RS = { '서울': 'seoul', '경기': 'gyeonggi', '인천': 'incheon', '부산': 'busan', '대구': 'daegu', '광주': 'gwangju', '대전': 'daejeon', '울산': 'ulsan', '세종': 'sejong', '강원': 'gangwon', '충청북': 'chungbuk', '충청남': 'chungnam', '전북': 'jeonbuk', '전라남': 'jeonnam', '경상북': 'gyeongbuk', '경상남': 'gyeongnam', '제주': 'jeju' };
+          var k3 = RS[CP.region.slice(0, 3)] || RS[CP.region.slice(0, 2)];
+          if (k3) profile.region = k3;
+        }
+        return CP;
+      }
+      function cpDiffers() {
+        var CP = window.CramaProfile ? window.CramaProfile.get() : {};
+        if (!CP.age && !CP.salary && !CP.hhIncome) return false;
+        if (CP.age && CP.age !== profile.age) return true;
+        var inc = CP.salary || (CP.hhIncome ? CP.hhIncome * 12 : 0);
+        if (inc && inc !== profile.income) return true;
+        if (CP.household && Math.min(CP.household, 6) !== profile.familySize) return true;
+        return false;
+      }
       try {
         var saved = localStorage.getItem(STORAGE_KEY);
+        var fromMe = location.search.indexOf('src=profile') !== -1;
         if (saved) {
-          var p = JSON.parse(saved);
-          Object.assign(profile, p);
-          // 자동 저장된 프로필로 결과 바로 표시 (조건 수정·초기화는 상단 조건바에서)
+          Object.assign(profile, JSON.parse(saved));
+          if (fromMe) applyCP(); // /me에서 옴 — 내 정보 우선
           showSection('bf-result');
           showResults();
-        } else if (window.CramaProfile) {
-          var CP = window.CramaProfile.get();
-          if (CP.age) profile.age = CP.age;
-          if (CP.salary) profile.income = CP.salary;
-          else if (CP.hhIncome) profile.income = CP.hhIncome * 12;
-          if (CP.household) profile.familySize = Math.min(CP.household, 6);
-          if (CP.region) {
-            var RS = { '서울': 'seoul', '경기': 'gyeonggi', '인천': 'incheon', '부산': 'busan', '대구': 'daegu', '광주': 'gwangju', '대전': 'daejeon', '울산': 'ulsan', '세종': 'sejong', '강원': 'gangwon', '충청북': 'chungbuk', '충청남': 'chungnam', '전북': 'jeonbuk', '전라남': 'jeonnam', '경상북': 'gyeongbuk', '경상남': 'gyeongnam', '제주': 'jeju' };
-            var k3 = RS[CP.region.slice(0, 3)] || RS[CP.region.slice(0, 2)];
-            if (k3) profile.region = k3;
+          if (!fromMe && cpDiffers()) {
+            // 이전(익명) 조건 ≠ 내 정보 — 갱신 칩 노출
+            var chip = document.createElement('div');
+            chip.className = 'bf-cprefresh';
+            chip.innerHTML = '<span>마이페이지의 <b>내 정보</b>와 조건이 달라요</span><button type="button">내 정보로 다시 찾기</button>';
+            var host = document.getElementById('bf-result');
+            host.insertBefore(chip, host.firstChild);
+            chip.querySelector('button').addEventListener('click', function () {
+              applyCP();
+              chip.remove();
+              showResults();
+            });
           }
+        } else if (window.CramaProfile) {
+          applyCP(); // 저장 조건 없음 — 위저드 기본값 프리필
+          if (fromMe && (profile.age || profile.income)) { showSection('bf-result'); showResults(); }
         }
       } catch (e) {}
     })();
@@ -923,6 +951,9 @@ const faqLd = {
     .bf-flow[hidden] { display: none; }
 
     /* ── 내 조건 요약 바 + 수정 바텀시트 ── */
+    .bf-cprefresh { display: flex; align-items: center; justify-content: space-between; gap: 0.7rem; flex-wrap: wrap; margin: 0 0 0.9rem; padding: 0.65rem 0.9rem; border: 1px dashed var(--accent); border-radius: 12px; background: var(--accent-soft); font-size: 0.84rem; color: var(--ink-soft); }
+    .bf-cprefresh b { color: var(--accent); }
+    .bf-cprefresh button { font: inherit; font-size: 0.8rem; font-weight: 800; color: #fff; background: var(--accent); border: 0; border-radius: 999px; padding: 0.42rem 0.95rem; cursor: pointer; }
     .bf-condbar { display: flex; align-items: stretch; gap: 0.4rem; margin: 0 0 1.2rem; position: sticky; top: 0.5rem; z-index: 20; }
     .bf-condbar__main {
       flex: 1; min-width: 0; display: flex; align-items: center; gap: 0.5rem;

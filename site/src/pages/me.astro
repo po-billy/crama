@@ -24,21 +24,6 @@ import '../styles/app.css';
       <span class="go">캘린더로 보기 ›</span>
     </a>
 
-    <!-- 마스코트 | 프로필 (가로) -->
-    <div class="me-top">
-      <div class="dress" id="dress">
-        <div class="char">
-          <img class="base base-body" src="/img/generated/meerkat-body.webp" alt="크라미" />
-          <img class="base base-head" src="/img/generated/meerkat-head.webp" alt="" />
-        </div>
-      </div>
-      <div class="me-profile">
-        <div class="nick-row" id="nick-row"><b id="nick">회원</b><button class="nick-edit" id="nick-edit">변경</button></div>
-        <span class="em" id="email"></span>
-        <span class="worm-badge"><WormIcon size={16} /> <span id="bal">0</span> 마리</span>
-      </div>
-    </div>
-
     <!-- 상단 세그먼트: 내 정보 | 크라미·밀웜 (연속출석 바는 두 화면 공통) -->
     <div class="me-seg" role="tablist">
       <button type="button" class="me-seg__tab is-on" data-view="info" role="tab" aria-selected="true">내 정보</button>
@@ -47,6 +32,15 @@ import '../styles/app.css';
 
     <!-- ═══ 화면 1: 내 정보 · 내 서비스 · 친구 초대 ═══ -->
     <div id="me-view-info">
+
+    <!-- 계정 프로필: 닉네임 · 이메일 · 밀웜 -->
+    <div class="me-top me-top--info">
+      <div class="me-profile">
+        <div class="nick-row" id="nick-row"><b id="nick">회원</b><button class="nick-edit" id="nick-edit">변경</button></div>
+        <span class="em" id="email"></span>
+        <span class="worm-badge"><WormIcon size={16} /> <span id="bal">0</span> 마리</span>
+      </div>
+    </div>
 
     <!-- 내 정보 — 카테고리 카드 요약 + 바텀시트 수정(프로필 허브) -->
     <section class="me-prof" id="me-prof">
@@ -83,8 +77,17 @@ import '../styles/app.css';
           </div>
           <div class="me-card__strip"><a href="/car-tax/" id="mp-link-car" hidden>내 자동차세 ›</a></div>
         </div>
+
+        <div class="me-card me-card--home" data-tab="home">
+          <svg class="me-card__art" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></svg>
+          <div class="me-card__in">
+            <div class="me-card__head"><b>우리 집</b><button type="button" class="me-card__edit" id="mpc-home-edit" data-tab="home">등록</button></div>
+            <span class="me-card__val" id="mpc-home-val">아직 등록 전이에요</span>
+          </div>
+          <div class="me-card__strip"><a href="/property-tax/" id="mp-link-pt" hidden>내 재산세 ›</a></div>
+        </div>
       </div>
-      <div class="me-dots" id="me-dots" aria-hidden="true"><i class="is-on"></i><i></i><i></i></div>
+      <div class="me-dots" id="me-dots" aria-hidden="true"><i class="is-on"></i><i></i><i></i><i></i></div>
 
       <!-- 수정 바텀시트: 카드의 등록/수정 → 해당 탭으로 열림 -->
       <div class="mp-bs" id="mp-sheet" hidden>
@@ -96,6 +99,7 @@ import '../styles/app.css';
             <button type="button" class="mp-tab" data-tab="basic" role="tab">기본</button>
             <button type="button" class="mp-tab" data-tab="income" role="tab">소득·가구</button>
             <button type="button" class="mp-tab" data-tab="car" role="tab">차량</button>
+            <button type="button" class="mp-tab" data-tab="home" role="tab">부동산</button>
           </div>
           <button type="button" class="mp-sheet__x" id="mp-close" aria-label="닫기">×</button>
         </div>
@@ -117,6 +121,10 @@ import '../styles/app.css';
           <label>배기량(cc) <input id="mp-cc" type="number" inputmode="numeric" placeholder="예: 1598" min="0" max="8000" /></label>
           <label>등록연도 <input id="mp-caryr" type="number" inputmode="numeric" placeholder="예: 2022" min="1990" max="2026" /></label>
           <label class="me-prof__ev"><input id="mp-ev" type="checkbox" /> 전기·수소차</label>
+        </div>
+        <div class="mp-pane" data-tab="home" hidden>
+          <label>주택 공시가격(만원) <input id="mp-homep" type="number" inputmode="numeric" placeholder="예: 45000" min="0" max="1000000" step="500" /></label>
+          <label class="me-prof__ev"><input id="mp-home1" type="checkbox" checked /> 1세대 1주택</label>
         </div>
         <div class="me-prof__foot">
           <button type="button" class="btn" id="mp-save">저장</button>
@@ -151,6 +159,16 @@ import '../styles/app.css';
 
     <!-- ═══ 화면 2: 크라미 꾸미기 · 청취 시간 · 업적 · 밀웜 모으기 ═══ -->
     <div id="me-view-crami" hidden>
+
+    <!-- 내 크라미 (현재 착용 모습) -->
+    <div class="me-top me-top--crami">
+      <div class="dress" id="dress">
+        <div class="char">
+          <img class="base base-body" src="/img/generated/meerkat-body.webp" alt="크라미" />
+          <img class="base base-head" src="/img/generated/meerkat-head.webp" alt="" />
+        </div>
+      </div>
+    </div>
 
     <!-- 크라미 꾸미기 -->
     <a class="btn btn--primary" href="/wardrobe/" style="margin-bottom:.6rem">크라미 꾸미기</a>
@@ -593,14 +611,21 @@ import '../styles/app.css';
         }
       }
       setCard('car', c);
+      var h = [];
+      if (d.home && d.home.price) {
+        h.push('공시 ' + (d.home.price >= 10000 ? (Math.round(d.home.price / 1000) / 10) + '억' : fmt(d.home.price) + '만') + '원');
+        h.push(d.home.oneHome === false ? '다주택' : '1주택');
+      }
+      setCard('home', h);
       links(d);
     }
     function links(d) {
-      var s = $('mp-link-salary'), c = $('mp-link-car'), b = $('mp-link-bf'), mi = $('mp-link-mi');
+      var s = $('mp-link-salary'), c = $('mp-link-car'), b = $('mp-link-bf'), mi = $('mp-link-mi'), pt = $('mp-link-pt');
       if (d.salary) { var man = Math.min(Math.max(Math.round(d.salary / 100) * 100, 2000), 10000); s.href = '/salary/' + man + '/'; s.hidden = false; } else s.hidden = true;
       if (d.car && (d.car.cc || d.car.ev)) { c.hidden = false; } else c.hidden = true;
       if (d.household && (d.hhIncome || d.salary)) { mi.hidden = false; } else mi.hidden = true;
       if (d.age && d.region) { b.hidden = false; } else b.hidden = true;
+      if (d.home && d.home.price) { pt.hidden = false; } else pt.hidden = true;
     }
     function fill() {
       var P = window.CramaProfile;
@@ -612,6 +637,7 @@ import '../styles/app.css';
       if (d.household) $('mp-hh').value = d.household;
       if (d.hhIncome) $('mp-hhinc').value = d.hhIncome;
       if (d.car) { if (d.car.cc) $('mp-cc').value = d.car.cc; if (d.car.year) $('mp-caryr').value = d.car.year; $('mp-ev').checked = !!d.car.ev; }
+      if (d.home) { if (d.home.price) $('mp-homep').value = d.home.price; $('mp-home1').checked = d.home.oneHome !== false; }
       renderCards(d);
     }
 
@@ -693,6 +719,8 @@ import '../styles/app.css';
       var hhinc = Number($('mp-hhinc').value); if (hhinc) d.hhIncome = hhinc;
       var cc = Number($('mp-cc').value), yr = Number($('mp-caryr').value), ev = $('mp-ev').checked;
       if (cc || yr || ev) d.car = { cc: cc || undefined, year: yr || undefined, ev: ev || undefined };
+      var hp = Number($('mp-homep').value);
+      if (hp) d.home = { price: hp, oneHome: $('mp-home1').checked };
       if (P.set(d)) {
         $('mp-msg').textContent = '저장됐어요';
         renderCards(P.get());
@@ -705,6 +733,12 @@ import '../styles/app.css';
 </script>
 
 <style is:global>
+  /* 세그먼트별 프로필 헤더 — 화면1: 계정 정보만 / 화면2: 크라미 미리보기만 */
+  .me-top--info { margin-bottom: 0.9rem; }
+  .me-top--info .me-profile { padding: 0.2rem 0.3rem; }
+  .me-top--crami { display: flex; justify-content: center; margin-bottom: 0.9rem; }
+  .me-top--crami .dress { width: 190px; }
+
   /* ── 상단 뷰 세그먼트 (내 정보 | 크라미·밀웜) ── */
   .me-seg { display: flex; gap: 2px; padding: 3px; background: var(--paper-2); border: 1px solid var(--line); border-radius: 999px; margin: 0.2rem 0 1.1rem; }
   .me-seg__tab { flex: 1; font: inherit; font-size: 0.88rem; font-weight: 700; color: var(--muted); background: transparent; border: 0; border-radius: 999px; padding: 0.52rem 0.2rem; cursor: pointer; transition: background 0.15s, color 0.15s; }
@@ -730,6 +764,7 @@ import '../styles/app.css';
   .me-card--basic { background: linear-gradient(135deg, #5348cf 0%, #7a63ee 60%, #8f7bf4 100%); }
   .me-card--income { background: linear-gradient(135deg, #0b6b54 0%, #149a61 60%, #27b573 100%); }
   .me-card--car { background: linear-gradient(135deg, #1b2540 0%, #2c3a5c 60%, #3c4d74 100%); }
+  .me-card--home { background: linear-gradient(135deg, #8a4b0f 0%, #c2761a 60%, #dd9227 100%); }
   .me-card__art { position: absolute; right: -10px; top: 38%; transform: translateY(-50%) rotate(-6deg); width: 105px; height: 105px; color: #fff; opacity: 0.14; pointer-events: none; }
   .me-card__in { position: relative; padding: 1rem 1.1rem 0.9rem; }
   .me-card__head { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; margin-bottom: 0.4rem; }

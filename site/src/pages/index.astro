@@ -338,6 +338,7 @@ const bestSav = bestRate((ratesData as any).savings);
       <span class="home-rates__label">내 숫자</span>
       <span class="home-rates__item" id="mynum-1" hidden></span>
       <span class="home-rates__item" id="mynum-2" hidden></span>
+      <span class="home-rates__item" id="mynum-3" hidden></span>
       <span class="home-rates__cta">관리 →</span>
     </a>
     <script is:inline>
@@ -367,6 +368,18 @@ const bestSav = bestRate((ratesData as any).savings);
           var s2 = document.getElementById('mynum-2');
           s2.innerHTML = '자동차세 <b>연 ' + Math.round(total / 10000) + '만원</b>';
           s2.hidden = false; shown++;
+        }
+        if (d.home && d.home.price) {
+          var hp = d.home.price * 10000, one = d.home.oneHome !== false;
+          var ratio = one ? (hp <= 3e8 ? 0.43 : hp <= 6e8 ? 0.44 : 0.45) : 0.6;
+          var hb = hp * ratio, sp = one && hp <= 9e8, ht;
+          if (sp) ht = hb <= 6e7 ? hb * 0.0005 : hb <= 1.5e8 ? 30000 + (hb - 6e7) * 0.001 : hb <= 3e8 ? 120000 + (hb - 1.5e8) * 0.002 : 420000 + (hb - 3e8) * 0.0035;
+          else ht = hb <= 6e7 ? hb * 0.001 : hb <= 1.5e8 ? 60000 + (hb - 6e7) * 0.0015 : hb <= 3e8 ? 195000 + (hb - 1.5e8) * 0.0025 : 570000 + (hb - 3e8) * 0.004;
+          ht = Math.floor(ht / 10) * 10;
+          var htot = ht + Math.floor((hb * 0.0014) / 10) * 10 + Math.floor((ht * 0.2) / 10) * 10;
+          var s3 = document.getElementById('mynum-3');
+          s3.innerHTML = '재산세 <b>연 ' + Math.round(htot / 10000) + '만원</b>';
+          s3.hidden = false; shown++;
         }
         if (shown) el.hidden = false;
       })();

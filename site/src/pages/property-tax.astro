@@ -105,6 +105,21 @@ const jsonLd = {
       </ul>
     </section>
 
+    <section class="pt-sec">
+      <h2>납부일 놓치지 않게 알림 받기</h2>
+      <ul class="pt-alerts">
+        <li data-id="proptax-july-2026" data-name="재산세 7월분 납부" data-deadline="2026-07-31">
+          <div><b>7월분 납부 마감</b><span>7/16 ~ 7/31 · 늦으면 3% 가산 · 위택스</span></div>
+          <button type="button" class="pt-alert-save" aria-pressed="false"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> 알림</button>
+        </li>
+        <li data-id="proptax-sep-2026" data-name="재산세 9월분 납부" data-deadline="2026-09-30">
+          <div><b>9월분 납부 마감</b><span>9/16 ~ 9/30 · 본세 20만원 초과 시 2회차</span></div>
+          <button type="button" class="pt-alert-save" aria-pressed="false"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> 알림</button>
+        </li>
+      </ul>
+      <p class="pt-note">알림을 켜두면 마감 3일 전·1일 전에 푸시로 알려드려요(로그인 필요).</p>
+    </section>
+
     <div class="pt-cross">
       <a href="/car-tax/">자동차세 계산 →</a>
       <a href="/salary/">연봉 실수령액 →</a>
@@ -174,6 +189,16 @@ const jsonLd = {
           if (P.set({ home: { price: man, oneHome: $('pt-one').checked } })) { btn.textContent = '저장됐어요 — /me에서 관리'; setTimeout(sync, 2500); }
         });
       }
+
+      // 납부 마감 D-day 알림(하트 저장 → D-3·D-1 푸시)
+      const S = window.CramaSaved;
+      document.querySelectorAll('.pt-alerts li').forEach((li) => {
+        const hbtn = li.querySelector('.pt-alert-save');
+        if (!S) { hbtn.hidden = true; return; }
+        const hsync = (on) => { hbtn.classList.toggle('is-on', on); hbtn.setAttribute('aria-pressed', on ? 'true' : 'false'); };
+        hsync(S.has('dday', li.dataset.id));
+        hbtn.addEventListener('click', () => hsync(S.toggle({ type: 'dday', id: li.dataset.id, name: li.dataset.name, url: '/property-tax/', sub: '재산세', deadline: li.dataset.deadline })));
+      });
     })();
   </script>
 
@@ -220,6 +245,13 @@ const jsonLd = {
     .pt-list { margin: 0; padding-left: 1.1rem; display: grid; gap: 0.55rem; font-size: 0.92rem; line-height: 1.6; color: var(--ink-soft); }
     .pt-note { font-size: 0.78rem; color: var(--muted); margin: 0.7rem 0 0; line-height: 1.5; }
     .pt-note a { color: var(--accent); }
+    .pt-alerts { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+    .pt-alerts li { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; padding: 0.75rem 0.9rem; border: 1px solid var(--line); border-radius: 12px; }
+    .pt-alerts b { font-size: 0.92rem; display: block; }
+    .pt-alerts span { font-size: 0.76rem; color: var(--muted); }
+    .pt-alert-save { flex: none; display: inline-flex; align-items: center; gap: 0.3rem; font: inherit; font-size: 0.8rem; font-weight: 700; padding: 0.45rem 0.8rem; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); color: var(--ink-soft); cursor: pointer; }
+    .pt-alert-save:hover { border-color: #e11d48; color: #e11d48; }
+    .pt-alert-save.is-on { color: #e11d48; border-color: #e11d48; }
     .pt-cross { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; margin: 2rem 0 1rem; padding-top: 1.4rem; border-top: 1px solid var(--line); }
     .pt-cross a { font-size: 0.88rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--line); border-radius: 999px; }
     .pt-cross a:hover { border-color: var(--accent); }

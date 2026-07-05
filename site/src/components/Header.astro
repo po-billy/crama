@@ -21,6 +21,10 @@ import DuoIcon from './DuoIcon.astro';
       <a href="/search/" class="search-link" aria-label="검색" title="검색">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
       </a>
+      <a href="/me/" class="hd-worm" id="hd-worm" hidden aria-label="내 밀웜" title="내 밀웜">
+        <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="16.5" r="3.6" fill="currentColor" opacity="0.92"/><circle cx="9" cy="14.5" r="4" fill="currentColor"/><circle cx="13" cy="12" r="4.1" fill="currentColor"/><circle cx="16.6" cy="9.6" r="3.7" fill="currentColor"/><circle cx="19.5" cy="7.6" r="3.1" fill="currentColor"/><circle cx="20.6" cy="6.7" r="0.85" fill="#1a1a1a"/></svg>
+        <b id="hd-worm-n">0</b>
+      </a>
       <a href="/me/" class="search-link" aria-label="내 계정" title="내 계정" style="display:inline-flex;align-items:center">
         <span id="me-ava"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.6 3.2-5.5 7-5.5s7 1.9 7 5.5"/></svg></span>
       </a>
@@ -148,6 +152,20 @@ import DuoIcon from './DuoIcon.astro';
   })();
 </script>
 
+<script is:inline>
+  // 헤더 밀웜 배지 — 로그인 + 캐시 보유 시 즉시 표시(정확값은 아래 모듈 스크립트가 갱신)
+  (() => {
+    try {
+      var logged = Object.keys(localStorage).some(function (k) { return k.includes('-auth-token'); });
+      var bal = localStorage.getItem('crama:bal');
+      if (logged && bal !== null) {
+        document.getElementById('hd-worm-n').textContent = Number(bal).toLocaleString('ko-KR');
+        document.getElementById('hd-worm').hidden = false;
+      }
+    } catch (e) {}
+  })();
+</script>
+
 <script>
   // 로그인 시 프로필 아이콘에 내 크라미(착장)를 동그라미로 — 로그인된 경우에만 supabase 동적 로드
   (async () => {
@@ -156,8 +174,17 @@ import DuoIcon from './DuoIcon.astro';
     let hasSession = false;
     try { hasSession = Object.keys(localStorage).some((k) => k.includes('-auth-token')); } catch {}
     if (!hasSession) return;
-    const { getUser, equippedMap } = await import('../lib/api');
+    const { getUser, equippedMap, wormBalance } = await import('../lib/api');
     if (!(await getUser())) return;
+    // 밀웜 잔액 — 배지 갱신 + 캐시
+    try {
+      const bal = await wormBalance();
+      if (typeof bal === 'number') {
+        const n = document.getElementById('hd-worm-n');
+        if (n) { n.textContent = bal.toLocaleString('ko-KR'); document.getElementById('hd-worm')!.hidden = false; }
+        localStorage.setItem('crama:bal', String(bal));
+      }
+    } catch {}
     const eq = await equippedMap();
     const IMG = (id: string) => `/img/wardrobe/${id}.webp`;
     let html = '<img class="base base-body" src="/img/generated/meerkat-body.webp" alt="">';

@@ -39,15 +39,16 @@ import '../styles/app.css';
       </div>
     </div>
 
-    <!-- 크라미 꾸미기 -->
-    <a class="btn btn--primary" href="/wardrobe/" style="margin-bottom:.6rem">크라미 꾸미기</a>
-    <div class="me-actions">
-      <a class="btn btn--line" href="/calendar/">출석 캘린더</a>
-      <a class="btn btn--line" href="/saved/">내 스크랩</a>
-      <a class="btn btn--line" href="/saved-picks/">내 관심함</a>
+    <!-- 상단 세그먼트: 내 정보 | 크라미·밀웜 (연속출석 바는 두 화면 공통) -->
+    <div class="me-seg" role="tablist">
+      <button type="button" class="me-seg__tab is-on" data-view="info" role="tab" aria-selected="true">내 정보</button>
+      <button type="button" class="me-seg__tab" data-view="crami" role="tab" aria-selected="false">크라미·밀웜</button>
     </div>
 
-    <!-- 내 정보 — 카테고리 카드 요약 + 탭 수정 시트(프로필 허브) -->
+    <!-- ═══ 화면 1: 내 정보 · 내 서비스 · 친구 초대 ═══ -->
+    <div id="me-view-info">
+
+    <!-- 내 정보 — 카테고리 카드 요약 + 바텀시트 수정(프로필 허브) -->
     <section class="me-prof" id="me-prof">
       <div class="me-prof__head">
         <h2>내 정보</h2>
@@ -55,45 +56,39 @@ import '../styles/app.css';
       </div>
 
       <div class="me-cards">
-        <div class="me-card" data-tab="basic">
-          <span class="me-card__ic" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
-          </span>
-          <div class="me-card__body">
-            <b>기본 정보</b>
+        <div class="me-card me-card--basic" data-tab="basic">
+          <svg class="me-card__art" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
+          <div class="me-card__in">
+            <div class="me-card__head"><b>기본 정보</b><button type="button" class="me-card__edit" id="mpc-basic-edit" data-tab="basic">등록</button></div>
             <span class="me-card__val" id="mpc-basic-val">아직 등록 전이에요</span>
-            <span class="me-card__links"><a href="/benefits/" id="mp-link-bf" hidden>내 혜택 매칭 →</a></span>
           </div>
-          <button type="button" class="me-card__edit" id="mpc-basic-edit" data-tab="basic">등록</button>
+          <div class="me-card__strip"><a href="/benefits/" id="mp-link-bf" hidden>내 혜택 매칭 ›</a></div>
         </div>
 
-        <div class="me-card" data-tab="income">
-          <span class="me-card__ic" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M7.5 9l2 6 2.5-6 2.5 6 2-6M7 13.5h10"/></svg>
-          </span>
-          <div class="me-card__body">
-            <b>소득·가구</b>
+        <div class="me-card me-card--income" data-tab="income">
+          <svg class="me-card__art" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M7.5 9l2 6 2.5-6 2.5 6 2-6M7 13.5h10"/></svg>
+          <div class="me-card__in">
+            <div class="me-card__head"><b>소득·가구</b><button type="button" class="me-card__edit" id="mpc-income-edit" data-tab="income">등록</button></div>
             <span class="me-card__val" id="mpc-income-val">아직 등록 전이에요</span>
-            <span class="me-card__links"><a href="/salary/" id="mp-link-salary" hidden>내 실수령액 →</a><a href="/median-income/" id="mp-link-mi" hidden>내 중위소득 % →</a></span>
           </div>
-          <button type="button" class="me-card__edit" id="mpc-income-edit" data-tab="income">등록</button>
+          <div class="me-card__strip"><a href="/salary/" id="mp-link-salary" hidden>내 실수령액 ›</a><a href="/median-income/" id="mp-link-mi" hidden>내 중위소득 % ›</a></div>
         </div>
 
-        <div class="me-card" data-tab="car">
-          <span class="me-card__ic" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l1.6-4.2A2 2 0 0 1 8.5 5.5h7a2 2 0 0 1 1.9 1.3L19 11M5 11h14M5 11a2 2 0 0 0-2 2v3.5h2M19 11a2 2 0 0 1 2 2v3.5h-2M5 16.5v2M19 16.5v2M7.5 14h.01M16.5 14h.01"/></svg>
-          </span>
-          <div class="me-card__body">
-            <b>내 차</b>
+        <div class="me-card me-card--car" data-tab="car">
+          <svg class="me-card__art" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 11l1.6-4.2A2 2 0 0 1 8.5 5.5h7a2 2 0 0 1 1.9 1.3L19 11M5 11h14M5 11a2 2 0 0 0-2 2v3.5h2M19 11a2 2 0 0 1 2 2v3.5h-2M5 16.5v2M19 16.5v2M7.5 14h.01M16.5 14h.01"/></svg>
+          <div class="me-card__in">
+            <div class="me-card__head"><b>내 차</b><button type="button" class="me-card__edit" id="mpc-car-edit" data-tab="car">등록</button></div>
             <span class="me-card__val" id="mpc-car-val">아직 등록 전이에요</span>
-            <span class="me-card__links"><a href="/car-tax/" id="mp-link-car" hidden>내 자동차세 →</a></span>
           </div>
-          <button type="button" class="me-card__edit" id="mpc-car-edit" data-tab="car">등록</button>
+          <div class="me-card__strip"><a href="/car-tax/" id="mp-link-car" hidden>내 자동차세 ›</a></div>
         </div>
       </div>
 
-      <!-- 수정 시트: 카드의 등록/수정 → 해당 탭으로 열림 -->
-      <div class="me-prof__sheet" id="mp-sheet" hidden>
+      <!-- 수정 바텀시트: 카드의 등록/수정 → 해당 탭으로 열림 -->
+      <div class="mp-bs" id="mp-sheet" hidden>
+        <div class="mp-bs__backdrop" id="mp-bs-backdrop"></div>
+        <div class="mp-bs__panel" role="dialog" aria-modal="true" aria-label="내 정보 수정">
+        <span class="mp-bs__handle" aria-hidden="true"></span>
         <div class="mp-tabs">
           <div class="mp-seg" role="tablist">
             <button type="button" class="mp-tab" data-tab="basic" role="tab">기본</button>
@@ -125,8 +120,38 @@ import '../styles/app.css';
           <button type="button" class="btn" id="mp-save">저장</button>
           <span class="me-prof__msg" id="mp-msg"></span>
         </div>
+        </div>
       </div>
     </section>
+
+    <!-- 내 서비스 -->
+    <h2 class="me-h2">내 서비스</h2>
+    <div class="me-svc">
+      <a href="/benefits/"><DuoIcon name="benefits" class="svc-ico" />내 혜택</a>
+      <a href="/checkup/"><DuoIcon name="checkup" class="svc-ico" />재무 체크업</a>
+      <a href="/policy-calendar/"><DuoIcon name="calendar" class="svc-ico" />정책 캘린더</a>
+      <a href="/saved/"><DuoIcon name="guide" class="svc-ico" />내 스크랩</a>
+      <a href="/saved-picks/"><DuoIcon name="saved" class="svc-ico" />내 관심함</a>
+      <a href="/calendar/"><DuoIcon name="calendar" class="svc-ico" />출석 캘린더</a>
+    </div>
+
+    <!-- 친구 초대 -->
+    <div class="invite" style="margin-top:2rem">
+      <h3>친구 초대하고 밀웜 받기</h3>
+      <p class="app__sub" style="margin:0">초대 링크로 친구가 가입하면 <b>둘 다 +20밀웜</b></p>
+      <div class="invite__row">
+        <div class="invite__code" id="invite-link">…</div>
+        <button class="btn btn--primary invite__copy" id="invite-copy" style="width:auto;padding-inline:1.2rem">복사</button>
+      </div>
+    </div>
+
+    </div><!-- /me-view-info -->
+
+    <!-- ═══ 화면 2: 크라미 꾸미기 · 청취 시간 · 업적 · 밀웜 모으기 ═══ -->
+    <div id="me-view-crami" hidden>
+
+    <!-- 크라미 꾸미기 -->
+    <a class="btn btn--primary" href="/wardrobe/" style="margin-bottom:.6rem">크라미 꾸미기</a>
 
     <!-- 내 기록: 들은 시간 -->
     <div class="me-stat">
@@ -148,14 +173,6 @@ import '../styles/app.css';
     <div class="badge-grid" id="badge-grid"></div>
     <button class="badge-toggle" id="badge-toggle">모든 업적 보기</button>
 
-    <!-- 내 서비스 -->
-    <h2 class="me-h2">내 서비스</h2>
-    <div class="me-svc">
-      <a href="/benefits/"><DuoIcon name="benefits" class="svc-ico" />내 혜택</a>
-      <a href="/checkup/"><DuoIcon name="checkup" class="svc-ico" />재무 체크업</a>
-      <a href="/policy-calendar/"><DuoIcon name="calendar" class="svc-ico" />정책 캘린더</a>
-    </div>
-
     <!-- 밀웜 모으기 -->
     <h2 class="me-h2">밀웜 모으기</h2>
     <div class="panel" id="earn-list">
@@ -164,17 +181,9 @@ import '../styles/app.css';
       <div class="skel skel-row"></div>
     </div>
 
-    <!-- 친구 초대 -->
-    <div class="invite" style="margin-top:2rem">
-      <h3>친구 초대하고 밀웜 받기</h3>
-      <p class="app__sub" style="margin:0">초대 링크로 친구가 가입하면 <b>둘 다 +20밀웜</b></p>
-      <div class="invite__row">
-        <div class="invite__code" id="invite-link">…</div>
-        <button class="btn btn--primary invite__copy" id="invite-copy" style="width:auto;padding-inline:1.2rem">복사</button>
-      </div>
-    </div>
+    </div><!-- /me-view-crami -->
 
-    <!-- 로그아웃 (맨 아래) -->
+    <!-- 로그아웃 (맨 아래, 공통) -->
     <button class="btn btn--line me-logout-btn" id="logout">로그아웃</button>
   </div>
   <div class="toast" id="toast"></div>
@@ -604,7 +613,7 @@ import '../styles/app.css';
       renderCards(d);
     }
 
-    // 세그먼트 탭 — 카드의 등록/수정 버튼이 해당 탭으로 시트를 연다
+    // 바텀시트 — 카드의 등록/수정 버튼이 해당 세그먼트 탭으로 연다
     function setTab(t) {
       sec.querySelectorAll('.mp-tab').forEach(function (b) { b.classList.toggle('is-on', b.dataset.tab === t); b.setAttribute('aria-selected', b.dataset.tab === t ? 'true' : 'false'); });
       sec.querySelectorAll('.mp-pane').forEach(function (p) { p.hidden = p.dataset.tab !== t; });
@@ -612,11 +621,27 @@ import '../styles/app.css';
     function openSheet(t) {
       $('mp-sheet').hidden = false;
       setTab(t);
-      $('mp-sheet').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      document.body.style.overflow = 'hidden';
+    }
+    function closeSheet() {
+      $('mp-sheet').hidden = true;
+      document.body.style.overflow = '';
     }
     sec.querySelectorAll('.me-card__edit').forEach(function (b) { b.addEventListener('click', function () { openSheet(b.dataset.tab); }); });
     sec.querySelectorAll('.mp-tab').forEach(function (b) { b.addEventListener('click', function () { setTab(b.dataset.tab); }); });
-    $('mp-close').addEventListener('click', function () { $('mp-sheet').hidden = true; });
+    $('mp-close').addEventListener('click', closeSheet);
+    $('mp-bs-backdrop').addEventListener('click', closeSheet);
+
+    // 상단 뷰 세그먼트: 내 정보 | 크라미·밀웜 (마지막 선택 기억)
+    var VKEY = 'crama:me-view';
+    function setView(v) {
+      document.querySelectorAll('.me-seg__tab').forEach(function (b) { var on = b.dataset.view === v; b.classList.toggle('is-on', on); b.setAttribute('aria-selected', on ? 'true' : 'false'); });
+      document.getElementById('me-view-info').hidden = v !== 'info';
+      document.getElementById('me-view-crami').hidden = v !== 'crami';
+      try { localStorage.setItem(VKEY, v); } catch (e) {}
+    }
+    document.querySelectorAll('.me-seg__tab').forEach(function (b) { b.addEventListener('click', function () { setView(b.dataset.view); }); });
+    try { var lv = localStorage.getItem(VKEY); if (lv === 'crami') setView('crami'); } catch (e) {}
 
     $('mp-save').addEventListener('click', function () {
       var P = window.CramaProfile;
@@ -632,7 +657,7 @@ import '../styles/app.css';
       if (P.set(d)) {
         $('mp-msg').textContent = '저장됐어요';
         renderCards(P.get());
-        setTimeout(function () { $('mp-msg').textContent = ''; $('mp-sheet').hidden = true; }, 1200);
+        setTimeout(function () { $('mp-msg').textContent = ''; closeSheet(); }, 1200);
       }
     });
     document.addEventListener('crama:profile-sync', fill);
@@ -641,28 +666,43 @@ import '../styles/app.css';
 </script>
 
 <style is:global>
-  /* ── 내 정보: 카테고리 카드 허브 ── */
-  .me-prof { margin: 1.4rem 0; }
+  /* ── 상단 뷰 세그먼트 (내 정보 | 크라미·밀웜) ── */
+  .me-seg { display: flex; gap: 2px; padding: 3px; background: var(--paper-2); border: 1px solid var(--line); border-radius: 999px; margin: 0.2rem 0 1.1rem; }
+  .me-seg__tab { flex: 1; font: inherit; font-size: 0.88rem; font-weight: 700; color: var(--muted); background: transparent; border: 0; border-radius: 999px; padding: 0.52rem 0.2rem; cursor: pointer; transition: background 0.15s, color 0.15s; }
+  .me-seg__tab.is-on { background: var(--accent); color: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.14); }
+  #me-view-info[hidden], #me-view-crami[hidden] { display: none; }
+
+  /* ── 내 정보: 히어로 카드 허브 ── */
+  .me-prof { margin: 0.2rem 0 1.6rem; }
   .me-prof__head { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.7rem; }
   .me-prof__head h2 { font-size: 1.08rem; margin: 0; }
   .me-prof__head span { font-size: 0.76rem; color: var(--muted); }
-  .me-cards { display: flex; flex-direction: column; gap: 0.55rem; }
-  .me-card { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.95rem 1rem; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); transition: border-color 0.12s; }
-  .me-card:hover { border-color: var(--accent); }
-  .me-card__ic { flex: none; width: 38px; height: 38px; border-radius: 12px; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; }
-  .me-card__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.18rem; }
-  .me-card__body > b { font-size: 0.8rem; color: var(--muted); font-weight: 700; letter-spacing: 0.01em; }
-  .me-card__val { font-size: 0.95rem; font-weight: 800; color: var(--ink); line-height: 1.45; word-break: keep-all; }
-  .me-card__val.is-empty { color: var(--muted); font-weight: 500; font-size: 0.84rem; }
-  .me-card__links { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.3rem; }
-  .me-card__links a { font-size: 0.75rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.28rem 0.65rem; background: var(--accent-soft); border-radius: 999px; }
-  .me-card__links a[hidden] { display: none; }
-  .me-card__edit { flex: none; align-self: center; font: inherit; font-size: 0.78rem; font-weight: 700; color: var(--ink-soft); background: var(--paper-2); border: 1px solid var(--line); border-radius: 999px; padding: 0.4rem 0.9rem; cursor: pointer; transition: color 0.12s, border-color 0.12s; }
-  .me-card__edit:hover { border-color: var(--accent); color: var(--accent); }
+  .me-cards { display: flex; flex-direction: column; gap: 0.7rem; }
+  .me-card { position: relative; overflow: hidden; border-radius: 18px; color: #fff; box-shadow: 0 6px 18px rgba(20, 24, 50, 0.16); }
+  .me-card--basic { background: linear-gradient(135deg, #5348cf 0%, #7a63ee 60%, #8f7bf4 100%); }
+  .me-card--income { background: linear-gradient(135deg, #0b6b54 0%, #149a61 60%, #27b573 100%); }
+  .me-card--car { background: linear-gradient(135deg, #1b2540 0%, #2c3a5c 60%, #3c4d74 100%); }
+  .me-card__art { position: absolute; right: -10px; top: 50%; transform: translateY(-62%) rotate(-6deg); width: 105px; height: 105px; color: #fff; opacity: 0.14; pointer-events: none; }
+  .me-card__in { position: relative; padding: 1rem 1.1rem 0.9rem; }
+  .me-card__head { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; margin-bottom: 0.4rem; }
+  .me-card__head b { font-size: 0.78rem; font-weight: 700; color: rgba(255, 255, 255, 0.78); letter-spacing: 0.03em; }
+  .me-card__val { display: block; font-size: 1.08rem; font-weight: 800; line-height: 1.45; word-break: keep-all; padding-right: 3.2rem; }
+  .me-card__val.is-empty { font-size: 0.87rem; font-weight: 600; color: rgba(255, 255, 255, 0.72); }
+  .me-card__edit { flex: none; font: inherit; font-size: 0.76rem; font-weight: 700; color: #fff; background: rgba(255, 255, 255, 0.16); border: 1px solid rgba(255, 255, 255, 0.38); border-radius: 999px; padding: 0.32rem 0.85rem; cursor: pointer; transition: background 0.12s; }
+  .me-card__edit:hover { background: rgba(255, 255, 255, 0.28); }
+  .me-card__strip { position: relative; display: flex; flex-wrap: wrap; gap: 0.4rem 0.9rem; padding: 0.55rem 1.1rem; background: rgba(8, 10, 24, 0.22); }
+  .me-card__strip a { font-size: 0.78rem; font-weight: 700; color: #fff; text-decoration: none; opacity: 0.95; }
+  .me-card__strip a:hover { text-decoration: underline; }
+  .me-card__strip a[hidden] { display: none; }
+  .me-card__strip:not(:has(a:not([hidden]))) { display: none; }
 
-  /* ── 수정 시트 + 세그먼트 탭 ── */
-  .me-prof__sheet { margin-top: 0.6rem; padding: 1rem 1.1rem 1.1rem; border: 1px solid var(--line); border-radius: 14px; background: var(--paper-2); }
-  .me-prof__sheet[hidden] { display: none; }
+  /* ── 수정 바텀시트 + 세그먼트 탭 ── */
+  .mp-bs { position: fixed; inset: 0; z-index: 1200; }
+  .mp-bs[hidden] { display: none; }
+  .mp-bs__backdrop { position: absolute; inset: 0; background: rgba(12, 14, 28, 0.45); }
+  .mp-bs__panel { position: absolute; left: 0; right: 0; bottom: 0; max-width: 520px; margin: 0 auto; background: var(--paper); border-radius: 20px 20px 0 0; padding: 0.6rem 1.15rem calc(1.15rem + env(safe-area-inset-bottom)); box-shadow: 0 -10px 34px rgba(0, 0, 0, 0.22); animation: mpUp 0.22s ease; }
+  @keyframes mpUp { from { transform: translateY(28px); opacity: 0.5; } to { transform: translateY(0); opacity: 1; } }
+  .mp-bs__handle { display: block; width: 44px; height: 4px; border-radius: 999px; background: var(--line); margin: 0.2rem auto 0.85rem; }
   .mp-tabs { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.9rem; }
   .mp-seg { flex: 1; display: flex; gap: 2px; padding: 3px; background: var(--paper); border: 1px solid var(--line); border-radius: 999px; }
   .mp-tab { flex: 1; font: inherit; font-size: 0.82rem; font-weight: 700; color: var(--muted); background: transparent; border: 0; border-radius: 999px; padding: 0.45rem 0.2rem; cursor: pointer; transition: background 0.15s, color 0.15s; }

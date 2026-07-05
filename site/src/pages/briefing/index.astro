@@ -113,7 +113,7 @@ const todayAudio = today ? !!today.data.audio : false;
         <a class="brief-today" href={`/blog/${today.id}/`}>
           {today.data.heroImage && (
             <div class="brief-today__media">
-              <img src={today.data.heroImage} alt="" loading="eager" />
+              <img src={today.data.heroImage} alt={today.data.title} loading="eager" />
               {todayAudio && <span class="brief-today__play" aria-hidden="true">▶</span>}
             </div>
           )}

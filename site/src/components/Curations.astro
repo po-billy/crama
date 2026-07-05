@@ -40,7 +40,7 @@ const cards = CURATIONS.map((c) => {
               <li>
                 <a class="curay__item" href={`/blog/${p.id}/`}>
                   <span class="curay__thumb">
-                    {p.data.heroImage && <img src={thumb(p.data.heroImage)} alt="" loading="lazy" width="44" height="44" />}
+                    {p.data.heroImage && <img src={thumb(p.data.heroImage)} alt={p.data.title} loading="lazy" width="44" height="44" />}
                   </span>
                   <span class="curay__body">
                     <strong class="curay__name">{p.data.title}</strong>

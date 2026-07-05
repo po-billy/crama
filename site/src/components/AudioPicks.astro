@@ -40,7 +40,7 @@ const lists = PLAYLISTS.map((pl) => ({
               <li>
                 <a class="apl__item" href={`/blog/${p.id}/`} data-audio-play data-src={p.data.audio} data-title={p.data.title}>
                   <span class="apl__thumb">
-                    {p.data.heroImage && <img src={thumb(p.data.heroImage)} alt="" loading="lazy" width="48" height="48" />}
+                    {p.data.heroImage && <img src={thumb(p.data.heroImage)} alt={p.data.title} loading="lazy" width="48" height="48" />}
                   </span>
                   <span class="apl__body">
                     <span class="apl__tag">오디오 · {CATEGORIES[p.data.category]?.name ?? ''}</span>

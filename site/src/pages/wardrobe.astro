@@ -128,7 +128,7 @@ import AppLayout from '../layouts/AppLayout.astro';
         ? `<div class="item__meta" style="color:${on ? 'var(--accent)' : 'var(--muted)'}">${on ? '● 착용중' : '보유'}</div>`
         : `<div class="item__meta">${wormSvg()} ${it.price_worms}</div>`;
       return `<div class="item" data-id="${it.id}" data-on="${on ? 1 : 0}">
-        <div class="item__swatch"><img src="${IMG(it.id)}" style="width:100%;height:100%;object-fit:${fit}" loading="lazy">${it.rarity === 'rare' ? '<span class="rare">RARE</span>' : ''}</div>
+        <div class="item__swatch"><img src="${IMG(it.id)}" alt="${it.name}" style="width:100%;height:100%;object-fit:${fit}" loading="lazy">${it.rarity === 'rare' ? '<span class="rare">RARE</span>' : ''}</div>
         <div class="item__name">${it.name}</div>${meta}</div>`;
     }).join('') + '</div>';
     $('list').querySelectorAll('.item').forEach((el) => el.addEventListener('click', () => onTap((el as HTMLElement).dataset.id!)));
@@ -202,7 +202,7 @@ import AppLayout from '../layouts/AppLayout.astro';
   function openCart(ids: string[], total: number) {
     if (!loggedIn) { location.href = '/login/'; return; }
     const insufficient = total > balance;
-    $('cart-list').innerHTML = ids.map((id) => { const it = byId().get(id)!; return `<div class="cart-item"><img src="${IMG(id)}"><span class="nm">${it.name}</span><span class="worm-badge">${wormSvg()} ${it.price_worms}</span></div>`; }).join('');
+    $('cart-list').innerHTML = ids.map((id) => { const it = byId().get(id)!; return `<div class="cart-item"><img src="${IMG(id)}" alt="${it.name}"><span class="nm">${it.name}</span><span class="worm-badge">${wormSvg()} ${it.price_worms}</span></div>`; }).join('');
     $('cart-wi').innerHTML = wormSvg();
     $('cart-total-n').textContent = String(total);
     const buy = $('cart-buy') as HTMLButtonElement;

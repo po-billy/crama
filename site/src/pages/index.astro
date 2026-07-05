@@ -406,7 +406,7 @@ const bestSav = bestRate((ratesData as any).savings);
           var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
           row.innerHTML = items.map(function (it) {
             return '<a class="home-recent__card" href="' + esc(it.href) + '">' +
-              '<span class="home-recent__thumb">' + (it.thumb ? '<img src="' + esc(it.thumb) + '" alt="" loading="lazy">' : '') + '</span>' +
+              '<span class="home-recent__thumb">' + (it.thumb ? '<img src="' + esc(it.thumb) + '" alt="' + esc(it.title) + '" loading="lazy">' : '') + '</span>' +
               '<span class="home-recent__meta"><span class="home-recent__cat">' + esc(it.cat) + '</span>' +
               '<span class="home-recent__title">' + esc(it.title) + '</span></span></a>';
           }).join('');
@@ -431,7 +431,7 @@ const bestSav = bestRate((ratesData as any).savings);
         <!-- 큰 대표 영역(활성 글) -->
         <a class="rankf__feature" id="rankf-feature" href={`/blog/${ranking[0].id}/`}>
           <div class="rankf__media">
-            <img id="rankf-img" src={ranking[0].data.heroImage} alt="" />
+            <img id="rankf-img" src={ranking[0].data.heroImage} alt={ranking[0].data.title} />
             <span class="rankf__grad" aria-hidden="true"></span>
           </div>
           <div class="rankf__cap">
@@ -450,7 +450,7 @@ const bestSav = bestRate((ratesData as any).savings);
                 data-img={p.data.heroImage ?? ''} data-title={p.data.title} data-desc={p.data.description}
                 data-cat={CATEGORIES[p.data.category].name}>
                 <span class="rankf__rank">{i + 1}</span>
-                <span class="rankf__thumb">{p.data.heroImage && <img src={thumb(p.data.heroImage)} alt="" loading="lazy" width="48" height="48" />}</span>
+                <span class="rankf__thumb">{p.data.heroImage && <img src={thumb(p.data.heroImage)} alt={p.data.title} loading="lazy" width="48" height="48" />}</span>
                 <span class="rankf__name">{p.data.title}</span>
               </a>
             </li>
@@ -512,7 +512,7 @@ const bestSav = bestRate((ratesData as any).savings);
             <a class="rankc__slide" href={`/blog/${p.id}/`}>
               <div class="rankc__media">
                 {p.data.heroImage
-                  ? <img class="rankc__img" src={p.data.heroImage} alt="" loading="lazy" />
+                  ? <img class="rankc__img" src={p.data.heroImage} alt={p.data.title} loading="lazy" />
                   : <span class="rankc__img rankc__img--ph" aria-hidden="true"></span>}
                 <div class="rankc__overlay">
                   <h3 class="rankc__t">{p.data.title}</h3>
@@ -633,7 +633,7 @@ const bestSav = bestRate((ratesData as any).savings);
           <div class="guides__grid" data-guides>
             {guidePosts.map((g) => (
               <a class="guide-card" href={g.href}>
-                {g.img && <img class="guide-card__bg" src={g.img} alt="" loading="lazy" />}
+                {g.img && <img class="guide-card__bg" src={g.img} alt={g.title} loading="lazy" />}
                 <span class="guide-card__badge">{g.cat} 가이드</span>
                 <h3 class="guide-card__title">{g.title}</h3>
                 <span class="guide-card__cta">단계별로 시작하기 →</span>

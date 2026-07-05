@@ -24,7 +24,7 @@ const guideCount = posts.length - columnCount;
   <div class="wrap">
     {PILLARS[slug] && (
       <a class="pillar-strip" href={`/blog/${PILLARS[slug]}/`}>
-        <img class="pillar-strip__ic" src={`/img/generated/menu-${slug}.webp`} alt="" loading="lazy" width="34" height="34" />
+        <img class="pillar-strip__ic" src={`/img/generated/menu-${slug}.webp`} alt={`${slug} 카테고리 아이콘`} loading="lazy" width="34" height="34" />
         <span class="pillar-strip__tx">처음이세요? <strong>{cat.name} 완벽 가이드</strong>로 한 번에 시작하세요</span>
         <span class="pillar-strip__btn">가이드 보기 →</span>
       </a>

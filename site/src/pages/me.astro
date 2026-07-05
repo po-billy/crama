@@ -47,35 +47,84 @@ import '../styles/app.css';
       <a class="btn btn--line" href="/saved-picks/">내 관심함</a>
     </div>
 
-    <!-- 내 정보 — 등록하면 계산기·매칭이 자동으로 채워지는 프로필 허브 -->
+    <!-- 내 정보 — 카테고리 카드 요약 + 탭 수정 시트(프로필 허브) -->
     <section class="me-prof" id="me-prof">
       <div class="me-prof__head">
         <h2>내 정보</h2>
-        <span>등록해두면 연봉·자동차세·혜택 매칭이 자동으로 채워져요</span>
+        <span>등록해두면 계산기·매칭이 자동으로 채워져요</span>
       </div>
-      <div class="me-prof__grid">
-        <label>나이 <input id="mp-age" type="number" inputmode="numeric" placeholder="예: 32" min="14" max="100" /></label>
-        <label>지역
-          <select id="mp-region">
-            <option value="">선택…</option>
-            {['서울특별시','경기도','인천광역시','부산광역시','대구광역시','광주광역시','대전광역시','울산광역시','세종특별자치시','강원특별자치도','충청북도','충청남도','전북특별자치도','전라남도','경상북도','경상남도','제주특별자치도'].map((r) => <option value={r}>{r}</option>)}
-          </select>
-        </label>
-        <label>연봉(만원) <input id="mp-salary" type="number" inputmode="numeric" placeholder="예: 4200" min="0" max="100000" /></label>
-        <label>가구원 수 <input id="mp-hh" type="number" inputmode="numeric" placeholder="예: 2" min="1" max="10" /></label>
-        <label>차량 배기량(cc) <input id="mp-cc" type="number" inputmode="numeric" placeholder="예: 1598" min="0" max="8000" /></label>
-        <label>차량 등록연도 <input id="mp-caryr" type="number" inputmode="numeric" placeholder="예: 2022" min="1990" max="2026" /></label>
-        <label class="me-prof__ev"><input id="mp-ev" type="checkbox" /> 전기·수소차</label>
+
+      <div class="me-cards">
+        <div class="me-card" data-tab="basic">
+          <span class="me-card__ic" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
+          </span>
+          <div class="me-card__body">
+            <b>기본 정보</b>
+            <span class="me-card__val" id="mpc-basic-val">아직 등록 전이에요</span>
+            <span class="me-card__links"><a href="/benefits/" id="mp-link-bf" hidden>내 혜택 매칭 →</a></span>
+          </div>
+          <button type="button" class="me-card__edit" id="mpc-basic-edit" data-tab="basic">등록</button>
+        </div>
+
+        <div class="me-card" data-tab="income">
+          <span class="me-card__ic" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M7.5 9l2 6 2.5-6 2.5 6 2-6M7 13.5h10"/></svg>
+          </span>
+          <div class="me-card__body">
+            <b>소득·가구</b>
+            <span class="me-card__val" id="mpc-income-val">아직 등록 전이에요</span>
+            <span class="me-card__links"><a href="/salary/" id="mp-link-salary" hidden>내 실수령액 →</a><a href="/median-income/" id="mp-link-mi" hidden>내 중위소득 % →</a></span>
+          </div>
+          <button type="button" class="me-card__edit" id="mpc-income-edit" data-tab="income">등록</button>
+        </div>
+
+        <div class="me-card" data-tab="car">
+          <span class="me-card__ic" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l1.6-4.2A2 2 0 0 1 8.5 5.5h7a2 2 0 0 1 1.9 1.3L19 11M5 11h14M5 11a2 2 0 0 0-2 2v3.5h2M19 11a2 2 0 0 1 2 2v3.5h-2M5 16.5v2M19 16.5v2M7.5 14h.01M16.5 14h.01"/></svg>
+          </span>
+          <div class="me-card__body">
+            <b>내 차</b>
+            <span class="me-card__val" id="mpc-car-val">아직 등록 전이에요</span>
+            <span class="me-card__links"><a href="/car-tax/" id="mp-link-car" hidden>내 자동차세 →</a></span>
+          </div>
+          <button type="button" class="me-card__edit" id="mpc-car-edit" data-tab="car">등록</button>
+        </div>
       </div>
-      <div class="me-prof__foot">
-        <button type="button" class="btn" id="mp-save">내 정보 저장</button>
-        <span class="me-prof__msg" id="mp-msg"></span>
-      </div>
-      <div class="me-prof__links" id="mp-links" hidden>
-        <a href="/salary/" id="mp-link-salary" hidden>내 연봉 실수령액 →</a>
-        <a href="/car-tax/" id="mp-link-car" hidden>내 자동차세 →</a>
-        <a href="/median-income/" id="mp-link-mi" hidden>내 중위소득 % →</a>
-        <a href="/benefits/" id="mp-link-bf" hidden>내 혜택 매칭 →</a>
+
+      <!-- 수정 시트: 카드의 등록/수정 → 해당 탭으로 열림 -->
+      <div class="me-prof__sheet" id="mp-sheet" hidden>
+        <div class="mp-tabs">
+          <div class="mp-seg" role="tablist">
+            <button type="button" class="mp-tab" data-tab="basic" role="tab">기본</button>
+            <button type="button" class="mp-tab" data-tab="income" role="tab">소득·가구</button>
+            <button type="button" class="mp-tab" data-tab="car" role="tab">차량</button>
+          </div>
+          <button type="button" class="mp-sheet__x" id="mp-close" aria-label="닫기">×</button>
+        </div>
+        <div class="mp-pane" data-tab="basic" hidden>
+          <label>나이 <input id="mp-age" type="number" inputmode="numeric" placeholder="예: 32" min="14" max="100" /></label>
+          <label>지역
+            <select id="mp-region">
+              <option value="">선택…</option>
+              {['서울특별시','경기도','인천광역시','부산광역시','대구광역시','광주광역시','대전광역시','울산광역시','세종특별자치시','강원특별자치도','충청북도','충청남도','전북특별자치도','전라남도','경상북도','경상남도','제주특별자치도'].map((r) => <option value={r}>{r}</option>)}
+            </select>
+          </label>
+        </div>
+        <div class="mp-pane" data-tab="income" hidden>
+          <label>연봉(만원) <input id="mp-salary" type="number" inputmode="numeric" placeholder="예: 4200" min="0" max="100000" /></label>
+          <label>가구원 수 <input id="mp-hh" type="number" inputmode="numeric" placeholder="예: 2" min="1" max="10" /></label>
+          <label>가구 월소득(만원) <input id="mp-hhinc" type="number" inputmode="numeric" placeholder="예: 400" min="0" max="10000" /></label>
+        </div>
+        <div class="mp-pane" data-tab="car" hidden>
+          <label>배기량(cc) <input id="mp-cc" type="number" inputmode="numeric" placeholder="예: 1598" min="0" max="8000" /></label>
+          <label>등록연도 <input id="mp-caryr" type="number" inputmode="numeric" placeholder="예: 2022" min="1990" max="2026" /></label>
+          <label class="me-prof__ev"><input id="mp-ev" type="checkbox" /> 전기·수소차</label>
+        </div>
+        <div class="me-prof__foot">
+          <button type="button" class="btn" id="mp-save">저장</button>
+          <span class="me-prof__msg" id="mp-msg"></span>
+        </div>
       </div>
     </section>
 
@@ -100,21 +149,15 @@ import '../styles/app.css';
     <button class="badge-toggle" id="badge-toggle">모든 업적 보기</button>
 
     <!-- 내 서비스 -->
-    <h2 style="margin:0 0 0.8rem; font-size:1.2rem">내 서비스</h2>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:1.5rem;">
-      <a href="/benefits/" style="display:flex;flex-direction:column;align-items:center;gap:.3rem;padding:.8rem .4rem;border:1px solid var(--line,#e7e7ef);border-radius:10px;text-decoration:none;color:var(--ink,#1b1b22);font-size:.8rem;font-weight:600;transition:border-color .12s;">
-        <DuoIcon name="benefits" class="svc-ico" />내 혜택
-      </a>
-      <a href="/checkup/" style="display:flex;flex-direction:column;align-items:center;gap:.3rem;padding:.8rem .4rem;border:1px solid var(--line,#e7e7ef);border-radius:10px;text-decoration:none;color:var(--ink,#1b1b22);font-size:.8rem;font-weight:600;transition:border-color .12s;">
-        <DuoIcon name="checkup" class="svc-ico" />재무 체크업
-      </a>
-      <a href="/policy-calendar/" style="display:flex;flex-direction:column;align-items:center;gap:.3rem;padding:.8rem .4rem;border:1px solid var(--line,#e7e7ef);border-radius:10px;text-decoration:none;color:var(--ink,#1b1b22);font-size:.8rem;font-weight:600;transition:border-color .12s;">
-        <DuoIcon name="calendar" class="svc-ico" />정책 캘린더
-      </a>
+    <h2 class="me-h2">내 서비스</h2>
+    <div class="me-svc">
+      <a href="/benefits/"><DuoIcon name="benefits" class="svc-ico" />내 혜택</a>
+      <a href="/checkup/"><DuoIcon name="checkup" class="svc-ico" />재무 체크업</a>
+      <a href="/policy-calendar/"><DuoIcon name="calendar" class="svc-ico" />정책 캘린더</a>
     </div>
 
     <!-- 밀웜 모으기 -->
-    <h2 style="margin:0 0 0.8rem; font-size:1.2rem">밀웜 모으기</h2>
+    <h2 class="me-h2">밀웜 모으기</h2>
     <div class="panel" id="earn-list">
       <div class="skel skel-row"></div><div class="skel skel-row"></div>
       <div class="skel skel-row"></div><div class="skel skel-row"></div>
@@ -504,11 +547,50 @@ import '../styles/app.css';
 </script>
 
 <script is:inline>
-  // 내 정보(프로필 허브) — CramaProfile 바인딩: 로드 시 채우고, 저장 시 서버 upsert + 바로가기 노출
+  // 내 정보(프로필 허브) — 카드 요약 렌더 + 세그먼트 탭 수정 시트. CramaProfile로 로드/저장.
   (() => {
     var $ = function (id) { return document.getElementById(id); };
     var sec = $('me-prof');
     if (!sec) return;
+    var fmt = function (n) { return Number(n).toLocaleString('ko-KR'); };
+
+    function setCard(key, parts) {
+      var val = $('mpc-' + key + '-val'), btn = $('mpc-' + key + '-edit');
+      if (parts.length) { val.textContent = parts.join(' · '); val.classList.remove('is-empty'); btn.textContent = '수정'; }
+      else { val.textContent = '아직 등록 전이에요'; val.classList.add('is-empty'); btn.textContent = '등록'; }
+    }
+    function renderCards(d) {
+      var b = [];
+      if (d.age) b.push(d.age + '세');
+      if (d.region) b.push(d.region);
+      setCard('basic', b);
+      var i = [];
+      if (d.salary) i.push('연봉 ' + fmt(d.salary) + '만원');
+      if (d.household) i.push(d.household + '인 가구');
+      if (d.hhIncome) i.push('가구 월 ' + fmt(d.hhIncome) + '만원');
+      setCard('income', i);
+      var c = [];
+      if (d.car) {
+        if (d.car.ev) c.push('전기·수소차');
+        if (d.car.cc) c.push(fmt(d.car.cc) + 'cc');
+        if (d.car.year) {
+          c.push(d.car.year + '년식');
+          var nowY = new Date().getFullYear();
+          var insp = d.car.year + 4;
+          while (insp < nowY) insp += 2;
+          c.push('다음 정기검사 ' + insp + '년경');
+        }
+      }
+      setCard('car', c);
+      links(d);
+    }
+    function links(d) {
+      var s = $('mp-link-salary'), c = $('mp-link-car'), b = $('mp-link-bf'), mi = $('mp-link-mi');
+      if (d.salary) { var man = Math.min(Math.max(Math.round(d.salary / 100) * 100, 2000), 10000); s.href = '/salary/' + man + '/'; s.hidden = false; } else s.hidden = true;
+      if (d.car && (d.car.cc || d.car.ev)) { c.hidden = false; } else c.hidden = true;
+      if (d.household && (d.hhIncome || d.salary)) { mi.hidden = false; } else mi.hidden = true;
+      if (d.age && d.region) { b.hidden = false; } else b.hidden = true;
+    }
     function fill() {
       var P = window.CramaProfile;
       if (!P) return;
@@ -517,18 +599,25 @@ import '../styles/app.css';
       if (d.region) $('mp-region').value = d.region;
       if (d.salary) $('mp-salary').value = d.salary;
       if (d.household) $('mp-hh').value = d.household;
+      if (d.hhIncome) $('mp-hhinc').value = d.hhIncome;
       if (d.car) { if (d.car.cc) $('mp-cc').value = d.car.cc; if (d.car.year) $('mp-caryr').value = d.car.year; $('mp-ev').checked = !!d.car.ev; }
-      links(d);
+      renderCards(d);
     }
-    function links(d) {
-      var any = false;
-      var s = $('mp-link-salary'), c = $('mp-link-car'), b = $('mp-link-bf'), mi = $('mp-link-mi');
-      if (d.salary) { var man = Math.min(Math.max(Math.round(d.salary / 100) * 100, 2000), 10000); s.href = '/salary/' + man + '/'; s.hidden = false; any = true; } else s.hidden = true;
-      if (d.car && (d.car.cc || d.car.ev)) { c.hidden = false; any = true; } else c.hidden = true;
-      if (d.household && (d.hhIncome || d.salary)) { mi.hidden = false; any = true; } else mi.hidden = true;
-      if (d.age && d.region) { b.hidden = false; any = true; } else b.hidden = true;
-      $('mp-links').hidden = !any;
+
+    // 세그먼트 탭 — 카드의 등록/수정 버튼이 해당 탭으로 시트를 연다
+    function setTab(t) {
+      sec.querySelectorAll('.mp-tab').forEach(function (b) { b.classList.toggle('is-on', b.dataset.tab === t); b.setAttribute('aria-selected', b.dataset.tab === t ? 'true' : 'false'); });
+      sec.querySelectorAll('.mp-pane').forEach(function (p) { p.hidden = p.dataset.tab !== t; });
     }
+    function openSheet(t) {
+      $('mp-sheet').hidden = false;
+      setTab(t);
+      $('mp-sheet').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    sec.querySelectorAll('.me-card__edit').forEach(function (b) { b.addEventListener('click', function () { openSheet(b.dataset.tab); }); });
+    sec.querySelectorAll('.mp-tab').forEach(function (b) { b.addEventListener('click', function () { setTab(b.dataset.tab); }); });
+    $('mp-close').addEventListener('click', function () { $('mp-sheet').hidden = true; });
+
     $('mp-save').addEventListener('click', function () {
       var P = window.CramaProfile;
       if (!P) return;
@@ -537,9 +626,14 @@ import '../styles/app.css';
       var region = $('mp-region').value; if (region) d.region = region;
       var salary = Number($('mp-salary').value); if (salary) d.salary = salary;
       var hh = Number($('mp-hh').value); if (hh) d.household = hh;
+      var hhinc = Number($('mp-hhinc').value); if (hhinc) d.hhIncome = hhinc;
       var cc = Number($('mp-cc').value), yr = Number($('mp-caryr').value), ev = $('mp-ev').checked;
       if (cc || yr || ev) d.car = { cc: cc || undefined, year: yr || undefined, ev: ev || undefined };
-      if (P.set(d)) { $('mp-msg').textContent = '저장됐어요 — 계산기들이 자동으로 채워집니다'; links(P.get()); setTimeout(function () { $('mp-msg').textContent = ''; }, 3000); }
+      if (P.set(d)) {
+        $('mp-msg').textContent = '저장됐어요';
+        renderCards(P.get());
+        setTimeout(function () { $('mp-msg').textContent = ''; $('mp-sheet').hidden = true; }, 1200);
+      }
     });
     document.addEventListener('crama:profile-sync', fill);
     fill();
@@ -547,20 +641,46 @@ import '../styles/app.css';
 </script>
 
 <style is:global>
-  .me-prof { margin: 1.2rem 0; padding: 1.1rem 1.2rem; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); }
-  .me-prof__head { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.9rem; }
+  /* ── 내 정보: 카테고리 카드 허브 ── */
+  .me-prof { margin: 1.4rem 0; }
+  .me-prof__head { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.7rem; }
   .me-prof__head h2 { font-size: 1.08rem; margin: 0; }
-  .me-prof__head span { font-size: 0.78rem; color: var(--muted); }
-  .me-prof__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
-  .me-prof__grid label { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.8rem; font-weight: 700; color: var(--ink-soft); }
-  .me-prof__grid input[type=number], .me-prof__grid select { font: inherit; font-size: 0.95rem; padding: 0.55rem 0.75rem; border: 1px solid var(--line); border-radius: 10px; background: var(--paper-2); color: var(--ink); }
-  .me-prof__grid input:focus, .me-prof__grid select:focus { outline: none; border-color: var(--accent); }
+  .me-prof__head span { font-size: 0.76rem; color: var(--muted); }
+  .me-cards { display: flex; flex-direction: column; gap: 0.55rem; }
+  .me-card { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.95rem 1rem; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); transition: border-color 0.12s; }
+  .me-card:hover { border-color: var(--accent); }
+  .me-card__ic { flex: none; width: 38px; height: 38px; border-radius: 12px; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; }
+  .me-card__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.18rem; }
+  .me-card__body > b { font-size: 0.8rem; color: var(--muted); font-weight: 700; letter-spacing: 0.01em; }
+  .me-card__val { font-size: 0.95rem; font-weight: 800; color: var(--ink); line-height: 1.45; word-break: keep-all; }
+  .me-card__val.is-empty { color: var(--muted); font-weight: 500; font-size: 0.84rem; }
+  .me-card__links { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.3rem; }
+  .me-card__links a { font-size: 0.75rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.28rem 0.65rem; background: var(--accent-soft); border-radius: 999px; }
+  .me-card__links a[hidden] { display: none; }
+  .me-card__edit { flex: none; align-self: center; font: inherit; font-size: 0.78rem; font-weight: 700; color: var(--ink-soft); background: var(--paper-2); border: 1px solid var(--line); border-radius: 999px; padding: 0.4rem 0.9rem; cursor: pointer; transition: color 0.12s, border-color 0.12s; }
+  .me-card__edit:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── 수정 시트 + 세그먼트 탭 ── */
+  .me-prof__sheet { margin-top: 0.6rem; padding: 1rem 1.1rem 1.1rem; border: 1px solid var(--line); border-radius: 14px; background: var(--paper-2); }
+  .me-prof__sheet[hidden] { display: none; }
+  .mp-tabs { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.9rem; }
+  .mp-seg { flex: 1; display: flex; gap: 2px; padding: 3px; background: var(--paper); border: 1px solid var(--line); border-radius: 999px; }
+  .mp-tab { flex: 1; font: inherit; font-size: 0.82rem; font-weight: 700; color: var(--muted); background: transparent; border: 0; border-radius: 999px; padding: 0.45rem 0.2rem; cursor: pointer; transition: background 0.15s, color 0.15s; }
+  .mp-tab.is-on { background: var(--accent); color: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.14); }
+  .mp-sheet__x { flex: none; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 999px; border: 1px solid var(--line); background: var(--paper); color: var(--muted); font-size: 1.05rem; line-height: 1; cursor: pointer; }
+  .mp-sheet__x:hover { color: var(--ink); border-color: var(--ink-soft); }
+  .mp-pane { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+  .mp-pane[hidden] { display: none; }
+  .mp-pane label { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.8rem; font-weight: 700; color: var(--ink-soft); }
+  .mp-pane input[type='number'], .mp-pane select { font: inherit; font-size: 0.95rem; padding: 0.55rem 0.75rem; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); }
+  .mp-pane input:focus, .mp-pane select:focus { outline: none; border-color: var(--accent); }
   .me-prof__ev { flex-direction: row !important; align-items: center; gap: 0.4rem !important; }
   .me-prof__foot { display: flex; align-items: center; gap: 0.7rem; margin-top: 0.9rem; }
   .me-prof__msg { font-size: 0.8rem; color: #16a34a; font-weight: 600; }
-  .me-prof__links { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px dashed var(--line); }
-  .me-prof__links[hidden] { display: none; }
-  .me-prof__links a { font-size: 0.84rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.45rem 0.9rem; border: 1px solid var(--line); border-radius: 999px; }
-  .me-prof__links a:hover { border-color: var(--accent); }
-  .me-prof__links a[hidden] { display: none; }
+
+  /* ── /me 전체 톤 정리: 섹션 헤더·내 서비스 그리드 통일 ── */
+  .me-h2 { margin: 0 0 0.7rem; font-size: 1.08rem; }
+  .me-svc { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.55rem; margin-bottom: 1.6rem; }
+  .me-svc a { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; padding: 0.85rem 0.4rem; border: 1px solid var(--line); border-radius: 14px; text-decoration: none; color: var(--ink); font-size: 0.8rem; font-weight: 600; background: var(--paper); transition: border-color 0.12s, transform 0.12s; }
+  .me-svc a:hover { border-color: var(--accent); transform: translateY(-1px); }
 </style>

@@ -53,6 +53,7 @@ import '../styles/app.css';
       <div class="me-prof__head">
         <h2>내 정보</h2>
         <span>등록해두면 계산기·매칭이 자동으로 채워져요</span>
+        <button type="button" class="me-prof__manage" id="mp-manage">관리</button>
       </div>
 
       <div class="me-cards">
@@ -83,6 +84,7 @@ import '../styles/app.css';
           <div class="me-card__strip"><a href="/car-tax/" id="mp-link-car" hidden>내 자동차세 ›</a></div>
         </div>
       </div>
+      <div class="me-dots" id="me-dots" aria-hidden="true"><i class="is-on"></i><i></i><i></i></div>
 
       <!-- 수정 바텀시트: 카드의 등록/수정 → 해당 탭으로 열림 -->
       <div class="mp-bs" id="mp-sheet" hidden>
@@ -629,8 +631,20 @@ import '../styles/app.css';
     }
     sec.querySelectorAll('.me-card__edit').forEach(function (b) { b.addEventListener('click', function () { openSheet(b.dataset.tab); }); });
     sec.querySelectorAll('.mp-tab').forEach(function (b) { b.addEventListener('click', function () { setTab(b.dataset.tab); }); });
+    $('mp-manage').addEventListener('click', function () { openSheet('basic'); });
     $('mp-close').addEventListener('click', closeSheet);
     $('mp-bs-backdrop').addEventListener('click', closeSheet);
+
+    // 카드 캐러셀 도트 동기화
+    var rail = sec.querySelector('.me-cards');
+    var dots = document.querySelectorAll('#me-dots i');
+    if (rail && dots.length) {
+      rail.addEventListener('scroll', function () {
+        var w = rail.firstElementChild.offsetWidth + 11;
+        var i = Math.min(dots.length - 1, Math.max(0, Math.round(rail.scrollLeft / w)));
+        dots.forEach(function (d, k) { d.classList.toggle('is-on', k === i); });
+      }, { passive: true });
+    }
 
     // 상단 뷰 세그먼트: 내 정보 | 크라미·밀웜 (마지막 선택 기억)
     var VKEY = 'crama:me-view';
@@ -674,15 +688,23 @@ import '../styles/app.css';
 
   /* ── 내 정보: 히어로 카드 허브 ── */
   .me-prof { margin: 0.2rem 0 1.6rem; }
-  .me-prof__head { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.7rem; }
+  .me-prof__head { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.7rem; }
   .me-prof__head h2 { font-size: 1.08rem; margin: 0; }
   .me-prof__head span { font-size: 0.76rem; color: var(--muted); }
-  .me-cards { display: flex; flex-direction: column; gap: 0.7rem; }
-  .me-card { position: relative; overflow: hidden; border-radius: 18px; color: #fff; box-shadow: 0 6px 18px rgba(20, 24, 50, 0.16); }
+  .me-prof__manage { margin-left: auto; font: inherit; font-size: 0.78rem; font-weight: 700; color: var(--accent); background: var(--accent-soft); border: 0; border-radius: 999px; padding: 0.35rem 0.9rem; cursor: pointer; }
+  .me-prof__manage:hover { filter: brightness(0.96); }
+  /* 신용카드식 좌우 스와이프 캐러셀 */
+  .me-cards { display: flex; gap: 0.7rem; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 4px; scrollbar-width: none; }
+  .me-cards::-webkit-scrollbar { display: none; }
+  .me-card { position: relative; overflow: hidden; border-radius: 18px; color: #fff; box-shadow: 0 6px 18px rgba(20, 24, 50, 0.16); flex: 0 0 88%; scroll-snap-align: center; display: flex; flex-direction: column; }
+  .me-card__in { flex: 1; }
+  .me-dots { display: flex; justify-content: center; gap: 6px; margin-top: 0.55rem; }
+  .me-dots i { width: 6px; height: 6px; border-radius: 999px; background: var(--line); transition: width 0.15s, background 0.15s; }
+  .me-dots i.is-on { width: 16px; background: var(--accent); }
   .me-card--basic { background: linear-gradient(135deg, #5348cf 0%, #7a63ee 60%, #8f7bf4 100%); }
   .me-card--income { background: linear-gradient(135deg, #0b6b54 0%, #149a61 60%, #27b573 100%); }
   .me-card--car { background: linear-gradient(135deg, #1b2540 0%, #2c3a5c 60%, #3c4d74 100%); }
-  .me-card__art { position: absolute; right: -10px; top: 50%; transform: translateY(-62%) rotate(-6deg); width: 105px; height: 105px; color: #fff; opacity: 0.14; pointer-events: none; }
+  .me-card__art { position: absolute; right: -10px; top: 38%; transform: translateY(-50%) rotate(-6deg); width: 105px; height: 105px; color: #fff; opacity: 0.14; pointer-events: none; }
   .me-card__in { position: relative; padding: 1rem 1.1rem 0.9rem; }
   .me-card__head { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; margin-bottom: 0.4rem; }
   .me-card__head b { font-size: 0.78rem; font-weight: 700; color: rgba(255, 255, 255, 0.78); letter-spacing: 0.03em; }
@@ -700,9 +722,12 @@ import '../styles/app.css';
   .mp-bs { position: fixed; inset: 0; z-index: 1200; }
   .mp-bs[hidden] { display: none; }
   .mp-bs__backdrop { position: absolute; inset: 0; background: rgba(12, 14, 28, 0.45); }
-  .mp-bs__panel { position: absolute; left: 0; right: 0; bottom: 0; max-width: 520px; margin: 0 auto; background: var(--paper); border-radius: 20px 20px 0 0; padding: 0.6rem 1.15rem calc(1.15rem + env(safe-area-inset-bottom)); box-shadow: 0 -10px 34px rgba(0, 0, 0, 0.22); animation: mpUp 0.22s ease; }
+  .mp-bs__panel { position: absolute; left: 0; right: 0; bottom: 0; max-width: 520px; margin: 0 auto; height: min(400px, 82vh); display: flex; flex-direction: column; background: var(--paper); border-radius: 20px 20px 0 0; padding: 0.6rem 1.15rem calc(1.15rem + env(safe-area-inset-bottom)); box-shadow: 0 -10px 34px rgba(0, 0, 0, 0.22); animation: mpUp 0.22s ease; }
   @keyframes mpUp { from { transform: translateY(28px); opacity: 0.5; } to { transform: translateY(0); opacity: 1; } }
-  .mp-bs__handle { display: block; width: 44px; height: 4px; border-radius: 999px; background: var(--line); margin: 0.2rem auto 0.85rem; }
+  .mp-bs__handle { display: block; flex: none; width: 44px; height: 4px; border-radius: 999px; background: var(--line); margin: 0.2rem auto 0.85rem; }
+  .mp-bs__panel .mp-tabs { flex: none; }
+  .mp-bs__panel .mp-pane { flex: 1; overflow-y: auto; align-content: start; }
+  .mp-bs__panel .me-prof__foot { flex: none; }
   .mp-tabs { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.9rem; }
   .mp-seg { flex: 1; display: flex; gap: 2px; padding: 3px; background: var(--paper); border: 1px solid var(--line); border-radius: 999px; }
   .mp-tab { flex: 1; font: inherit; font-size: 0.82rem; font-weight: 700; color: var(--muted); background: transparent; border: 0; border-radius: 999px; padding: 0.45rem 0.2rem; cursor: pointer; transition: background 0.15s, color 0.15s; }

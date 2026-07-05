@@ -32,6 +32,20 @@ const all = salaryAmounts();
 const idx = all.indexOf(man);
 const nearby = all.slice(Math.max(0, idx - 3), idx + 4);
 
+// 월급 흐름 도넛(빌드타임 SVG) — 실수령 / 4대보험 / 세금
+const insTotal = s.np + s.hi + s.ltc + s.ei;
+const taxTotal = s.incomeTax + s.localTax;
+const gross = s.monthlyGross;
+const R = 52;
+const CIRC = 2 * Math.PI * R;
+const seg = (v: number) => (v / gross) * CIRC;
+const netPct = Math.round((s.monthlyNet / gross) * 100);
+const donut = [
+  { label: '실수령', v: s.monthlyNet, cls: 'net', dash: seg(s.monthlyNet), off: 0 },
+  { label: '4대보험', v: insTotal, cls: 'ins', dash: seg(insTotal), off: -seg(s.monthlyNet) },
+  { label: '세금', v: taxTotal, cls: 'tax', dash: seg(taxTotal), off: -(seg(s.monthlyNet) + seg(insTotal)) },
+];
+
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
@@ -62,6 +76,25 @@ const jsonLd = {
       </div>
       <button type="button" class="sal-reg" id="sal-reg" data-man={man} hidden>연봉 {manLabel}원을 내 정보로 저장 → 실업급여·혜택 매칭에 자동 사용</button>
     </header>
+
+    <section class="sal-sec">
+      <h2>월급 흐름 한눈에</h2>
+      <div class="sal-donut">
+        <svg viewBox="0 0 130 130" role="img" aria-label={`월급 중 실수령 ${netPct}%`}>
+          <circle class="sal-donut__bg" cx="65" cy="65" r={R} />
+          {donut.map((d) => (
+            <circle class={`sal-donut__seg is-${d.cls}`} cx="65" cy="65" r={R} stroke-dasharray={`${d.dash} ${CIRC}`} stroke-dashoffset={d.off} />
+          ))}
+          <text class="sal-donut__num" x="65" y="62" text-anchor="middle">{netPct}%</text>
+          <text class="sal-donut__cap" x="65" y="78" text-anchor="middle">실수령률</text>
+        </svg>
+        <ul class="sal-donut__legend">
+          {donut.map((d) => (
+            <li class={`is-${d.cls}`}><i></i><span>{d.label}</span><b>{fmt(d.v)}원</b><em>{Math.round((d.v / gross) * 100)}%</em></li>
+          ))}
+        </ul>
+      </div>
+    </section>
 
     <section class="sal-sec">
       <h2>월 공제 내역</h2>
@@ -147,6 +180,26 @@ const jsonLd = {
 
     .sal-sec { margin-bottom: 1.8rem; }
     .sal-sec h2 { font-size: 1.12rem; margin: 0 0 0.7rem; }
+
+    .sal-donut { display: flex; align-items: center; gap: 1.2rem; padding: 1rem 1.1rem; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); }
+    .sal-donut svg { flex: none; width: 128px; height: 128px; transform: rotate(-90deg); }
+    .sal-donut__bg { fill: none; stroke: var(--paper-2); stroke-width: 16; }
+    .sal-donut__seg { fill: none; stroke-width: 16; }
+    .sal-donut__seg.is-net { stroke: var(--accent); }
+    .sal-donut__seg.is-ins { stroke: #f59e0b; }
+    .sal-donut__seg.is-tax { stroke: #fb7185; }
+    .sal-donut__num { transform: rotate(90deg); transform-origin: 65px 65px; font-size: 1.45rem; font-weight: 800; fill: var(--ink); }
+    .sal-donut__cap { transform: rotate(90deg); transform-origin: 65px 65px; font-size: 0.6rem; font-weight: 600; fill: var(--muted); }
+    .sal-donut__legend { flex: 1; list-style: none; margin: 0; padding: 0; display: grid; gap: 0.55rem; }
+    .sal-donut__legend li { display: flex; align-items: baseline; gap: 0.45rem; font-size: 0.88rem; }
+    .sal-donut__legend i { flex: none; width: 10px; height: 10px; border-radius: 3px; align-self: center; }
+    .sal-donut__legend .is-net i, .sal-donut__legend li.is-net i { background: var(--accent); }
+    .sal-donut__legend li.is-ins i { background: #f59e0b; }
+    .sal-donut__legend li.is-tax i { background: #fb7185; }
+    .sal-donut__legend span { color: var(--ink-soft); }
+    .sal-donut__legend b { margin-left: auto; font-variant-numeric: tabular-nums; }
+    .sal-donut__legend em { font-style: normal; font-size: 0.76rem; color: var(--muted); width: 2.4rem; text-align: right; font-variant-numeric: tabular-nums; }
+    @media (max-width: 480px) { .sal-donut { flex-direction: column; } .sal-donut__legend { width: 100%; } }
     .sal-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
     .sal-table th, .sal-table td { padding: 0.65rem 0.8rem; border-bottom: 1px solid var(--line); text-align: left; }
     .sal-table td { text-align: right; font-variant-numeric: tabular-nums; }

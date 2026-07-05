@@ -80,7 +80,11 @@ const SAVED_AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
           toggle: function (rec) {
             if (!tok) { api.promptLogin(); return false; }
             var a = get(); var i = idx(a, rec.type, rec.id);
-            if (i === -1) { a.unshift(rec); put(a); pushRow(rec); return true; }
+            if (i === -1) {
+              a.unshift(rec); put(a); pushRow(rec);
+              try { if (window.gtag) window.gtag('event', 'save_item', { item_type: rec.type, item_id: rec.id }); } catch (e) {}
+              return true;
+            }
             a.splice(i, 1); put(a); dropRow(rec.type, rec.id); return false;
           },
           add: function (rec) { if (!tok) return; var a = get(); if (idx(a, rec.type, rec.id) === -1) { a.unshift(rec); put(a); pushRow(rec); } },
@@ -141,6 +145,7 @@ const SAVED_AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
               body: JSON.stringify({ data: merged, updated_at: new Date().toISOString() }),
             }).catch(function () {});
             document.dispatchEvent(new CustomEvent('crama:profile-sync'));
+            try { if (window.gtag) window.gtag('event', 'profile_save', { keys: Object.keys(patch).join(',') }); } catch (e) {}
             return true;
           },
         };
@@ -186,7 +191,11 @@ const SAVED_AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
         if (!box || !('Notification' in window) || !('PushManager' in window)) return;
         var K = 'crama:push-nudge-snooze';
         function snoozed() { try { return Number(localStorage.getItem(K) || 0) > Date.now(); } catch (e) { return false; } }
-        function show() { if (Notification.permission === 'granted' || snoozed()) return; box.hidden = false; }
+        function show() {
+          if (Notification.permission === 'granted' || snoozed()) return;
+          if (box.hidden) { try { if (window.gtag) window.gtag('event', 'push_nudge', { action: 'shown' }); } catch (e) {} }
+          box.hidden = false;
+        }
         // CramaSaved.toggle 래핑 — 항목 '추가' 시에만 넛지 (레퍼런스는 페이지가 들고 있어도 메서드 조회는 호출 시점)
         var S = window.CramaSaved;
         if (S && S.toggle && !S.__nudgeWrapped) {
@@ -230,6 +239,7 @@ const SAVED_AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
               headers: { 'Content-Type': 'application/json', apikey: NUDGE_AK, Authorization: 'Bearer ' + (tok || NUDGE_AK) },
               body: JSON.stringify({ p_endpoint: j.endpoint, p_p256dh: j.keys.p256dh, p_auth: j.keys.auth }),
             });
+            try { if (window.gtag) window.gtag('event', 'push_nudge', { action: 'granted' }); } catch (e) {}
             document.getElementById('push-nudge-msg').textContent = '알림을 켰어요 — 마감 전에 챙겨드릴게요';
             btn.remove();
             setTimeout(function () { box.hidden = true; }, 2500);

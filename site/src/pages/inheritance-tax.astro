@@ -1,0 +1,218 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// 상속세 간이 계산 — 일괄공제 5억 + 배우자공제(최소 5억) + 금융재산공제(20%, 최대 2억) + 5단계 누진 + 신고세액공제 3%
+const fmt = (n: number) => Math.round(n).toLocaleString('ko-KR');
+function inhTax(estate: number, spouse: boolean, finAsset: number) {
+  const ded = 500_000_000 + (spouse ? 500_000_000 : 0) + Math.min(finAsset * 0.2, 200_000_000);
+  const base = Math.max(0, estate - ded);
+  let tax = 0;
+  if (base <= 100_000_000) tax = base * 0.1;
+  else if (base <= 500_000_000) tax = base * 0.2 - 10_000_000;
+  else if (base <= 1_000_000_000) tax = base * 0.3 - 60_000_000;
+  else if (base <= 3_000_000_000) tax = base * 0.4 - 160_000_000;
+  else tax = base * 0.5 - 460_000_000;
+  return { ded, base, tax, final: Math.floor((tax * 0.97) / 10) * 10 };
+}
+const SAMPLE = [50000, 70000, 100000, 150000, 200000, 300000];
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: '홈', item: 'https://crama.app/' },
+    { '@type': 'ListItem', position: 2, name: '금융 계산기', item: 'https://crama.app/tools/' },
+    { '@type': 'ListItem', position: 3, name: '상속세 계산기' },
+  ],
+};
+---
+<BaseLayout
+  title="상속세 계산기 2026 — 우리 집은 상속세 내야 하나?"
+  description="상속재산과 배우자 유무만 넣으면 상속세를 간이 계산합니다. 일괄공제 5억·배우자공제 5억·금융재산공제까지 반영 — 10억 이하 대부분은 상속세 0원인 이유를 확인하세요."
+  jsonLd={jsonLd}
+>
+  <div class="gt wrap">
+    <header class="page-hero">
+      <span class="eyebrow">Inheritance Tax</span>
+      <h1>상속세 계산기 <span class="gt-y">2026</span></h1>
+      <p><b>상속재산 총액</b>과 <b>배우자 유무</b>만 고르세요. 공제 후 실제 낼 세금이 바로 나옵니다.</p>
+      <p class="gt-basis">일괄공제 5억 + 배우자공제(최소) 5억 + 금융재산공제 반영 · 기한 내 신고 3% 공제</p>
+    </header>
+
+    <div class="gt-form">
+      <label>상속재산 총액 (부동산+금융+기타)
+        <div class="gt-in"><input id="it-amt" type="number" inputmode="numeric" placeholder="예: 120000 (12억)" min="0" max="100000000" step="1000" /><span>만원</span></div>
+      </label>
+      <label class="gt-check"><input id="it-spouse" type="checkbox" checked /> 배우자가 있어요 (배우자공제 최소 5억)</label>
+      <label>그중 금융재산 (예금·주식 등, 선택)
+        <div class="gt-in"><input id="it-fin" type="number" inputmode="numeric" placeholder="예: 30000" min="0" max="100000000" step="1000" /><span>만원</span></div>
+      </label>
+      <label>상속개시(사망) 달 (선택 — 신고기한 계산)
+        <input id="it-month" type="month" />
+      </label>
+      <button type="button" id="it-go">계산하기</button>
+    </div>
+
+    <div class="gt-result" id="it-result" hidden>
+      <div class="gt-hero">
+        <div><span>공제 합계</span><b id="it-ded">-</b><em id="it-ded-sub">-</em></div>
+        <div class="gt-hero__main"><span>납부할 상속세</span><b id="it-final">-</b><em>신고세액공제 3% 반영</em></div>
+        <div><span>신고 기한</span><b id="it-due">-</b><em id="it-due-sub">상속개시 달의 말일 + 6개월</em></div>
+      </div>
+      <p class="gt-explain" id="it-explain"></p>
+      <div class="gt-alert" id="it-alert" hidden>
+        <div><b>신고기한 알림 받기</b><span>기한을 넘기면 가산세가 붙어요</span></div>
+        <button type="button" class="gt-save" id="it-save" aria-pressed="false"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> 알림</button>
+      </div>
+    </div>
+
+    <section class="gt-sec">
+      <h2>상속재산별 상속세 (간이, 금융재산 제외 기준)</h2>
+      <div class="gt-scroll">
+        <table class="gt-table">
+          <thead><tr><th>상속재산</th><th>배우자 있음</th><th>배우자 없음</th></tr></thead>
+          <tbody>
+            {SAMPLE.map((man) => {
+              const w = inhTax(man * 10_000, true, 0);
+              const wo = inhTax(man * 10_000, false, 0);
+              return (
+                <tr>
+                  <th>{man / 10000}억원</th>
+                  <td class="gt-hl">{w.final > 0 ? fmt(w.final) + '원' : '0원'}</td>
+                  <td>{wo.final > 0 ? fmt(wo.final) + '원' : '0원'}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <p class="gt-note">※ 간이 계산입니다. 배우자공제는 실제 상속분에 따라 <b>최대 30억</b>까지 커질 수 있고, 동거주택 상속공제(최대 6억)·장례비 등 추가 공제도 있어 실제 세액은 이보다 줄어드는 경우가 많아요. 10억 넘는 상속은 세무사 상담을 권합니다.</p>
+    </section>
+
+    <section class="gt-sec">
+      <h2>상속세 핵심 규칙</h2>
+      <ul class="gt-list">
+        <li><b>배우자 있으면 10억, 없으면 5억까지는 대부분 상속세 0원</b> — 일괄공제 5억 + 배우자공제 최소 5억</li>
+        <li><b>세율</b>: 증여세와 같은 5단계 누진(1억 10% ~ 30억 초과 50%)</li>
+        <li><b>금융재산공제</b>: 예금·주식 등 순금융재산의 20%(최대 2억)를 추가로 빼줍니다</li>
+        <li><b>신고기한</b>: 상속개시일이 속한 달의 말일부터 <b>6개월</b> — 기한 내 신고 시 3% 공제</li>
+        <li>사전 증여(10년 내)는 상속재산에 합산 — 미리 나눠 증여하는 게 유리한 이유</li>
+      </ul>
+    </section>
+
+    <div class="gt-cross">
+      <a href="/gift-tax/">증여세 계산 →</a>
+      <a href="/property-tax/">재산세 계산 →</a>
+      <a href="/tools/">금융 계산기 23종 →</a>
+    </div>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const fmt = (n) => Math.round(n).toLocaleString('ko-KR');
+      let dueISO = '';
+      function calc() {
+        const man = Number($('it-amt').value);
+        if (!man) return;
+        const estate = man * 10000;
+        const spouse = $('it-spouse').checked;
+        const fin = (Number($('it-fin').value) || 0) * 10000;
+        const ded = 5e8 + (spouse ? 5e8 : 0) + Math.min(fin * 0.2, 2e8);
+        const base = Math.max(0, estate - ded);
+        let tax = 0;
+        if (base <= 1e8) tax = base * 0.1;
+        else if (base <= 5e8) tax = base * 0.2 - 1e7;
+        else if (base <= 1e9) tax = base * 0.3 - 6e7;
+        else if (base <= 3e9) tax = base * 0.4 - 1.6e8;
+        else tax = base * 0.5 - 4.6e8;
+        const final = Math.floor((tax * 0.97) / 10) * 10;
+        $('it-ded').textContent = fmt(Math.min(ded, estate)) + '원';
+        $('it-ded-sub').textContent = '일괄 5억' + (spouse ? ' + 배우자 5억' : '') + (fin ? ' + 금융 ' + fmt(Math.min(fin * 0.2, 2e8)) + '원' : '');
+        $('it-final').textContent = final > 0 ? fmt(final) + '원' : '0원';
+        $('it-explain').textContent = base <= 0
+          ? '공제 합계가 상속재산보다 커서 상속세가 없어요. 이 경우에도 부동산이 있다면 취득세(상속분)는 별도로 챙겨야 해요.'
+          : '과세표준 ' + fmt(base) + '원에 누진세율을 적용한 간이 추정이에요. 배우자 실제 상속분·동거주택 공제에 따라 크게 줄 수 있습니다.';
+        const m = $('it-month').value;
+        if (m) {
+          const parts = m.split('-').map(Number);
+          const due = new Date(parts[0], parts[1] + 6, 0);
+          dueISO = due.getFullYear() + '-' + String(due.getMonth() + 1).padStart(2, '0') + '-' + String(due.getDate()).padStart(2, '0');
+          $('it-due').textContent = (due.getMonth() + 1) + '/' + due.getDate();
+          $('it-due-sub').textContent = dueISO + '까지 신고';
+          $('it-alert').hidden = !window.CramaSaved;
+          syncHeart();
+        } else {
+          dueISO = '';
+          $('it-due').textContent = '개시 달 입력';
+          $('it-due-sub').textContent = '상속개시 달의 말일 + 6개월';
+          $('it-alert').hidden = true;
+        }
+        $('it-result').hidden = false;
+      }
+      function heartId() { return 'inheritance-tax-due-' + dueISO; }
+      function syncHeart() {
+        const S = window.CramaSaved;
+        if (!S || !dueISO) return;
+        const on = S.has('dday', heartId());
+        $('it-save').classList.toggle('is-on', on);
+        $('it-save').setAttribute('aria-pressed', on ? 'true' : 'false');
+      }
+      $('it-go').addEventListener('click', calc);
+      $('it-amt').addEventListener('keydown', (e) => { if (e.key === 'Enter') calc(); });
+      $('it-save').addEventListener('click', () => {
+        const S = window.CramaSaved;
+        if (!S || !dueISO) return;
+        S.toggle({ type: 'dday', id: heartId(), name: '상속세 신고 기한', url: '/inheritance-tax/', sub: '상속세', deadline: dueISO });
+        syncHeart();
+      });
+    })();
+  </script>
+  {/* 스타일은 gift-tax와 공용(.gt-*) — gift-tax.astro의 is:global 클래스 재사용 */}
+  <style is:global>
+    .gt { max-width: 42rem; }
+    .gt-y { color: var(--accent); }
+    .page-hero .gt-basis { font-size: 0.82rem; color: var(--muted); margin-top: 0.5rem; }
+    .gt-form { display: grid; gap: 0.8rem; margin: 1.4rem 0 1rem; padding: 1.1rem 1.2rem; border: 1px solid var(--line); border-radius: 14px; background: var(--paper-2); }
+    .gt-form > label { font-size: 0.84rem; font-weight: 700; color: var(--ink-soft); display: flex; flex-direction: column; gap: 0.35rem; }
+    .gt-in { display: flex; align-items: center; gap: 0.4rem; }
+    .gt-in input, .gt-form select, .gt-form input[type='month'] { font: inherit; font-size: 1rem; padding: 0.6rem 0.8rem; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); }
+    .gt-in input { flex: 1; min-width: 0; }
+    .gt-in span { color: var(--muted); font-size: 0.85rem; }
+    .gt-form input:focus, .gt-form select:focus { outline: none; border-color: var(--accent); }
+    .gt-check { flex-direction: row !important; align-items: center; gap: 0.45rem !important; font-weight: 600 !important; font-size: 0.82rem !important; }
+    .gt-form button { font: inherit; font-weight: 800; font-size: 1rem; padding: 0.8rem; border: 0; border-radius: 12px; background: var(--accent); color: #fff; cursor: pointer; }
+    .gt-result[hidden] { display: none; }
+    .gt-hero { display: grid; grid-template-columns: 1fr 1.3fr 1fr; gap: 0.6rem; margin-bottom: 0.6rem; }
+    .gt-hero > div { border: 1px solid var(--line); border-radius: 14px; padding: 0.95rem 1rem; background: var(--paper); display: flex; flex-direction: column; gap: 0.15rem; }
+    .gt-hero span { font-size: 0.76rem; color: var(--muted); font-weight: 600; }
+    .gt-hero b { font-size: 1.08rem; }
+    .gt-hero em { font-style: normal; font-size: 0.7rem; color: var(--muted); }
+    .gt-hero__main { background: var(--accent) !important; border-color: var(--accent) !important; color: #fff; }
+    .gt-hero__main span, .gt-hero__main em { color: rgba(255, 255, 255, 0.85); }
+    .gt-hero__main b { font-size: 1.3rem; }
+    @media (max-width: 560px) { .gt-hero { grid-template-columns: 1fr; } }
+    .gt-explain { font-size: 0.84rem; color: var(--muted); margin: 0.4rem 0 0; line-height: 1.55; }
+    .gt-alert { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; margin-top: 0.7rem; padding: 0.75rem 0.9rem; border: 1px solid var(--line); border-radius: 12px; }
+    .gt-alert[hidden] { display: none; }
+    .gt-alert b { font-size: 0.9rem; display: block; }
+    .gt-alert span { font-size: 0.76rem; color: var(--muted); }
+    .gt-save { flex: none; display: inline-flex; align-items: center; gap: 0.3rem; font: inherit; font-size: 0.8rem; font-weight: 700; padding: 0.45rem 0.8rem; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); color: var(--ink-soft); cursor: pointer; }
+    .gt-save:hover, .gt-save.is-on { color: #e11d48; border-color: #e11d48; }
+    .gt-sec { margin: 1.8rem 0; }
+    .gt-sec h2 { font-size: 1.1rem; margin: 0 0 0.7rem; }
+    .gt-scroll { overflow-x: auto; }
+    .gt-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; white-space: nowrap; }
+    .gt-table thead th { font-size: 0.75rem; color: var(--muted); text-align: right; padding: 0.45rem 0.7rem; border-bottom: 2px solid var(--line); }
+    .gt-table thead th:first-child { text-align: left; }
+    .gt-table tbody th { text-align: left; padding: 0.52rem 0.7rem; border-bottom: 1px solid var(--line); }
+    .gt-table tbody td { padding: 0.52rem 0.7rem; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; }
+    .gt-hl { font-weight: 800; color: var(--accent); }
+    .gt-list { margin: 0; padding-left: 1.1rem; display: grid; gap: 0.55rem; font-size: 0.92rem; line-height: 1.6; color: var(--ink-soft); }
+    .gt-note { font-size: 0.78rem; color: var(--muted); margin: 0.7rem 0 0; line-height: 1.5; }
+    .gt-note a { color: var(--accent); }
+    .gt-cross { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; margin: 2rem 0 1rem; padding-top: 1.4rem; border-top: 1px solid var(--line); }
+    .gt-cross a { font-size: 0.88rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--line); border-radius: 999px; }
+    .gt-cross a:hover { border-color: var(--accent); }
+  </style>
+</BaseLayout>

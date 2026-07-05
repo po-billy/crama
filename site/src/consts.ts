@@ -107,6 +107,7 @@ export const NAV: NavItem[] = [
     { label: '자동차세 계산', href: '/car-tax/', icon: 'calc' },
     { label: '재산세 계산', href: '/property-tax/', icon: 'calc' },
     { label: '증여세 계산', href: '/gift-tax/', icon: 'calc' },
+    { label: '상속세 계산', href: '/inheritance-tax/', icon: 'calc' },
     { label: '금융 계산기 23종', href: '/tools/', icon: 'calc' },
   ]},
   { label: '쇼츠·칼럼', href: '/shorts/', children: [

@@ -4,13 +4,7 @@ import FaqBox from '../components/FaqBox.astro';
 
 const SU = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
 const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
-
-// 문항은 고정 3종(라운드 데이터와 key 일치) — 기준가·마감은 클라이언트가 라운드에서 로드
-const QS = [
-  { key: 'kospi', label: '코스피', emoji: '📈', hint: '한국 증시의 체온계' },
-  { key: 'usd', label: '달러 환율', emoji: '💵', hint: '오르면 원화가 약해진 것' },
-  { key: 'btc', label: '비트코인', emoji: '🪙', hint: '주말에도 쉬지 않는 그 코인' },
-];
+// 문항 카드는 라운드 데이터(questions jsonb) 기반 동적 렌더 — 매주 '⭐ 이주의 종목'이 바뀐다
 ---
 <BaseLayout
   title="오르까 내리까 — 주간 금융 예측 게임"
@@ -37,17 +31,7 @@ const QS = [
     <!-- 지난 라운드 결과 리빌 -->
     <section class="pl-reveal" id="pl-reveal" hidden>
       <h2>지난 라운드 결과 <span id="pl-reveal-round"></span></h2>
-      <div class="pl-reveal__cards" id="pl-reveal-cards">
-        {QS.map((q) => (
-          <div class="pl-rcard" data-key={q.key}>
-            <span class="pl-rcard__emoji">{q.emoji}</span>
-            <b class="pl-rcard__label">{q.label}</b>
-            <span class="pl-rcard__change" data-role="change">…</span>
-            <span class="pl-rcard__mine" data-role="mine"></span>
-            <span class="pl-rcard__stamp" data-role="stamp" hidden></span>
-          </div>
-        ))}
-      </div>
+      <div class="pl-reveal__cards" id="pl-reveal-cards"></div>
       <div class="pl-reveal__total" id="pl-reveal-total" hidden>
         <span id="pl-reveal-msg"></span>
         <b id="pl-reveal-worms"></b>
@@ -68,32 +52,15 @@ const QS = [
       </div>
       <p class="pl-round__desc" id="pl-round-desc">이번 주 금요일 15:30에 기준가가 정해지고, <b>다음 주 금요일 15:30</b> 가격으로 판정해요. 마감 전까지 얼마든지 마음을 바꿀 수 있어요.</p>
 
-      <div class="pl-cards" id="pl-cards">
-        {QS.map((q) => (
-          <div class="pl-card" data-key={q.key}>
-            <div class="pl-card__top">
-              <span class="pl-card__emoji">{q.emoji}</span>
-              <div class="pl-card__t"><b>{q.label}</b><span>{q.hint}</span></div>
-              <button type="button" class="pl-dd" data-role="dd" title="더블다운 — 맞히면 2.5배, 틀리면 0">🎯 더블</button>
-            </div>
-            <div class="pl-card__btns">
-              <button type="button" class="pl-btn pl-btn--up" data-dir="up"><i>▲</i> 오른다</button>
-              <button type="button" class="pl-btn pl-btn--down" data-dir="down"><i>▼</i> 내린다</button>
-            </div>
-            <div class="pl-dist" data-role="dist" hidden>
-              <div class="pl-dist__bar"><i class="is-up" data-role="up-bar"></i><i class="is-down" data-role="down-bar"></i></div>
-              <div class="pl-dist__nums"><span data-role="up-pct">-</span><span class="pl-dist__underdog" data-role="tag"></span><span data-role="down-pct">-</span></div>
-            </div>
-          </div>
-        ))}
-      </div>
+      <div class="pl-cards" id="pl-cards"></div>
 
-      <button type="button" class="pl-submit" id="pl-submit" disabled>3개 모두 골라주세요</button>
+      <button type="button" class="pl-submit" id="pl-submit" disabled>모두 골라주세요</button>
       <p class="pl-submitted" id="pl-submitted" hidden>제출 완료! <b id="pl-crowd"></b> 결과는 판정일에 이 페이지에서 짜릿하게 공개됩니다. 마감 전까지 수정 가능해요.</p>
     </section>
 
     <FaqBox items={[
-      { q: '보상은 어떻게 계산되나요?', a: '문항당 적중 +3밀웜. 더블다운을 건 문항은 적중 시 +8(틀리면 그 문항 0). 3문항 모두 맞히면 퍼펙트 +6. 소수파(참여자 40% 미만이 고른 쪽)로 적중하면 역배 보너스 +3이 추가됩니다. 이론상 한 주 최대 29밀웜.' },
+      { q: '보상은 어떻게 계산되나요?', a: '문항당 적중 +3밀웜. 더블다운을 건 문항은 적중 시 +8(틀리면 그 문항 0). 전 문항 적중 시 퍼펙트 +6. 소수파(참여자 40% 미만이 고른 쪽)로 적중하면 역배 보너스 +3이 추가됩니다.' },
+      { q: '⭐ 이주의 종목은 뭔가요?', a: '고정 3문항(코스피·달러·비트코인) 외에 매주 바뀌는 스페셜 문항입니다. 삼성전자·엔비디아·테슬라·금값·이더리움 등이 로테이션으로 출제돼요. 특정 종목의 매수·매도 추천이 아닌 재미용 예측 게임입니다.' },
       { q: '판정 기준이 뭔가요?', a: '금요일 15:30에 기록한 기준가와 다음 주 금요일 15:30 가격(비트코인은 업비트, 코스피·환율은 종가 기준)을 비교합니다. 변동이 ±0.05% 미만이면 무승부로 전원 적중 처리하는 관대한 룰입니다.' },
       { q: '언제까지 예측할 수 있나요?', a: '매주 금요일 15:30에 마감됩니다. 마감 전까지는 몇 번이든 예측을 바꿀 수 있어요. 마감 후에는 기준가가 확정되고 다음 라운드가 열립니다.' },
       { q: '밀웜은 어디에 쓰나요?', a: '마이페이지의 크라미 옷장에서 마스코트 아이템을 살 수 있어요. 밀웜은 현금으로 바꿀 수 없는 재미용 포인트입니다.' },
@@ -127,7 +94,56 @@ const QS = [
       const rest = (path, auth) => fetch(SU + '/rest/v1/' + path, { headers: H(auth) }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
       const rpc = (fn, body, auth) => fetch(SU + '/rest/v1/rpc/' + fn, { method: 'POST', headers: H(auth), body: JSON.stringify(body || {}) }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
 
-      const state = { round: null, picks: {}, dd: null, submitted: false };
+      const state = { round: null, picks: {}, dd: null, submitted: false, qCount: 0 };
+      const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+      // 문항 카드 빌더 — 라운드 questions 기반(⭐ 이주의 종목 포함)
+      function buildRoundCards(questions) {
+        const host = $('pl-cards');
+        host.innerHTML = '';
+        for (const q of questions) {
+          const card = document.createElement('div');
+          card.className = 'pl-card' + (q.special ? ' is-special' : '');
+          card.dataset.key = q.key;
+          card.innerHTML =
+            (q.special ? '<span class="pl-special">⭐ 이주의 종목</span>' : '') +
+            '<div class="pl-card__top"><span class="pl-card__emoji">' + esc(q.emoji) + '</span>' +
+            '<div class="pl-card__t"><b>' + esc(q.label) + '</b><span>' + esc(q.hint || '') + '</span></div>' +
+            '<button type="button" class="pl-dd" data-role="dd" title="더블다운 — 맞히면 2.5배, 틀리면 0">🎯 더블</button></div>' +
+            '<div class="pl-card__btns">' +
+            '<button type="button" class="pl-btn pl-btn--up" data-dir="up"><i>▲</i> 오른다</button>' +
+            '<button type="button" class="pl-btn pl-btn--down" data-dir="down"><i>▼</i> 내린다</button></div>' +
+            '<div class="pl-dist" data-role="dist" hidden>' +
+            '<div class="pl-dist__bar"><i class="is-up" data-role="up-bar"></i><i class="is-down" data-role="down-bar"></i></div>' +
+            '<div class="pl-dist__nums"><span data-role="up-pct">-</span><span class="pl-dist__underdog" data-role="tag"></span><span data-role="down-pct">-</span></div></div>';
+          card.querySelectorAll('.pl-btn').forEach((b) => b.addEventListener('click', () => {
+            state.picks[q.key] = b.dataset.dir;
+            b.classList.remove('is-pop'); void b.offsetWidth; b.classList.add('is-pop');
+            paintPicks();
+          }));
+          card.querySelector('[data-role=dd]').addEventListener('click', () => {
+            state.dd = state.dd === q.key ? null : q.key;
+            paintPicks();
+          });
+          host.appendChild(card);
+        }
+      }
+      function buildRevealCards(questions) {
+        const host = $('pl-reveal-cards');
+        host.innerHTML = '';
+        for (const q of questions) {
+          const card = document.createElement('div');
+          card.className = 'pl-rcard';
+          card.dataset.key = q.key;
+          card.innerHTML =
+            '<span class="pl-rcard__emoji">' + esc(q.emoji) + '</span>' +
+            '<b class="pl-rcard__label">' + esc(q.label) + (q.special ? ' ⭐' : '') + '</b>' +
+            '<span class="pl-rcard__change" data-role="change">…</span>' +
+            '<span class="pl-rcard__mine" data-role="mine"></span>' +
+            '<span class="pl-rcard__stamp" data-role="stamp" hidden></span>';
+          host.appendChild(card);
+        }
+      }
 
       // ── 칭호 ──
       const RANKS = [
@@ -167,6 +183,7 @@ const QS = [
         const my = mine && mine[0];
         if (!my || !my.score) return;
         $('pl-reveal-round').textContent = '#' + (round.id.split('-W')[1] || '') + '주차';
+        buildRevealCards(round.questions || []);
         $('pl-reveal').hidden = false;
         const seenKey = 'crama:play-seen';
         const seen = localStorage.getItem(seenKey) === round.id;
@@ -205,11 +222,12 @@ const QS = [
       // ── 이번 라운드 ──
       function updateSubmit() {
         const btn = $('pl-submit');
-        const done = Object.keys(state.picks).length === 3;
+        const n = state.qCount || 0;
+        const done = n > 0 && Object.keys(state.picks).length === n;
         btn.disabled = !done;
         btn.textContent = state.submitted
           ? '예측 수정하기'
-          : done ? (state.dd ? '제출 — 🎯 더블다운 포함' : '예측 제출하기') : (3 - Object.keys(state.picks).length) + '개 더 골라주세요';
+          : done ? (state.dd ? '제출 — 🎯 더블다운 포함' : '예측 제출하기') : (n - Object.keys(state.picks).length) + '개 더 골라주세요';
       }
       async function loadStats() {
         if (!state.round) return;
@@ -248,8 +266,10 @@ const QS = [
       async function loadRound() {
         const rounds = await rest('prediction_rounds?status=eq.open&order=locks_at.asc&limit=1');
         state.round = rounds && rounds[0];
-        if (!state.round) { $('pl-round-desc').textContent = '다음 라운드를 준비 중이에요 — 내일 다시 와주세요!'; $('pl-cards').style.opacity = 0.4; return; }
+        if (!state.round) { $('pl-round-desc').textContent = '다음 라운드를 준비 중이에요 — 내일 다시 와주세요!'; return; }
         $('pl-round-id').textContent = '#' + (state.round.id.split('-W')[1] || '') + '주차';
+        state.qCount = (state.round.questions || []).length;
+        buildRoundCards(state.round.questions || []);
         // 카운트다운
         const locks = new Date(state.round.locks_at);
         $('pl-timer').hidden = false;
@@ -273,18 +293,6 @@ const QS = [
         loadStats();
       }
 
-      document.querySelectorAll('.pl-card').forEach((card) => {
-        const key = card.dataset.key;
-        card.querySelectorAll('.pl-btn').forEach((b) => b.addEventListener('click', () => {
-          state.picks[key] = b.dataset.dir;
-          b.classList.remove('is-pop'); void b.offsetWidth; b.classList.add('is-pop');
-          paintPicks();
-        }));
-        card.querySelector('[data-role=dd]').addEventListener('click', () => {
-          state.dd = state.dd === key ? null : key;
-          paintPicks();
-        });
-      });
       $('pl-submit').addEventListener('click', async () => {
         if (!state.round) return;
         if (!T) {
@@ -364,8 +372,10 @@ const QS = [
     .pl-timer b { font-size: 0.95rem; font-weight: 800; color: #e11d48; font-variant-numeric: tabular-nums; }
     .pl-round__desc { font-size: 0.82rem; color: var(--muted); margin: 0.4rem 0 1rem; line-height: 1.55; }
     .pl-cards { display: grid; gap: 0.7rem; }
-    .pl-card { padding: 0.95rem 1rem; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); transition: border-color 0.15s, box-shadow 0.15s; }
+    .pl-card { position: relative; padding: 0.95rem 1rem; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); transition: border-color 0.15s, box-shadow 0.15s; }
     .pl-card.is-dd { border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15); }
+    .pl-card.is-special { border: 1.5px solid transparent; background: linear-gradient(var(--paper), var(--paper)) padding-box, linear-gradient(120deg, #f59e0b, var(--accent), #f59e0b) border-box; }
+    .pl-special { position: absolute; top: -0.62rem; left: 0.9rem; font-size: 0.66rem; font-weight: 800; color: #b45309; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 999px; padding: 0.14rem 0.55rem; }
     .pl-card__top { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.65rem; }
     .pl-card__emoji { font-size: 1.5rem; flex: none; }
     .pl-card__t { flex: 1; min-width: 0; }

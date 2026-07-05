@@ -7,9 +7,20 @@ import pg from 'pg';
 import { pgConn } from './lib/push.js';
 
 const QUESTIONS = [
-  { key: 'kospi', label: '코스피', emoji: '📈', unit: 'pt', src: 'yahoo:^KS11' },
-  { key: 'usd', label: '달러 환율', emoji: '💵', unit: '원', src: 'yahoo:KRW=X' },
-  { key: 'btc', label: '비트코인', emoji: '🪙', unit: '원', src: 'upbit:KRW-BTC' },
+  { key: 'kospi', label: '코스피', emoji: '📈', unit: 'pt', src: 'yahoo:^KS11', hint: '한국 증시의 체온계' },
+  { key: 'usd', label: '달러 환율', emoji: '💵', unit: '원', src: 'yahoo:KRW=X', hint: '오르면 원화가 약해진 것' },
+  { key: 'btc', label: '비트코인', emoji: '🪙', unit: '원', src: 'upbit:KRW-BTC', hint: '주말에도 쉬지 않는 그 코인' },
+];
+// ⭐ 이주의 종목 — 주차 번호로 로테이션(매주 다른 4번째 문항)
+const SPECIALS = [
+  { key: 'samsung', label: '삼성전자', emoji: '📱', unit: '원', src: 'yahoo:005930.KS', hint: '국민주의 자존심' },
+  { key: 'nvidia', label: '엔비디아', emoji: '🤖', unit: '$', src: 'yahoo:NVDA', hint: 'AI 시대의 곡괭이 장수' },
+  { key: 'gold', label: '금값', emoji: '🥇', unit: '$', src: 'yahoo:GC=F', hint: '불안할수록 빛나는 안전자산' },
+  { key: 'tesla', label: '테슬라', emoji: '🚗', unit: '$', src: 'yahoo:TSLA', hint: '일론의 롤러코스터' },
+  { key: 'kakao', label: '카카오', emoji: '💬', unit: '원', src: 'yahoo:035720.KS', hint: '국민 메신저의 주가는?' },
+  { key: 'eth', label: '이더리움', emoji: '💎', unit: '원', src: 'upbit:KRW-ETH', hint: '비트코인의 영원한 2인자' },
+  { key: 'skhynix', label: 'SK하이닉스', emoji: '💾', unit: '원', src: 'yahoo:000660.KS', hint: 'HBM 반도체의 주인공' },
+  { key: 'apple', label: '애플', emoji: '🍎', unit: '$', src: 'yahoo:AAPL', hint: '세계에서 제일 비싼 과일' },
 ];
 const HIT = 3, DOUBLE_HIT = 8, PERFECT = 6, UNDERDOG = 3, UNDERDOG_MAX_SHARE = 0.4, PUSH_PCT = 0.05;
 
@@ -132,17 +143,19 @@ async function main() {
       console.log(`✓ ${round.id} 락 — 기준가 기록`);
     }
 
-    // ① 생성: open 라운드 없으면 다음 라운드
+    // ① 생성: open 라운드 없으면 다음 라운드 (고정 3문항 + ⭐이주의 종목 로테이션)
     const open = await client.query(`select id from prediction_rounds where status='open'`);
     if (open.rows.length === 0) {
       const locks = nextFriday1530(now);
       const settles = new Date(locks.getTime() + 7 * 864e5);
       const id = isoWeekId(locks);
+      const weekNum = parseInt(id.split('-W')[1], 10) || 0;
+      const special = { ...SPECIALS[weekNum % SPECIALS.length], special: true };
       await client.query(
         `insert into prediction_rounds (id, opens_at, locks_at, settles_at, questions, status)
          values ($1, now(), $2, $3, $4, 'open') on conflict (id) do nothing`,
-        [id, locks, settles, JSON.stringify(QUESTIONS)]);
-      console.log(`✓ 라운드 생성: ${id} (락 ${locks.toLocaleString('ko-KR')})`);
+        [id, locks, settles, JSON.stringify([...QUESTIONS, special])]);
+      console.log(`✓ 라운드 생성: ${id} (락 ${locks.toLocaleString('ko-KR')}, ⭐${special.label})`);
     }
   } finally {
     await client.end();

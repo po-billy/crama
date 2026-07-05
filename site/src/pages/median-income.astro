@@ -1,0 +1,204 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// 2026년 기준 중위소득(월, 원) — 보건복지부 고시(2025-07 발표, 역대 최대 인상)
+const MEDIAN = [2564238, 4199292, 5359036, 6494738, 7556719, 8555952];
+// 급여별 선정기준(중위소득 대비 %)
+const BENEFITS_PCT = [
+  { name: '생계급여', pct: 32, desc: '가장 기본이 되는 현금 지원' },
+  { name: '의료급여', pct: 40, desc: '병원비 대부분을 지원' },
+  { name: '주거급여', pct: 48, desc: '월세 지원·집수리' },
+  { name: '교육급여', pct: 50, desc: '입학금·수업료·교육활동지원비' },
+];
+// 그 밖에 자주 쓰이는 기준선
+const COMMON_PCT = [60, 100, 120, 150, 180, 200];
+const fmt = (n: number) => Math.round(n).toLocaleString('ko-KR');
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: '홈', item: 'https://crama.app/' },
+    { '@type': 'ListItem', position: 2, name: '내 혜택 찾기', item: 'https://crama.app/benefits/' },
+    { '@type': 'ListItem', position: 3, name: '기준 중위소득 계산기' },
+  ],
+};
+---
+<BaseLayout
+  title="기준 중위소득 계산기 2026 — 내 소득은 중위소득 몇 %?"
+  description="2026년 기준 중위소득(1인 256만·4인 649만원)으로 내 소득이 중위소득 몇 %인지 바로 계산. 생계·의료·주거·교육급여와 청년·신혼 정책 기준선까지 한눈에 확인하세요."
+  jsonLd={jsonLd}
+>
+  <div class="wrap mi">
+    <header class="page-hero">
+      <span class="eyebrow">Median Income</span>
+      <h1>기준 중위소득 계산기 <span class="mi-y">2026</span></h1>
+      <p>복지·청년 정책의 자격은 대부분 <b>"중위소득 몇 % 이하"</b>로 정해져요. 가구원 수와 월소득만 넣으면 내 위치가 바로 나옵니다.</p>
+      <p class="mi-basis">2026년 기준 중위소득 · 역대 최대 인상(4인 기준 +6.51%)</p>
+    </header>
+
+    <div class="mi-form">
+      <label>가구원 수
+        <select id="mi-hh">
+          {[1, 2, 3, 4, 5, 6].map((n) => <option value={n}>{n}인 가구</option>)}
+        </select>
+      </label>
+      <label>가구 월소득(세전)
+        <div class="mi-in"><input id="mi-pay" type="number" inputmode="numeric" placeholder="예: 300" min="0" max="10000" /><span>만원</span></div>
+      </label>
+      <button type="button" id="mi-go">계산하기</button>
+    </div>
+
+    <div class="mi-result" id="mi-result" hidden>
+      <div class="mi-hero">
+        <span>내 가구 소득은 기준 중위소득의</span>
+        <b id="mi-pct">-</b>
+        <em id="mi-sub">-</em>
+      </div>
+      <ul class="mi-checks" id="mi-checks"></ul>
+      <p class="mi-note">※ 실제 수급 자격은 세전 소득이 아니라 <b>소득인정액</b>(소득 + 재산의 소득환산액) 기준이에요. 여기 결과는 참고용이며, 정확한 판정은 <a href="https://www.bokjiro.go.kr" target="_blank" rel="noopener">복지로 모의계산</a>에서 확인하세요.</p>
+      <button type="button" class="mi-reg" id="mi-reg" hidden>가구원 수·소득을 내 정보로 저장 → 혜택 매칭에 자동 사용</button>
+    </div>
+
+    <section class="mi-sec">
+      <h2>2026년 기준 중위소득표 (월 기준)</h2>
+      <div class="mi-scroll">
+        <table class="mi-table">
+          <thead><tr><th>가구원 수</th><th>중위소득 100%</th>{BENEFITS_PCT.map((b) => <th>{b.name}<br/>({b.pct}%)</th>)}</tr></thead>
+          <tbody>
+            {MEDIAN.map((m, i) => (
+              <tr>
+                <th>{i + 1}인</th>
+                <td class="mi-hl">{fmt(m)}원</td>
+                {BENEFITS_PCT.map((b) => <td>{fmt(m * b.pct / 100)}원</td>)}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="mi-note">7인 이상 가구는 복지로에서 확인하세요. 생계급여는 32% 이하, 의료급여 40%, 주거급여 48%, 교육급여 50% 이하가 선정 기준입니다.</p>
+    </section>
+
+    <section class="mi-sec">
+      <h2>자주 쓰는 기준선 (청년·신혼 정책 등)</h2>
+      <div class="mi-scroll">
+        <table class="mi-table">
+          <thead><tr><th>가구원 수</th>{COMMON_PCT.map((p) => <th>{p}%</th>)}</tr></thead>
+          <tbody>
+            {MEDIAN.map((m, i) => (
+              <tr>
+                <th>{i + 1}인</th>
+                {COMMON_PCT.map((p) => <td class={p === 100 ? 'mi-hl' : ''}>{fmt(m * p / 100)}원</td>)}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <ul class="mi-list">
+        <li><b>60% 이하</b> — 국민취업지원제도Ⅰ, 청년월세 지원 등 취약계층 대상 정책의 단골 기준</li>
+        <li><b>120% 이하</b> — 청년 정책(적금·수당류) 다수가 이 근처에서 갈립니다</li>
+        <li><b>150~200%</b> — 신혼부부·출산 지원, 지자체 돌봄 지원 등 중산층까지 여는 기준</li>
+      </ul>
+    </section>
+
+    <div class="mi-cross">
+      <a class="is-main" href="/benefits/">이 소득으로 받을 수 있는 혜택 정밀 매칭 →</a>
+      <a href="/welfare/">복지 서비스 찾기 →</a>
+      <a href="/youth/">청년 정책 보기 →</a>
+    </div>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const MEDIAN = [2564238, 4199292, 5359036, 6494738, 7556719, 8555952];
+      const BENEFITS = [['생계급여', 32], ['의료급여', 40], ['주거급여', 48], ['교육급여', 50]];
+      const $ = (id) => document.getElementById(id);
+      const fmt = (n) => Math.round(n).toLocaleString('ko-KR');
+      function calc() {
+        const hh = Number($('mi-hh').value);
+        const pay = Number($('mi-pay').value) * 10000;
+        if (!hh || !pay) return;
+        const med = MEDIAN[hh - 1];
+        const pct = (pay / med) * 100;
+        $('mi-pct').textContent = Math.round(pct) + '%';
+        $('mi-sub').textContent = hh + '인 가구 중위소득 ' + fmt(med) + '원 기준';
+        const box = $('mi-checks');
+        box.innerHTML = '';
+        BENEFITS.forEach(([name, p]) => {
+          const ok = pct <= p;
+          const li = document.createElement('li');
+          li.className = ok ? 'is-ok' : '';
+          li.innerHTML = '<b>' + name + ' (' + p + '%)</b><span>' + (ok ? '기준선 이내 — 소득인정액 확인해볼 만해요' : '기준선 초과 (' + fmt(med * p / 100) + '원 이하)') + '</span>';
+          box.appendChild(li);
+        });
+        $('mi-result').hidden = false;
+      }
+      $('mi-go').addEventListener('click', calc);
+      $('mi-pay').addEventListener('keydown', (e) => { if (e.key === 'Enter') calc(); });
+
+      // 프로필 사이클: 가구원 수·가구 소득 프리필, 계산 후 '내 정보로 저장'
+      const P = window.CramaProfile;
+      if (P) {
+        const d = P.get();
+        if (d.household) $('mi-hh').value = Math.min(6, d.household);
+        const inc = d.hhIncome || (d.salary ? Math.round(d.salary / 12) : 0);
+        if (inc) $('mi-pay').value = inc;
+        if (d.household && inc) calc();
+        const btn = $('mi-reg');
+        const sync = () => { const dd = P.get(); btn.hidden = false; btn.textContent = (dd.household && dd.hhIncome) ? '내 정보 업데이트' : '가구원 수·소득을 내 정보로 저장 → 혜택 매칭에 자동 사용'; };
+        $('mi-go').addEventListener('click', sync);
+        if (d.household || inc) sync();
+        btn.addEventListener('click', () => {
+          const patch = {};
+          const hh = Number($('mi-hh').value); if (hh) patch.household = hh;
+          const pay = Number($('mi-pay').value); if (pay) patch.hhIncome = pay;
+          if (P.set(patch)) { btn.textContent = '저장됐어요 — /me에서 관리'; setTimeout(sync, 2500); }
+        });
+      }
+    })();
+  </script>
+
+  <style>
+    .mi { max-width: 44rem; }
+    .mi-y { color: var(--accent); }
+    .page-hero .mi-basis { font-size: 0.82rem; color: var(--muted); margin-top: 0.5rem; }
+    .mi-form { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin: 1.4rem 0 1rem; padding: 1.1rem 1.2rem; border: 1px solid var(--line); border-radius: 14px; background: var(--paper-2); }
+    .mi-form label { font-size: 0.84rem; font-weight: 700; color: var(--ink-soft); display: flex; flex-direction: column; gap: 0.35rem; }
+    .mi-in { display: flex; align-items: center; gap: 0.4rem; }
+    .mi-in input { flex: 1; min-width: 0; font: inherit; font-size: 1rem; padding: 0.6rem 0.8rem; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); }
+    .mi-in span { color: var(--muted); font-size: 0.85rem; }
+    .mi-form select { font: inherit; font-size: 0.95rem; padding: 0.6rem 0.8rem; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); }
+    .mi-form input:focus, .mi-form select:focus { outline: none; border-color: var(--accent); }
+    .mi-form button { grid-column: 1 / -1; font: inherit; font-weight: 800; font-size: 1rem; padding: 0.8rem; border: 0; border-radius: 12px; background: var(--accent); color: #fff; cursor: pointer; }
+    @media (max-width: 560px) { .mi-form { grid-template-columns: 1fr; } }
+    .mi-result[hidden] { display: none; }
+    .mi-hero { text-align: center; padding: 1.4rem 1.2rem; border-radius: 16px; background: var(--accent); color: #fff; margin-bottom: 0.7rem; }
+    .mi-hero span { display: block; font-size: 0.85rem; opacity: 0.85; }
+    .mi-hero b { display: block; font-size: clamp(2rem, 7vw, 2.8rem); line-height: 1.2; margin-top: 0.2rem; }
+    .mi-hero em { display: block; font-style: normal; font-size: 0.8rem; opacity: 0.9; margin-top: 0.25rem; }
+    .mi-checks { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+    .mi-checks li { border: 1px solid var(--line); border-radius: 12px; padding: 0.7rem 0.9rem; display: flex; flex-direction: column; gap: 0.15rem; opacity: 0.75; }
+    .mi-checks li.is-ok { border-color: var(--accent); background: var(--accent-soft); opacity: 1; }
+    .mi-checks b { font-size: 0.9rem; }
+    .mi-checks span { font-size: 0.76rem; color: var(--muted); }
+    @media (max-width: 560px) { .mi-checks { grid-template-columns: 1fr; } }
+    .mi-reg { display: block; margin-top: 0.7rem; font: inherit; font-size: 0.85rem; font-weight: 700; color: var(--accent); background: var(--accent-soft); border: 1px dashed var(--accent); border-radius: 10px; padding: 0.6rem 1rem; cursor: pointer; width: 100%; }
+    .mi-reg[hidden] { display: none; }
+    .mi-sec { margin: 1.8rem 0; }
+    .mi-sec h2 { font-size: 1.1rem; margin: 0 0 0.7rem; }
+    .mi-scroll { overflow-x: auto; }
+    .mi-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; white-space: nowrap; }
+    .mi-table thead th { font-size: 0.74rem; color: var(--muted); text-align: right; padding: 0.45rem 0.6rem; border-bottom: 2px solid var(--line); }
+    .mi-table thead th:first-child { text-align: left; }
+    .mi-table tbody th { text-align: left; padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--line); }
+    .mi-table tbody td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; }
+    .mi-hl { font-weight: 800; color: var(--accent); }
+    .mi-list { margin: 0.8rem 0 0; padding-left: 1.1rem; display: grid; gap: 0.5rem; font-size: 0.9rem; line-height: 1.6; color: var(--ink-soft); }
+    .mi-note { font-size: 0.8rem; color: var(--muted); margin: 0.7rem 0 0; line-height: 1.5; }
+    .mi-note a { color: var(--accent); }
+    .mi-cross { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; margin: 2rem 0 1rem; padding-top: 1.4rem; border-top: 1px solid var(--line); }
+    .mi-cross a { font-size: 0.88rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--line); border-radius: 999px; }
+    .mi-cross a:hover { border-color: var(--accent); }
+    .mi-cross .is-main { background: var(--accent); color: #fff; border-color: var(--accent); }
+  </style>
+</BaseLayout>

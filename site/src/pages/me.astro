@@ -62,6 +62,7 @@ import '../styles/app.css';
           </select>
         </label>
         <label>연봉(만원) <input id="mp-salary" type="number" inputmode="numeric" placeholder="예: 4200" min="0" max="100000" /></label>
+        <label>가구원 수 <input id="mp-hh" type="number" inputmode="numeric" placeholder="예: 2" min="1" max="10" /></label>
         <label>차량 배기량(cc) <input id="mp-cc" type="number" inputmode="numeric" placeholder="예: 1598" min="0" max="8000" /></label>
         <label>차량 등록연도 <input id="mp-caryr" type="number" inputmode="numeric" placeholder="예: 2022" min="1990" max="2026" /></label>
         <label class="me-prof__ev"><input id="mp-ev" type="checkbox" /> 전기·수소차</label>
@@ -73,6 +74,7 @@ import '../styles/app.css';
       <div class="me-prof__links" id="mp-links" hidden>
         <a href="/salary/" id="mp-link-salary" hidden>내 연봉 실수령액 →</a>
         <a href="/car-tax/" id="mp-link-car" hidden>내 자동차세 →</a>
+        <a href="/median-income/" id="mp-link-mi" hidden>내 중위소득 % →</a>
         <a href="/benefits/" id="mp-link-bf" hidden>내 혜택 매칭 →</a>
       </div>
     </section>
@@ -514,14 +516,16 @@ import '../styles/app.css';
       if (d.age) $('mp-age').value = d.age;
       if (d.region) $('mp-region').value = d.region;
       if (d.salary) $('mp-salary').value = d.salary;
+      if (d.household) $('mp-hh').value = d.household;
       if (d.car) { if (d.car.cc) $('mp-cc').value = d.car.cc; if (d.car.year) $('mp-caryr').value = d.car.year; $('mp-ev').checked = !!d.car.ev; }
       links(d);
     }
     function links(d) {
       var any = false;
-      var s = $('mp-link-salary'), c = $('mp-link-car'), b = $('mp-link-bf');
+      var s = $('mp-link-salary'), c = $('mp-link-car'), b = $('mp-link-bf'), mi = $('mp-link-mi');
       if (d.salary) { var man = Math.min(Math.max(Math.round(d.salary / 100) * 100, 2000), 10000); s.href = '/salary/' + man + '/'; s.hidden = false; any = true; } else s.hidden = true;
       if (d.car && (d.car.cc || d.car.ev)) { c.hidden = false; any = true; } else c.hidden = true;
+      if (d.household && (d.hhIncome || d.salary)) { mi.hidden = false; any = true; } else mi.hidden = true;
       if (d.age && d.region) { b.hidden = false; any = true; } else b.hidden = true;
       $('mp-links').hidden = !any;
     }
@@ -532,6 +536,7 @@ import '../styles/app.css';
       var age = Number($('mp-age').value); if (age) d.age = age;
       var region = $('mp-region').value; if (region) d.region = region;
       var salary = Number($('mp-salary').value); if (salary) d.salary = salary;
+      var hh = Number($('mp-hh').value); if (hh) d.household = hh;
       var cc = Number($('mp-cc').value), yr = Number($('mp-caryr').value), ev = $('mp-ev').checked;
       if (cc || yr || ev) d.car = { cc: cc || undefined, year: yr || undefined, ev: ev || undefined };
       if (P.set(d)) { $('mp-msg').textContent = '저장됐어요 — 계산기들이 자동으로 채워집니다'; links(P.get()); setTimeout(function () { $('mp-msg').textContent = ''; }, 3000); }

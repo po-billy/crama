@@ -125,6 +125,15 @@ hr {
 .search-link { color: var(--ink-soft); }
 .search-link:hover { color: var(--accent); }
 
+/* 마감 알림 넛지 — 하트 저장 직후 하단 필 배너(모바일 탭바 위) */
+.push-nudge { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(4.4rem + env(safe-area-inset-bottom)); z-index: 950; display: flex; align-items: center; gap: 0.55rem; max-width: min(94vw, 30rem); padding: 0.6rem 0.6rem 0.6rem 1rem; background: var(--ink); color: var(--paper); border-radius: 999px; box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3); font-size: 0.83rem; }
+.push-nudge[hidden] { display: none; }
+.push-nudge b { color: #ffd166; }
+.push-nudge span { line-height: 1.35; }
+#push-nudge-on { flex: none; font: inherit; font-size: 0.8rem; font-weight: 800; color: var(--ink); background: var(--paper); border: 0; border-radius: 999px; padding: 0.45rem 0.9rem; cursor: pointer; }
+#push-nudge-x { flex: none; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 1rem; line-height: 1; color: var(--paper); opacity: 0.7; background: transparent; border: 0; border-radius: 999px; cursor: pointer; }
+@media (min-width: 900px) { .push-nudge { bottom: calc(1.2rem + env(safe-area-inset-bottom)); } }
+
 /* 헤더 밀웜 배지 — 프로필 아이콘 왼쪽, 로그인 시에만 JS로 노출 */
 .header-actions > a.hd-worm { display: inline-flex; align-items: center; gap: 0.24rem; padding: 0.22rem 0.6rem; border-radius: 999px; background: var(--accent-soft); color: var(--accent); text-decoration: none; }
 .header-actions > a.hd-worm:hover { color: var(--accent); background: var(--accent-soft); filter: brightness(0.95); }

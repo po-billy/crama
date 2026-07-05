@@ -7,6 +7,7 @@ import BackToTop from '../components/BackToTop.astro';
 import CookieConsent from '../components/CookieConsent.astro';
 import CalcEnhance from '../components/CalcEnhance.astro';
 import { ClientRouter } from 'astro:transitions';
+import { VAPID_PUBLIC_KEY } from '../consts';
 
 interface Props {
   title: string;
@@ -170,6 +171,71 @@ const SAVED_AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
           window.__cramaPlayer = C; return C;
         };
       }
+    </script>
+
+    <!-- 마감 알림 넛지 — 하트(dday 등) 저장 직후 푸시 미허용이면 '알림 켜기' 유도(7일 스누즈) -->
+    <div class="push-nudge" id="push-nudge" hidden>
+      <span id="push-nudge-msg">저장 완료! 마감 <b>D-3·D-1 알림</b>으로 챙겨드릴까요?</span>
+      <button type="button" id="push-nudge-on">알림 켜기</button>
+      <button type="button" id="push-nudge-x" aria-label="닫기">×</button>
+    </div>
+    <script is:inline define:vars={{ NUDGE_VAPID: VAPID_PUBLIC_KEY, NUDGE_SU: SAVED_SU, NUDGE_AK: SAVED_AK }}>
+      (() => {
+        if (window.__pushNudge) return; window.__pushNudge = true;
+        var box = document.getElementById('push-nudge');
+        if (!box || !('Notification' in window) || !('PushManager' in window)) return;
+        var K = 'crama:push-nudge-snooze';
+        function snoozed() { try { return Number(localStorage.getItem(K) || 0) > Date.now(); } catch (e) { return false; } }
+        function show() { if (Notification.permission === 'granted' || snoozed()) return; box.hidden = false; }
+        // CramaSaved.toggle 래핑 — 항목 '추가' 시에만 넛지 (레퍼런스는 페이지가 들고 있어도 메서드 조회는 호출 시점)
+        var S = window.CramaSaved;
+        if (S && S.toggle && !S.__nudgeWrapped) {
+          S.__nudgeWrapped = true;
+          var orig = S.toggle.bind(S);
+          S.toggle = function (rec) { var on = orig(rec); if (on) setTimeout(show, 500); return on; };
+        }
+        document.getElementById('push-nudge-x').addEventListener('click', function () {
+          box.hidden = true;
+          try { localStorage.setItem(K, String(Date.now() + 7 * 864e5)); } catch (e) {}
+        });
+        document.getElementById('push-nudge-on').addEventListener('click', async function () {
+          var btn = this;
+          btn.disabled = true;
+          try {
+            var reg = await navigator.serviceWorker.ready;
+            var perm = await Notification.requestPermission();
+            if (perm !== 'granted') { btn.disabled = false; return; }
+            var s = await reg.pushManager.getSubscription();
+            if (!s) {
+              var pad = '='.repeat((4 - (NUDGE_VAPID.length % 4)) % 4);
+              var raw = atob((NUDGE_VAPID + pad).replace(/-/g, '+').replace(/_/g, '/'));
+              var key = new Uint8Array(raw.length);
+              for (var i = 0; i < raw.length; i++) key[i] = raw.charCodeAt(i);
+              s = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key });
+            }
+            var j = s.toJSON();
+            var tok = null;
+            try {
+              for (var i2 = 0; i2 < localStorage.length; i2++) {
+                var k2 = localStorage.key(i2);
+                if (k2 && k2.indexOf('sb-') === 0 && k2.indexOf('-auth-token') !== -1) {
+                  var o = JSON.parse(localStorage.getItem(k2));
+                  tok = o && (o.access_token || (o.currentSession && o.currentSession.access_token));
+                  break;
+                }
+              }
+            } catch (e) {}
+            await fetch(NUDGE_SU + '/rest/v1/rpc/subscribe_push', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', apikey: NUDGE_AK, Authorization: 'Bearer ' + (tok || NUDGE_AK) },
+              body: JSON.stringify({ p_endpoint: j.endpoint, p_p256dh: j.keys.p256dh, p_auth: j.keys.auth }),
+            });
+            document.getElementById('push-nudge-msg').textContent = '알림을 켰어요 — 마감 전에 챙겨드릴게요';
+            btn.remove();
+            setTimeout(function () { box.hidden = true; }, 2500);
+          } catch (e) { btn.disabled = false; }
+        });
+      })();
     </script>
 
     <!-- 누적 청취 시간 집계 — 전역 플레이어 재생 중 1초씩 누적, 60초마다/이탈 시 flush(REST, supabase-js 미로드) -->

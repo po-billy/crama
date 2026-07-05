@@ -42,6 +42,20 @@ const fmtRate = (n: number) => n.toFixed(2).replace(/\.?0+$/, (m) => (m === '.00
       <div class="rt-best__item"><span>12개월 적금 최고</span><b>연 {rates.best?.saving12}%</b></div>
     </div>
 
+    <!-- 내 예·적금 만기 알림 — 만기 D-3·D-1 푸시 → 갈아탈 최고금리 비교로 재방문 -->
+    <div class="rt-maturity" id="rt-maturity">
+      <div class="rt-maturity__head">
+        <b>내 예·적금 만기 알림</b>
+        <span>만기 놓치면 쥐꼬리 보통예금 금리로 잠들어요 — 미리 알림 받고 갈아타세요</span>
+      </div>
+      <div class="rt-maturity__row">
+        <input id="rtm-name" type="text" maxlength="20" placeholder="상품명(선택) 예: OO은행 정기예금" />
+        <input id="rtm-date" type="date" />
+        <button type="button" id="rtm-add">알림 등록</button>
+      </div>
+      <ul class="rt-maturity__list" id="rtm-list"></ul>
+    </div>
+
     <div class="rt-controls">
       <div class="rt-tabs" role="tablist">
         <button type="button" class="rt-tab is-on" data-kind="deposit">정기예금 {deposits.length}</button>
@@ -156,6 +170,65 @@ const fmtRate = (n: number) => n.toFixed(2).replace(/\.?0+$/, (m) => (m === '.00
       apply();
     })();
   </script>
+
+  <script is:inline>
+    // 내 예·적금 만기 알림 — dday 저장(D-3·D-1 푸시), 만기 시 최고금리 비교로 재방문 유도
+    (() => {
+      const S = window.CramaSaved;
+      const list = document.getElementById('rtm-list');
+      if (!list) return;
+      function render() {
+        if (!S) { list.hidden = true; return; }
+        const items = S.list('dday').filter((r) => String(r.id).indexOf('maturity-') === 0);
+        list.innerHTML = '';
+        items.sort((a, b) => ((a.deadline || '') < (b.deadline || '') ? -1 : 1)).forEach((r) => {
+          const today = new Date(); today.setHours(0, 0, 0, 0);
+          const dd = Math.round((new Date(r.deadline + 'T00:00:00') - today) / 864e5);
+          const li = document.createElement('li');
+          li.innerHTML = '<b></b><span>' + r.deadline + ' · ' + (dd > 0 ? 'D-' + dd : dd === 0 ? 'D-Day' : '지남') + '</span><button type="button" aria-label="삭제">×</button>';
+          li.querySelector('b').textContent = r.name;
+          li.querySelector('button').addEventListener('click', () => { S.remove('dday', r.id); render(); });
+          list.appendChild(li);
+        });
+        list.hidden = !items.length;
+      }
+      document.getElementById('rtm-add').addEventListener('click', () => {
+        if (!S) return;
+        const d = document.getElementById('rtm-date').value;
+        if (!d) { document.getElementById('rtm-date').focus(); return; }
+        const nm = (document.getElementById('rtm-name').value || '').trim();
+        const id = 'maturity-' + d + '-' + (nm ? encodeURIComponent(nm).slice(0, 24) : 'my');
+        if (!S.has('dday', id)) {
+          const on = S.toggle({ type: 'dday', id, name: (nm || '내 예·적금') + ' 만기', url: '/rates/', sub: '만기', deadline: d });
+          if (!on) return; // 비로그인 — promptLogin만 뜨고 저장 안 됨
+        }
+        document.getElementById('rtm-name').value = '';
+        document.getElementById('rtm-date').value = '';
+        render();
+      });
+      document.addEventListener('crama:saved-sync', render);
+      render();
+    })();
+  </script>
+
+  <style is:global>
+    .rt-maturity { margin: 0 0 1.2rem; padding: 0.95rem 1.1rem; border: 1px dashed var(--accent); border-radius: 14px; background: var(--accent-soft); }
+    .rt-maturity__head { display: flex; flex-direction: column; gap: 0.15rem; margin-bottom: 0.6rem; }
+    .rt-maturity__head b { font-size: 0.92rem; color: var(--accent); }
+    .rt-maturity__head span { font-size: 0.76rem; color: var(--ink-soft); }
+    .rt-maturity__row { display: flex; gap: 0.45rem; flex-wrap: wrap; }
+    .rt-maturity__row input { font: inherit; font-size: 0.88rem; padding: 0.5rem 0.7rem; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); }
+    .rt-maturity__row input[type='text'] { flex: 1; min-width: 9rem; }
+    .rt-maturity__row input:focus { outline: none; border-color: var(--accent); }
+    .rt-maturity__row button { font: inherit; font-size: 0.85rem; font-weight: 800; padding: 0.5rem 1rem; border: 0; border-radius: 10px; background: var(--accent); color: #fff; cursor: pointer; }
+    .rt-maturity__list { list-style: none; margin: 0.6rem 0 0; padding: 0; display: grid; gap: 0.35rem; }
+    .rt-maturity__list[hidden] { display: none; }
+    .rt-maturity__list li { display: flex; align-items: center; gap: 0.5rem; padding: 0.45rem 0.7rem; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); font-size: 0.82rem; }
+    .rt-maturity__list b { font-weight: 700; }
+    .rt-maturity__list span { color: var(--muted); font-size: 0.76rem; margin-left: auto; }
+    .rt-maturity__list button { flex: none; width: 22px; height: 22px; border: 0; border-radius: 999px; background: transparent; color: var(--muted); font-size: 0.95rem; line-height: 1; cursor: pointer; }
+    .rt-maturity__list button:hover { color: #e11d48; }
+  </style>
 
   <style>
     .rt { max-width: 46rem; }

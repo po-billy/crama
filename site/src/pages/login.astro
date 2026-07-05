@@ -63,7 +63,16 @@ import '../styles/app.css';
 
   if (!isSupabaseConfigured) $('cfg-warn').style.display = 'block';
 
-  // 로그인 유도 지점(관심 저장 등)에서 넘어온 경우 원래 페이지로 복귀
+  // 로그인 유도 지점(관심 저장 등)에서 넘어온 경우 원래 페이지로 복귀.
+  // return이 비어 있으면 같은 오리진 referrer를 기억 — CTA·직접 링크 등 모든 진입 경로 커버.
+  try {
+    if (!localStorage.getItem('crama:login-return') && document.referrer) {
+      const ref = new URL(document.referrer);
+      if (ref.origin === location.origin && ref.pathname !== '/login/') {
+        localStorage.setItem('crama:login-return', ref.pathname + ref.search);
+      }
+    }
+  } catch {}
   const loginDest = () => {
     try {
       const r = localStorage.getItem('crama:login-return');
@@ -115,6 +124,6 @@ import '../styles/app.css';
     btn.disabled = false;
     if (res.error) return toast(res.error);
     if (signup && 'needsConfirm' in res && res.needsConfirm) return toast('확인 메일을 보냈어요. 인증 후 로그인해 주세요.');
-    location.replace('/me/');
+    location.replace(loginDest());
   });
 </script>

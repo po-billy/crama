@@ -5,6 +5,7 @@ import PostCard from '../../components/PostCard.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
 import DuoIcon from '../../components/DuoIcon.astro';
 import StreakChip from '../../components/StreakChip.astro';
+import PlayChip from '../../components/PlayChip.astro';
 import ratesData from '../../data/rates.json';
 import { CATEGORIES, type CategorySlug, VAPID_PUBLIC_KEY } from '../../consts';
 
@@ -45,6 +46,7 @@ const todayAudio = today ? !!today.data.audio : false;
     </header>
 
     <StreakChip />
+    <PlayChip />
 
     {numDep && numSav && (
       <a class="brief-nums" href="/rates/">

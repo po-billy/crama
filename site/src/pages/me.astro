@@ -534,6 +534,12 @@ import '../styles/app.css';
     try { const cb = localStorage.getItem('crama:bal'); if (cb) $('bal').textContent = cb; const cs = localStorage.getItem('crama:streak'); if (cs) $('streak').textContent = cs; } catch {}
     const user = await getUser();
     if (!user) { location.replace('/login/'); return; }
+    // 로그인 복귀: OAuth(구글·카카오)는 항상 /me로 돌아오므로, 여기서 원래 보던 페이지로 되돌린다
+    try {
+      const ret = localStorage.getItem('crama:login-return');
+      localStorage.removeItem('crama:login-return');
+      if (ret && ret.startsWith('/') && ret !== '/me/' && ret !== location.pathname) { location.replace(ret); return; }
+    } catch {}
     const app = document.getElementById('me-app');
     if (app) app.style.opacity = '1';
     await earnWorms('attend'); // 출석(서버 1일 1회 캡)

@@ -1,0 +1,35 @@
+---
+// 오르까 내리까 유입 칩 — 열린 라운드의 참여 인원·마감 D-n을 라이브로. 홈·브리핑 상단용.
+const SU = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
+const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
+---
+<a class="play-chip" id="play-chip" href="/play/" hidden>
+  <b>🔮 오르까 내리까</b>
+  <span id="play-chip-sub">이번 주 예측 열림</span>
+  <em id="play-chip-cta">참여 ›</em>
+</a>
+<script is:inline define:vars={{ SU, AK }}>
+  (() => {
+    const el = document.getElementById('play-chip');
+    if (!el || el.__bound || !SU) return;
+    el.__bound = true;
+    const H = { apikey: AK, Authorization: 'Bearer ' + AK, 'Content-Type': 'application/json' };
+    fetch(SU + '/rest/v1/prediction_rounds?status=eq.open&select=id,locks_at&limit=1', { headers: H })
+      .then((r) => (r.ok ? r.json() : null))
+      .then(async (rows) => {
+        const round = rows && rows[0];
+        if (!round) return;
+        const ms = new Date(round.locks_at) - new Date();
+        if (ms <= 0) return;
+        const d = Math.floor(ms / 864e5);
+        let crowd = '';
+        try {
+          const st = await fetch(SU + '/rest/v1/rpc/prediction_stats', { method: 'POST', headers: H, body: JSON.stringify({ p_round: round.id }) }).then((r) => (r.ok ? r.json() : null));
+          if (st && st.total >= 5) crowd = st.total.toLocaleString('ko-KR') + '명 참여 중 · ';
+        } catch (e) {}
+        document.getElementById('play-chip-sub').textContent = crowd + '이번 주 오를까 내릴까 — 마감 ' + (d > 0 ? 'D-' + d : '오늘!');
+        el.hidden = false;
+      })
+      .catch(() => {});
+  })();
+</script>

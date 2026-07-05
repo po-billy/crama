@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { computeSalary, salaryAmounts } from '../lib/salary';
+import { G_ICONS } from '../lib/game-icons';
 
 // 연봉→[월실수령, 월공제(보험), 월세금] 슬림 테이블(빌드타임) — 클라이언트에서 최근접 보간
 const SALARY_TABLE = salaryAmounts().map((man) => {
@@ -24,7 +25,7 @@ const RANK_ANCHORS = [[113769, 0.1], [21673, 1], [10057, 10], [7624, 20], [5482,
 
     <!-- 빈 상태(프로필 없음) -->
     <div class="mr-empty" id="mr-empty" hidden>
-      <span class="mr-empty__emoji">📊</span>
+      <span class="mr-empty__emoji" set:html={G_ICONS.chartUp.replace('width="18" height="18"', 'width="40" height="40"')} />
       <b>30초만 등록하면 리포트가 완성돼요</b>
       <p>연봉 하나만 넣어도 실수령액과 세금이 나오고, 가구·차·집을 더하면 리포트가 점점 완전해집니다.</p>
       <a class="mr-empty__cta" href="/me/">내 정보 등록하러 가기 →</a>
@@ -64,7 +65,7 @@ const RANK_ANCHORS = [[113769, 0.1], [21673, 1], [10057, 10], [7624, 20], [5482,
 
       <!-- ⑤ 공유 -->
       <div class="mr-share">
-        <button type="button" id="mr-share-btn">📸 리포트 카드 저장·공유</button>
+        <button type="button" id="mr-share-btn">리포트 카드 저장·공유</button>
         <span>연봉 숫자는 카드에서 가릴 수 있어요</span>
         <label class="mr-share__opt"><input type="checkbox" id="mr-share-hide" checked /> 실수령액 숨기기</label>
       </div>
@@ -73,10 +74,11 @@ const RANK_ANCHORS = [[113769, 0.1], [21673, 1], [10057, 10], [7624, 20], [5482,
     <p class="mr-note">※ 간이 추정입니다(1인 공제·비과세 없음 가정, 세부담 상한 등 미반영). 값은 이 기기에서 계산되며 서버로 전송되지 않아요. 각 상세는 <a href="/salary/">실수령액</a>·<a href="/property-tax/">재산세</a>·<a href="/car-tax/">자동차세</a>·<a href="/median-income/">중위소득</a>에서 확인하세요.</p>
   </div>
 
-  <script is:inline define:vars={{ SALARY_TABLE, MEDIAN, RANK_ANCHORS }}>
+  <script is:inline define:vars={{ SALARY_TABLE, MEDIAN, RANK_ANCHORS, GI: G_ICONS }}>
     (() => {
       const $ = (id) => document.getElementById(id);
       const fmt = (n) => Math.round(n).toLocaleString('ko-KR');
+      const gi = (name, size) => (GI[name] || '').replace('width="18" height="18"', 'width="' + size + '" height="' + size + '"');
       let P = {};
       try { P = JSON.parse(localStorage.getItem('crama:profile') || '{}') || {}; } catch (e) {}
       const has = { salary: !!P.salary, hh: !!(P.household && (P.hhIncome || P.salary)), car: !!(P.car && (P.car.ev || (P.car.cc && P.car.year))), home: !!(P.home && P.home.price), basic: !!(P.age && P.region) };
@@ -163,7 +165,7 @@ const RANK_ANCHORS = [[113769, 0.1], [21673, 1], [10057, 10], [7624, 20], [5482,
           leg.appendChild(li);
         }
         const daily = totalOut / 365;
-        let funHtml = '하루 <b>' + fmt(daily) + '원</b>씩 나가는 셈 — 1년이면 치킨 🍗 <b>' + fmt(totalOut / 20000) + '마리</b>, 아메리카노 ☕ <b>' + fmt(totalOut / 4500) + '잔</b>어치예요.';
+        let funHtml = '하루 <b>' + fmt(daily) + '원</b>씩 나가는 셈 — 1년이면 치킨 ' + gi('drumstick', 14) + ' <b>' + fmt(totalOut / 20000) + '마리</b>, 아메리카노 ' + gi('coffee', 14) + ' <b>' + fmt(totalOut / 4500) + '잔</b>어치예요.';
         if (has.salary) {
           let pct = 99;
           const man = P.salary;
@@ -174,7 +176,7 @@ const RANK_ANCHORS = [[113769, 0.1], [21673, 1], [10057, 10], [7624, 20], [5482,
               if (man <= hm && man >= lm) { const t = (Math.log(man) - Math.log(lm)) / (Math.log(hm) - Math.log(lm)); pct = Math.round((lp + (hp - lp) * t) * 10) / 10; break; }
             }
           }
-          funHtml += '<br/>그리고 이 연봉은 근로소득자 <b>🏆 상위 ' + pct + '%</b> — 100명 중 앞에서 ' + Math.max(1, Math.round(pct)) + '번째예요.';
+          funHtml += '<br/>그리고 이 연봉은 근로소득자 <b>' + gi('trophy', 14) + ' 상위 ' + pct + '%</b> — 100명 중 앞에서 ' + Math.max(1, Math.round(pct)) + '번째예요.';
         }
         $('mr-fun').innerHTML = funHtml;
       }
@@ -201,11 +203,11 @@ const RANK_ANCHORS = [[113769, 0.1], [21673, 1], [10057, 10], [7624, 20], [5482,
 
       // ── ④ 미등록 넛지 ──
       const missing = [];
-      if (!has.salary) missing.push(['💰 연봉', '실수령액·소득세가 계산돼요']);
-      if (!has.hh) missing.push(['👨‍👩‍👧 가구', '중위소득 위치 — 혜택 구간 판정']);
-      if (!has.car) missing.push(['🚗 차량', '자동차세가 리포트에 합산돼요']);
-      if (!has.home) missing.push(['🏠 집(공시가)', '재산세가 리포트에 합산돼요']);
-      if (!has.basic) missing.push(['📍 나이·지역', '놓친 혜택 개수가 나와요']);
+      if (!has.salary) missing.push([gi('coin', 14) + ' 연봉', '실수령액·소득세가 계산돼요']);
+      if (!has.hh) missing.push([gi('users', 14) + ' 가구', '중위소득 위치 — 혜택 구간 판정']);
+      if (!has.car) missing.push([gi('car', 14) + ' 차량', '자동차세가 리포트에 합산돼요']);
+      if (!has.home) missing.push([gi('house', 14) + ' 집(공시가)', '재산세가 리포트에 합산돼요']);
+      if (!has.basic) missing.push([gi('pin', 14) + ' 나이·지역', '놓친 혜택 개수가 나와요']);
       if (missing.length) {
         $('mr-missing').hidden = false;
         const host = $('mr-missing-list');
@@ -241,7 +243,7 @@ const RANK_ANCHORS = [[113769, 0.1], [21673, 1], [10057, 10], [7624, 20], [5482,
         };
         if (has.salary && !hide) row('월 실수령액', fmt(net) + '원');
         if (totalOut > 0) row('올해 세금+사회보험', fmt(totalOut) + '원');
-        if (totalOut > 0) row('치킨으로 환산하면', '🍗 ' + fmt(totalOut / 20000) + '마리');
+        if (totalOut > 0) row('치킨으로 환산하면', fmt(totalOut / 20000) + '마리');
         if (has.hh) row('내 가구 소득 위치', '중위소득의 ' + medPct + '%');
         x.font = '600 40px Pretendard, sans-serif'; x.fillStyle = 'rgba(255,255,255,.75)';
         x.fillText('내 리포트 만들기 → crama.app/my-report', 80, 1270);
@@ -265,7 +267,8 @@ const RANK_ANCHORS = [[113769, 0.1], [21673, 1], [10057, 10], [7624, 20], [5482,
     .mr-y { color: var(--accent); }
     .mr-empty { text-align: center; margin: 2rem 0; padding: 2.2rem 1.4rem; border: 1px dashed var(--accent); border-radius: 18px; background: var(--accent-soft); }
     .mr-empty[hidden] { display: none; }
-    .mr-empty__emoji { font-size: 2.2rem; display: block; margin-bottom: 0.5rem; }
+    .mr-empty__emoji { display: flex; justify-content: center; color: var(--accent); margin-bottom: 0.5rem; }
+    .mr-fun svg, .mr-missing b svg { vertical-align: -2px; color: var(--accent); }
     .mr-empty b { font-size: 1.05rem; }
     .mr-empty p { font-size: 0.88rem; color: var(--ink-soft); margin: 0.5rem auto 1rem; max-width: 26rem; line-height: 1.6; }
     .mr-empty__cta { display: inline-block; font-weight: 800; font-size: 0.95rem; color: #fff; background: var(--accent); border-radius: 999px; padding: 0.65rem 1.4rem; text-decoration: none; }

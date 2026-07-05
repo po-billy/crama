@@ -1,5 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import FaqBox from '../components/FaqBox.astro';
+import { gIcon } from '../lib/game-icons';
 
 const SU = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
 const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
@@ -12,14 +14,14 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
   <div class="gc wrap">
     <header class="page-hero">
       <span class="eyebrow">Capsule Machine</span>
-      <h1>밀웜 뽑기 <span class="gc-y">🎰</span></h1>
-      <p>밀웜 <b>15마리</b> = 캡슐 1개. <b>중복 없이</b> 새 아이템만 나와요 — 전부 모으면 잭팟 +30.</p>
+      <h1>밀웜 뽑기 <span class="gc-y" set:html={gIcon('capsule', 30)} /></h1>
+      <p>밀웜 <b>15마리</b> = 캡슐 1개. 아이템은 <b>중복 없이</b>, 대신 <b>꽝도 있고 비쌀수록 극악</b> — 그게 뽑는 맛.</p>
     </header>
 
     <!-- 상태 바 -->
     <div class="gc-status" id="gc-status" hidden>
       <span>오늘 남은 뽑기 <b id="gc-spins">●●●</b></span>
-      <span>내 밀웜 <b id="gc-bal">-</b>🐛</span>
+      <span class="gc-status__worm">내 밀웜 <b id="gc-bal">-</b><Fragment set:html={gIcon('worm', 15)} /></span>
       <span>컬렉션 <b id="gc-col">-</b></span>
     </div>
 
@@ -39,8 +41,16 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
       <i class="gc-drop" id="gc-drop" hidden></i>
     </div>
 
-    <button type="button" class="gc-spin" id="gc-spin">🎰 뽑기 — 밀웜 15</button>
+    <button type="button" class="gc-spin" id="gc-spin"><Fragment set:html={gIcon('capsule', 18)} /> 뽑기 — 밀웜 15</button>
     <p class="gc-msg" id="gc-msg" hidden></p>
+
+    <!-- 꽝 -->
+    <div class="gc-dud" id="gc-dud" hidden>
+      <span class="gc-dud__emoji" set:html={gIcon('wind', 34)} />
+      <b>캡슐이... 비어 있다?!</b>
+      <p>바닥에 <b>밀웜 부스러기 +2</b>가 떨어져 있었다 <Fragment set:html={gIcon('worm', 13)} /></p>
+      <button type="button" id="gc-dud-again">분하다, 한 번 더!</button>
+    </div>
 
     <!-- 결과 카드 -->
     <div class="gc-result" id="gc-result" hidden>
@@ -48,7 +58,7 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
         <img id="gc-item-img" src="" alt="" />
         <b id="gc-item-name"></b>
         <span id="gc-item-slot"></span>
-        <em class="gc-rare" id="gc-item-rare" hidden>✨ RARE ✨</em>
+        <em class="gc-rare" id="gc-item-rare" hidden><Fragment set:html={gIcon('sparkle', 13)} /> RARE <Fragment set:html={gIcon('sparkle', 13)} /></em>
       </div>
       <div class="gc-result__acts">
         <a href="/wardrobe/" class="is-main">입혀보러 가기 →</a>
@@ -65,9 +75,16 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
       <div class="gc-grid" id="gc-grid"></div>
     </section>
 
+    <div class="gc-faq"><FaqBox items={[
+      { q: '확률이 어떻게 되나요? (전체 공개)', a: '매 스핀: 꽝 22%(위로 보상 부스러기 +2밀웜). 나머지 78%에서 미보유 아이템 중 가격 반비례(가격의 1.8제곱분의 1) 가중치로 추첨합니다. 예를 들어 20밀웜 아이템과 100밀웜 아이템만 남았다면 각각 약 94.7% : 5.3% — 비쌀수록 극악이지만, 언젠가는 반드시 나옵니다(중복 없음).' },
+      { q: '중복이 나올 수 있나요?', a: '없습니다. 아이템은 항상 미보유 중에서만 뽑혀요. 꽝(22%)만 조심하세요. 전부 모으면 스핀 시 잭팟 +30밀웜이 나옵니다.' },
+      { q: '하루 몇 번 뽑을 수 있나요?', a: '자정 리셋 기준 하루 3번입니다. 밀웜은 예측 게임·무지출 챌린지·출석·글 읽기로 모을 수 있어요.' },
+      { q: '밀웜을 현금으로 살 수 있나요?', a: '아니요. 밀웜은 활동으로만 얻는 무료 포인트이고 현금 구매·환전이 모두 불가능합니다. 그래서 마음 편히 뽑아도 돼요.' },
+    ]} /></div>
+
     <div class="gc-cross">
-      <a href="/play/">밀웜 벌기: 오르까 내리까 🔮</a>
-      <a href="/challenge/">무지출 챌린지 🔥</a>
+      <a href="/play/"><Fragment set:html={gIcon('crystal', 14)} /> 밀웜 벌기: 오르까 내리까</a>
+      <a href="/challenge/"><Fragment set:html={gIcon('flame', 14)} /> 무지출 챌린지</a>
       <a href="/me/">밀웜 모으기(출석·읽기) →</a>
     </div>
   </div>
@@ -134,6 +151,7 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
         if (!T) { if (window.CramaSaved) window.CramaSaved.promptLogin(); return; }
         spinning = true;
         $('gc-result').hidden = true;
+        $('gc-dud').hidden = true;
         $('gc-confetti').classList.remove('is-on');
         msg('');
         const machine = $('gc-machine');
@@ -157,6 +175,15 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
           try { if (window.gtag) window.gtag('event', 'gacha_spin', { rare: !!(res.item && res.item.rarity === 'rare'), jackpot: !!res.jackpot }); } catch (e) {}
           setTimeout(() => {
             drop.hidden = true;
+            if (res.dud) {
+              const dud = $('gc-dud');
+              dud.hidden = false;
+              dud.classList.remove('is-shake'); void dud.offsetWidth; dud.classList.add('is-shake');
+              paintStatus({ spins_left: res.spins_left, balance: res.balance, owned: owned.size, total: items.length });
+              try { localStorage.setItem('crama:bal', String(res.balance)); const n = document.getElementById('hd-worm-n'); if (n) n.textContent = Number(res.balance).toLocaleString('ko-KR'); } catch (e) {}
+              spinning = false;
+              return;
+            }
             if (res.jackpot) {
               msg('🎉 컬렉션 완성! 잭팟 +30밀웜이 지급됐어요. 당신은 진정한 수집가!');
               $('gc-confetti').classList.add('is-on');
@@ -183,6 +210,7 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
         }, 900);
       });
       $('gc-again').addEventListener('click', () => { $('gc-result').hidden = true; $('gc-spin').click(); });
+      $('gc-dud-again').addEventListener('click', () => { $('gc-dud').hidden = true; $('gc-spin').click(); });
 
       load();
     })();
@@ -191,7 +219,11 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
   <style is:global>
     .gc { max-width: 40rem; text-align: center; }
     .gc .page-hero { text-align: left; }
-    .gc-y { filter: drop-shadow(0 2px 8px rgba(245, 158, 11, 0.5)); }
+    .gc-faq { text-align: left; }
+    .gc-y { display: inline-flex; vertical-align: -4px; color: var(--accent); filter: drop-shadow(0 2px 8px rgba(245, 158, 11, 0.5)); }
+    .gc-spin svg, .gc-cross a svg, .gc-rare svg, .gc-status__worm svg, .gc-dud p svg { vertical-align: -2px; }
+    .gc-status__worm svg { color: var(--accent); margin-left: 2px; }
+    .gc-dud__emoji { display: flex; justify-content: center; color: var(--muted); margin-bottom: 0.2rem; }
     .gc-status { display: flex; justify-content: center; gap: 1.1rem; flex-wrap: wrap; margin: 0.6rem 0 1rem; font-size: 0.82rem; color: var(--muted); }
     .gc-status[hidden] { display: none; }
     .gc-status b { color: var(--ink); font-variant-numeric: tabular-nums; }
@@ -222,6 +254,14 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
     .gc-msg[hidden] { display: none; }
 
     /* 결과 카드 */
+    .gc-dud { margin: 1.2rem auto 0; padding: 1.2rem 1rem; max-width: 260px; border: 2px dashed var(--line); border-radius: 18px; background: var(--paper-2); }
+    .gc-dud[hidden] { display: none; }
+    .gc-dud.is-shake { animation: gcDudShake 0.4s ease; }
+    @keyframes gcDudShake { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-3deg); } 75% { transform: rotate(3deg); } }
+    .gc-dud__emoji { font-size: 2rem; display: block; margin-bottom: 0.2rem; }
+    .gc-dud b { font-size: 0.95rem; }
+    .gc-dud p { font-size: 0.8rem; color: var(--ink-soft); margin: 0.4rem 0 0.8rem; }
+    .gc-dud button { font: inherit; font-size: 0.84rem; font-weight: 800; color: #fff; background: var(--ink); border: 0; border-radius: 999px; padding: 0.5rem 1.1rem; cursor: pointer; }
     .gc-result { margin: 1.2rem auto 0; }
     .gc-result[hidden] { display: none; }
     .gc-card { position: relative; width: 190px; margin: 0 auto; padding: 1.1rem 1rem 1rem; border: 2px solid var(--line); border-radius: 18px; background: var(--paper); display: flex; flex-direction: column; align-items: center; gap: 0.2rem; }

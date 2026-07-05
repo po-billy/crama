@@ -1,10 +1,11 @@
 ---
 // 오르까 내리까 유입 칩 — 열린 라운드의 참여 인원·마감 D-n을 라이브로. 홈·브리핑 상단용.
+import { gIcon } from '../lib/game-icons';
 const SU = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
 const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
 ---
 <a class="play-chip" id="play-chip" href="/play/" hidden>
-  <b>🔮 오르까 내리까</b>
+  <b><Fragment set:html={gIcon('crystal', 14)} /> 오르까 내리까</b>
   <span id="play-chip-sub">이번 주 예측 열림</span>
   <em id="play-chip-cta">참여 ›</em>
 </a>

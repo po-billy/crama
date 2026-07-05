@@ -1,5 +1,7 @@
--- 밀웜 뽑기(가챠) — 15밀웜/회, 일 3회, 미보유 아이템만 추첨(중복 없음 = 컬렉션 동기)
--- rare 12% / common 88%, 해당 등급 소진 시 폴백, 전부 보유 시 잭팟 +30밀웜
+-- 밀웜 뽑기(가챠 v2) — 15밀웜/회, 일 3회, 미보유만 추첨(중복 없음)
+-- ① 꽝 22%: 빈 캡슐 + 부스러기 +2밀웜 위로 보상
+-- ② 아이템 확률 ∝ price^-1.8 (비쌀수록 극악 — 20밀웜 대비 100밀웜 ≈ 1/18)
+-- ③ 전부 보유(컬렉션 완성) 시 잭팟 +30밀웜
 create or replace function public.spin_gacha()
 returns jsonb
 language plpgsql
@@ -10,9 +12,9 @@ declare
   v_uid uuid := auth.uid();
   v_cost int := 15;
   v_cap int := 3;
+  v_dud numeric := 0.22;
   v_bal int;
   v_spins int;
-  v_rarity text;
   v_item record;
 begin
   if v_uid is null then
@@ -31,25 +33,25 @@ begin
     return jsonb_build_object('ok', false, 'error', 'insufficient', 'balance', v_bal);
   end if;
 
-  -- 등급 추첨 후 미보유 후보에서 랜덤(소진 시 반대 등급 폴백)
-  v_rarity := case when random() < 0.12 then 'rare' else 'common' end;
-  select w.* into v_item from wardrobe_items w
-   where w.rarity = v_rarity
-     and not exists (select 1 from user_inventory i where i.user_id = v_uid and i.item_id = w.id)
-   order by random() limit 1;
-  if v_item is null then
-    select w.* into v_item from wardrobe_items w
-     where not exists (select 1 from user_inventory i where i.user_id = v_uid and i.item_id = w.id)
-     order by random() limit 1;
-  end if;
-
-  -- 차감 + 횟수 기록
-  insert into worm_ledger (user_id, amount, reason, ref) values (v_uid, -v_cost, 'gacha', coalesce(v_item.id, 'jackpot'));
+  -- 차감 + 횟수 기록(꽝 포함 모든 스핀에 적용)
+  insert into worm_ledger (user_id, amount, reason, ref) values (v_uid, -v_cost, 'gacha', 'spin');
   insert into earn_events (user_id, day, action, ref, count) values (v_uid, current_date, 'gacha', '', 1)
   on conflict (user_id, day, action, ref) do update set count = earn_events.count + 1;
 
+  -- ① 꽝
+  if random() < v_dud then
+    insert into worm_ledger (user_id, amount, reason, ref) values (v_uid, 2, 'gacha_dust', '');
+    return jsonb_build_object('ok', true, 'dud', true, 'dust', 2, 'balance', worm_balance(), 'spins_left', v_cap - v_spins - 1);
+  end if;
+
+  -- ② 가격 반비례 가중 추첨(지수 경주법): -ln(u)/w, w = price^-1.8 → 정렬키 -ln(u)*price^1.8
+  select w.* into v_item from wardrobe_items w
+   where not exists (select 1 from user_inventory i where i.user_id = v_uid and i.item_id = w.id)
+   order by -ln(random()) * power(greatest(w.price_worms, 1), 1.8) asc
+   limit 1;
+
   if v_item is null then
-    -- 컬렉션 완성 — 잭팟
+    -- ③ 컬렉션 완성 — 잭팟
     insert into worm_ledger (user_id, amount, reason, ref) values (v_uid, 30, 'gacha_jackpot', '');
     return jsonb_build_object('ok', true, 'jackpot', true, 'balance', worm_balance(), 'spins_left', v_cap - v_spins - 1);
   end if;
@@ -57,7 +59,7 @@ begin
   insert into user_inventory (user_id, item_id) values (v_uid, v_item.id) on conflict do nothing;
   return jsonb_build_object(
     'ok', true,
-    'item', jsonb_build_object('id', v_item.id, 'name', v_item.name, 'slot', v_item.slot, 'rarity', v_item.rarity, 'asset_url', v_item.asset_url),
+    'item', jsonb_build_object('id', v_item.id, 'name', v_item.name, 'slot', v_item.slot, 'rarity', v_item.rarity, 'price', v_item.price_worms, 'asset_url', v_item.asset_url),
     'balance', worm_balance(),
     'spins_left', v_cap - v_spins - 1
   );

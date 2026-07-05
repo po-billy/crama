@@ -1,9 +1,10 @@
 ---
 // 연속 출석 스트릭 칩 — 로그인 + streak≥1 시 노출(crama:streak 캐시 = /me 방문 시 갱신).
 // Duolingo 근거: 스트릭 가시성이 재방문 핵심 장치. 클릭 → 출석 캘린더.
+import { gIcon } from '../lib/game-icons';
 ---
 <a class="streak-chip" id="streak-chip" href="/calendar/" hidden>
-  <b>🔥 <span id="streak-chip-n">0</span>일 연속</b>
+  <b><Fragment set:html={gIcon('flame', 14)} /> <span id="streak-chip-n">0</span>일 연속</b>
   <span>오늘도 도장 찍고 밀웜 받기 ›</span>
 </a>
 <script is:inline>

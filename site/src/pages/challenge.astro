@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import FaqBox from '../components/FaqBox.astro';
+import { gIcon, G_ICONS } from '../lib/game-icons';
 
 const SU = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
 const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
@@ -13,18 +14,18 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
   <div class="ch wrap">
     <header class="page-hero">
       <span class="eyebrow">7-Day Challenge</span>
-      <h1>무지출 챌린지 <span class="ch-y">🔥</span></h1>
+      <h1>무지출 챌린지 <span class="ch-y" set:html={gIcon('flame', 30)} /></h1>
       <p>일주일간 <b>불필요한 지출 0원</b>. 매일 스스로 체크하고, 무너져도 <b>목숨 2개</b>까지는 괜찮아요.</p>
     </header>
 
     <!-- 시작 전 -->
     <div class="ch-intro" id="ch-intro" hidden>
       <div class="ch-rules">
-        <div><b>⭕ 매일 체크인</b><span>지켰으면 +2밀웜, 어제 것도 소급 가능</span></div>
-        <div><b>💜 목숨 2개</b><span>실패 2번까지 OK — 3번째에 도전 종료</span></div>
-        <div><b>🏆 7일 완주</b><span>+20밀웜 보너스, 완주 횟수 영구 기록</span></div>
+        <div><b><Fragment set:html={gIcon('check', 16)} /> 매일 체크인</b><span>지켰으면 +2밀웜, 어제 것도 소급 가능</span></div>
+        <div><b><Fragment set:html={gIcon('heart', 16)} /> 목숨 2개</b><span>실패 2번까지 OK — 3번째에 도전 종료</span></div>
+        <div><b><Fragment set:html={gIcon('trophy', 16)} /> 7일 완주</b><span>+20밀웜 보너스, 완주 횟수 영구 기록</span></div>
       </div>
-      <button type="button" class="ch-start" id="ch-start">오늘부터 7일 도전 시작 🔥</button>
+      <button type="button" class="ch-start" id="ch-start">오늘부터 7일 도전 시작 <Fragment set:html={gIcon('flame', 18)} /></button>
       <p class="ch-note-inline">월세·공과금·교통비 같은 생존 지출은 제외 — 기준은 스스로 정하세요. 중요한 건 <b>매일 지출을 의식하는 것</b>.</p>
       <p class="ch-dones" id="ch-dones" hidden></p>
     </div>
@@ -33,15 +34,15 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
     <div class="ch-active" id="ch-active" hidden>
       <div class="ch-top">
         <b id="ch-day">D+1</b>
-        <span class="ch-lives" id="ch-lives">💜💜</span>
+        <span class="ch-hud"><i>LIFE</i><span class="ch-hud__hearts" id="ch-lives"></span></span>
       </div>
       <p class="ch-cheer" id="ch-cheer"></p>
       <div class="ch-board" id="ch-board"></div>
       <div class="ch-checkin" id="ch-checkin" hidden>
         <span id="ch-checkin-label">오늘, 지켰나요?</span>
         <div class="ch-checkin__btns">
-          <button type="button" class="is-ok" id="ch-ok">지켰다! ⭕</button>
-          <button type="button" class="is-no" id="ch-no">무너졌다 😭</button>
+          <button type="button" class="is-ok" id="ch-ok"><Fragment set:html={gIcon('check', 17)} /> 지켰다!</button>
+          <button type="button" class="is-no" id="ch-no"><Fragment set:html={gIcon('sad', 17)} /> 무너졌다</button>
         </div>
       </div>
       <p class="ch-msg" id="ch-msg" hidden></p>
@@ -49,10 +50,10 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
 
     <!-- 종료(완주/실패) -->
     <div class="ch-end" id="ch-end" hidden>
-      <span class="ch-end__emoji" id="ch-end-emoji">🏆</span>
+      <span class="ch-end__emoji" id="ch-end-emoji"></span>
       <b id="ch-end-title"></b>
       <p id="ch-end-desc"></p>
-      <button type="button" class="ch-start" id="ch-restart">다시 도전하기 🔥</button>
+      <button type="button" class="ch-start" id="ch-restart">다시 도전하기 <Fragment set:html={gIcon('flame', 18)} /></button>
     </div>
     <div class="pl-confetti" id="ch-confetti" aria-hidden="true">
       {Array.from({ length: 18 }).map((_, i) => <i style={`--i:${i}`}></i>)}
@@ -66,15 +67,16 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
     ]} />
 
     <div class="ch-cross">
-      <a href="/ranking/">완주 랭킹 🏆</a>
-      <a href="/play/">오르까 내리까 🔮</a>
-      <a href="/gacha/">밀웜 뽑기 🎰</a>
+      <a href="/ranking/"><Fragment set:html={gIcon('trophy', 14)} /> 완주 랭킹</a>
+      <a href="/play/"><Fragment set:html={gIcon('crystal', 14)} /> 오르까 내리까</a>
+      <a href="/gacha/"><Fragment set:html={gIcon('capsule', 14)} /> 밀웜 뽑기</a>
     </div>
   </div>
 
-  <script is:inline define:vars={{ SU, AK }}>
+  <script is:inline define:vars={{ SU, AK, GI: G_ICONS }}>
     (() => {
       const $ = (id) => document.getElementById(id);
+      const gi = (name, size) => GI[name].replace('width="18" height="18"', 'width="' + size + '" height="' + size + '"');
       function tok() {
         try {
           for (let i = 0; i < localStorage.length; i++) {
@@ -98,7 +100,7 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
         '반환점! 통장이 벌써 편안해하는 소리가 들려요.',
         '5일째 — 이제 안 쓰는 게 더 자연스럽죠?',
         '하루만 더. 내일이면 전설이 됩니다.',
-        '마지막 날. 오늘 밤, 완주의 문이 열립니다 🏆',
+        '마지막 날. 오늘 밤, 완주의 문이 열립니다.',
       ];
       const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
       const yday = () => { const d = new Date(Date.now() - 864e5); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
@@ -115,7 +117,8 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
         if (ch.status !== 'active') {
           show('ch-end');
           const done = ch.status === 'done';
-          $('ch-end-emoji').textContent = done ? '🏆' : '🌧️';
+          $('ch-end-emoji').innerHTML = gi(done ? 'trophy' : 'rain', 46);
+          $('ch-end-emoji').className = 'ch-end__emoji ' + (done ? 'is-win' : 'is-lose');
           $('ch-end-title').textContent = done ? '7일 완주! +20밀웜' : '이번엔 여기까지';
           $('ch-end-desc').textContent = done
             ? '일주일을 지배했어요. 완주 ' + (dones || 1) + '회째 — 이 감각, 잊기 전에 한 번 더?'
@@ -128,8 +131,20 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
         const dayN = Math.min(7, Math.floor((new Date(today() + 'T00:00:00') - start) / 864e5) + 1);
         $('ch-day').textContent = 'D+' + dayN;
         $('ch-cheer').textContent = CHEER[dayN - 1] || CHEER[0];
+        // 목숨 HUD — 게임식 하트(잃은 목숨은 금 간 회색 하트 + 크랙 애니)
         const fails = Object.values(ch.checkins).filter((v) => v === false).length;
-        $('ch-lives').textContent = '💜'.repeat(Math.max(0, 2 - fails)) + '🖤'.repeat(Math.min(2, fails));
+        const hud = $('ch-lives');
+        const prevFails = Number(hud.dataset.fails || 0);
+        hud.innerHTML = '';
+        for (let i = 0; i < 2; i++) {
+          const lost = i < fails;
+          const s = document.createElement('span');
+          s.className = 'ch-hp' + (lost ? ' is-lost' : '');
+          if (lost && i === fails - 1 && fails > prevFails) s.classList.add('is-crack');
+          s.innerHTML = gi(lost ? 'heartBroken' : 'heart', 20);
+          hud.appendChild(s);
+        }
+        hud.dataset.fails = fails;
         // 7칸 보드
         const board = $('ch-board');
         board.innerHTML = '';
@@ -143,7 +158,7 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
         for (let i = 0; i < 7; i++) {
           const cell = document.createElement('div');
           cell.className = 'ch-cell';
-          if (i < succDates.length) { cell.classList.add('is-ok'); cell.innerHTML = '<b>⭕</b><span>' + (i + 1) + '일</span>'; }
+          if (i < succDates.length) { cell.classList.add('is-ok'); cell.innerHTML = '<b>' + gi('check', 22) + '</b><span>' + (i + 1) + '일</span>'; }
           else if (i === succDates.length) { cell.classList.add('is-now'); cell.innerHTML = '<b>?</b><span>' + (i + 1) + '일</span>'; }
           else { cell.innerHTML = '<b>·</b><span>' + (i + 1) + '일</span>'; }
           board.appendChild(cell);
@@ -201,7 +216,7 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
           msg('+' + r.reward + ' 밀웜! ' + (r.challenge.status === 'done' ? '완주 보너스 포함 🏆' : '오늘도 지켰어요 ⭕ 내일 또 만나요.'));
           try { localStorage.setItem('crama:bal', String(r.balance)); const n = document.getElementById('hd-worm-n'); if (n) n.textContent = Number(r.balance).toLocaleString('ko-KR'); } catch (e) {}
         } else if (!success && r.challenge.status === 'active') {
-          msg('괜찮아요 — 목숨 하나로 막았어요. 내일 다시! 💜');
+          msg('괜찮아요 — 목숨 하나로 막았어요. 내일 다시!');
         }
       }
       $('ch-ok').addEventListener('click', () => checkin(true));
@@ -225,7 +240,16 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
     .ch-dones[hidden] { display: none; }
     .ch-top { display: flex; align-items: center; justify-content: space-between; margin: 1.2rem 0 0.3rem; }
     .ch-top b { font-size: 1.3rem; color: #ef4444; }
-    .ch-lives { font-size: 1.05rem; letter-spacing: 2px; }
+    /* 게임 HUD식 목숨 표시 */
+    .ch-hud { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.32rem 0.7rem 0.32rem 0.75rem; border-radius: 999px; background: var(--ink); box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.12), 0 3px 8px rgba(0, 0, 0, 0.18); }
+    .ch-hud > i { font-style: normal; font-size: 0.6rem; font-weight: 800; letter-spacing: 0.12em; color: rgba(255, 255, 255, 0.55); }
+    .ch-hud__hearts { display: inline-flex; gap: 0.25rem; }
+    .ch-hp { display: inline-flex; color: #f43f5e; filter: drop-shadow(0 1px 2px rgba(244, 63, 94, 0.5)); }
+    .ch-hp svg path:first-child { fill: rgba(244, 63, 94, 0.35); }
+    .ch-hp.is-lost { color: #6b7280; filter: none; opacity: 0.75; }
+    .ch-hp.is-lost svg path:first-child { fill: rgba(107, 114, 128, 0.2); }
+    .ch-hp.is-crack { animation: chCrack 0.55s ease; }
+    @keyframes chCrack { 0% { transform: scale(1.6) rotate(-8deg); } 40% { transform: scale(0.9) rotate(6deg); } 100% { transform: scale(1) rotate(0); } }
     .ch-cheer { font-size: 0.92rem; font-weight: 700; color: var(--ink-soft); margin: 0 0 0.9rem; }
     .ch-board { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.4rem; }
     .ch-cell { aspect-ratio: 1; border: 1.5px dashed var(--line); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.1rem; background: var(--paper); }
@@ -248,11 +272,18 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
     .ch-msg { font-size: 0.86rem; font-weight: 700; color: var(--accent); margin: 0.8rem 0 0; }
     .ch-msg[hidden] { display: none; }
     .ch-end { text-align: center; margin: 1.6rem 0; padding: 1.6rem 1.2rem; border: 1px solid var(--line); border-radius: 18px; background: var(--paper-2); }
-    .ch-end__emoji { font-size: 2.6rem; display: block; margin-bottom: 0.4rem; }
+    .ch-end__emoji { display: flex; justify-content: center; margin-bottom: 0.5rem; }
+    .ch-end__emoji.is-win { color: #f59e0b; filter: drop-shadow(0 3px 8px rgba(245, 158, 11, 0.4)); }
+    .ch-end__emoji.is-lose { color: var(--muted); }
+    .ch-y { color: #ef4444; display: inline-flex; vertical-align: -3px; filter: drop-shadow(0 2px 6px rgba(239, 68, 68, 0.35)); }
+    .ch-start svg, .ch-checkin__btns svg, .ch-rules b svg { vertical-align: -3px; }
+    .ch-rules b { display: inline-flex; align-items: center; gap: 0.3rem; }
+    .ch-cell.is-ok b svg { display: block; }
     .ch-end b { font-size: 1.15rem; }
     .ch-end p { font-size: 0.88rem; color: var(--ink-soft); margin: 0.5rem auto 1rem; max-width: 24rem; line-height: 1.6; }
     .ch-cross { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; margin: 2rem 0 1rem; padding-top: 1.4rem; border-top: 1px solid var(--line); }
     .ch-cross a { font-size: 0.88rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--line); border-radius: 999px; }
+    .ch-cross a svg { vertical-align: -2px; }
     .ch-cross a:hover { border-color: var(--accent); }
     .pl-confetti { position: fixed; inset: 0; pointer-events: none; z-index: 60; }
     .pl-confetti i { position: absolute; top: -10px; left: calc(var(--i) * 5.5%); width: 7px; height: 11px; opacity: 0; background: hsl(calc(var(--i) * 47), 85%, 60%); border-radius: 2px; }

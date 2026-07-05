@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { gIcon, G_ICONS } from '../lib/game-icons';
 
 const SU = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
 const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
@@ -12,14 +13,14 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
   <div class="rk wrap">
     <header class="page-hero">
       <span class="eyebrow">Leaderboard</span>
-      <h1>랭킹 <span class="rk-y">🏆</span></h1>
+      <h1>랭킹 <span class="rk-y" set:html={gIcon('trophy', 30)} /></h1>
       <p>이번 주 가장 부지런한 미어캣은 누구일까요? <b>매주 월요일 0시 리셋.</b></p>
     </header>
 
     <div class="rk-tabs" role="tablist">
-      <button type="button" class="rk-tab is-on" data-kind="worms_week">🐛 이번 주 밀웜</button>
-      <button type="button" class="rk-tab" data-kind="predict">🔮 예측 명중</button>
-      <button type="button" class="rk-tab" data-kind="challenge">🔥 챌린지 완주</button>
+      <button type="button" class="rk-tab is-on" data-kind="worms_week"><Fragment set:html={gIcon('worm', 14)} /> 이번 주 밀웜</button>
+      <button type="button" class="rk-tab" data-kind="predict"><Fragment set:html={gIcon('crystal', 14)} /> 예측 명중</button>
+      <button type="button" class="rk-tab" data-kind="challenge"><Fragment set:html={gIcon('flame', 14)} /> 챌린지 완주</button>
     </div>
     <p class="rk-reset" id="rk-reset"></p>
 
@@ -39,7 +40,7 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
     </div>
   </div>
 
-  <script is:inline define:vars={{ SU, AK }}>
+  <script is:inline define:vars={{ SU, AK, GI: G_ICONS }}>
     (() => {
       const $ = (id) => document.getElementById(id);
       const fmt = (n) => Number(n).toLocaleString('ko-KR');
@@ -64,7 +65,8 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
       const title = (lv) => (TITLE.find(([m]) => lv >= m) || TITLE[4])[1];
 
       const UNIT = { worms_week: '밀웜', predict: '문항 적중', challenge: '회 완주' };
-      const MEDAL = ['🥇', '🥈', '🥉'];
+      const gi = (name, size) => (GI[name] || '').replace('width="18" height="18"', 'width="' + size + '" height="' + size + '"');
+      const medal = (i) => i < 3 ? '<span class="rk-medal rk-medal--' + (i + 1) + '">' + gi('medal', 20) + '</span>' : String(i + 1);
       let kind = 'worms_week';
 
       function resetLabel() {
@@ -85,14 +87,14 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
         if (!r || !r.top) { list.innerHTML = '<li class="rk-empty">잠시 후 다시 시도해 주세요.</li>'; return; }
         list.innerHTML = '';
         if (!r.top.length) {
-          list.innerHTML = '<li class="rk-empty">아직 아무도 없어요 — 지금 시작하면 당신이 1등 🥇</li>';
+          list.innerHTML = '<li class="rk-empty">아직 아무도 없어요 — 지금 시작하면 당신이 1위</li>';
         }
         r.top.forEach((row, i) => {
           const li = document.createElement('li');
           li.className = 'rk-row' + (row.me ? ' is-me' : '');
           const lv = level(row.xp || 0);
           li.innerHTML =
-            '<span class="rk-row__rank">' + (MEDAL[i] || i + 1) + '</span>' +
+            '<span class="rk-row__rank">' + medal(i) + '</span>' +
             '<span class="rk-row__nick"></span>' +
             '<span class="rk-row__lv" title="' + title(lv) + '">Lv.' + lv + '</span>' +
             '<b class="rk-row__val">' + fmt(row.val) + '<i>' + UNIT[kind] + '</i></b>';
@@ -106,8 +108,8 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
           $('rk-login').hidden = true;
           $('rk-me-rank').textContent = r.me.rank + '위';
           $('rk-me-val').textContent = fmt(r.me.val) + ' ' + UNIT[kind];
-          $('rk-me-gap').textContent = r.me.rank === 1
-            ? '👑 현재 1위 — 왕좌를 지키세요'
+          $('rk-me-gap').innerHTML = r.me.rank === 1
+            ? gi('crown', 13) + ' 현재 1위 — 왕좌를 지키세요'
             : '한 계단 위 ' + (r.me.next_nick || '미어캣') + '까지 ' + fmt(r.me.gap_next) + ' ' + UNIT[kind];
         } else {
           $('rk-me').hidden = true;
@@ -127,7 +129,13 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
 
   <style is:global>
     .rk { max-width: 38rem; }
-    .rk-y { filter: drop-shadow(0 2px 8px rgba(245, 158, 11, 0.5)); }
+    .rk-y { display: inline-flex; vertical-align: -4px; color: #f59e0b; filter: drop-shadow(0 2px 8px rgba(245, 158, 11, 0.5)); }
+    .rk-tab svg { vertical-align: -2px; margin-right: 1px; }
+    .rk-medal { display: inline-flex; }
+    .rk-medal--1 { color: #f59e0b; }
+    .rk-medal--2 { color: #94a3b8; }
+    .rk-medal--3 { color: #b45309; }
+    .rk-me-body em svg { vertical-align: -2px; color: #ffd166; }
     .rk-tabs { display: flex; gap: 2px; padding: 3px; background: var(--paper-2); border: 1px solid var(--line); border-radius: 999px; margin: 1.1rem 0 0.4rem; }
     .rk-tab { flex: 1; font: inherit; font-size: 0.82rem; font-weight: 700; color: var(--muted); background: transparent; border: 0; border-radius: 999px; padding: 0.5rem 0.2rem; cursor: pointer; }
     .rk-tab.is-on { background: var(--accent); color: #fff; }

@@ -55,6 +55,14 @@ const jsonLd = {
         <b id="mi-pct">-</b>
         <em id="mi-sub">-</em>
       </div>
+      <div class="mi-gauge" aria-hidden="true">
+        <div class="mi-gauge__track">
+          <span class="mi-gauge__zone is-z1" style="width:25%"></span><span class="mi-gauge__zone is-z2" style="width:25%"></span><span class="mi-gauge__zone is-z3" style="width:25%"></span><span class="mi-gauge__zone is-z4" style="width:25%"></span>
+          <span class="mi-gauge__pin" id="mi-pin"><i>나</i></span>
+        </div>
+        <div class="mi-gauge__labels"><span>0%</span><span>50%</span><span>100%</span><span>150%</span><span>200%+</span></div>
+        <div class="mi-gauge__hint"><em class="is-z1">급여·바우처 대상권</em><em class="is-z3">청년·신혼 정책권</em></div>
+      </div>
       <ul class="mi-checks" id="mi-checks"></ul>
       <p class="mi-note">※ 실제 수급 자격은 세전 소득이 아니라 <b>소득인정액</b>(소득 + 재산의 소득환산액) 기준이에요. 여기 결과는 참고용이며, 정확한 판정은 <a href="https://www.bokjiro.go.kr" target="_blank" rel="noopener">복지로 모의계산</a>에서 확인하세요.</p>
       <button type="button" class="mi-reg" id="mi-reg" hidden>가구원 수·소득을 내 정보로 저장 → 혜택 매칭에 자동 사용</button>
@@ -131,6 +139,9 @@ const jsonLd = {
           li.innerHTML = '<b>' + name + ' (' + p + '%)</b><span>' + (ok ? '기준선 이내 — 소득인정액 확인해볼 만해요' : '기준선 초과 (' + fmt(med * p / 100) + '원 이하)') + '</span>';
           box.appendChild(li);
         });
+        var pin = $('mi-pin');
+        pin.style.left = Math.min(pct, 200) / 2 + '%';
+        pin.classList.toggle('is-over', pct > 200);
         $('mi-result').hidden = false;
       }
       $('mi-go').addEventListener('click', calc);
@@ -158,7 +169,8 @@ const jsonLd = {
     })();
   </script>
 
-  <style>
+  {/* JS(innerHTML)로 주입되는 mi-checks li에 스코프 스타일이 안 먹으므로 is:global */}
+  <style is:global>
     .mi { max-width: 44rem; }
     .mi-y { color: var(--accent); }
     .page-hero .mi-basis { font-size: 0.82rem; color: var(--muted); margin-top: 0.5rem; }
@@ -176,6 +188,23 @@ const jsonLd = {
     .mi-hero span { display: block; font-size: 0.85rem; opacity: 0.85; }
     .mi-hero b { display: block; font-size: clamp(2rem, 7vw, 2.8rem); line-height: 1.2; margin-top: 0.2rem; }
     .mi-hero em { display: block; font-style: normal; font-size: 0.8rem; opacity: 0.9; margin-top: 0.25rem; }
+    .mi-gauge { margin: 0.2rem 0 0.9rem; padding: 1rem 1.1rem 0.7rem; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); }
+    .mi-gauge__track { position: relative; display: flex; height: 12px; border-radius: 999px; overflow: visible; }
+    .mi-gauge__zone { height: 100%; }
+    .mi-gauge__zone:first-child { border-radius: 999px 0 0 999px; }
+    .mi-gauge__zone:nth-child(4) { border-radius: 0 999px 999px 0; }
+    .mi-gauge__zone.is-z1 { background: #16a34a; }
+    .mi-gauge__zone.is-z2 { background: #6ee7a0; }
+    .mi-gauge__zone.is-z3 { background: #fbbf24; }
+    .mi-gauge__zone.is-z4 { background: #fda4af; }
+    .mi-gauge__pin { position: absolute; top: 50%; left: 0; transform: translate(-50%, -50%); transition: left 0.35s ease; }
+    .mi-gauge__pin i { display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 999px; background: var(--ink); color: var(--paper); font-style: normal; font-size: 0.66rem; font-weight: 800; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28); border: 2px solid var(--paper); }
+    .mi-gauge__pin.is-over i { background: #e11d48; color: #fff; }
+    .mi-gauge__labels { display: flex; justify-content: space-between; margin-top: 0.45rem; font-size: 0.68rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .mi-gauge__hint { display: flex; justify-content: space-between; margin-top: 0.25rem; font-size: 0.68rem; }
+    .mi-gauge__hint em { font-style: normal; font-weight: 700; }
+    .mi-gauge__hint em.is-z1 { color: #16a34a; }
+    .mi-gauge__hint em.is-z3 { color: #d97706; }
     .mi-checks { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
     .mi-checks li { border: 1px solid var(--line); border-radius: 12px; padding: 0.7rem 0.9rem; display: flex; flex-direction: column; gap: 0.15rem; opacity: 0.75; }
     .mi-checks li.is-ok { border-color: var(--accent); background: var(--accent-soft); opacity: 1; }

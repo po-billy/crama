@@ -470,6 +470,7 @@
   transition: border-color 0.12s;
 }
 .home-rates:hover { border-color: var(--accent); }
+.home-rates[hidden] { display: none; } /* JS 토글 — display:flex에 hidden이 눌리는 함정 방지 */
 .home-rates__label { font-size: 0.78rem; font-weight: 800; color: var(--accent); flex: none; }
 .home-rates__item { font-size: 0.86rem; color: var(--ink-soft); }
 .home-rates__item b { color: var(--ink); }

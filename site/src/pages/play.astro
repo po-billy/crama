@@ -9,6 +9,7 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
 ---
 <BaseLayout
   title="오르까 내리까 — 주간 금융 예측 게임"
+  image="/og-play.png"
   description="다음 주 금요일, 코스피·달러 환율·비트코인은 오를까 내릴까? 예측하고 맞히면 밀웜을 받는 크라마의 주간 예측 게임. 더블다운과 역배 보너스로 짜릿하게."
 >
   <div class="pl wrap">
@@ -57,6 +58,7 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
 
       <button type="button" class="pl-submit" id="pl-submit" disabled>모두 골라주세요</button>
       <p class="pl-submitted" id="pl-submitted" hidden>제출 완료! <b id="pl-crowd"></b> 결과는 판정일에 이 페이지에서 짜릿하게 공개됩니다. 마감 전까지 수정 가능해요.</p>
+      <button type="button" class="pl-share" id="pl-share" hidden>내 예측 자랑하기 — 친구는 반대에 걸까?</button>
     </section>
 
     <FaqBox items={[
@@ -290,6 +292,7 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
             state.dd = mine[0].double_key || null;
             state.submitted = true;
             $('pl-submitted').hidden = false;
+            $('pl-share').hidden = false;
           }
         }
         paintPicks();
@@ -309,6 +312,7 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
         if (res && res.ok) {
           state.submitted = true;
           $('pl-submitted').hidden = false;
+          $('pl-share').hidden = false;
           try { if (window.gtag) window.gtag('event', 'prediction_submit', { round: state.round.id, dd: state.dd || 'none' }); } catch (e) {}
           loadStats();
           updateSubmit();
@@ -316,6 +320,54 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
         } else if (res && res.error === 'locked') {
           btn.textContent = '이번 라운드는 마감됐어요';
         }
+      });
+
+      // 예측 자랑 카드(1080×1350) — 내 픽 + '너는 어디에 걸래?' CTA → 공유/저장
+      $('pl-share').addEventListener('click', async () => {
+        if (!state.round) return;
+        const c = document.createElement('canvas');
+        c.width = 1080; c.height = 1350;
+        const x = c.getContext('2d');
+        const bg = x.createLinearGradient(0, 0, 0, 1350);
+        bg.addColorStop(0, '#4c46c8'); bg.addColorStop(1, '#241f52');
+        x.fillStyle = bg; x.fillRect(0, 0, 1080, 1350);
+        const F = "'Malgun Gothic','Apple SD Gothic Neo',sans-serif";
+        x.fillStyle = '#ffd166'; x.font = '800 38px ' + F;
+        x.fillText('CRAMA · 오르까 내리까', 80, 110);
+        x.fillStyle = '#fff'; x.font = '900 88px ' + F;
+        x.fillText('나의 이번 주 예측', 80, 230);
+        x.fillStyle = 'rgba(255,255,255,.75)'; x.font = '700 40px ' + F;
+        x.fillText('#' + (state.round.id.split('-W')[1] || '') + '주차 · 다음 주 금요일 판정', 80, 300);
+        let y = 420;
+        for (const q of state.round.questions || []) {
+          const pick = state.picks[q.key];
+          if (!pick) continue;
+          // 행 배경
+          x.fillStyle = 'rgba(255,255,255,.10)';
+          x.beginPath(); x.roundRect(80, y - 62, 920, 96, 20); x.fill();
+          x.fillStyle = '#fff'; x.font = '800 44px ' + F;
+          x.fillText(q.label + (q.special ? ' ★' : ''), 110, y);
+          const up = pick === 'up';
+          x.fillStyle = up ? '#ff6b6b' : '#5aa2ff'; x.font = '900 46px ' + F;
+          const t = (up ? '▲ 오른다' : '▼ 내린다') + (state.dd === q.key ? '  ×2.5' : '');
+          x.fillText(t, 1000 - x.measureText(t).width - 30 + 30, y);
+          y += 130;
+        }
+        x.fillStyle = '#fff'; x.font = '900 54px ' + F;
+        x.fillText('너는 어디에 걸래?', 80, 1200);
+        x.fillStyle = '#ffd166'; x.font = '800 40px ' + F;
+        x.fillText('crama.app/play — 맞히면 밀웜, 전부 맞히면 퍼펙트', 80, 1265);
+        try { if (window.gtag) window.gtag('event', 'predict_share', { round: state.round.id }); } catch (e) {}
+        const blob = await new Promise((res2) => c.toBlob(res2, 'image/png'));
+        const file = new File([blob], 'crama-prediction.png', { type: 'image/png' });
+        const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
+        if (isMobile && navigator.canShare && navigator.canShare({ files: [file] })) {
+          try { await navigator.share({ files: [file], title: '오르까 내리까 — 나의 예측' }); return; } catch (e) {}
+        }
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'crama-prediction.png';
+        a.click();
       });
 
       loadRound();
@@ -408,6 +460,9 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
     .pl-submit:disabled { opacity: 0.45; cursor: default; }
     .pl-submitted { font-size: 0.84rem; color: var(--ink-soft); margin: 0.7rem 0 0; padding: 0.7rem 0.9rem; border: 1px dashed var(--accent); border-radius: 12px; background: var(--accent-soft); }
     .pl-submitted[hidden] { display: none; }
+    .pl-share { display: block; width: 100%; margin-top: 0.55rem; font: inherit; font-size: 0.92rem; font-weight: 800; color: var(--accent); background: var(--paper); border: 1.5px solid var(--accent); border-radius: 13px; padding: 0.75rem; cursor: pointer; }
+    .pl-share:hover { background: var(--accent-soft); }
+    .pl-share[hidden] { display: none; }
     .pl-cross { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; margin: 2rem 0 1rem; padding-top: 1.4rem; border-top: 1px solid var(--line); }
     .pl-cross a { font-size: 0.88rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--line); border-radius: 999px; }
     .pl-cross a:hover { border-color: var(--accent); }

@@ -110,6 +110,7 @@ const faqLd = {
         <span class="pc-cal__dow pc-cal__dow--sun">일</span><span class="pc-cal__dow">월</span><span class="pc-cal__dow">화</span><span class="pc-cal__dow">수</span><span class="pc-cal__dow">목</span><span class="pc-cal__dow">금</span><span class="pc-cal__dow pc-cal__dow--sat">토</span>
       </div>
       <div class="pc-cal__grid" id="pc-grid"></div>
+      <div class="pc-pop" id="pc-pop" hidden></div>
     </section>
 
     <!-- ━━ 선택한 날짜 일정 (별도 섹션) ━━ -->
@@ -267,25 +268,106 @@ const faqLd = {
         for (var i = 0; i < startDay; i++) h += '<div class="pc-cell pc-cell--empty"></div>';
         for (var d = 1; d <= days; d++) {
           var has = byDay[d];
-          h += '<button type="button" class="pc-cell' + (d === todayD ? ' is-today' : '') + (d === selDay ? ' is-sel' : '') + (has ? ' has-ev' : '') + '" data-d="' + d + '">';
+          h += '<div class="pc-cell' + (d === todayD ? ' is-today' : '') + (d === selDay ? ' is-sel' : '') + (has ? ' has-ev' : '') + '" data-d="' + d + '" role="button" tabindex="0">';
           h += '<span class="pc-cell__num">' + d + '</span>';
           if (has) {
+            // 모바일: 색 점
             var dots = {};
             has.forEach(function (e) { dots[(catMeta[e.cat] || {}).color || '#888'] = true; });
             h += '<span class="pc-cell__dots">';
             Object.keys(dots).slice(0, 3).forEach(function (c) { h += '<span style="background:' + c + '"></span>'; });
             h += '</span>';
+            // 데스크톱: 일정 제목 칩(최대 3 + 더보기)
+            h += '<span class="pc-cell__evs">';
+            has.slice(0, 3).forEach(function (e) {
+              var c = (catMeta[e.cat] || {}).color || '#888';
+              h += '<span class="pc-chip" data-key="' + e._k + '" style="--c:' + c + '">' + e.title + '</span>';
+            });
+            if (has.length > 3) h += '<span class="pc-chip pc-chip--more" data-more="' + d + '">+' + (has.length - 3) + '개 더보기</span>';
+            h += '</span>';
           }
-          h += '</button>';
+          h += '</div>';
         }
         grid.innerHTML = h;
         grid.querySelectorAll('.pc-cell[data-d]').forEach(function (btn) {
-          btn.addEventListener('click', function () { selectDay(parseInt(btn.dataset.d)); });
+          btn.addEventListener('click', function (ev) {
+            if (ev.target.closest('.pc-chip')) return; // 칩은 팝오버가 처리
+            selectDay(parseInt(btn.dataset.d));
+          });
         });
+        bindChips();
         requestAnimationFrame(matchBoardHeight);
       }
 
       function isDesktop() { return window.matchMedia('(min-width: 769px)').matches; }
+
+      // ── 일정 칩 팝오버: hover 미리보기 · 클릭 고정 · 상세 이동 ──
+      var popHideTimer = null, popPinned = false, popKey = null;
+      function evByKey(k) { for (var i = 0; i < ALL.length; i++) if (ALL[i]._k === k) return ALL[i]; return null; }
+      function popHtml(e) {
+        var c = catMeta[e.cat] || catMeta.tax;
+        var dd = Math.ceil((new Date(2026, e.month - 1, e.day) - new Date()) / 86400000);
+        var ddTxt = dd === 0 ? 'D-Day' : dd > 0 ? 'D-' + dd : '지남';
+        return '<div class="pc-pop__bar" style="background:' + c.color + '"></div>' +
+          '<div class="pc-pop__body">' +
+          '<div class="pc-pop__meta"><b style="color:' + c.color + '">' + c.icon + ' ' + c.name + '</b>' +
+          '<span>' + e.month + '/' + e.day + ' · ' + ddTxt + '</span></div>' +
+          '<h4>' + e.title + '</h4><p>' + e.desc + '</p>' +
+          '<div class="pc-pop__acts">' +
+          (e.url ? '<a href="' + e.url + '" target="_blank" rel="noopener">신청·상세 보기 →</a>' : '') +
+          (e.relatedSlug ? '<a href="/blog/' + e.relatedSlug + '/" class="is-ghost">가이드 읽기</a>' : '') +
+          '<button type="button" data-popday="' + e.day + '">이 날 전체</button>' +
+          '</div></div>';
+      }
+      function showPop(chip, key, pin) {
+        var e = evByKey(key); if (!e) return;
+        clearTimeout(popHideTimer);
+        var pop = $('pc-pop');
+        if (popKey !== key) { pop.innerHTML = popHtml(e); popKey = key; }
+        popPinned = popPinned || !!pin;
+        var cal = document.querySelector('.pc-cal');
+        var cr = cal.getBoundingClientRect(), br = chip.getBoundingClientRect();
+        pop.hidden = false;
+        var W = pop.offsetWidth || 280, H = pop.offsetHeight || 160;
+        var left = br.left - cr.left;
+        if (left + W > cal.clientWidth - 8) left = cal.clientWidth - W - 8;
+        var top = br.bottom - cr.top + 6;
+        if (br.bottom + H + 20 > window.innerHeight && br.top - H - 6 > cr.top) top = br.top - cr.top - H - 6;
+        pop.style.left = Math.max(4, left) + 'px';
+        pop.style.top = top + 'px';
+        pop.classList.toggle('is-pinned', popPinned);
+        var db = pop.querySelector('[data-popday]');
+        if (db && !db._bound) { db._bound = 1; db.addEventListener('click', function () { hidePop(true); selectDay(parseInt(db.dataset.popday)); }); }
+      }
+      function hidePop(force) {
+        if (popPinned && !force) return;
+        popPinned = false; popKey = null;
+        var pop = $('pc-pop'); pop.hidden = true; pop.classList.remove('is-pinned');
+      }
+      function scheduleHide() { if (popPinned) return; clearTimeout(popHideTimer); popHideTimer = setTimeout(function () { hidePop(); }, 180); }
+      function bindChips() {
+        document.querySelectorAll('.pc-chip[data-key]').forEach(function (chip) {
+          chip.addEventListener('mouseenter', function () { if (isDesktop() && !popPinned) showPop(chip, chip.dataset.key); });
+          chip.addEventListener('mouseleave', scheduleHide);
+          chip.addEventListener('click', function (ev) {
+            ev.stopPropagation();
+            if (popPinned && popKey === chip.dataset.key) { hidePop(true); return; }
+            popPinned = false; showPop(chip, chip.dataset.key, true);
+          });
+        });
+        document.querySelectorAll('.pc-chip--more').forEach(function (chip) {
+          chip.addEventListener('click', function (ev) { ev.stopPropagation(); hidePop(true); selectDay(parseInt(chip.dataset.more)); });
+        });
+      }
+      (function initPop() {
+        var pop = $('pc-pop');
+        pop.addEventListener('mouseenter', function () { clearTimeout(popHideTimer); });
+        pop.addEventListener('mouseleave', scheduleHide);
+        document.addEventListener('click', function (ev) {
+          if (popPinned && !ev.target.closest('.pc-pop') && !ev.target.closest('.pc-chip')) hidePop(true);
+        });
+        document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') hidePop(true); });
+      })();
 
       // PC: 목록 컬럼 높이를 달력에 맞추고 내부 스크롤(앱형 2-pane)
       function matchBoardHeight() {
@@ -559,6 +641,36 @@ const faqLd = {
     .pc-cell__num { font-size: 0.9rem; line-height: 1; }
     .pc-cell__dots { display: flex; gap: 2px; height: 5px; }
     .pc-cell__dots span { width: 5px; height: 5px; border-radius: 50%; }
+    .pc-cell__evs { display: none; }
+
+    /* ── 데스크톱: 셀 안에 일정 제목 칩 + 호버 팝오버 ── */
+    @media (min-width: 769px) {
+      .pc-cal { position: relative; }
+      .pc-cell { aspect-ratio: auto; min-height: 92px; align-items: stretch; justify-content: flex-start; padding: 6px 4px 5px; gap: 4px; border: 1px solid transparent; }
+      .pc-cell.has-ev { border-color: var(--line); background: var(--paper); }
+      .pc-cell.has-ev:hover { border-color: var(--accent); }
+      .pc-cell__num { align-self: flex-start; padding-left: 2px; font-size: 0.78rem; color: var(--ink-soft); }
+      .pc-cell.is-today .pc-cell__num { width: 1.45rem; height: 1.45rem; font-size: 0.74rem; }
+      .pc-cell__dots { display: none; }
+      .pc-cell__evs { display: flex; flex-direction: column; gap: 3px; overflow: hidden; }
+      .pc-chip { display: block; font-size: 0.67rem; font-weight: 700; line-height: 1.25; padding: 3px 6px; border-radius: 6px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; color: var(--ink); background: color-mix(in srgb, var(--c) 14%, var(--paper)); border-left: 3px solid var(--c); transition: background 0.1s; }
+      .pc-chip:hover { background: color-mix(in srgb, var(--c) 26%, var(--paper)); }
+      .pc-chip--more { --c: var(--ink-soft); background: var(--paper-2); color: var(--ink-soft); border-left-color: var(--line); text-align: center; }
+    }
+    .pc-pop { position: absolute; z-index: 60; width: 300px; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 12px 34px rgba(15, 18, 34, 0.16); overflow: hidden; }
+    .pc-pop[hidden] { display: none; }
+    .pc-pop__bar { height: 4px; }
+    .pc-pop__body { padding: 0.75rem 0.9rem 0.85rem; }
+    .pc-pop__meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; margin-bottom: 0.3rem; }
+    .pc-pop__meta b { font-weight: 800; }
+    .pc-pop__meta span { color: var(--ink-soft); font-weight: 700; }
+    .pc-pop__body h4 { margin: 0 0 0.25rem; font-size: 0.92rem; line-height: 1.4; }
+    .pc-pop__body p { margin: 0 0 0.6rem; font-size: 0.78rem; line-height: 1.55; color: var(--ink-soft); }
+    .pc-pop__acts { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .pc-pop__acts a, .pc-pop__acts button { font: inherit; font-size: 0.74rem; font-weight: 800; padding: 0.38rem 0.65rem; border-radius: 8px; text-decoration: none; cursor: pointer; }
+    .pc-pop__acts a { background: var(--accent); color: #fff; }
+    .pc-pop__acts a.is-ghost { background: var(--accent-soft); color: var(--accent); }
+    .pc-pop__acts button { background: var(--paper-2); color: var(--ink-soft); border: 1px solid var(--line); }
 
     /* 선택한 날짜 섹션 (구분되는 강조 카드) */
     .pc-day { background: var(--accent-soft); border: 1.5px solid var(--accent); border-radius: 14px; padding: 1rem; margin-bottom: 1.2rem; }

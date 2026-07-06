@@ -366,6 +366,13 @@
 }
 .cta-card:hover { transform: translateY(-2px); box-shadow: 0 12px 26px -16px rgba(0,0,0,.35); }
 .cta-card--main { grid-column: 1 / -1; }
+.cta-card--wide { grid-column: 1 / -1; }
+@media (min-width: 640px) {
+  .home-cta { grid-template-columns: repeat(6, 1fr); }
+  .home-cta .cta-card { grid-column: span 2; }
+  .home-cta .cta-card--main { grid-column: 1 / -1; }
+  .home-cta .cta-card--wide { grid-column: span 2; }
+}
 /* 아이콘=상단 좌측, 텍스트=하단 좌측 (margin-bottom:auto 로 본문을 바닥에 밀착) */
 .cta-card__ic { width: 2.1rem; height: 2.1rem; margin-bottom: auto; }
 .cta-card--main .cta-card__ic { width: 2.4rem; height: 2.4rem; }

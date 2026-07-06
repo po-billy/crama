@@ -1,0 +1,365 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import FaqBox from '../components/FaqBox.astro';
+import { gIcon, G_ICONS } from '../lib/game-icons';
+
+const SU = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
+const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
+// 상위% 앵커·중위소득은 my-report와 동일 상수(연도 개정 시 함께 갱신)
+const RANK_ANCHORS = [[113769, 0.1], [21673, 1], [10057, 10], [7624, 20], [5482, 36], [4272, 50], [2642, 80], [2119, 90], [1200, 97]];
+const MEDIAN = [2564238, 4199292, 5359036, 6494738, 7556719, 8555952];
+const REGIONS = ['서울특별시', '부산광역시', '대구광역시', '인천광역시', '광주광역시', '대전광역시', '울산광역시', '세종특별자치시', '경기도', '강원특별자치도', '충청북도', '충청남도', '전북특별자치도', '전라남도', '경상북도', '경상남도', '제주특별자치도'];
+---
+<BaseLayout
+  title="AI 정밀 재무 진단 — 내 돈 상태, AI가 등급까지 매겨드립니다"
+  description="연봉·자산·부채·주거까지 입력하면 AI가 재무 체력 등급, 강점과 리스크, 이번 주에 할 일, 놓친 혜택까지 한 장의 리포트로. 입력이 많을수록 정밀해집니다."
+  footer="none"
+>
+  <div class="ar wrap">
+    <header class="page-hero">
+      <span class="eyebrow">AI Deep Report</span>
+      <h1>AI 정밀 재무 진단 <span class="ar-y" set:html={gIcon('sparkle', 28)} /></h1>
+      <p>숫자만 보여주는 계산기와 달라요. <b>내 상황 전체</b>를 보고 등급·리스크·<b>이번 주 할 일</b>까지 짚어주는 AI 리포트.</p>
+    </header>
+
+    <!-- 입력 폼 -->
+    <form class="ar-form" id="ar-form">
+      <div class="ar-req">
+        <label>나이 <input type="number" id="f-age" min="15" max="99" placeholder="32" required inputmode="numeric" /></label>
+        <label>세전 연봉(만원) <input type="number" id="f-salary" min="0" max="999999" placeholder="4200" required inputmode="numeric" /></label>
+      </div>
+
+      <details class="ar-more" id="ar-more">
+        <summary>더 정확한 진단 받기 <em>(선택 — 채울수록 정밀해져요)</em></summary>
+        <div class="ar-grid">
+          <label>지역
+            <select id="f-region"><option value="">선택 안 함</option>{REGIONS.map((r) => <option value={r}>{r.replace(/(특별자치도|특별자치시|광역시|특별시)$/, '')}</option>)}</select>
+          </label>
+          <label>혼인
+            <select id="f-marital"><option value="">선택 안 함</option><option value="미혼">미혼</option><option value="기혼">기혼</option></select>
+          </label>
+          <label>부양 자녀 수 <input type="number" id="f-children" min="0" max="9" placeholder="0" inputmode="numeric" /></label>
+          <label>가구원 수 <input type="number" id="f-household" min="1" max="9" placeholder="1" inputmode="numeric" /></label>
+          <label>주거 형태
+            <select id="f-housing"><option value="">선택 안 함</option><option value="자가">자가</option><option value="전세">전세</option><option value="월세">월세</option><option value="부모님과 거주">부모님과 거주</option></select>
+          </label>
+          <label id="l-deposit" hidden>보증금(만원) <input type="number" id="f-deposit" min="0" placeholder="5000" inputmode="numeric" /></label>
+          <label id="l-rent" hidden>월세(만원) <input type="number" id="f-rent" min="0" placeholder="50" inputmode="numeric" /></label>
+          <label>금융자산(만원) <input type="number" id="f-assets" min="0" placeholder="예적금+투자 합계" inputmode="numeric" /></label>
+          <label>총부채(만원) <input type="number" id="f-debt" min="0" placeholder="대출 잔액 합계" inputmode="numeric" /></label>
+          <label>월 저축·투자(만원) <input type="number" id="f-saving" min="0" placeholder="80" inputmode="numeric" /></label>
+          <label class="ar-check"><input type="checkbox" id="f-car" /> 차량 보유</label>
+        </div>
+      </details>
+
+      <button type="submit" class="ar-submit" id="ar-submit"><Fragment set:html={gIcon('sparkle', 17)} /> AI 진단 받기</button>
+      <p class="ar-note" id="ar-note">입력값은 <a href="/me/">내 정보</a>에 저장돼 리포트·혜택 매칭에 재사용됩니다. 진단은 하루 3회.</p>
+    </form>
+
+    <!-- 로딩 연출 -->
+    <div class="ar-loading" id="ar-loading" hidden>
+      <img src="/img/generated/meerkat-head.webp" alt="크라미" width="56" height="56" />
+      <b id="ar-loading-msg">프로필을 읽고 있어요…</b>
+      <div class="ar-bar"><i id="ar-bar-fill"></i></div>
+    </div>
+
+    <!-- 리포트 -->
+    <section class="ar-report" id="ar-report" hidden>
+      <div class="ar-head">
+        <span class="ar-grade" id="ar-grade">B+</span>
+        <div class="ar-head__t">
+          <b id="ar-headline"></b>
+          <span>AI 재무 체력 등급 · 같은 나이대 대비</span>
+        </div>
+      </div>
+      <p class="ar-summary" id="ar-summary"></p>
+      <div class="ar-cols">
+        <div class="ar-col is-good"><h2><Fragment set:html={gIcon('check', 15)} /> 잘하고 있는 것</h2><div id="ar-strengths"></div></div>
+        <div class="ar-col is-bad"><h2><Fragment set:html={gIcon('flame', 15)} /> 리스크</h2><div id="ar-risks"></div></div>
+      </div>
+      <h2 class="ar-h2"><Fragment set:html={gIcon('target', 16)} /> 우선순위 액션 플랜</h2>
+      <ol class="ar-actions" id="ar-actions"></ol>
+      <div id="ar-benefits-wrap" hidden>
+        <h2 class="ar-h2"><Fragment set:html={gIcon('coin', 16)} /> 지금 챙길 수 있는 혜택</h2>
+        <div class="ar-benefits" id="ar-benefits"></div>
+      </div>
+      <p class="ar-disclaimer">※ 이 리포트는 입력값 기반의 정보 제공 목적 참고자료입니다. 투자·금융상품 권유가 아니며, 개별 제도의 자격은 공식 페이지에서 최종 확인하세요.</p>
+      <div class="ar-again">
+        <button type="button" id="ar-again">다시 진단하기</button>
+        <span id="ar-left"></span>
+      </div>
+    </section>
+
+    <FaqBox items={[
+      { q: '내 돈 리포트와 뭐가 다른가요?', a: '내 돈 리포트는 공식(세율·중위소득)으로 계산한 숫자를 보여줍니다. AI 정밀 진단은 그 숫자에 자산·부채·주거·가족 상황까지 겹쳐 보고 "그래서 지금 뭐부터 해야 하는지"를 등급·리스크·액션 플랜으로 해석해 줍니다.' },
+      { q: '입력한 정보는 어디에 저장되나요?', a: '내 계정의 프로필(내 정보)에 저장되어 리포트·혜택 매칭 등에서 재사용됩니다. 리포트 생성 시에만 AI에 전달되며, 차량번호·주민번호 같은 식별정보는 아예 입력받지 않습니다.' },
+      { q: '금융 자문인가요?', a: '아니요. 정보 제공 목적의 참고자료이며 특정 상품 권유·투자 자문이 아닙니다. 등급과 액션 플랜은 일반적인 재무 관리 원칙 기반의 안내입니다.' },
+      { q: '하루 몇 번 받을 수 있나요?', a: '하루 3회입니다. 입력을 바꿔가며 시나리오 비교(예: 이직 전/후 연봉)에 활용해 보세요.' },
+    ]} />
+  </div>
+
+  <script is:inline define:vars={{ SU, AK, RANK_ANCHORS, MEDIAN, GI: G_ICONS }}>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const gi = (name, size) => (GI[name] || '').replace('width="18" height="18"', 'width="' + size + '" height="' + size + '"');
+      const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+      function tok() {
+        try {
+          for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && k.indexOf('sb-') === 0 && k.indexOf('-auth-token') !== -1) {
+              const o = JSON.parse(localStorage.getItem(k));
+              return (o && (o.access_token || (o.currentSession && o.currentSession.access_token))) || null;
+            }
+          }
+        } catch (e) {}
+        return null;
+      }
+      const T = tok();
+      const H = { 'Content-Type': 'application/json', apikey: AK, Authorization: 'Bearer ' + (T || AK) };
+
+      // ── 주거 형태에 따른 조건부 필드 ──
+      $('f-housing').addEventListener('change', () => {
+        const v = $('f-housing').value;
+        $('l-deposit').hidden = !(v === '전세' || v === '월세');
+        $('l-rent').hidden = v !== '월세';
+      });
+
+      // ── 프리필: user_profile.data ──
+      let savedData = {};
+      async function prefill() {
+        if (!T) return;
+        try {
+          const r = await fetch(SU + '/rest/v1/user_profile?select=data', { headers: H });
+          const rows = r.ok ? await r.json() : [];
+          savedData = (rows[0] && rows[0].data) || {};
+          const map = { age: 'f-age', salary: 'f-salary', region: 'f-region', marital: 'f-marital', children: 'f-children', household: 'f-household', housing: 'f-housing', deposit: 'f-deposit', rentMonthly: 'f-rent', assets: 'f-assets', debt: 'f-debt', saving: 'f-saving' };
+          let extra = 0;
+          for (const [k, id] of Object.entries(map)) {
+            if (savedData[k] != null && savedData[k] !== '') {
+              $(id).value = savedData[k];
+              if (id !== 'f-age' && id !== 'f-salary') extra++;
+            }
+          }
+          if (savedData.car != null) { $('f-car').checked = !!savedData.car; extra++; }
+          if (extra > 0) $('ar-more').open = true;
+          $('f-housing').dispatchEvent(new Event('change'));
+        } catch (e) {}
+      }
+
+      function readForm() {
+        const num = (id) => { const v = $(id).value.trim(); return v === '' ? null : Number(v); };
+        const str = (id) => $(id).value || null;
+        return {
+          age: num('f-age'), salary: num('f-salary'), region: str('f-region'), marital: str('f-marital'),
+          children: num('f-children'), household: num('f-household'), housing: str('f-housing'),
+          deposit: num('f-deposit'), rentMonthly: num('f-rent'), assets: num('f-assets'),
+          debt: num('f-debt'), saving: num('f-saving'), car: $('f-car').checked,
+        };
+      }
+
+      // ── 지표 계산(클라) — 상위%·중위소득% ──
+      function topPct(man) {
+        const A = RANK_ANCHORS;
+        if (man >= A[0][0]) return 0.1;
+        if (man <= A[A.length - 1][0]) return 99;
+        for (let i = 0; i < A.length - 1; i++) {
+          const hi = A[i], lo = A[i + 1];
+          if (man <= hi[0] && man >= lo[0]) {
+            const t = (Math.log(man) - Math.log(lo[0])) / (Math.log(hi[0]) - Math.log(lo[0]));
+            return Math.round((lo[1] + (hi[1] - lo[1]) * t) * 10) / 10;
+          }
+        }
+        return 50;
+      }
+
+      // ── 혜택 후보(스크립트 필터 — AI는 이 목록에서만 고름) ──
+      async function candidates(p) {
+        const out = [];
+        try {
+          const [y, w] = await Promise.all([
+            fetch('/data/youth-slim.json').then((r) => r.json()).catch(() => ({ policies: [] })),
+            fetch('/data/welfare-local-slim.json').then((r) => r.json()).catch(() => ({ services: [] })),
+          ]);
+          const age = p.age || 0;
+          for (const it of (y.policies || [])) {
+            if (it.ageLimit && age && (age < Number(it.minAge || 0) || age > Number(it.maxAge || 99))) continue;
+            out.push({ id: it.id, name: it.name, summary: '청년 정책 · ' + (it.cat || ''), href: '/youth/' + it.id + '/' });
+            if (out.length >= 20) break;
+          }
+          let cnt = 0;
+          for (const it of (w.services || [])) {
+            if (p.region && it.region !== p.region) continue;
+            out.push({ id: it.id, name: it.name, summary: (it.region || '') + ' ' + (it.sgg || '') + ' · ' + (it.theme || '') + ' · ' + (it.life || ''), href: '/welfare/' + it.id + '/' });
+            if (++cnt >= 20) break;
+          }
+        } catch (e) {}
+        return out;
+      }
+
+      // ── 로딩 연출 ──
+      const STAGES = ['프로필을 읽고 있어요…', '소득 위치를 계산하고 있어요…', '혜택 데이터와 대조하고 있어요…', '리스크를 점검하고 있어요…', '리포트를 쓰고 있어요…'];
+      let stageTimer = null;
+      function startLoading() {
+        $('ar-form').hidden = true; $('ar-report').hidden = true; $('ar-loading').hidden = false;
+        let i = 0;
+        $('ar-loading-msg').textContent = STAGES[0];
+        $('ar-bar-fill').style.width = '8%';
+        stageTimer = setInterval(() => {
+          i = Math.min(i + 1, STAGES.length - 1);
+          $('ar-loading-msg').textContent = STAGES[i];
+          $('ar-bar-fill').style.width = Math.min(92, 8 + i * 21) + '%';
+        }, 3500);
+      }
+      function stopLoading() { clearInterval(stageTimer); $('ar-loading').hidden = true; }
+
+      // ── 리포트 렌더 ──
+      const SEV = { high: '높음', mid: '중간', low: '낮음' };
+      function render(report, hrefMap, left) {
+        $('ar-grade').textContent = report.grade;
+        $('ar-grade').dataset.g = report.grade[0];
+        $('ar-headline').textContent = report.headline;
+        $('ar-summary').textContent = report.summary;
+        $('ar-strengths').innerHTML = (report.strengths || []).map((s) => '<div class="ar-item"><b>' + esc(s.title) + '</b><p>' + esc(s.detail) + '</p></div>').join('');
+        $('ar-risks').innerHTML = (report.risks || []).map((r) => '<div class="ar-item"><b>' + esc(r.title) + ' <i class="ar-sev is-' + esc(r.severity) + '">' + (SEV[r.severity] || '') + '</i></b><p>' + esc(r.detail) + '</p></div>').join('');
+        $('ar-actions').innerHTML = (report.actions || []).map((a) => '<li><b>' + esc(a.title) + '</b><p>' + esc(a.why) + '</p><p class="ar-how">' + gi('check', 13) + ' ' + esc(a.how) + '</p></li>').join('');
+        const bs = (report.benefits || []).filter((b) => hrefMap[b.id]);
+        $('ar-benefits').innerHTML = bs.map((b) => '<a href="' + esc(hrefMap[b.id].href) + '"><b>' + esc(hrefMap[b.id].name) + '</b><p>' + esc(b.reason) + '</p><span>자세히 보기 →</span></a>').join('');
+        $('ar-benefits-wrap').hidden = bs.length === 0;
+        $('ar-left').textContent = left != null ? '오늘 ' + left + '회 남음' : '';
+        $('ar-report').hidden = false;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        try { if (window.gtag) window.gtag('event', 'ai_report_view', { grade: report.grade }); } catch (e) {}
+      }
+
+      // ── 제출 ──
+      $('ar-form').addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        if (!T) { if (window.CramaSaved) window.CramaSaved.promptLogin(); return; }
+        const p = readForm();
+        if (!p.age || !p.salary) return;
+        // 프로필 저장(merge)
+        try {
+          const merged = { ...savedData };
+          for (const [k, v] of Object.entries(p)) { if (v != null && v !== '') merged[k] = v; }
+          await fetch(SU + '/rest/v1/user_profile?on_conflict=user_id', {
+            method: 'POST',
+            headers: { ...H, Prefer: 'resolution=merge-duplicates' },
+            body: JSON.stringify({ data: merged }),
+          });
+          savedData = merged;
+        } catch (e) {}
+
+        startLoading();
+        const cands = await candidates(p);
+        const hrefMap = {}; for (const c of cands) hrefMap[c.id] = c;
+        const stats = {
+          '근로소득 상위 %(추정)': p.salary ? topPct(p.salary) + '%' : null,
+          '기준 중위소득 대비(월소득 환산)': p.salary && p.household ? Math.round(((p.salary * 10000) / 12) / MEDIAN[Math.min(p.household, 6) - 1] * 100) + '%' : null,
+          '순자산(만원)': p.assets != null && p.debt != null ? p.assets - p.debt + (p.deposit || 0) : null,
+        };
+        try {
+          const r = await fetch('/api/ai-report', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + T },
+            body: JSON.stringify({ profile: p, stats, candidates: cands.map(({ id, name, summary }) => ({ id, name, summary })) }),
+          });
+          const data = await r.json();
+          stopLoading();
+          if (!r.ok || !data.report) {
+            $('ar-form').hidden = false;
+            $('ar-note').textContent = r.status === 429 ? '오늘 진단 3회를 모두 사용했어요 — 내일 다시 받을 수 있어요.' : '진단 생성에 실패했어요. 잠시 후 다시 시도해 주세요.';
+            return;
+          }
+          try { if (window.gtag) window.gtag('event', 'ai_report_run', {}); } catch (e) {}
+          render(data.report, hrefMap, data.left);
+        } catch (e) {
+          stopLoading();
+          $('ar-form').hidden = false;
+          $('ar-note').textContent = '네트워크 오류 — 잠시 후 다시 시도해 주세요.';
+        }
+      });
+
+      $('ar-again').addEventListener('click', () => {
+        $('ar-report').hidden = true;
+        $('ar-form').hidden = false;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+
+      prefill();
+    })();
+  </script>
+
+  <style is:global>
+    .ar { max-width: 720px; margin: 0 auto; }
+    .ar-y svg { color: var(--accent); vertical-align: -3px; }
+    .ar-form { border: 1px solid var(--line); border-radius: 16px; background: var(--paper-2); padding: 1.2rem; margin: 1.2rem 0; }
+    .ar-form[hidden] { display: none; }
+    .ar-req { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+    @media (max-width: 480px) { .ar-req { grid-template-columns: 1fr; } }
+    .ar-form label { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.82rem; font-weight: 700; color: var(--ink-soft); }
+    .ar-form input[type="number"], .ar-form select { font: inherit; padding: 0.6rem 0.7rem; border: 1.5px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); }
+    .ar-form input:focus, .ar-form select:focus { border-color: var(--accent); outline: none; }
+    .ar-more { margin-top: 1rem; }
+    .ar-more summary { cursor: pointer; font-weight: 800; font-size: 0.9rem; color: var(--accent); }
+    .ar-more summary em { font-style: normal; font-weight: 600; color: var(--ink-soft); font-size: 0.78rem; }
+    .ar-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; margin-top: 0.9rem; }
+    @media (max-width: 480px) { .ar-grid { grid-template-columns: 1fr; } }
+    .ar-grid label[hidden] { display: none; }
+    .ar-check { flex-direction: row !important; align-items: center; gap: 0.5rem !important; }
+    .ar-check input { width: 18px; height: 18px; accent-color: var(--accent); }
+    .ar-submit { display: flex; align-items: center; justify-content: center; gap: 0.4rem; width: 100%; margin-top: 1.1rem; font: inherit; font-size: 1rem; font-weight: 800; color: #fff; background: var(--accent); border: 0; border-radius: 13px; padding: 0.85rem; cursor: pointer; }
+    .ar-submit:hover { filter: brightness(1.06); }
+    .ar-note { font-size: 0.76rem; color: var(--ink-soft); margin: 0.7rem 0 0; text-align: center; }
+    .ar-loading { display: flex; flex-direction: column; align-items: center; gap: 0.7rem; padding: 3rem 1rem; text-align: center; }
+    .ar-loading[hidden] { display: none; }
+    .ar-loading img { animation: arBob 1.2s ease-in-out infinite; }
+    @keyframes arBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+    .ar-loading b { font-size: 0.95rem; }
+    .ar-bar { width: min(280px, 80%); height: 8px; border-radius: 99px; background: var(--paper-2); border: 1px solid var(--line); overflow: hidden; }
+    .ar-bar i { display: block; height: 100%; width: 5%; background: var(--accent); border-radius: 99px; transition: width 0.8s ease; }
+    .ar-report { margin: 1.2rem 0; }
+    .ar-report[hidden] { display: none; }
+    .ar-head { display: flex; align-items: center; gap: 1rem; padding: 1.1rem 1.2rem; border: 1px solid var(--line); border-radius: 16px; background: var(--paper-2); }
+    .ar-grade { flex: none; display: grid; place-items: center; width: 74px; height: 74px; border-radius: 20px; font-size: 2rem; font-weight: 900; font-family: var(--font-serif); color: #fff; background: var(--accent); }
+    .ar-grade[data-g="A"] { background: #16a34a; }
+    .ar-grade[data-g="B"] { background: #2563eb; }
+    .ar-grade[data-g="C"] { background: #d97706; }
+    .ar-grade[data-g="D"] { background: #dc2626; }
+    .ar-head__t b { display: block; font-size: 1.12rem; line-height: 1.4; }
+    .ar-head__t span { font-size: 0.74rem; color: var(--ink-soft); }
+    .ar-summary { font-size: 0.92rem; line-height: 1.7; margin: 1rem 0.2rem; }
+    .ar-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+    @media (max-width: 560px) { .ar-cols { grid-template-columns: 1fr; } }
+    .ar-col { border: 1px solid var(--line); border-radius: 14px; padding: 0.9rem 1rem; background: var(--paper-2); }
+    .ar-col h2 { display: flex; align-items: center; gap: 0.35rem; font-size: 0.86rem; margin: 0 0 0.6rem; }
+    .ar-col.is-good h2 { color: #16a34a; }
+    .ar-col.is-bad h2 { color: #dc2626; }
+    .ar-item { padding: 0.5rem 0; border-top: 1px dashed var(--line); }
+    .ar-item:first-child { border-top: 0; padding-top: 0; }
+    .ar-item b { font-size: 0.86rem; }
+    .ar-item p { margin: 0.2rem 0 0; font-size: 0.8rem; color: var(--ink-soft); line-height: 1.55; }
+    .ar-sev { font-style: normal; font-size: 0.66rem; font-weight: 800; padding: 0.1rem 0.4rem; border-radius: 99px; vertical-align: 1px; }
+    .ar-sev.is-high { background: #fee2e2; color: #dc2626; }
+    .ar-sev.is-mid { background: #fef3c7; color: #b45309; }
+    .ar-sev.is-low { background: var(--paper); color: var(--ink-soft); border: 1px solid var(--line); }
+    .ar-h2 { display: flex; align-items: center; gap: 0.4rem; font-size: 1rem; margin: 1.4rem 0 0.7rem; }
+    .ar-h2 svg { color: var(--accent); }
+    .ar-actions { margin: 0; padding: 0 0 0 1.3rem; display: flex; flex-direction: column; gap: 0.8rem; }
+    .ar-actions li b { font-size: 0.92rem; }
+    .ar-actions li p { margin: 0.2rem 0 0; font-size: 0.82rem; color: var(--ink-soft); line-height: 1.55; }
+    .ar-actions li .ar-how { color: var(--ink); background: var(--accent-soft); border-radius: 8px; padding: 0.4rem 0.6rem; margin-top: 0.35rem; }
+    .ar-how svg { color: var(--accent); vertical-align: -2px; }
+    .ar-benefits { display: flex; flex-direction: column; gap: 0.6rem; }
+    .ar-benefits a { display: block; border: 1px solid var(--line); border-radius: 12px; padding: 0.8rem 0.95rem; background: var(--paper-2); text-decoration: none; color: var(--ink); }
+    .ar-benefits a:hover { border-color: var(--accent); }
+    .ar-benefits b { font-size: 0.88rem; }
+    .ar-benefits p { margin: 0.25rem 0; font-size: 0.79rem; color: var(--ink-soft); line-height: 1.5; }
+    .ar-benefits span { font-size: 0.76rem; font-weight: 800; color: var(--accent); }
+    .ar-disclaimer { font-size: 0.72rem; color: var(--ink-soft); line-height: 1.6; margin: 1.4rem 0 0.8rem; padding-top: 0.8rem; border-top: 1px dashed var(--line); }
+    .ar-again { display: flex; align-items: center; gap: 0.8rem; }
+    .ar-again button { font: inherit; font-size: 0.86rem; font-weight: 800; color: var(--accent); background: var(--paper); border: 1.5px solid var(--accent); border-radius: 11px; padding: 0.55rem 1rem; cursor: pointer; }
+    .ar-again span { font-size: 0.76rem; color: var(--ink-soft); }
+    #ar-benefits-wrap[hidden] { display: none; }
+  </style>
+</BaseLayout>

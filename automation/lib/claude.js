@@ -52,6 +52,32 @@ export async function generateThreadsDraft({ title, description, url }) {
 }
 
 /**
+ * 예측 게임(오르까 내리까) 주간 판정 촌평 — 결과 리빌에 붙는 크라미의 한 마디.
+ * summary: { week, items: [{label, changePct, dir, crowdUpPct}], participants, perfectCount }
+ */
+export async function generatePredictionCommentary(summary) {
+  const lines = summary.items
+    .map((it) => `- ${it.label}: ${it.changePct > 0 ? '+' : ''}${it.changePct}% (${it.dir === 'push' ? '무승부' : it.dir === 'up' ? '상승' : '하락'}, 참여자 ${it.crowdUpPct}%가 상승에 베팅)`)
+    .join('\n');
+  const resp = await client.messages.create({
+    model: WRITE_MODEL,
+    max_tokens: 300,
+    system:
+      '너는 금융 예측 게임의 결과 발표 코멘테이터 "크라미"(귀여운 미어캣 마스코트)다. ' +
+      '한 주 결과를 재치 있게 총평한다. 규칙: ' +
+      '1) 2~3문장, 전체 140자 이내. ' +
+      '2) 다수파가 틀렸으면 그 반전을, 맞혔으면 싱거움을 유쾌하게 짚기. 퍼펙트 달성자가 있으면 축하. ' +
+      '3) 시장 전망·매수매도 권유·다음 주 예측 금지(지난 결과 얘기만). ' +
+      '4) 친근한 존댓말. 비속어·거친 표현 금지(허를 찔렀다/뒤통수/배신 정도는 OK). 이모지 금지, 따옴표 없이 본문만 출력.',
+    messages: [{
+      role: 'user',
+      content: `${summary.week} 라운드 결과:\n${lines}\n참여 ${summary.participants}명, 전원 적중(퍼펙트) ${summary.perfectCount}명.\n\n결과 발표 촌평:`,
+    }],
+  });
+  return (resp.content?.find((c) => c.type === 'text')?.text || '').trim().replace(/^["'`]+|["'`]+$/g, '');
+}
+
+/**
  * 1) 리서치 — web_search 로 상위 콘텐츠 트렌드·검색의도·커버리지 갭 분석.
  *    원문 복제 금지, 구조/각도/키워드만 추출.
  */

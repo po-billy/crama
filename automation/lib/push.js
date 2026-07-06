@@ -10,6 +10,7 @@ import webpush from 'web-push';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, '../../supabase/.env') }); // DB 자격 (CI는 env로 주입되어도 OK)
+dotenv.config({ path: path.join(__dirname, '../.env') }); // automation/.env (ANTHROPIC 키 등 — 이미 로드된 키는 유지)
 
 function parsePg(uri) {
   const m = uri.match(/^postgres(?:ql)?:\/\/(.+)$/i);

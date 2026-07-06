@@ -38,6 +38,10 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
         <span id="pl-reveal-msg"></span>
         <b id="pl-reveal-worms"></b>
       </div>
+      <figure class="pl-reveal__ai" id="pl-reveal-ai" hidden>
+        <img src="/img/generated/meerkat-head.webp" alt="크라미" width="34" height="34" loading="lazy" />
+        <blockquote><b>크라미의 결산 한 마디</b><p id="pl-reveal-ai-text"></p></blockquote>
+      </figure>
       <div class="pl-confetti" id="pl-confetti" aria-hidden="true">
         {Array.from({ length: 18 }).map((_, i) => <i style={`--i:${i}`}></i>)}
       </div>
@@ -199,6 +203,7 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
           msgEl.innerHTML = s.perfect ? gi('sparkle', 16) + ' 퍼펙트! 전 문항 적중' : s.hits.length ? s.hits.length + '문항 적중!' : '이번엔 빗나갔어요 — 다음 주에 설욕전';
           $('pl-reveal-worms').textContent = s.reward > 0 ? '+' + s.reward + ' 밀웜' : '';
           $('pl-reveal-total').hidden = false;
+          if (round.commentary) { $('pl-reveal-ai-text').textContent = round.commentary; $('pl-reveal-ai').hidden = false; }
           if (s.reward > 0 && !seen) $('pl-confetti').classList.add('is-on');
           localStorage.setItem(seenKey, round.id);
         };
@@ -396,6 +401,12 @@ const AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
 
     /* 지난 라운드 리빌 */
     .pl-reveal { position: relative; margin: 1.6rem 0; padding: 1.1rem 1.2rem 1.2rem; border: 1px solid var(--line); border-radius: 16px; background: var(--paper-2); overflow: hidden; }
+    .pl-reveal__ai { display: flex; gap: 0.7rem; align-items: flex-start; margin: 0.9rem 0 0; padding: 0.8rem 0.9rem; background: var(--accent-soft); border: 1px dashed var(--accent); border-radius: 12px; }
+    .pl-reveal__ai[hidden] { display: none; }
+    .pl-reveal__ai img { flex: none; width: 34px; height: 34px; object-fit: contain; }
+    .pl-reveal__ai blockquote { margin: 0; }
+    .pl-reveal__ai b { display: block; font-size: 0.72rem; color: var(--accent); letter-spacing: 0.04em; margin-bottom: 0.15rem; }
+    .pl-reveal__ai p { margin: 0; font-size: 0.86rem; line-height: 1.55; color: var(--ink); }
     .pl-reveal[hidden] { display: none; }
     .pl-reveal h2 { font-size: 1.05rem; margin: 0 0 0.8rem; }
     .pl-reveal__cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.55rem; }

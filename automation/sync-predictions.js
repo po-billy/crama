@@ -5,6 +5,7 @@
 // 가격: Yahoo(^KS11, KRW=X — User-Agent 필수) + 업비트(KRW-BTC). 무승부(|변동|<0.05%)는 전원 적중 처리.
 import pg from 'pg';
 import { pgConn } from './lib/push.js';
+import { generatePredictionCommentary } from './lib/claude.js';
 
 const QUESTIONS = [
   { key: 'kospi', label: '코스피', emoji: '📈', unit: 'pt', src: 'yahoo:^KS11', hint: '한국 증시의 체온계' },
@@ -124,7 +125,26 @@ async function main() {
           paidTotal += reward;
         }
       }
-      await client.query(`update prediction_rounds set results=$1, status='settled' where id=$2`, [results, round.id]);
+      // AI 촌평(크라미의 한 마디) — 실패해도 판정은 진행
+      let commentary = null;
+      try {
+        const perfectCount = (await client.query(
+          `select count(*)::int as n from prediction_picks where round_id=$1 and (score->>'perfect')::boolean`, [round.id])).rows[0].n;
+        commentary = await generatePredictionCommentary({
+          week: '#' + (round.id.split('-W')[1] || '') + '주차',
+          items: round.questions.map((q) => ({
+            label: q.label,
+            changePct: results[q.key].changePct,
+            dir: results[q.key].dir,
+            crowdUpPct: Math.round(share(q.key, 'up') * 100),
+          })),
+          participants: picks.rows.length,
+          perfectCount,
+        });
+        console.log(`  촌평: ${commentary}`);
+      } catch (e) { console.warn(`  ⚠ 촌평 생성 실패(스킵): ${e.message}`); }
+
+      await client.query(`update prediction_rounds set results=$1, commentary=$2, status='settled' where id=$3`, [results, commentary, round.id]);
       console.log(`✓ ${round.id} 판정 완료 — 참여 ${picks.rows.length}명, 밀웜 ${paidTotal} 지급`);
     }
 

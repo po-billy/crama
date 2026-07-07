@@ -1078,3 +1078,15 @@
 body.audio-active .fshare,
 body.audio-active .back-to-top { display: none !important; }
 body.audio-active { padding-bottom: 4.5rem; }
+
+/* ── 홈 정보 티커: 마감·금리·내 숫자 스트립을 한 줄에서 회전 ── */
+.home-ticker { position: relative; height: 48px; margin-bottom: 0.9rem; }
+.home-ticker.is-empty { display: none; }
+.home-ticker > * { position: absolute; inset: 0; margin: 0 !important; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; display: flex !important; align-items: center; }
+.home-ticker > [hidden] { display: none !important; }
+.home-ticker > .is-on { opacity: 1; pointer-events: auto; }
+
+/* ── 데일리 액션 칩(출석·예측)을 한 줄로 ── */
+.daily-chips { display: grid; gap: 0.5rem; }
+.daily-chips .streak-chip, .daily-chips .play-chip { margin-top: 0; }
+@media (min-width: 640px) { .daily-chips { grid-template-columns: 1fr 1fr; } .daily-chips > [hidden] + * { grid-column: 1 / -1; } }

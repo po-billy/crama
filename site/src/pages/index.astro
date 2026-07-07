@@ -102,10 +102,26 @@ const bestSav = bestRate((ratesData as any).savings);
 <BaseLayout spa title={SITE.title} description={SITE.description} image="/og-home.png">
   <div class="wrap wrap--home">
 
-    {/* 마감 임박 혜택 알림 배너 — D-day는 클라이언트에서 '오늘' 기준 계산(재빌드 없는 날에도 정확) */}
-    <a class="deadline-banner" id="home-gen-deadline" hidden></a>
-
-    <a id="home-saved-dday" class="deadline-banner" href="/saved-picks/" hidden></a>
+    {/* ── 정보 티커: 마감 D-day · 내 관심 마감 · 오늘의 최고금리 · 내 숫자 — 한 줄에서 회전 ── */}
+    <div class="home-ticker" id="home-ticker">
+      <a class="deadline-banner" id="home-gen-deadline" hidden></a>
+      <a id="home-saved-dday" class="deadline-banner" href="/saved-picks/" hidden></a>
+      {bestDep && bestSav && (
+        <a class="home-rates" href="/rates/">
+          <span class="home-rates__label">오늘의 최고금리</span>
+          <span class="home-rates__item">예금 <b>연 {bestDep.rate}%</b> <i>{bestDep.bank}</i></span>
+          <span class="home-rates__item">적금 <b>연 {bestSav.rate}%</b> <i>{bestSav.bank}</i></span>
+          <span class="home-rates__cta">전체 비교 →</span>
+        </a>
+      )}
+      <a class="home-rates" id="home-mynum" href="/my-report/" hidden>
+        <span class="home-rates__label">내 숫자</span>
+        <span class="home-rates__item" id="mynum-1" hidden></span>
+        <span class="home-rates__item" id="mynum-2" hidden></span>
+        <span class="home-rates__item" id="mynum-3" hidden></span>
+        <span class="home-rates__cta">리포트 →</span>
+      </a>
+    </div>
     <script is:inline>
       (() => {
         // 공통 일정 마감(수동 큐레이션) — 지나면 자동 제외
@@ -158,6 +174,35 @@ const bestSav = bestRate((ratesData as any).savings);
         }
         render();
         document.addEventListener('astro:page-load', render);
+      })();
+    </script>
+
+    <script is:inline>
+      (() => {
+        // 정보 티커 회전 — 보이는 슬라이드가 2개 이상일 때만 4.5초 간격 순환, hover 시 일시정지
+        var wrap = document.getElementById('home-ticker');
+        if (!wrap) return;
+        var idx = 0, paused = false;
+        function slides() {
+          return [].filter.call(wrap.children, function (el) {
+            return !el.hidden && getComputedStyle(el).display !== 'none';
+          });
+        }
+        function tick(advance) {
+          var s = slides();
+          if (!s.length) { wrap.classList.add('is-empty'); return; }
+          wrap.classList.remove('is-empty');
+          if (advance) idx = (idx + 1) % s.length;
+          if (idx >= s.length) idx = 0;
+          [].forEach.call(wrap.children, function (el) { el.classList.remove('is-on'); });
+          s[idx].classList.add('is-on');
+        }
+        wrap.addEventListener('mouseenter', function () { paused = true; });
+        wrap.addEventListener('mouseleave', function () { paused = false; });
+        setInterval(function () { if (!paused && slides().length > 1) tick(true); }, 4500);
+        // 각 슬라이드 스크립트가 늦게 unhide 하므로 초기에 몇 번 재평가
+        tick(false); setTimeout(function () { tick(false); }, 400); setTimeout(function () { tick(false); }, 1200);
+        document.addEventListener('astro:page-load', function () { tick(false); });
       })();
     </script>
 
@@ -216,8 +261,10 @@ const bestSav = bestRate((ratesData as any).savings);
     </div>
     </div>
 
-    <StreakChip />
-    <PlayChip />
+    <div class="daily-chips">
+      <StreakChip />
+      <PlayChip />
+    </div>
 
     <nav class="home-circles" aria-label="바로가기">
       {circles.map((c) => (
@@ -341,23 +388,6 @@ const bestSav = bestRate((ratesData as any).savings);
       })();
     </script>
 
-    {bestDep && bestSav && (
-      <a class="home-rates" href="/rates/">
-        <span class="home-rates__label">오늘의 최고금리</span>
-        <span class="home-rates__item">예금 <b>연 {bestDep.rate}%</b> <i>{bestDep.bank}</i></span>
-        <span class="home-rates__item">적금 <b>연 {bestSav.rate}%</b> <i>{bestSav.bank}</i></span>
-        <span class="home-rates__cta">전체 비교 →</span>
-      </a>
-    )}
-
-    <!-- 내 숫자 — 프로필 보유자 개인화 스트립(내 정보 기반, 없으면 숨김) -->
-    <a class="home-rates" id="home-mynum" href="/my-report/" hidden>
-      <span class="home-rates__label">내 숫자</span>
-      <span class="home-rates__item" id="mynum-1" hidden></span>
-      <span class="home-rates__item" id="mynum-2" hidden></span>
-      <span class="home-rates__item" id="mynum-3" hidden></span>
-      <span class="home-rates__cta">리포트 →</span>
-    </a>
     <script is:inline>
       (() => {
         var el = document.getElementById('home-mynum');

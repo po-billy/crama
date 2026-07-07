@@ -8,8 +8,6 @@ import { SITE, CATEGORIES, EDITOR_PICKS, PILLARS, GUIDE_EXTRA } from '../consts'
 import AudioPicks from '../components/AudioPicks.astro';
 import Curations from '../components/Curations.astro';
 import DuoIcon from '../components/DuoIcon.astro';
-import StreakChip from '../components/StreakChip.astro';
-import PlayChip from '../components/PlayChip.astro';
 import ratesData from '../data/rates.json';
 
 const posts = (await getCollection('blog'))
@@ -259,11 +257,6 @@ const bestSav = bestRate((ratesData as any).savings);
         <span class="cta-card__sub">놓치면 손해인 신청·마감일</span>
       </a>
     </div>
-    </div>
-
-    <div class="daily-chips">
-      <StreakChip />
-      <PlayChip />
     </div>
 
     <nav class="home-circles" aria-label="바로가기">

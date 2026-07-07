@@ -102,36 +102,42 @@ const bestSav = bestRate((ratesData as any).savings);
 <BaseLayout spa title={SITE.title} description={SITE.description} image="/og-home.png">
   <div class="wrap wrap--home">
 
-    {/* 마감 임박 혜택 알림 배너 — 빌드 시점 기준 30일 이내 마감 */}
-    {(() => {
-      const DEADLINES = [
-        { date: '2026-07-03', title: '청년도약계좌 신청 마감', href: '/benefits/' },
-        { date: '2026-07-25', title: '부가가치세 확정신고 마감', href: '/policy-calendar/' },
-        { date: '2026-07-31', title: '재산세(주택 1기) 납부 마감', href: '/policy-calendar/' },
-        { date: '2026-08-01', title: '청년 월세 지원 하반기 접수', href: '/policy-calendar/' },
-        { date: '2026-08-31', title: '주민세 납부 마감', href: '/policy-calendar/' },
-        { date: '2026-09-15', title: '국가장학금 2학기 신청 마감', href: '/policy-calendar/' },
-        { date: '2026-09-30', title: '재산세(주택 2기) 납부 마감', href: '/policy-calendar/' },
-        { date: '2026-12-15', title: '종합부동산세 납부 마감', href: '/policy-calendar/' },
-        { date: '2026-12-31', title: 'IRP·연금저축 납입 마감', href: '/policy-calendar/' },
-        { date: '2026-12-31', title: 'ISA 계좌 납입 마감', href: '/policy-calendar/' },
-      ];
-      const now = new Date();
-      const soon = DEADLINES
-        .map(d => ({ ...d, dday: Math.ceil((new Date(d.date).getTime() - now.getTime()) / 86400000) }))
-        .filter(d => d.dday > 0 && d.dday <= 30)
-        .sort((a, b) => a.dday - b.dday);
-      const item = soon[0];
-      return item ? (
-        <a href={item.href} class="deadline-banner" id="home-gen-deadline">
-          <span class="deadline-banner__dday">D-{item.dday}</span>
-          <span class="deadline-banner__title">{item.title}</span>
-          <span class="deadline-banner__cta">확인하기 →</span>
-        </a>
-      ) : null;
-    })()}
+    {/* 마감 임박 혜택 알림 배너 — D-day는 클라이언트에서 '오늘' 기준 계산(재빌드 없는 날에도 정확) */}
+    <a class="deadline-banner" id="home-gen-deadline" hidden></a>
 
     <a id="home-saved-dday" class="deadline-banner" href="/saved-picks/" hidden></a>
+    <script is:inline>
+      (() => {
+        // 공통 일정 마감(수동 큐레이션) — 지나면 자동 제외
+        var DEADLINES = [
+          { date: '2026-07-25', title: '부가가치세 확정신고 마감', href: '/policy-calendar/' },
+          { date: '2026-07-31', title: '재산세(주택 1기) 납부 마감', href: '/policy-calendar/' },
+          { date: '2026-08-01', title: '청년 월세 지원 하반기 접수', href: '/policy-calendar/' },
+          { date: '2026-08-31', title: '주민세 납부 마감', href: '/policy-calendar/' },
+          { date: '2026-09-15', title: '국가장학금 2학기 신청 마감', href: '/policy-calendar/' },
+          { date: '2026-09-30', title: '재산세(주택 2기) 납부 마감', href: '/policy-calendar/' },
+          { date: '2026-12-15', title: '종합부동산세 납부 마감', href: '/policy-calendar/' },
+          { date: '2026-12-31', title: 'IRP·연금저축 납입 마감', href: '/policy-calendar/' },
+          { date: '2026-12-31', title: 'ISA 계좌 납입 마감', href: '/policy-calendar/' },
+        ];
+        var gen = document.getElementById('home-gen-deadline');
+        function genDday(ds) { var pt = ds.split('-'); var n = new Date(); var t0 = new Date(n.getFullYear(), n.getMonth(), n.getDate()); return Math.round((new Date(+pt[0], +pt[1] - 1, +pt[2]) - t0) / 86400000); }
+        function renderGen() {
+          if (!gen) return;
+          var soon = DEADLINES.map(function (d) { return { d: d, n: genDday(d.date) }; })
+            .filter(function (o) { return o.n > 0 && o.n <= 30; })
+            .sort(function (a, b) { return a.n - b.n; })[0];
+          if (!soon) { gen.hidden = true; return; }
+          gen.href = soon.d.href;
+          gen.innerHTML = '<span class="deadline-banner__dday">D-' + soon.n + '</span>' +
+            '<span class="deadline-banner__title">' + soon.d.title + '</span>' +
+            '<span class="deadline-banner__cta">확인하기 →</span>';
+          gen.hidden = false;
+        }
+        renderGen();
+        document.addEventListener('astro:page-load', renderGen);
+      })();
+    </script>
     <script is:inline>
       (() => {
         var el = document.getElementById('home-saved-dday');
@@ -142,7 +148,7 @@ const bestSav = bestRate((ratesData as any).savings);
         function render() {
           var gen = document.getElementById('home-gen-deadline');
           var items = S.list().map(function (x) { return { x: x, d: dday(x.deadline) }; }).filter(function (o) { return o.d !== null && o.d >= 0 && o.d <= 30; }).sort(function (a, b) { return a.d - b.d; });
-          if (!items.length) { el.hidden = true; return; }
+          if (!items.length) { el.hidden = true; if (gen) gen.style.display = ''; return; }
           var top = items[0]; var nm = top.x.name.length > 16 ? top.x.name.slice(0, 16) + '…' : top.x.name;
           if (gen) gen.style.display = 'none';
           el.hidden = false;

@@ -80,6 +80,16 @@ jobs:
           npm i --no-save pg web-push dotenv >/dev/null 2>&1 || true
           node send-deadline-alerts.js || true
 
+      - name: 오르까 내리까 — 라운드 생성·락·판정(주간 예측 게임)
+        working-directory: automation
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+        run: |
+          npm i --no-save pg web-push dotenv >/dev/null 2>&1 || true
+          node sync-predictions.js || true
+
       - name: 변경 시에만 커밋·푸시
         run: |
           git config user.name "crama-bot"

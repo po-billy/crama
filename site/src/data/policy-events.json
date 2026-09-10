@@ -142,6 +142,20 @@
   {
     "month": 9,
     "day": 21,
+    "title": "중동역 다채로움 더원 청약접수",
+    "cat": "housing",
+    "desc": "경기도 부천시 소사구 송내동 365-1번지 일원 · 접수 2026-09-21~2026-09-23",
+    "url": "https://www.applyhome.co.kr/ai/aia/selectAPTLttotPblancDetail.do?houseManageNo=2026000314&pblancNo=2026000314",
+    "target": "all",
+    "field": "housing",
+    "ageGroup": "all",
+    "region": "gyeonggi",
+    "source": "applyhome",
+    "id": "apt-2026000314"
+  },
+  {
+    "month": 9,
+    "day": 21,
     "title": "오남역 서희스타힐스 여의재 3단지 (조합원 취소분) 청약접수",
     "cat": "housing",
     "desc": "경기도 남양주시 오남읍 양지리 186-10번지 일원 · 접수 2026-09-21~2026-09-23",

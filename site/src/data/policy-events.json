@@ -1,20 +1,6 @@
 [
   {
     "month": 9,
-    "day": 15,
-    "title": "시흥 은계 에피트(조합원 취소분) 청약접수",
-    "cat": "housing",
-    "desc": "경기도 시흥시 은행동 289-31번지 일원 · 접수 2026-09-15~2026-09-17",
-    "url": "https://www.applyhome.co.kr/ai/aia/selectAPTLttotPblancDetail.do?houseManageNo=2026000393&pblancNo=2026000393",
-    "target": "all",
-    "field": "housing",
-    "ageGroup": "all",
-    "region": "gyeonggi",
-    "source": "applyhome",
-    "id": "apt-2026000393"
-  },
-  {
-    "month": 9,
     "day": 17,
     "title": "인천계양지구 A6블록 공공분양주택(본청약) 청약접수",
     "cat": "housing",

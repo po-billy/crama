@@ -110,5 +110,19 @@
     "region": "gyeonggi",
     "source": "applyhome",
     "id": "apt-2026000431"
+  },
+  {
+    "month": 9,
+    "day": 28,
+    "title": "천안 용곡 두산위브(조합원 취소분) 청약접수",
+    "cat": "housing",
+    "desc": "충청남도 천안시 동남구 풍세로 801(용곡동 617번지) · 접수 2026-09-28~2026-09-29",
+    "url": "https://www.applyhome.co.kr/ai/aia/selectAPTLttotPblancDetail.do?houseManageNo=2026000454&pblancNo=2026000454",
+    "target": "all",
+    "field": "housing",
+    "ageGroup": "all",
+    "region": "all",
+    "source": "applyhome",
+    "id": "apt-2026000454"
   }
 ]

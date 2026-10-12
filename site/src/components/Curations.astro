@@ -3,21 +3,31 @@
 import { getCollection } from 'astro:content';
 import { CATEGORIES } from '../consts';
 
-// 기획전 큐레이션. lead = 상단 큰 이미지로 쓸 글, href = 배너 클릭 시 이동(컬렉션/허브), items = 대표 글 2개.
+// 기획전 큐레이션. lead = 상단 큰 이미지로 쓸 글, href = 배너 클릭 시 이동(컬렉션/허브), items = 대표 글 2개(폴백).
+// pick 이 있으면 대표 글 2개를 '주제에 맞는 가장 최신 글'로 자동 교체 → 새 글이 발행될 때마다 기획전도 함께 갱신된다.
+// (칼럼·입문 가이드는 최근 발행이 없는 묶음이라 고정 유지)
+const hasTag = (p, re) => (p.data.tags || []).some((t) => re.test(t));
 const CURATIONS = [
-  { badge: '기획', title: '지금 꼭 챙길 2026 정부 지원', href: '/category/income/', lead: 'livelihood-coupon-2026', items: ['youth-future-savings-2026', 'median-income-2026'] },
-  { badge: '트렌드', title: '2026 AI 대전환, 무엇이 달라졌나', href: '/category/ai/', lead: 'latest-ai-models-2026', items: ['ai-trends-2026', 'chatgpt-free-vs-paid'] },
+  { badge: '기획', title: '지금 꼭 챙길 2026 정부 지원', href: '/category/income/', lead: 'livelihood-coupon-2026', items: ['youth-future-savings-2026', 'median-income-2026'],
+    pick: (p) => p.data.category === 'income' && hasTag(p, /지원금|정부지원|환급|보조금|청년정책|복지/) },
+  { badge: '트렌드', title: '2026 AI 대전환, 무엇이 달라졌나', href: '/category/ai/', lead: 'latest-ai-models-2026', items: ['ai-trends-2026', 'chatgpt-free-vs-paid'],
+    pick: (p) => p.data.category === 'ai' },
   { badge: '시리즈', title: '돈에 대한 생각을 바꾸는 칼럼', href: '/column/', lead: 'scarcity-mindset', items: ['time-over-money', 'lifestyle-inflation-trap'] },
   { badge: '가이드', title: '주식 투자, 처음이라면 여기서', href: '/category/money/', lead: 'stock-investing-complete-guide', items: ['how-to-choose-brokerage', 'us-stock-investment-beginners-guide'] },
-  { badge: '기획', title: '월급 밖에서 버는 법', href: '/blog/income-complete-guide/', lead: 'side-hustle-for-office-workers', items: ['ai-side-hustle-guide', 'seed-money-guide'] },
+  { badge: '기획', title: '월급 밖에서 버는 법', href: '/blog/income-complete-guide/', lead: 'side-hustle-for-office-workers', items: ['ai-side-hustle-guide', 'seed-money-guide'],
+    pick: (p) => p.data.category === 'income' && hasTag(p, /부업|N잡|프리랜서|수익화|겸업/) },
 ];
 
 const all = await getCollection('blog');
+const live = all.filter((p) => !p.data.draft).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 const byId = new Map(all.map((p) => [p.id, p]));
 const thumb = (h) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.webp$/, '-hero-thumb.webp') : h);
 const cards = CURATIONS.map((c) => {
   const lead = byId.get(c.lead);
-  const items = c.items.map((s) => byId.get(s)).filter((p) => p && !p.data.draft).slice(0, 2);
+  const fixed = c.items.map((s) => byId.get(s)).filter((p) => p && !p.data.draft);
+  const auto = c.pick ? live.filter((p) => p.id !== c.lead && c.pick(p)) : [];
+  // 자동 선정 글 우선, 모자라면 고정 목록으로 채움(중복 제거)
+  const items = [...auto, ...fixed.filter((p) => !auto.includes(p))].slice(0, 2);
   return lead && items.length ? { ...c, lead, items } : null;
 }).filter(Boolean);
 ---

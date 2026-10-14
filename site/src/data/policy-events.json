@@ -1,20 +1,6 @@
 [
   {
     "month": 10,
-    "day": 13,
-    "title": "진도 승원팰리체 더 테라스 청약접수",
-    "cat": "housing",
-    "desc": "전남광주통합특별시 진도군 진도읍 교동리 618번지 일원 · 접수 2026-10-13~2026-10-15",
-    "url": "https://www.applyhome.co.kr/ai/aia/selectAPTLttotPblancDetail.do?houseManageNo=2026000466&pblancNo=2026000466",
-    "target": "all",
-    "field": "housing",
-    "ageGroup": "all",
-    "region": "gwangju",
-    "source": "applyhome",
-    "id": "apt-2026000466"
-  },
-  {
-    "month": 10,
     "day": 19,
     "title": "청주 가경 아이파크 8단지 청약접수",
     "cat": "housing",

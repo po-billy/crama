@@ -114,6 +114,20 @@
   {
     "month": 11,
     "day": 2,
+    "title": "화성 향남 롯데캐슬 시그니처 청약접수",
+    "cat": "housing",
+    "desc": "경기도 화성시 만세구 향남읍 상신리 산 13-13 일원 · 접수 2026-11-02~2026-11-04",
+    "url": "https://www.applyhome.co.kr/ai/aia/selectAPTLttotPblancDetail.do?houseManageNo=2026000502&pblancNo=2026000502",
+    "target": "all",
+    "field": "housing",
+    "ageGroup": "all",
+    "region": "gyeonggi",
+    "source": "applyhome",
+    "id": "apt-2026000502"
+  },
+  {
+    "month": 11,
+    "day": 2,
     "title": "고덕강일지구 3단지 토지임대부(본청약) 청약접수",
     "cat": "housing",
     "desc": "서울특별시 강동구 강일동 174 일원(고덕강일공공주택지구 3단지) · 접수 2026-11-02~2026-11-06",

@@ -114,6 +114,20 @@
   {
     "month": 11,
     "day": 2,
+    "title": "청라 아크원 푸르지오 청약접수",
+    "cat": "housing",
+    "desc": "인천광역시 서해구 청라동 86-1번지 (청라국제업무단지 M5BL) · 접수 2026-11-02~2026-11-04",
+    "url": "https://www.applyhome.co.kr/ai/aia/selectAPTLttotPblancDetail.do?houseManageNo=2026000496&pblancNo=2026000496",
+    "target": "all",
+    "field": "housing",
+    "ageGroup": "all",
+    "region": "incheon",
+    "source": "applyhome",
+    "id": "apt-2026000496"
+  },
+  {
+    "month": 11,
+    "day": 2,
     "title": "화성 향남 롯데캐슬 시그니처 청약접수",
     "cat": "housing",
     "desc": "경기도 화성시 만세구 향남읍 상신리 산 13-13 일원 · 접수 2026-11-02~2026-11-04",

@@ -110,5 +110,33 @@
     "region": "jeju",
     "source": "applyhome",
     "id": "apt-2026000434"
+  },
+  {
+    "month": 11,
+    "day": 23,
+    "title": "아르뮤제자이 청약접수",
+    "cat": "housing",
+    "desc": "경기도 안산시 상록구 성포동 586번지 일원 · 접수 2026-11-23~2026-11-25",
+    "url": "https://www.applyhome.co.kr/ai/aia/selectAPTLttotPblancDetail.do?houseManageNo=2026000576&pblancNo=2026000576",
+    "target": "all",
+    "field": "housing",
+    "ageGroup": "all",
+    "region": "gyeonggi",
+    "source": "applyhome",
+    "id": "apt-2026000576"
+  },
+  {
+    "month": 11,
+    "day": 23,
+    "title": "부천대장 하우스토리 디센트(부천대장지구 A2BL) 공공분양주택 청약접수",
+    "cat": "housing",
+    "desc": "경기도 부천시 오정구 대장동, 오정동, 원종동, 삼정동 일원 부천대장 공공주택지구 내 A2블록 · 접수 2026-11-23~2026-11-25",
+    "url": "https://www.applyhome.co.kr/ai/aia/selectAPTLttotPblancDetail.do?houseManageNo=2026000457&pblancNo=2026000457",
+    "target": "all",
+    "field": "housing",
+    "ageGroup": "all",
+    "region": "gyeonggi",
+    "source": "applyhome",
+    "id": "apt-2026000457"
   }
 ]

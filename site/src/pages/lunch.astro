@@ -1,0 +1,76 @@
+---
+// 점심 메뉴 추천 — 종류·기분을 고르면 무작위로 하나 골라 준다.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { LUNCH } from '../data/fun';
+import '../styles/portal.css';
+const cats = [...new Set(LUNCH.map((m) => m.cat))];
+const tags = [...new Set(LUNCH.flatMap((m) => m.tags))];
+---
+<BaseLayout title="점심 메뉴 추천 — 오늘 뭐 먹지? 랜덤 메뉴 뽑기" description={`한식·중식·일식·양식·분식 ${LUNCH.length}가지 메뉴 중에서 오늘 점심을 골라 드립니다. 국물·매콤·가벼움 같은 기분으로도 고를 수 있어요.`}>
+  <div class="pt pt-narrow" style="--c:#f97316">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/fun/">운세·테스트</a> › 점심 메뉴 추천</nav>
+    <header class="pt-hubhero">
+      <img src="/img/portal/c-lunch.webp" alt="" width="200" height="200" />
+      <div><h1>점심 메뉴 추천</h1><p>오늘 뭐 먹지? 대신 골라 드려요</p></div>
+    </header>
+
+    <section class="pt-sec">
+      <div class="tl-card">
+        <div class="pt-sec__head" style="margin-bottom:0.5rem"><div><h2 style="font-size:1rem">종류</h2></div></div>
+        <div class="tl-quick" id="ln-cats" style="margin-top:0"><button type="button" data-v="" class="is-on">전체</button>{cats.map((c) => <button type="button" data-v={c}>{c}</button>)}</div>
+        <div class="pt-sec__head" style="margin:1rem 0 0.5rem"><div><h2 style="font-size:1rem">오늘 기분</h2></div></div>
+        <div class="tl-quick" id="ln-tags" style="margin-top:0"><button type="button" data-v="" class="is-on">상관없음</button>{tags.map((t) => <button type="button" data-v={t}>{t}</button>)}</div>
+        <button type="button" class="tl-btn" id="ln-go" style="width:100%;margin-top:1.1rem">메뉴 골라줘</button>
+      </div>
+      <div class="tl-result" id="ln-result" hidden aria-live="polite" style="background:linear-gradient(135deg,#f97316,#fb923c)">
+        <div class="tl-result__label">오늘 점심은</div>
+        <div class="tl-result__big" id="ln-big"></div>
+        <div class="tl-result__sub" id="ln-sub"></div>
+      </div>
+      <div class="tl-quick" id="ln-more" hidden><button type="button" id="ln-again">다른 메뉴</button><a id="ln-map" target="_blank" rel="noopener nofollow" style="padding:0.4rem 0.8rem;border:1px solid var(--line);border-radius:999px;font-size:0.85rem;font-weight:700;color:var(--ink-soft);text-decoration:none">근처 맛집 찾기 ↗</a></div>
+    </section>
+
+    <div class="pt-ad"><AdSlot slot="lunch-mid" /></div>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>전체 메뉴 {LUNCH.length}가지</h2></div></div>
+      {cats.map((c) => (
+        <div style="margin-bottom:0.9rem">
+          <p style="margin:0 0 0.4rem;font-size:0.85rem;font-weight:800;color:var(--muted)">{c}</p>
+          <div class="pt-chips">{LUNCH.filter((m) => m.cat === c).map((m) => <span class="pt-chip">{m.name}</span>)}</div>
+        </div>
+      ))}
+    </section>
+
+    <section class="pt-sec pp-links">
+      <a class="pp-link" href="/fortune/"><span><b>오늘의 운세</b><span>밥 먹으면서 보는 띠별 운세</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+      <a class="pp-link" href="/health/bmr/"><span><b>기초대사량 계산기</b><span>하루 필요 칼로리 확인</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+    </section>
+  </div>
+
+  <style is:global>
+    .tl-quick button.is-on { border-color: var(--accent); background: var(--accent); color: #fff; }
+  </style>
+
+  <script is:inline define:vars={{ LUNCH }}>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const sel = { cat: '', tag: '' };
+      const bind = (id, key) => $(id).addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; sel[key] = b.dataset.v; $(id).querySelectorAll('button').forEach((x) => x.classList.toggle('is-on', x === b)); });
+      bind('ln-cats', 'cat'); bind('ln-tags', 'tag');
+      let last = '';
+      function run() {
+        let pool = LUNCH.filter((m) => (!sel.cat || m.cat === sel.cat) && (!sel.tag || m.tags.indexOf(sel.tag) !== -1));
+        if (!pool.length) { $('ln-big').textContent = '조건에 맞는 메뉴가 없어요'; $('ln-sub').textContent = '조건을 하나 풀어 보세요'; $('ln-result').hidden = false; $('ln-more').hidden = true; return; }
+        if (pool.length > 1) pool = pool.filter((m) => m.name !== last);
+        const m = pool[Math.floor(Math.random() * pool.length)]; last = m.name;
+        $('ln-big').textContent = m.name; $('ln-sub').textContent = m.cat + ' · ' + m.tags.join(' · ');
+        $('ln-map').href = 'https://map.naver.com/p/search/' + encodeURIComponent(m.name);
+        $('ln-result').hidden = false; $('ln-more').hidden = false;
+        try { if (window.gtag) window.gtag('event', 'tool_use', { tool: 'lunch' }); } catch (e) {}
+      }
+      $('ln-go').addEventListener('click', run); $('ln-again').addEventListener('click', run);
+    })();
+  </script>
+</BaseLayout>

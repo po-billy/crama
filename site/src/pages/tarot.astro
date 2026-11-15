@@ -1,0 +1,107 @@
+---
+// 타로 보기 — 주제를 고르고 카드 한 장을 뽑는다. 풀이는 미리 써 둔 문장(src/data/fun.ts), AI 호출 없음.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { TAROT } from '../data/fun';
+import '../styles/portal.css';
+---
+<BaseLayout title="무료 타로 보기 — 연애·금전·일 원 카드 타로" description="궁금한 주제를 고르고 카드 한 장을 뽑아 보세요. 메이저 아르카나 22장으로 보는 무료 원 카드 타로. 정방향·역방향 의미와 주제별 풀이를 알려드립니다.">
+  <div class="pt pt-narrow" style="--c:#8b5cf6">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/fun/">운세·테스트</a> › 타로 보기</nav>
+    <header class="pt-hubhero">
+      <img src="/img/portal/c-tarot.webp" alt="" width="200" height="200" />
+      <div><h1>타로 보기</h1><p>주제를 고르고, 마음이 가는 카드 한 장을 뽑아 보세요</p></div>
+    </header>
+
+    <section class="pt-sec" id="tr-step1">
+      <div class="pt-sec__head"><div><h2>무엇이 궁금한가요?</h2></div></div>
+      <div class="pt-chips" id="tr-topics">
+        <button type="button" class="pt-chip" data-topic="love" style="cursor:pointer;font-family:inherit">💕 연애·관계</button>
+        <button type="button" class="pt-chip" data-topic="money" style="cursor:pointer;font-family:inherit">💰 금전</button>
+        <button type="button" class="pt-chip" data-topic="work" style="cursor:pointer;font-family:inherit">💼 일·진로</button>
+      </div>
+    </section>
+
+    <section class="pt-sec" id="tr-step2" hidden>
+      <div class="pt-sec__head"><div><h2>카드를 한 장 고르세요</h2><p>질문을 떠올리며 천천히 골라 보세요</p></div></div>
+      <div class="tr-deck" id="tr-deck"></div>
+    </section>
+
+    <section class="pt-sec" id="tr-step3" hidden>
+      <div class="tr-out">
+        <img id="tr-img" class="tr-card-img" alt="" width="280" height="420" />
+        <div class="tr-out__body">
+          <span class="pt-card__tag" id="tr-dir"></span>
+          <h2 id="tr-name" style="margin:0.4rem 0 0.1rem;font-size:1.6rem;font-weight:800"></h2>
+          <p id="tr-en" style="margin:0 0 0.8rem;color:var(--muted);font-size:0.9rem"></p>
+          <p id="tr-key" style="margin:0 0 0.8rem;font-weight:700"></p>
+          <p id="tr-text" class="pt-prose" style="margin:0"></p>
+          <div class="tl-quick" style="margin-top:1.1rem"><button type="button" id="tr-again">다시 뽑기</button><button type="button" id="tr-share">결과 공유</button></div>
+        </div>
+      </div>
+      <p class="pp-note">※ 재미로 보는 타로입니다. 역방향 카드는 그 카드의 기운이 약해지거나 조심해야 할 면을 뜻합니다. 중요한 결정은 여러 사정을 함께 살펴 내리세요.</p>
+    </section>
+
+    <div class="pt-ad"><AdSlot slot="tarot-mid" /></div>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>메이저 아르카나 22장</h2><p>카드별 핵심 의미</p></div></div>
+      <div class="tl-wrap">
+        <table class="tl-table">
+          <thead><tr><th>카드</th><th>정방향</th><th>역방향</th></tr></thead>
+          <tbody>{TAROT.map((c, i) => <tr><td><b>{i}. {c.name}</b></td><td>{c.up}</td><td>{c.rev}</td></tr>)}</tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="pt-sec pp-links">
+      <a class="pp-link" href="/fortune/"><span><b>오늘의 운세</b><span>띠별 오늘의 운세</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+      <a class="pp-link" href="/name-match/"><span><b>이름 궁합</b><span>두 사람의 이름으로 보는 궁합</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+    </section>
+  </div>
+
+  <style is:global>
+    .tr-deck { display: grid; grid-template-columns: repeat(auto-fill, minmax(3.6rem, 1fr)); gap: 0.5rem; }
+    .tr-deck button { aspect-ratio: 2 / 3; border: 0; padding: 0; border-radius: 8px; overflow: hidden; cursor: pointer; background: #2b2566 url('/img/tarot/back.webp') center / cover; box-shadow: 0 2px 8px rgba(30, 20, 80, 0.25); transition: transform 0.15s; }
+    .tr-deck button:hover { transform: translateY(-6px); }
+    .tr-out { display: flex; gap: 1.4rem; align-items: flex-start; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 18px; padding: 1.2rem; background: var(--paper); }
+    .tr-card-img { width: 11rem; height: auto; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 12px; box-shadow: 0 8px 26px rgba(30, 20, 80, 0.3); transition: transform 0.5s; }
+    .tr-card-img.is-rev { transform: rotate(180deg); }
+    .tr-out__body { flex: 1; min-width: 14rem; }
+    @media (max-width: 560px) { .tr-out { flex-direction: column; align-items: center; text-align: center; } .tr-out__body .tl-quick { justify-content: center; } }
+  </style>
+
+  <script is:inline define:vars={{ TAROT }}>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      let topic = 'love';
+      const TOPIC = { love: '연애·관계', money: '금전', work: '일·진로' };
+      function deck() {
+        const d = $('tr-deck'); d.textContent = '';
+        for (let i = 0; i < 22; i++) { const b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', (i + 1) + '번째 카드'); b.addEventListener('click', draw); d.appendChild(b); }
+      }
+      function draw() {
+        const c = TAROT[Math.floor(Math.random() * TAROT.length)], rev = Math.random() < 0.3;
+        $('tr-img').src = '/img/tarot/' + c.slug + '.webp'; $('tr-img').alt = c.name + ' 카드';
+        $('tr-img').classList.toggle('is-rev', rev);
+        $('tr-dir').textContent = TOPIC[topic] + ' · ' + (rev ? '역방향' : '정방향');
+        $('tr-name').textContent = c.name; $('tr-en').textContent = c.en;
+        $('tr-key').textContent = '키워드: ' + (rev ? c.rev : c.up);
+        $('tr-text').textContent = rev ? c[topic] + ' 다만 역방향으로 나온 만큼, ' + c.rev.split(',')[0].trim() + '에 주의하면서 한 박자 천천히 가는 편이 좋습니다.' : c[topic];
+        $('tr-step2').hidden = true; $('tr-step3').hidden = false;
+        $('tr-step3').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        try { if (window.gtag) window.gtag('event', 'tool_use', { tool: 'tarot', topic: topic }); } catch (e) {}
+      }
+      $('tr-topics').addEventListener('click', (e) => {
+        const b = e.target.closest('[data-topic]'); if (!b) return;
+        topic = b.dataset.topic; deck(); $('tr-step2').hidden = false; $('tr-step3').hidden = true;
+        $('tr-step2').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+      $('tr-again').addEventListener('click', () => { deck(); $('tr-step3').hidden = true; $('tr-step2').hidden = false; $('tr-step2').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+      $('tr-share').addEventListener('click', async () => {
+        const text = '오늘의 타로: ' + $('tr-name').textContent + ' (' + $('tr-dir').textContent + ')';
+        try { if (navigator.share) await navigator.share({ title: '타로 보기', text: text, url: location.href }); else { await navigator.clipboard.writeText(text + ' ' + location.href); $('tr-share').textContent = '복사됐어요'; } } catch (e) {}
+      });
+    })();
+  </script>
+</BaseLayout>

@@ -163,3 +163,4 @@
 .pt-prose li { margin: 0.25rem 0; }
 /* hidden 속성이 flex/grid 에 눌리지 않게 */
 .tl-field[hidden], .pp-facts[hidden], .pp-links[hidden], .tl-wrap[hidden], .tl-card[hidden], .pt-sec[hidden] { display: none; }
+.tl-quick[hidden], .tr-deck[hidden] { display: none; }

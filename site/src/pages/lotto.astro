@@ -1,0 +1,85 @@
+---
+// 로또 번호 생성기 — 1~45 중 6개를 무작위로. 포함·제외 번호 지정, 여러 줄 생성.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AdSlot from '../components/AdSlot.astro';
+import '../styles/portal.css';
+const faq = [
+  { q: '생성된 번호는 당첨 확률이 더 높은가요?', a: '아닙니다. 로또는 모든 번호 조합의 당첨 확률이 같습니다. 1등 확률은 약 814만분의 1(8,145,060분의 1)이며, 어떤 방식으로 고르든 달라지지 않습니다.' },
+  { q: '로또 당첨금에는 세금이 얼마나 붙나요?', a: '당첨금 200만원 이하는 세금이 없습니다. 200만원 초과분은 22%(소득세 20% + 지방소득세 2%), 3억원 초과분은 33%(소득세 30% + 지방소득세 3%)가 원천징수됩니다.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title="로또 번호 생성기 — 무료 랜덤 번호 추첨 (포함·제외 번호 설정)" description="버튼 한 번으로 로또 6/45 번호를 무작위로 뽑아 드립니다. 꼭 넣고 싶은 번호와 빼고 싶은 번호를 정하고 5줄까지 한 번에 생성하세요." jsonLd={jsonLd}>
+  <div class="pt pt-narrow" style="--c:#f59e0b">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/fun/">운세·테스트</a> › 로또 번호 생성기</nav>
+    <header class="pt-hubhero">
+      <img src="/img/portal/c-lotto.webp" alt="" width="200" height="200" />
+      <div><h1>로또 번호 생성기</h1><p>1~45 중 6개, 버튼 한 번으로 뽑기</p></div>
+    </header>
+
+    <section class="pt-sec">
+      <div class="tl-card">
+        <div class="tl-row">
+          <label class="tl-field">꼭 넣을 번호<input id="lt-inc" type="text" inputmode="numeric" placeholder="예: 7, 23" autocomplete="off" /></label>
+          <label class="tl-field">뺄 번호<input id="lt-exc" type="text" inputmode="numeric" placeholder="예: 4, 13" autocomplete="off" /></label>
+          <label class="tl-field">줄 수<select id="lt-n"><option value="1">1줄</option><option value="3">3줄</option><option value="5" selected>5줄</option></select></label>
+          <button type="button" class="tl-btn" id="lt-go">번호 뽑기</button>
+        </div>
+        <p id="lt-err" style="margin:0.7rem 0 0;font-size:0.85rem;color:#e11d48" hidden></p>
+      </div>
+      <div class="lt-out" id="lt-out"></div>
+      <p class="pp-note">※ 무작위로 고른 번호이며 당첨을 보장하지 않습니다. 모든 조합의 당첨 확률은 같습니다. 복권은 만 19세 이상만 구매할 수 있고, 무리한 구매는 삼가세요(한국도박문제예방치유원 상담 1336).</p>
+    </section>
+
+    <div class="pt-ad"><AdSlot slot="lotto-mid" /></div>
+
+    <section class="pt-sec pt-prose">
+      <h2>자주 묻는 질문</h2>
+      {faq.map((f) => <p><b>{f.q}</b><br />{f.a}</p>)}
+    </section>
+
+    <section class="pt-sec pp-links">
+      <a class="pp-link" href="/fortune/"><span><b>오늘의 운세</b><span>행운의 숫자 확인하기</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+      <a class="pp-link" href="/lunch/"><span><b>점심 메뉴 추천</b><span>오늘 뭐 먹지 고민될 때</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+    </section>
+  </div>
+
+  <style is:global>
+    .lt-out { display: grid; gap: 0.6rem; margin-top: 1rem; }
+    .lt-row { display: flex; align-items: center; gap: 0.45rem; padding: 0.8rem 0.9rem; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); flex-wrap: wrap; }
+    .lt-row i { font-style: normal; font-size: 0.8rem; font-weight: 800; color: var(--muted); width: 1.2rem; }
+    .lt-ball { width: 2.5rem; height: 2.5rem; display: grid; place-items: center; border-radius: 50%; font-weight: 800; font-size: 1rem; color: #fff; box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.15); }
+    .lt-b1 { background: #f5b400; } .lt-b2 { background: #3b82f6; } .lt-b3 { background: #ef4444; } .lt-b4 { background: #6b7280; } .lt-b5 { background: #22c55e; }
+    @media (max-width: 420px) { .lt-ball { width: 2.15rem; height: 2.15rem; font-size: 0.9rem; } }
+  </style>
+
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const parse = (s) => [...new Set(String(s).split(/[^0-9]+/).map(Number).filter((n) => n >= 1 && n <= 45))];
+      const cls = (n) => 'lt-ball lt-b' + (n <= 10 ? 1 : n <= 20 ? 2 : n <= 30 ? 3 : n <= 40 ? 4 : 5);
+      function rand(max) { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % max; }
+      function run() {
+        const inc = parse($('lt-inc').value), exc = parse($('lt-exc').value).filter((n) => inc.indexOf(n) === -1), err = $('lt-err');
+        if (inc.length > 5) { err.textContent = '꼭 넣을 번호는 5개까지 정할 수 있어요.'; err.hidden = false; return; }
+        const pool = []; for (let i = 1; i <= 45; i++) if (inc.indexOf(i) === -1 && exc.indexOf(i) === -1) pool.push(i);
+        if (pool.length < 6 - inc.length) { err.textContent = '뺄 번호가 너무 많아요.'; err.hidden = false; return; }
+        err.hidden = true;
+        const out = $('lt-out'); out.textContent = '';
+        const lines = Number($('lt-n').value);
+        for (let l = 0; l < lines; l++) {
+          const p = pool.slice(), pick = inc.slice();
+          while (pick.length < 6) pick.push(p.splice(rand(p.length), 1)[0]);
+          pick.sort((a, b) => a - b);
+          const row = document.createElement('div'); row.className = 'lt-row';
+          const tag = document.createElement('i'); tag.textContent = String.fromCharCode(65 + l); row.appendChild(tag);
+          pick.forEach((n) => { const s = document.createElement('span'); s.className = cls(n); s.textContent = n; row.appendChild(s); });
+          out.appendChild(row);
+        }
+        try { if (window.gtag) window.gtag('event', 'tool_use', { tool: 'lotto' }); } catch (e) {}
+      }
+      $('lt-go').addEventListener('click', run);
+      run();
+    })();
+  </script>
+</BaseLayout>

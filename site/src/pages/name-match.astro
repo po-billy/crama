@@ -1,0 +1,113 @@
+---
+// 이름 궁합 — 관계 선택 → 이름 입력 → 결과. 전통적인 '획수 궁합' 방식(두 이름의 글자 획수를 번갈아 놓고 이웃한 수를 더해 두 자리 수가 될 때까지 줄인다).
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { MATCH_RELATIONS, MATCH_BANDS, MATCH_TEXT } from '../data/fun';
+import '../styles/portal.css';
+const faq = [
+  { q: '이름 궁합은 어떻게 계산하나요?', a: '두 사람 이름의 글자를 한 글자씩 번갈아 놓고 각 글자의 획수를 적은 뒤, 이웃한 두 수를 더한 일의 자리를 다음 줄에 적습니다. 이 과정을 두 자리 수가 남을 때까지 반복한 값이 궁합 점수(%)입니다.' },
+  { q: '이름 순서를 바꾸면 점수가 달라지나요?', a: '네. 누구 이름을 먼저 쓰느냐에 따라 숫자 배열이 달라져 점수가 달라집니다. 그래서 "내가 보는 궁합"과 "상대가 보는 궁합"을 각각 재미로 보기도 합니다.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title="이름 궁합 테스트 — 커플·친구·직장동료·가족 궁합" description="두 사람의 이름만 넣으면 획수로 보는 이름 궁합 점수와 풀이를 알려드립니다. 커플, 친구, 직장동료, 가족 궁합까지 무료로 확인하세요." jsonLd={jsonLd}>
+  <div class="pt pt-narrow" style="--c:#ec4899">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/fun/">운세·테스트</a> › 이름 궁합</nav>
+    <header class="pt-hubhero">
+      <img src="/img/portal/c-name-match.webp" alt="" width="200" height="200" />
+      <div><h1>이름 궁합 테스트</h1><p>두 사람의 이름만 적으면 궁합을 풀어드려요 · 약 30초</p></div>
+    </header>
+
+    <section class="pt-sec" id="nm-step1">
+      <div class="pt-sec__head"><div><h2>어떤 사이의 궁합이 궁금하세요?</h2></div></div>
+      <div class="pt-tools">
+        {MATCH_RELATIONS.map((r) => (
+          <button type="button" class="pt-tool" data-rel={r.key} style="cursor:pointer;font-family:inherit;text-align:left">
+            <span class="pt-tool__ic" style="font-size:1.4rem">{r.emoji}</span>
+            <span><b>{r.name}</b><span>{r.desc}</span></span>
+          </button>
+        ))}
+      </div>
+    </section>
+
+    <section class="pt-sec" id="nm-step2" hidden>
+      <div class="pt-sec__head"><div><h2 id="nm-rel-title">두 사람의 이름을 알려주세요</h2><p>한글 이름으로 입력해 주세요</p></div></div>
+      <div class="tl-card">
+        <div class="tl-row">
+          <label class="tl-field">내 이름<input id="nm-a" type="text" maxlength="5" placeholder="예: 김하늘" autocomplete="off" /></label>
+          <label class="tl-field">상대 이름<input id="nm-b" type="text" maxlength="5" placeholder="예: 박서준" autocomplete="off" /></label>
+          <button type="button" class="tl-btn" id="nm-go">궁합 보기</button>
+        </div>
+        <p id="nm-err" style="margin:0.7rem 0 0;font-size:0.85rem;color:#e11d48" hidden></p>
+      </div>
+    </section>
+
+    <section class="pt-sec" id="nm-step3" hidden>
+      <div class="tl-result" style="background:linear-gradient(135deg,#ec4899,#f472b6)">
+        <div class="tl-result__label" id="nm-names"></div>
+        <div class="tl-result__big" id="nm-score"></div>
+        <div class="tl-result__sub" id="nm-band"></div>
+      </div>
+      <div class="tl-card" style="margin-top:0.8rem">
+        <p id="nm-text" class="pt-prose" style="margin:0"></p>
+        <div class="tl-quick" style="margin-top:1rem"><button type="button" id="nm-swap">순서 바꿔 보기</button><button type="button" id="nm-again">다시 하기</button><button type="button" id="nm-share">결과 공유</button></div>
+      </div>
+      <p class="pp-note">※ 획수로 보는 놀이용 궁합입니다. 실제 관계는 서로를 대하는 마음이 만듭니다.</p>
+    </section>
+
+    <div class="pt-ad"><AdSlot slot="name-match-mid" /></div>
+
+    <section class="pt-sec pt-prose">
+      <h2>자주 묻는 질문</h2>
+      {faq.map((f) => <p><b>{f.q}</b><br />{f.a}</p>)}
+    </section>
+
+    <section class="pt-sec pp-links">
+      <a class="pp-link" href="/zodiac-match/"><span><b>띠궁합</b><span>두 띠의 전통 궁합</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+      <a class="pp-link" href="/tarot/"><span><b>타로 보기</b><span>연애운 카드 한 장</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+    </section>
+  </div>
+
+  <script is:inline define:vars={{ RELS: MATCH_RELATIONS, BANDS: MATCH_BANDS, TEXT: MATCH_TEXT }}>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      // 자모 획수(널리 쓰이는 이름 궁합 획수표)
+      const CHO = [2, 4, 2, 3, 6, 5, 4, 4, 8, 2, 4, 1, 3, 6, 4, 3, 4, 4, 3];
+      const JUNG = [2, 3, 3, 4, 2, 3, 3, 4, 2, 4, 5, 3, 3, 2, 4, 5, 3, 3, 1, 2, 1];
+      const JONG = [0, 2, 4, 4, 2, 5, 5, 3, 5, 7, 9, 9, 7, 9, 9, 8, 4, 4, 6, 2, 4, 1, 3, 4, 3, 4, 4, 3];
+      const strokes = (ch) => { const c = ch.charCodeAt(0) - 0xac00; if (c < 0 || c > 11171) return -1; return CHO[Math.floor(c / 588)] + JUNG[Math.floor((c % 588) / 28)] + JONG[c % 28]; };
+      let rel = 'couple';
+      function score(a, b) {
+        const n = Math.max(a.length, b.length); let row = [];
+        for (let i = 0; i < n; i++) { if (a[i]) row.push(strokes(a[i]) % 10); if (b[i]) row.push(strokes(b[i]) % 10); }
+        while (row.length > 2) { const next = []; for (let i = 0; i < row.length - 1; i++) next.push((row[i] + row[i + 1]) % 10); row = next; }
+        const s = row[0] * 10 + row[1];
+        return s === 0 ? 100 : s;
+      }
+      function run() {
+        const a = $('nm-a').value.trim().replace(/\s/g, ''), b = $('nm-b').value.trim().replace(/\s/g, ''), err = $('nm-err');
+        const ok = (s) => s.length >= 2 && [...s].every((ch) => strokes(ch) >= 0);
+        if (!ok(a) || !ok(b)) { err.textContent = '한글 이름을 2글자 이상 입력해 주세요.'; err.hidden = false; return; }
+        err.hidden = true;
+        const s = score([...a], [...b]);
+        const bi = BANDS.findIndex((x) => s >= x.min);
+        $('nm-names').textContent = a + ' ♥ ' + b + ' · ' + RELS.find((r) => r.key === rel).name;
+        $('nm-score').textContent = s + '점'; $('nm-band').textContent = BANDS[bi].label; $('nm-text').textContent = TEXT[rel][bi];
+        $('nm-step3').hidden = false; $('nm-step3').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        try { if (window.gtag) window.gtag('event', 'tool_use', { tool: 'name-match', rel: rel }); } catch (e) {}
+      }
+      document.querySelectorAll('[data-rel]').forEach((btn) => btn.addEventListener('click', () => {
+        rel = btn.dataset.rel; $('nm-rel-title').textContent = RELS.find((r) => r.key === rel).name + ' — 두 사람의 이름을 알려주세요';
+        $('nm-step2').hidden = false; $('nm-step2').scrollIntoView({ behavior: 'smooth', block: 'start' }); $('nm-a').focus({ preventScroll: true });
+      }));
+      $('nm-go').addEventListener('click', run);
+      $('nm-b').addEventListener('keydown', (e) => { if (e.key === 'Enter') run(); });
+      $('nm-swap').addEventListener('click', () => { const t = $('nm-a').value; $('nm-a').value = $('nm-b').value; $('nm-b').value = t; run(); });
+      $('nm-again').addEventListener('click', () => { $('nm-step3').hidden = true; $('nm-a').value = ''; $('nm-b').value = ''; $('nm-step1').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+      $('nm-share').addEventListener('click', async () => {
+        const text = '이름 궁합 ' + $('nm-names').textContent + ' → ' + $('nm-score').textContent + ' (' + $('nm-band').textContent + ')';
+        try { if (navigator.share) await navigator.share({ title: '이름 궁합 테스트', text: text, url: location.href }); else { await navigator.clipboard.writeText(text + ' ' + location.href); $('nm-share').textContent = '복사됐어요'; } } catch (e) {}
+      });
+    })();
+  </script>
+</BaseLayout>

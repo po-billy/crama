@@ -1,0 +1,76 @@
+---
+// 오늘의 띠별 운세 — 날짜와 띠로 정해지는 문장을 미리 써 둔 목록에서 고른다(매일 자정에 바뀜, AI 호출 없음).
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import { ZODIAC, zodiacYears, THIS_YEAR } from '../../lib/people';
+import { FORTUNE } from '../../data/fun';
+import '../../styles/portal.css';
+
+export function getStaticPaths() { return ZODIAC.map((z, i) => ({ params: { z: z.slug }, props: { slug: z.slug, idx: i } })); }
+const { slug, idx } = Astro.props as { slug: string; idx: number };
+const z = ZODIAC[idx];
+const years = zodiacYears(slug, 1948, THIS_YEAR).reverse().slice(0, 7);
+---
+<BaseLayout title={`오늘의 ${z.name} 운세 — ${years.slice(0, 5).join('·')}년생`} description={`${z.name}(${years.slice(0, 5).join('·')}년생)의 오늘 운세. 총운·금전운·애정운·일운과 행운의 색, 행운의 숫자를 매일 새로 확인하세요.`}>
+  <div class="pt pt-narrow" style="--c:#8b5cf6">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/fun/">운세·테스트</a> › <a href="/fortune/">오늘의 운세</a> › {z.name}</nav>
+    <header class="pt-hubhero">
+      <span style="font-size:3.4rem;line-height:1" aria-hidden="true">{z.emoji}</span>
+      <div><h1>오늘의 {z.name} 운세</h1><p><span id="ft-date"></span> · {years.join(', ')}년생</p></div>
+    </header>
+
+    <div class="tl-result" style="margin-top:1.2rem">
+      <div class="tl-result__label">오늘의 총운</div>
+      <div class="tl-result__big" id="ft-score">-</div>
+      <div class="tl-result__sub" id="ft-total"></div>
+    </div>
+
+    <section class="pt-sec">
+      <div class="tl-wrap">
+        <table class="tl-table">
+          <tbody>
+            <tr><td style="width:6.5rem"><b>💰 금전운</b><br /><span id="ft-s-money" class="is-on"></span></td><td id="ft-money" style="text-align:left"></td></tr>
+            <tr><td><b>💕 애정운</b><br /><span id="ft-s-love" class="is-on"></span></td><td id="ft-love" style="text-align:left"></td></tr>
+            <tr><td><b>💼 일·건강</b><br /><span id="ft-s-work" class="is-on"></span></td><td id="ft-work" style="text-align:left"></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pp-facts" style="margin-top:0.8rem">
+        <div><span>행운의 색</span><b id="ft-color"></b></div>
+        <div><span>행운의 숫자</span><b id="ft-num"></b></div>
+        <div><span>행운의 물건</span><b id="ft-item"></b></div>
+      </div>
+      <p class="pp-note">※ 재미로 보는 운세입니다. 띠는 양력 출생연도 기준이며, 음력 설 이전에 태어났다면 전년도 띠로 확인해 보세요. 운세는 매일 자정에 바뀝니다.</p>
+    </section>
+
+    <div class="pt-ad"><AdSlot slot="fortune-mid" /></div>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>다른 띠 운세</h2></div></div>
+      <div class="pt-chips">{ZODIAC.filter((x) => x.slug !== slug).map((x) => <a class="pt-chip" href={`/fortune/${x.slug}/`}>{x.emoji} {x.name}</a>)}</div>
+    </section>
+
+    <section class="pt-sec pp-links">
+      <a class="pp-link" href="/tarot/"><span><b>타로 보기</b><span>오늘의 카드 한 장 뽑기</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+      <a class="pp-link" href={`/people/zodiac/${slug}/`}><span><b>{z.name} 나이표·인물</b><span>{z.name} 출생연도와 같은 띠 인물</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+    </section>
+  </div>
+
+  <script is:inline define:vars={{ F: FORTUNE, idx }}>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const n = new Date(), day = n.getFullYear() * 10000 + (n.getMonth() + 1) * 100 + n.getDate();
+      // 날짜+띠로 정해지는 난수(같은 날 같은 띠는 항상 같은 결과)
+      let seed = (day * 31 + (idx + 1) * 7919) >>> 0;
+      const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+      for (let i = 0; i < 5; i++) rnd();
+      const pick = (arr) => arr[Math.floor(rnd() * arr.length)];
+      const score = () => 55 + Math.floor(rnd() * 44);
+      const stars = (s) => '★'.repeat(Math.round(s / 20)) + '☆'.repeat(5 - Math.round(s / 20));
+      $('ft-date').textContent = (n.getMonth() + 1) + '월 ' + n.getDate() + '일';
+      const s0 = score(); $('ft-score').textContent = s0 + '점'; $('ft-total').textContent = pick(F.total);
+      [['money', F.money], ['love', F.love], ['work', F.work]].forEach(([k, arr]) => { const s = score(); $('ft-s-' + k).textContent = stars(s); $('ft-' + k).textContent = pick(arr); });
+      $('ft-color').textContent = pick(F.colors); $('ft-num').textContent = String(1 + Math.floor(rnd() * 45)); $('ft-item').textContent = pick(F.items);
+    })();
+  </script>
+</BaseLayout>

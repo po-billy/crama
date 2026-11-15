@@ -1,0 +1,52 @@
+---
+// 오늘의 운세 — 띠 선택(출생연도로도 찾기).
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import { ZODIAC, zodiacYears, THIS_YEAR } from '../../lib/people';
+import '../../styles/portal.css';
+const slugs = ZODIAC.map((z) => z.slug);
+---
+<BaseLayout title="오늘의 운세 — 띠별 무료 운세 (매일 업데이트)" description="쥐띠부터 돼지띠까지 12띠의 오늘 운세를 무료로 확인하세요. 총운·금전운·애정운과 행운의 색·숫자가 매일 바뀝니다.">
+  <div class="pt pt-narrow" style="--c:#8b5cf6">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/fun/">운세·테스트</a> › 오늘의 운세</nav>
+    <header class="pt-hubhero">
+      <img src="/img/portal/c-fortune.webp" alt="" width="200" height="200" />
+      <div><h1>오늘의 운세</h1><p>내 띠를 고르면 오늘의 운세를 알려드려요</p></div>
+    </header>
+
+    <section class="pt-sec">
+      <div class="tl-card">
+        <div class="tl-row">
+          <label class="tl-field">출생연도로 찾기<input id="fi-year" type="number" inputmode="numeric" min="1930" max={THIS_YEAR} placeholder="예: 1990" /></label>
+          <button type="button" class="tl-btn" id="fi-go">운세 보기</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-fields">
+        {ZODIAC.map((z) => (
+          <a class="pt-field" href={`/fortune/${z.slug}/`}>
+            <span style="font-size:2rem;width:3rem;text-align:center" aria-hidden="true">{z.emoji}</span>
+            <span><b>{z.name}</b><span>{zodiacYears(z.slug, 1948, THIS_YEAR).reverse().slice(0, 4).join('·')}</span></span>
+          </a>
+        ))}
+      </div>
+      <p class="pp-note">※ 재미로 보는 운세입니다. 띠는 양력 출생연도 기준이며 음력 설 이전 출생자는 전년도 띠로 보기도 합니다.</p>
+    </section>
+
+    <div class="pt-ad"><AdSlot slot="fortune-index" /></div>
+
+    <section class="pt-sec pp-links">
+      <a class="pp-link" href="/tarot/"><span><b>타로 보기</b><span>오늘의 카드 한 장 뽑기</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+      <a class="pp-link" href="/zodiac-match/"><span><b>띠궁합</b><span>두 띠의 궁합 알아보기</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+    </section>
+  </div>
+  <script is:inline define:vars={{ slugs }}>
+    (() => {
+      const go = () => { const y = Number(document.getElementById('fi-year').value); if (!(y > 1900)) { document.getElementById('fi-year').focus(); return; } location.href = '/fortune/' + slugs[(((y - 4) % 12) + 12) % 12] + '/'; };
+      document.getElementById('fi-go').addEventListener('click', go);
+      document.getElementById('fi-year').addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
+    })();
+  </script>
+</BaseLayout>

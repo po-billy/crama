@@ -1,0 +1,83 @@
+---
+// 띠궁합 — 전통 띠 관계(삼합·육합·상충·원진)로 보는 두 띠의 궁합.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { ZODIAC } from '../lib/people';
+import { ZODIAC_ORDER, ZODIAC_REL, ZODIAC_REL_TEXT } from '../data/fun';
+import '../styles/portal.css';
+const Z = ZODIAC.map((z) => ({ slug: z.slug, name: z.name, emoji: z.emoji }));
+const nameOf = (s: string) => ZODIAC.find((z) => z.slug === s)!.name;
+---
+<BaseLayout title="띠궁합 보기 — 12띠 궁합표 (삼합·육합·상충·원진)" description="두 사람의 띠를 고르면 전통 띠궁합(삼합·육합·상충·원진)으로 궁합 점수와 풀이를 알려드립니다. 12띠 궁합표도 한눈에 확인하세요.">
+  <div class="pt pt-narrow" style="--c:#10b981">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/fun/">운세·테스트</a> › 띠궁합</nav>
+    <header class="pt-hubhero">
+      <img src="/img/portal/c-zodiac-match.webp" alt="" width="200" height="200" />
+      <div><h1>띠궁합</h1><p>두 띠를 고르면 전통 궁합을 알려드려요</p></div>
+    </header>
+
+    <section class="pt-sec">
+      <div class="tl-card">
+        <div class="tl-row">
+          <label class="tl-field">내 띠<select id="zm-a">{Z.map((z) => <option value={z.slug}>{z.emoji} {z.name}</option>)}</select></label>
+          <label class="tl-field">상대 띠<select id="zm-b">{Z.map((z, i) => <option value={z.slug} selected={i === 4}>{z.emoji} {z.name}</option>)}</select></label>
+          <button type="button" class="tl-btn" id="zm-go">궁합 보기</button>
+        </div>
+      </div>
+      <div class="tl-result" id="zm-result" hidden aria-live="polite" style="background:linear-gradient(135deg,#10b981,#34d399)">
+        <div class="tl-result__label" id="zm-names"></div>
+        <div class="tl-result__big" id="zm-score"></div>
+        <div class="tl-result__sub" id="zm-label"></div>
+      </div>
+      <div class="tl-card" id="zm-card" hidden style="margin-top:0.8rem"><p id="zm-text" class="pt-prose" style="margin:0"></p></div>
+      <p class="pp-note">※ 전통적으로 전해지는 띠 관계를 바탕으로 한 재미용 궁합입니다. 띠는 양력 출생연도 기준이며, 음력 설 이전 출생자는 전년도 띠로 보기도 합니다.</p>
+    </section>
+
+    <div class="pt-ad"><AdSlot slot="zodiac-match-mid" /></div>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>잘 맞는 띠 (삼합)</h2><p>세 띠가 모이면 좋은 기운을 이룬다고 봅니다</p></div></div>
+      <div class="pt-chips">{ZODIAC_REL.samhap.map((g) => <span class="pt-chip">{g.map(nameOf).join(' · ')}</span>)}</div>
+    </section>
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>서로 끌리는 띠 (육합)</h2></div></div>
+      <div class="pt-chips">{ZODIAC_REL.yukhap.map((g) => <span class="pt-chip">{g.map(nameOf).join(' · ')}</span>)}</div>
+    </section>
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>부딪치기 쉬운 띠 (상충)</h2></div></div>
+      <div class="pt-chips">{ZODIAC_REL.chung.map((g) => <span class="pt-chip is-soon">{g.map(nameOf).join(' · ')}</span>)}</div>
+    </section>
+
+    <section class="pt-sec pp-links">
+      <a class="pp-link" href="/name-match/"><span><b>이름 궁합</b><span>두 사람의 이름으로 보는 궁합</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+      <a class="pp-link" href="/born/"><span><b>출생연도별 띠 확인</b><span>내 띠가 헷갈린다면</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+    </section>
+  </div>
+
+  <script is:inline define:vars={{ Z, REL: ZODIAC_REL, TXT: ZODIAC_REL_TEXT, ORDER: ZODIAC_ORDER }}>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const inGroup = (list, a, b) => list.some((g) => g.indexOf(a) !== -1 && g.indexOf(b) !== -1);
+      function kind(a, b) {
+        if (a === b) return 'same';
+        if (inGroup(REL.samhap, a, b)) return 'samhap';
+        if (inGroup(REL.yukhap, a, b)) return 'yukhap';
+        if (inGroup(REL.chung, a, b)) return 'chung';
+        if (inGroup(REL.wonjin, a, b)) return 'wonjin';
+        return 'normal';
+      }
+      function run() {
+        const a = $('zm-a').value, b = $('zm-b').value, k = kind(a, b), t = TXT[k];
+        const za = Z.find((z) => z.slug === a), zb = Z.find((z) => z.slug === b);
+        // 같은 종류 안에서도 조합마다 점수가 조금씩 다르게(고정값) 보이도록 ±3 보정
+        const adj = ((ORDER.indexOf(a) * 7 + ORDER.indexOf(b) * 5) % 7) - 3;
+        $('zm-names').textContent = za.emoji + ' ' + za.name + ' × ' + zb.emoji + ' ' + zb.name;
+        $('zm-score').textContent = Math.min(99, t.score + adj) + '점'; $('zm-label').textContent = t.label; $('zm-text').textContent = t.text;
+        $('zm-result').hidden = false; $('zm-card').hidden = false;
+        try { if (window.gtag) window.gtag('event', 'tool_use', { tool: 'zodiac-match' }); } catch (e) {}
+      }
+      $('zm-go').addEventListener('click', run);
+      $('zm-a').addEventListener('change', run); $('zm-b').addEventListener('change', run);
+    })();
+  </script>
+</BaseLayout>

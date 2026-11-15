@@ -39,8 +39,10 @@ const cards = [
   { href: '/policy-calendar/', img: 'c-deadline', tag: '일정', color: '#ef4444', title: '다가오는 신청·마감', desc: '놓치면 손해인 일정 모아보기', id: 'home-deadline' },
   { href: '/salary/', img: 'c-salary', tag: '월급·세금', color: '#10b981', title: '연봉 실수령액', desc: '세후 한 달에 얼마 받는지' },
   { href: '/benefits/', img: 'c-benefits', tag: '지원금·정책', color: '#f97316', title: '내 혜택 찾기', desc: '조건만 넣으면 받을 수 있는 지원금' },
+  { href: '/fortune/', img: 'c-fortune', tag: '운세', color: '#8b5cf6', title: '오늘의 운세', desc: '띠별 운세가 매일 바뀌어요' },
+  { href: '/tarot/', img: 'c-tarot', tag: '운세', color: '#8b5cf6', title: '타로 보기', desc: '카드 한 장 뽑아 보기' },
+  { href: '/name-match/', img: 'c-name-match', tag: '테스트', color: '#ec4899', title: '이름 궁합', desc: '두 사람의 이름만 넣으면 끝' },
   { href: '/quiz/money-character/', img: 'c-quiz-money', tag: '테스트', color: '#8b5cf6', title: '머니 캐릭터 테스트', desc: '10가지 질문으로 보는 내 돈 성향' },
-  { href: '/quiz/investor-type/', img: 'c-quiz-invest', tag: '테스트', color: '#8b5cf6', title: '투자 성향 진단', desc: '나는 어떤 투자자일까' },
   { href: '/briefing/', img: 'c-briefing', tag: '가이드', color: '#10b981', title: 'Today 브리핑', desc: '오늘 챙길 것만 3분에' },
   latest[0] && { href: `/blog/${latest[0].id}/`, src: thumb(latest[0].data.heroImage), tag: '새 글', color: '#6c5ce7', title: latest[0].data.title, desc: CATEGORIES[latest[0].data.category].name },
 ].filter(Boolean) as { href: string; img?: string; src?: string; tag: string; color: string; title: string; desc: string; id?: string }[];

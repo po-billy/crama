@@ -77,6 +77,6 @@ export const checkupTarget = (year: number) => year % 2 === THIS_YEAR % 2;
 export const koreanAge = (year: number) => THIS_YEAR - year + 1; // 세는 나이
 export const yearAge = (year: number) => THIS_YEAR - year; // 연 나이(생일이 지나면 만 나이와 같음)
 
-export const BORN_FROM = 1947, BORN_TO = 2007;
+export const BORN_FROM = 1947, BORN_TO = 2006; // 건강검진 연도 페이지(/health-check/[year])와 같은 범위
 export const bornYears = () => { const o: number[] = []; for (let y = BORN_TO; y >= BORN_FROM; y--) o.push(y); return o; };
 export const peopleOfYear = (year: number) => PEOPLE.filter((p) => parts(p.birth).y === year);

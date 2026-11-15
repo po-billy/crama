@@ -5,11 +5,11 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import AdSlot from '../../components/AdSlot.astro';
 import { CATEGORIES } from '../../consts';
-import { allGroups, readyCount, ICONS } from '../../data/menu';
+import { allGroups, readyCount, groupHref, ICONS } from '../../data/menu';
 import '../../styles/portal.css';
 
 export function getStaticPaths() {
-  return allGroups().filter((g) => readyCount(g) > 0).map((g) => ({ params: { slug: g.slug }, props: { slug: g.slug } }));
+  return allGroups().filter((g) => readyCount(g) > 0 && g.slug !== 'people').map((g) => ({ params: { slug: g.slug }, props: { slug: g.slug } }));
 }
 const { slug } = Astro.props as { slug: string };
 const g = allGroups().find((x) => x.slug === slug)!;
@@ -78,7 +78,7 @@ const description = `${g.desc}. ${ready.slice(0, 5).map((i) => i.name).join(', '
         <div class="pt-sec__head"><div><h2>다른 분야</h2></div></div>
         <div class="pt-fields">
           {others.map((o) => (
-            <a class="pt-field" href={`/hub/${o.slug}/`} style={`--c:${o.color}`}>
+            <a class="pt-field" href={groupHref(o)} style={`--c:${o.color}`}>
               <img src={`/img/portal/g-${o.slug}.webp`} alt="" loading="lazy" width="96" height="96" />
               <span><b>{o.name}</b><span>{readyCount(o)}개</span></span>
             </a>

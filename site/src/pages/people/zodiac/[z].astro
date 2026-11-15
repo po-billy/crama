@@ -1,0 +1,52 @@
+---
+// 띠별 인물 + 해당 띠의 출생연도·나이.
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import PersonChip from '../../../components/PersonChip.astro';
+import { PEOPLE, ZODIAC, THIS_YEAR, parts, zodiacOf, zodiacYears, BORN_FROM, BORN_TO } from '../../../lib/people';
+import '../../../styles/portal.css';
+
+export function getStaticPaths() { return ZODIAC.map((z) => ({ params: { z: z.slug }, props: { slug: z.slug } })); }
+const { slug } = Astro.props as { slug: string };
+const z = ZODIAC.find((x) => x.slug === slug)!;
+const years = zodiacYears(slug, 1936, THIS_YEAR).reverse();
+const people = PEOPLE.filter((p) => zodiacOf(parts(p.birth).y).slug === slug);
+---
+<BaseLayout title={`${z.name} 나이·출생연도 (${THIS_YEAR}년) + ${z.name} 인물 ${people.length}명`} description={`${z.name}는 ${years.slice(0, 5).join('·')}년생입니다. ${THIS_YEAR}년 기준 ${z.name} 나이표와 ${z.name} 인물을 한눈에 확인하세요.`}>
+  <div class="pt pt-narrow">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/people/">인물</a> › {z.name}</nav>
+    <header class="pt-hubhero" style="--c:#8b5cf6">
+      <span style="font-size:3.4rem;line-height:1" aria-hidden="true">{z.emoji}</span>
+      <div><h1>{z.name}</h1><p>{years.slice(0, 6).join(', ')}년생 · {THIS_YEAR}년 기준 나이표</p></div>
+    </header>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>{z.name} 나이표</h2><p>{THIS_YEAR}년 기준</p></div></div>
+      <div class="tl-wrap">
+        <table class="tl-table">
+          <thead><tr><th>출생연도</th><th>연 나이</th><th>세는 나이</th><th>만 나이</th></tr></thead>
+          <tbody>
+            {years.map((y) => (
+              <tr>
+                <td>{y >= BORN_FROM && y <= BORN_TO ? <a href={`/born/${y}/`}>{y}년생</a> : `${y}년생`}</td>
+                <td>{THIS_YEAR - y}세</td><td>{THIS_YEAR - y + 1}세</td><td>{THIS_YEAR - y - 1}~{THIS_YEAR - y}세</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="pp-note">※ 만 나이는 생일이 지났으면 큰 숫자, 지나지 않았으면 작은 숫자입니다. 띠는 양력 연도 기준이며, 음력 설(1~2월) 이전에 태어났다면 전년도 띠로 보기도 합니다.</p>
+    </section>
+
+    {people.length > 0 && (
+      <section class="pt-sec">
+        <div class="pt-sec__head"><div><h2>{z.name} 인물</h2><p>{people.length}명</p></div></div>
+        <div class="pp-grid">{people.map((p) => <PersonChip p={p} sub="birth" />)}</div>
+      </section>
+    )}
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>다른 띠</h2></div></div>
+      <div class="pt-chips">{ZODIAC.filter((x) => x.slug !== slug).map((x) => <a class="pt-chip" href={`/people/zodiac/${x.slug}/`}>{x.emoji} {x.name}</a>)}</div>
+    </section>
+  </div>
+</BaseLayout>

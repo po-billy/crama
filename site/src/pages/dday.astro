@@ -1,0 +1,110 @@
+---
+// D-day 계산기 — 목표일까지 남은 날 / 시작일로부터 지난 날 / 날짜에 일수 더하기.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AdSlot from '../components/AdSlot.astro';
+import '../styles/portal.css';
+const faq = [
+  { q: 'D-day는 어떻게 세나요?', a: '목표일 당일이 D-Day(D-0)이고, 하루 전이 D-1입니다. 목표일이 지나면 D+1, D+2처럼 더해 갑니다.' },
+  { q: '100일 기념일은 어떻게 계산하나요?', a: '사귄 날이나 태어난 날을 1일째로 세는 방식이 일반적입니다. 이 계산기의 "기념일 세기"는 시작일을 1일로 계산하므로 100일째는 시작일에서 99일 뒤입니다.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title="D-day 계산기 — 남은 날짜·기념일·날짜 더하기" description="시험, 기념일, 전역, 여행까지 며칠 남았는지 바로 계산합니다. 시작일로부터 100일·200일·1주년 날짜와 두 날짜 사이 일수도 함께 확인하세요." jsonLd={jsonLd}>
+  <div class="pt pt-narrow">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/date/">나이·날짜</a> › D-day 계산기</nav>
+    <header class="pt-hubhero" style="--c:#3b82f6">
+      <img src="/img/portal/c-deadline.webp" alt="" width="200" height="200" />
+      <div><h1>D-day 계산기</h1><p>그날까지 며칠 남았는지, 오늘이 며칠째인지</p></div>
+    </header>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>남은 날 계산</h2><p>목표일까지 며칠 남았는지</p></div></div>
+      <div class="tl-card">
+        <div class="tl-row">
+          <label class="tl-field">목표일<input id="dd-target" type="date" /></label>
+          <label class="tl-field">기준일<input id="dd-base" type="date" /></label>
+        </div>
+        <div class="tl-quick" id="dd-quick">
+          <button type="button" data-k="newyear">새해 첫날</button><button type="button" data-k="xmas">크리스마스</button><button type="button" data-k="100">100일 뒤</button><button type="button" data-k="365">1년 뒤</button>
+        </div>
+      </div>
+      <div class="tl-result" id="dd-result" hidden aria-live="polite">
+        <div class="tl-result__label" id="dd-label"></div>
+        <div class="tl-result__big" id="dd-big"></div>
+        <div class="tl-result__sub" id="dd-sub"></div>
+      </div>
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>기념일 세기</h2><p>시작일을 1일째로 계산해요</p></div></div>
+      <div class="tl-card">
+        <div class="tl-row"><label class="tl-field">시작일<input id="an-start" type="date" /></label></div>
+      </div>
+      <div class="tl-wrap" id="an-wrap" hidden style="margin-top:0.8rem">
+        <table class="tl-table"><thead><tr><th>기념일</th><th>날짜</th><th>남은 날</th></tr></thead><tbody id="an-body"></tbody></table>
+      </div>
+    </section>
+
+    <div class="pt-ad"><AdSlot slot="dday-mid" /></div>
+
+    <section class="pt-sec pt-prose">
+      <h2>자주 묻는 질문</h2>
+      {faq.map((f) => <p><b>{f.q}</b><br />{f.a}</p>)}
+    </section>
+
+    <section class="pt-sec pp-links">
+      <a class="pp-link" href="/discharge/"><span><b>전역일 계산기</b><span>입대일로 전역일·복무 진행률 계산</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+      <a class="pp-link" href="/age/"><span><b>만 나이 계산기</b><span>생년월일로 오늘 기준 나이 계산</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+    </section>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const iso = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      const parse = (s) => { const p = s.split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]); };
+      const DAYS = ['일', '월', '화', '수', '목', '금', '토'];
+      const pretty = (d) => d.getFullYear() + '년 ' + (d.getMonth() + 1) + '월 ' + d.getDate() + '일 (' + DAYS[d.getDay()] + ')';
+      const add = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+      const today = () => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); };
+      $('dd-base').value = iso(today());
+      function calc() {
+        if (!$('dd-target').value) return;
+        const t = parse($('dd-target').value), b = $('dd-base').value ? parse($('dd-base').value) : today();
+        const n = Math.round((t - b) / 864e5);
+        $('dd-label').textContent = pretty(t);
+        $('dd-big').textContent = n === 0 ? 'D-Day' : (n > 0 ? 'D-' + n : 'D+' + (-n));
+        const w = Math.floor(Math.abs(n) / 7), r = Math.abs(n) % 7;
+        $('dd-sub').textContent = n === 0 ? '바로 오늘이에요' : (n > 0 ? '' : '지난 지 ') + (w ? w + '주 ' : '') + (r || !w ? r + '일' : '') + (n > 0 ? ' 남았어요' : ' 됐어요');
+        $('dd-result').hidden = false;
+        try { if (window.gtag) window.gtag('event', 'tool_use', { tool: 'dday' }); } catch (e) {}
+      }
+      $('dd-target').addEventListener('change', calc);
+      $('dd-base').addEventListener('change', calc);
+      $('dd-quick').addEventListener('click', (e) => {
+        const btn = e.target.closest('button'); if (!btn) return;
+        const b = $('dd-base').value ? parse($('dd-base').value) : today(); let t;
+        if (btn.dataset.k === 'newyear') t = new Date(b.getFullYear() + 1, 0, 1);
+        else if (btn.dataset.k === 'xmas') { t = new Date(b.getFullYear(), 11, 25); if (t < b) t = new Date(b.getFullYear() + 1, 11, 25); }
+        else t = add(b, Number(btn.dataset.k));
+        $('dd-target').value = iso(t); calc();
+      });
+      // 기념일 표
+      $('an-start').addEventListener('change', () => {
+        if (!$('an-start').value) return;
+        const s = parse($('an-start').value), t = today(), body = $('an-body');
+        body.textContent = '';
+        const rows = [[100, '100일'], [200, '200일'], [300, '300일'], [500, '500일'], [1000, '1000일']].map(([n, l]) => [l, add(s, n - 1)]);
+        [1, 2, 3, 5, 10].forEach((y) => rows.push([y + '주년', new Date(s.getFullYear() + y, s.getMonth(), s.getDate())]));
+        rows.sort((a, b) => a[1] - b[1]).forEach(([label, d]) => {
+          const n = Math.round((d - t) / 864e5), tr = document.createElement('tr');
+          [label, pretty(d), n === 0 ? '오늘' : (n > 0 ? 'D-' + n : '지남')].forEach((v, i) => { const td = document.createElement('td'); td.textContent = v; if (i === 2 && n >= 0) td.className = 'is-on'; tr.appendChild(td); });
+          body.appendChild(tr);
+        });
+        const nth = Math.round((t - s) / 864e5) + 1;
+        if (nth > 0) { const tr = document.createElement('tr'); const td = document.createElement('td'); td.colSpan = 3; td.innerHTML = ''; td.textContent = '오늘은 ' + nth.toLocaleString('ko-KR') + '일째예요'; td.style.fontWeight = '800'; tr.appendChild(td); body.insertBefore(tr, body.firstChild); }
+        $('an-wrap').hidden = false;
+      });
+    })();
+  </script>
+</BaseLayout>

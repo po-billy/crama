@@ -1,0 +1,7171 @@
+{
+ "generatedAt": "2026-11-15",
+ "source": "위키데이터(CC0) · 위키미디어 코먼스",
+ "count": 400,
+ "people": [
+  {
+   "id": "Q20150",
+   "name": "싸이",
+   "en": "Psy",
+   "birth": "1977-12-31",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 99,
+   "slug": "psy",
+   "img": "/img/people/psy.webp",
+   "credit": {
+    "artist": "Korea.net / Korean Culture and Information Service (Jeon Han)",
+    "license": "CC BY-SA 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:PSY_EMTV_logo_27_(8198008711).jpg"
+   }
+  },
+  {
+   "id": "Q26262599",
+   "name": "제니 김",
+   "en": "Jennie",
+   "birth": "1996-01-16",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 83,
+   "slug": "jennie",
+   "img": "/img/people/jennie.webp",
+   "credit": {
+    "artist": "티비텐 TV10",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Jennie_2026_GDA_1.jpg"
+   }
+  },
+  {
+   "id": "Q439722",
+   "name": "손흥민",
+   "en": "Son Heung-min",
+   "birth": "1992-07-08",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 79,
+   "slug": "son-heung-min",
+   "img": "/img/people/son-heung-min.webp",
+   "credit": {
+    "artist": "Ujishadow",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:BFA_2023_-2_Heung-Min_Son_(cropped).jpg"
+   }
+  },
+  {
+   "id": "Q80758",
+   "name": "이민호",
+   "en": "Lee Min-ho",
+   "birth": "1987-06-22",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 78,
+   "slug": "lee-min-ho",
+   "img": "/img/people/lee-min-ho.webp",
+   "credit": {
+    "artist": "JoshPopov",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:TIFF-2026-THE-ASSASSINS-LEE-MIN-HO-02.png"
+   }
+  },
+  {
+   "id": "Q485517",
+   "name": "송중기",
+   "en": "Song Joong-ki",
+   "birth": "1985-09-19",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 72,
+   "slug": "song-joong-ki",
+   "img": "/img/people/song-joong-ki.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Song_Joong_Ki_Blue_Dragon.jpg"
+   }
+  },
+  {
+   "id": "Q27655361",
+   "name": "지수",
+   "en": "Jisoo",
+   "birth": "1995-01-03",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 71,
+   "slug": "jisoo",
+   "img": "/img/people/jisoo.webp",
+   "credit": {
+    "artist": "티비텐 TV10",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Jisoo_at_Boyfriend_on_Demand_press_conference_on_26022026_(12).png"
+   }
+  },
+  {
+   "id": "Q20145",
+   "name": "아이유",
+   "en": "IU",
+   "birth": "1993-05-16",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 70,
+   "slug": "iu",
+   "img": "/img/people/iu.webp",
+   "credit": {
+    "artist": "티비텐 TV10",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:250718_Lee_Ji-eun_(%EC%9D%B4%EC%A7%80%EC%9D%80).png"
+   }
+  },
+  {
+   "id": "Q22338877",
+   "name": "정국",
+   "en": "Jung Kook",
+   "birth": "1997-09-01",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 70,
+   "slug": "jung-kook",
+   "img": "/img/people/jung-kook.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Jung_Kook_of_BTS,_February_12,_2026_(1).png"
+   }
+  },
+  {
+   "id": "Q50603",
+   "name": "박지성",
+   "en": "Park Ji-Sung",
+   "birth": "1981-02-25",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 68,
+   "slug": "park-ji-sung",
+   "img": "/img/people/park-ji-sung.webp",
+   "credit": {
+    "artist": "Korea.net / Korean Culture and Information Service",
+    "license": "CC BY-SA 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Park_Ji-sung_G20_Seoul_Summit_Ambassador_(cropped).jpg"
+   }
+  },
+  {
+   "id": "Q18388296",
+   "name": "뷔",
+   "en": "V",
+   "birth": "1995-12-30",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 64,
+   "slug": "v",
+   "img": "/img/people/v.webp",
+   "credit": {
+    "artist": "TV10",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:V_at_W_Korea_Breast_Cancer_Campaign,_15_October_2025.png"
+   }
+  },
+  {
+   "id": "Q102098",
+   "name": "문근영",
+   "en": "Moon Geun-young",
+   "birth": "1987-05-06",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 63,
+   "slug": "moon-geun-young",
+   "img": "/img/people/moon-geun-young.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Moon_Geun-young_in_October_2024.png"
+   }
+  },
+  {
+   "id": "Q20947093",
+   "name": "지민",
+   "en": "Jimin",
+   "birth": "1995-10-13",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 60,
+   "slug": "jimin",
+   "img": "/img/people/jimin.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇 TV10",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Jimin_on_the_way_to_SBS_Radio,_31_March_2023_(2).jpg"
+   }
+  },
+  {
+   "id": "Q15934116",
+   "name": "슬기",
+   "en": "Kang Seul-gi",
+   "birth": "1994-02-10",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 59,
+   "slug": "kang-seul-gi",
+   "img": "/img/people/kang-seul-gi.webp",
+   "credit": {
+    "artist": "SeulRene 'IS' LOVE❤️",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kang_Seul-gi_at_Coca-Cola_Event_on_January_18,_2020_03.jpg"
+   }
+  },
+  {
+   "id": "Q391965",
+   "name": "조정석",
+   "en": "Cho Jung-seok",
+   "birth": "1980-12-26",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 58,
+   "slug": "cho-jung-seok",
+   "img": "/img/people/cho-jung-seok.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Jo_Jung-suk_in_June_2026.png"
+   }
+  },
+  {
+   "id": "Q7137681",
+   "name": "찬열",
+   "en": "Park Chan-yeol",
+   "birth": "1992-11-27",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 58,
+   "slug": "park-chan-yeol",
+   "img": "/img/people/park-chan-yeol.webp",
+   "credit": {
+    "artist": "ggbye1127",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Chanyeol_at_a_Dynamic_Duo_concert_on_December_8,_2019.jpg"
+   }
+  },
+  {
+   "id": "Q21075020",
+   "name": "슈가",
+   "en": "Suga",
+   "birth": "1993-03-09",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 57,
+   "slug": "suga",
+   "img": "/img/people/suga.webp",
+   "credit": {
+    "artist": "Marie Claire Korea",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Suga_for_Valentino_and_Marie_Claire_Korea_06.jpg"
+   }
+  },
+  {
+   "id": "Q484942",
+   "name": "천정명",
+   "en": "Chun Jung-myung",
+   "birth": "1980-11-29",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 57,
+   "slug": "chun-jung-myung",
+   "img": "/img/people/chun-jung-myung.webp",
+   "credit": {
+    "artist": "MYDAILY 마이데일리",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:140820_%EC%B2%9C%EC%A0%95%EB%AA%85.jpg"
+   }
+  },
+  {
+   "id": "Q20514446",
+   "name": "김남준",
+   "en": "RM",
+   "birth": "1994-09-12",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 56,
+   "slug": "rm",
+   "img": "/img/people/rm.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:RM_at_W_Korea_Love_Your_W,_November_2023.jpg"
+   }
+  },
+  {
+   "id": "Q232449",
+   "name": "보아",
+   "en": "BoA",
+   "birth": "1986-11-05",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 56,
+   "slug": "boa",
+   "img": "/img/people/boa.webp",
+   "credit": {
+    "artist": "Dispatch",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:BoA_at_Incheon_Airport_on_May_15,_2019_(2).png"
+   }
+  },
+  {
+   "id": "Q24276424",
+   "name": "진",
+   "en": "Kim Seok-jin",
+   "birth": "1992-12-04",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 56,
+   "slug": "kim-seok-jin",
+   "img": "/img/people/kim-seok-jin.webp",
+   "credit": {
+    "artist": "TV 10",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:BTS_Jin_at_Maison_Fred,_13_March_2025_04.png"
+   }
+  },
+  {
+   "id": "Q12605358",
+   "name": "아이린",
+   "en": "Irene",
+   "birth": "1991-03-29",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 54,
+   "slug": "irene",
+   "img": "/img/people/irene.webp",
+   "credit": {
+    "artist": "SeulRene 'IS' LOVE❤️",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Irene_Bae_at_GMP-KIX_Airport_on_January_22,_2020.png"
+   }
+  },
+  {
+   "id": "Q16236223",
+   "name": "제이홉",
+   "en": "J-hope",
+   "birth": "1994-02-18",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 53,
+   "slug": "j-hope",
+   "img": "/img/people/j-hope.webp",
+   "credit": {
+    "artist": "TV10",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:J-Hope_at_W_Korea_Breast_Cancer_Campaign,_15_October_2025.png"
+   }
+  },
+  {
+   "id": "Q496491",
+   "name": "김수현",
+   "en": "Kim Soo-hyun",
+   "birth": "1988-02-16",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 52,
+   "slug": "kim-soo-hyun",
+   "img": "/img/people/kim-soo-hyun.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kim_Soo-hyun_in_August_2024_-_2.png"
+   }
+  },
+  {
+   "id": "Q464645",
+   "name": "수지",
+   "en": "Bae Suzy",
+   "birth": "1994-10-10",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 51,
+   "slug": "bae-suzy",
+   "img": "/img/people/bae-suzy.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:20241128_Bae_Suzy_CELINE_photocall_(cropped).jpg"
+   }
+  },
+  {
+   "id": "Q22804243",
+   "name": "나연",
+   "en": "Im Nayeon",
+   "birth": "1995-09-22",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 50,
+   "slug": "im-nayeon",
+   "img": "/img/people/im-nayeon.webp",
+   "credit": {
+    "artist": "TV10",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Nayeon_in_November_2025.png"
+   }
+  },
+  {
+   "id": "Q623436",
+   "name": "공유",
+   "en": "Gong Yoo",
+   "birth": "1979-07-10",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 49,
+   "slug": "gong-yoo",
+   "img": "/img/people/gong-yoo.webp",
+   "credit": {
+    "artist": "Marie Claire Korea",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Gong_yoo.png"
+   }
+  },
+  {
+   "id": "Q552176",
+   "name": "스티븐 연",
+   "en": "Steven Yeun",
+   "birth": "1983-12-21",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 49,
+   "slug": "steven-yeun",
+   "img": "/img/people/steven-yeun.webp",
+   "credit": {
+    "artist": "Everwest",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Steven_Yeun_at_the_2025_Sundance_Film_Festival_(cropped).jpg"
+   }
+  },
+  {
+   "id": "Q466975",
+   "name": "윤아",
+   "en": "Lim Yoona",
+   "birth": "1990-05-30",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 49,
+   "slug": "lim-yoona",
+   "img": "/img/people/lim-yoona.webp",
+   "credit": {
+    "artist": "sublimitas viii",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:260508_YOONA_@_62nd_BAEKSANG_AWARDS_with_GUCCI.jpg"
+   }
+  },
+  {
+   "id": "Q253626",
+   "name": "전지현",
+   "en": "Jun Ji-hyun",
+   "birth": "1981-10-30",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 49,
+   "slug": "jun-ji-hyun",
+   "img": "/img/people/jun-ji-hyun.webp",
+   "credit": {
+    "artist": "Republic of Korea",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Jun_Ji-hyun.jpg"
+   }
+  },
+  {
+   "id": "Q229124",
+   "name": "김연아",
+   "en": "Kim Yuna",
+   "birth": "1990-09-05",
+   "job": "빙상 선수",
+   "jobs": [
+    "빙상 선수"
+   ],
+   "links": 48,
+   "slug": "kim-yuna",
+   "img": "/img/people/kim-yuna.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Yuna_Kim_2024.jpg"
+   }
+  },
+  {
+   "id": "Q1080180",
+   "name": "송혜교",
+   "en": "Song Hye-kyo",
+   "birth": "1981-11-22",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 48,
+   "slug": "song-hye-kyo",
+   "img": "/img/people/song-hye-kyo.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Song_Hye_Kyo_2025_%EC%86%A1%ED%98%9C%EA%B5%90_02.jpg"
+   }
+  },
+  {
+   "id": "Q491318",
+   "name": "이정재",
+   "en": "Lee Jung-jae",
+   "birth": "1972-12-15",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 47,
+   "slug": "lee-jung-jae",
+   "img": "/img/people/lee-jung-jae.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:240305_Lee_Jung-jae_(cropped).jpg"
+   }
+  },
+  {
+   "id": "Q299700",
+   "name": "대니얼 대 킴",
+   "en": "Daniel Dae Kim",
+   "birth": "1968-08-04",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 46,
+   "slug": "daniel-dae-kim",
+   "img": "/img/people/daniel-dae-kim.webp",
+   "credit": {
+    "artist": "PhilipRomanoPhoto",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Daniel_Dae_Kim_2025_(cropped).jpg"
+   }
+  },
+  {
+   "id": "Q497785",
+   "name": "박신혜",
+   "en": "Park Shin-hye",
+   "birth": "1990-02-18",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 46,
+   "slug": "park-shin-hye",
+   "img": "/img/people/park-shin-hye.webp",
+   "credit": {
+    "artist": "TV10",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Park_Shin-hye_in_April_2025.png"
+   }
+  },
+  {
+   "id": "Q4688701",
+   "name": "백현",
+   "en": "Byun Baek-hyun",
+   "birth": "1992-05-06",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 46,
+   "slug": "byun-baek-hyun",
+   "img": "/img/people/byun-baek-hyun.webp",
+   "credit": {
+    "artist": "DonutB_56",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:%ED%95%98%EC%96%80%EB%A8%B8%EB%A6%AC_%EB%B0%B1%ED%98%84_3.jpg"
+   }
+  },
+  {
+   "id": "Q22774055",
+   "name": "지효",
+   "en": "Park Ji-hyo",
+   "birth": "1997-02-01",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 46,
+   "slug": "park-ji-hyo",
+   "img": "/img/people/park-ji-hyo.webp",
+   "credit": {
+    "artist": "https://www.youtube.com/@_TV10",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Jihyo_at_Gucci_Ancora_on_05032024_(cropped).png"
+   }
+  },
+  {
+   "id": "Q313940",
+   "name": "홍명보",
+   "en": "Hong Myung-bo",
+   "birth": "1969-02-12",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 46,
+   "slug": "hong-myung-bo",
+   "img": "/img/people/hong-myung-bo.webp",
+   "credit": {
+    "artist": "Republic of Korea",
+    "license": "CC BY-SA 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Hong_Myung-Bo.jpg"
+   }
+  },
+  {
+   "id": "Q15977222",
+   "name": "박보검",
+   "en": "Park Bo-gum",
+   "birth": "1990-06-16",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 45,
+   "slug": "park-bo-gum",
+   "img": "/img/people/park-bo-gum.webp",
+   "credit": {
+    "artist": "티비텐 TV10 (TenAsia)",
+    "license": "CC BY-SA 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Park_Bo-gum_%EB%B0%95%EB%B3%B4%EA%B2%80_at_a_Celine_event_in_November_2024_5.png"
+   }
+  },
+  {
+   "id": "Q234066",
+   "name": "현아",
+   "en": "Hyuna",
+   "birth": "1992-06-06",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 45,
+   "slug": "hyuna",
+   "img": "/img/people/hyuna.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:20230720_Kim_HyunA_in_July_2023_01_(cropped).png"
+   }
+  },
+  {
+   "id": "Q313083",
+   "name": "기성용",
+   "en": "Ki Sung-yueng",
+   "birth": "1989-01-24",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 44,
+   "slug": "ki-sung-yueng",
+   "img": "/img/people/ki-sung-yueng.webp",
+   "credit": {
+    "artist": "Explicit",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:240609_FC_%EC%84%9C%EC%9A%B8_%ED%8C%AC%EC%82%AC%EC%9D%B8%ED%9A%8C_(%EA%B8%B0%EC%84%B1%EC%9A%A9).jpg"
+   }
+  },
+  {
+   "id": "Q486582",
+   "name": "이종석",
+   "en": "Lee Jong-suk",
+   "birth": "1989-09-14",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 44,
+   "slug": "lee-jong-suk",
+   "img": "/img/people/lee-jong-suk.webp",
+   "credit": {
+    "artist": "K-POPit 티비텐",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Lee_Jong-suk_20251023.png"
+   }
+  },
+  {
+   "id": "Q28699137",
+   "name": "정호연",
+   "en": "Jung Ho-yeon",
+   "birth": "1994-06-23",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 44,
+   "slug": "jung-ho-yeon",
+   "img": "/img/people/jung-ho-yeon.webp",
+   "credit": {
+    "artist": "Gabriel Hutchinson",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Jung_Ho-Yeon_at_the_2026_Cannes_Film_Festival_03.jpg"
+   }
+  },
+  {
+   "id": "Q233371",
+   "name": "태연",
+   "en": "Taeyeon",
+   "birth": "1989-03-09",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 44,
+   "slug": "taeyeon",
+   "img": "/img/people/taeyeon.webp",
+   "credit": {
+    "artist": "sublimitas_spes",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:250807_%ED%83%9C%EC%97%B0_%27%EC%95%85%EB%A7%88%EA%B0%80_%EC%9D%B4%EC%82%AC%EC%99%94%EB%8B%A4%27_VIP_Premiere_04_(cropped).jpg"
+   }
+  },
+  {
+   "id": "Q18551518",
+   "name": "황희찬",
+   "en": "Hwang Hee-chan",
+   "birth": "1996-01-26",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 44,
+   "slug": "hwang-hee-chan",
+   "img": "/img/people/hwang-hee-chan.webp",
+   "credit": {
+    "artist": "Explicit",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:240622_%ED%99%A9%ED%9D%AC%EC%B0%AC_%ED%92%8B%EB%B3%BC_%ED%8E%98%EC%8A%A4%ED%8B%B0%EB%B2%8C.jpg"
+   }
+  },
+  {
+   "id": "Q28699707",
+   "name": "김민재",
+   "en": "Kim Min-jae",
+   "birth": "1996-11-15",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 43,
+   "slug": "kim-min-jae",
+   "img": "/img/people/kim-min-jae.webp",
+   "credit": {
+    "artist": "Werner100359",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:FC_Red_Bull_Salzburg_gegen_Bayern_M%C3%BCnchen_(2025-01-06_Testspiel)_26.jpg"
+   }
+  },
+  {
+   "id": "Q210928",
+   "name": "박주영",
+   "en": "Park Chu-young",
+   "birth": "1985-07-10",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 43,
+   "slug": "park-chu-young",
+   "img": "/img/people/park-chu-young.webp",
+   "credit": {
+    "artist": "Official Youtube account of KBS 뷰(KBS View)",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:FC%EC%84%9C%EC%9A%B8_2016_K%EB%A6%AC%EA%B7%B8_%EC%9A%B0%EC%8A%B9!_%ED%99%A9%EC%84%A0%ED%99%8D%EA%B0%90%EB%8F%85_%EB%B0%95%EC%A3%BC%EC%98%81,_%EB%8B%A4%EC%B9%B4%ED%95%98%EA%B8%B0_%EC%9D%B8%ED%84%B0%EB%B7%B0_0.51_minutes_Scene.jpg"
+   }
+  },
+  {
+   "id": "Q380121",
+   "name": "이병헌",
+   "en": "Lee Byung-hun",
+   "birth": "1970-07-12",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 43,
+   "slug": "lee-byung-hun",
+   "img": "/img/people/lee-byung-hun.webp",
+   "credit": {
+    "artist": "Desmond Herzfelder",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Lee_Byung-hun_2025_Toronto_(cropped).jpg"
+   }
+  },
+  {
+   "id": "Q236603",
+   "name": "이영애",
+   "en": "Lee Young-ae",
+   "birth": "1971-01-31",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 43,
+   "slug": "lee-young-ae",
+   "img": "/img/people/lee-young-ae.webp",
+   "credit": {
+    "artist": "TV10",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Lee_Young-ae_in_2017.jpg"
+   }
+  },
+  {
+   "id": "Q495577",
+   "name": "지드래곤",
+   "en": "G-Dragon",
+   "birth": "1988-08-18",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 43,
+   "slug": "g-dragon",
+   "img": "/img/people/g-dragon.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:G-Dragon_in_February_2025.png"
+   }
+  },
+  {
+   "id": "Q168530",
+   "name": "김영권",
+   "en": "Kim Young-gwon",
+   "birth": "1990-02-27",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 42,
+   "slug": "kim-young-gwon",
+   "img": "/img/people/kim-young-gwon.webp",
+   "credit": {
+    "artist": "OSEN SPORTS",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:(%EC%B6%94%EA%BE%B8%EB%AF%B8)_%27%EC%9A%B8%EC%82%B0_%ED%95%A9%EB%A5%98%27_%EA%B9%80%EC%98%81%EA%B6%8C.jpg"
+   }
+  },
+  {
+   "id": "Q16174734",
+   "name": "이강인",
+   "en": "Lee Kang-in",
+   "birth": "2001-02-19",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 42,
+   "slug": "lee-kang-in",
+   "img": "/img/people/lee-kang-in.webp",
+   "credit": {
+    "artist": "Republic of Korea from Seoul, Republic of Korea",
+    "license": "CC BY-SA 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Lee_Kang-in_-_2022_(52551771501)_(cropped).jpg"
+   }
+  },
+  {
+   "id": "Q229389",
+   "name": "김윤진",
+   "en": "Yunjin Kim",
+   "birth": "1973-11-07",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 41,
+   "slug": "yunjin-kim",
+   "img": "/img/people/yunjin-kim.webp",
+   "credit": {
+    "artist": "롯데엔터테인먼트",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kim_Yun-Jin_%EA%B9%80%EC%9C%A4%EC%A7%84_2022.png"
+   }
+  },
+  {
+   "id": "Q22773838",
+   "name": "다현",
+   "en": "Kim Da-hyun",
+   "birth": "1998-05-28",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 41,
+   "slug": "kim-da-hyun",
+   "img": "/img/people/kim-da-hyun.webp",
+   "credit": {
+    "artist": "https://www.youtube.com/@_TV10/videos",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Dahyun_at_press_conference_for_You_Are_the_Apple_of_My_Eye_02_(cropped).png"
+   }
+  },
+  {
+   "id": "Q23779926",
+   "name": "모모",
+   "en": "Momo",
+   "birth": "1996-11-09",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 41,
+   "slug": "momo",
+   "img": "/img/people/momo.webp",
+   "credit": {
+    "artist": "티비텐",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:TWICE_MOMO_April_2024.jpg"
+   }
+  },
+  {
+   "id": "Q10822003",
+   "name": "수호",
+   "en": "Suho",
+   "birth": "1991-05-22",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 41,
+   "slug": "suho",
+   "img": "/img/people/suho.webp",
+   "credit": {
+    "artist": "Dispatch",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Suho_at_24th_Busan_Internation_Film_Festival_red_carpet_on_October_3,_2019.png"
+   }
+  },
+  {
+   "id": "Q213079",
+   "name": "이정수",
+   "en": "Lee Jung-soo",
+   "birth": "1980-01-08",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 41,
+   "slug": "lee-jung-soo",
+   "img": "/img/people/lee-jung-soo.webp",
+   "credit": {
+    "artist": "Mohan",
+    "license": "CC BY 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Lee_Jung-Soo.jpg"
+   }
+  },
+  {
+   "id": "Q494346",
+   "name": "한효주",
+   "en": "Han Hyo-joo",
+   "birth": "1987-02-22",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 41,
+   "slug": "han-hyo-joo",
+   "img": "/img/people/han-hyo-joo.webp",
+   "credit": {
+    "artist": "티비텐",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Han_Hyo-joo_in_July_2024.jpg"
+   }
+  },
+  {
+   "id": "Q11739253",
+   "name": "김우진",
+   "en": "Kim Woo-jin",
+   "birth": "1992-06-20",
+   "job": "양궁 선수",
+   "jobs": [
+    "양궁 선수"
+   ],
+   "links": 40,
+   "slug": "kim-woo-jin",
+   "img": "/img/people/kim-woo-jin.webp",
+   "credit": {
+    "artist": "Trainholic",
+    "license": "CC BY-SA 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Archery_Kim_Woo-jin.jpg"
+   }
+  },
+  {
+   "id": "Q242673",
+   "name": "박민영",
+   "en": "Park Min-young",
+   "birth": "1986-03-04",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 40,
+   "slug": "park-min-young",
+   "img": "/img/people/park-min-young.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:20250625_Park_Min-young_TAG_Heuer_PhotoCall.jpg"
+   }
+  },
+  {
+   "id": "Q318485",
+   "name": "비",
+   "en": "Rain",
+   "birth": "1982-06-25",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 40,
+   "slug": "rain",
+   "img": "/img/people/rain.webp",
+   "credit": {
+    "artist": "TV10",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Rain_(entertainer)_in_March_2026.png"
+   }
+  },
+  {
+   "id": "Q118002",
+   "name": "빅토르 안",
+   "en": "Viktor Ahn",
+   "birth": "1985-11-23",
+   "job": "빙상 선수",
+   "jobs": [
+    "빙상 선수"
+   ],
+   "links": 40,
+   "slug": "viktor-ahn",
+   "img": "/img/people/viktor-ahn.webp",
+   "credit": {
+    "artist": "Kremlin.ru",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Viktor_Ahn_Sochi_2014.jpg"
+   }
+  },
+  {
+   "id": "Q256932",
+   "name": "손예진",
+   "en": "Son Ye-jin",
+   "birth": "1982-01-11",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 40,
+   "slug": "son-ye-jin",
+   "img": "/img/people/son-ye-jin.webp",
+   "credit": {
+    "artist": "티비텐 TV10",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Son_Ye-jin_at_the_2025_Blue_Dragon_Film_Awards_3.png"
+   }
+  },
+  {
+   "id": "Q10775090",
+   "name": "카이",
+   "en": "",
+   "birth": "1994-01-14",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 40,
+   "slug": "q10775090",
+   "img": "/img/people/q10775090.webp",
+   "credit": {
+    "artist": "티비텐",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:210205_%EC%B9%B4%EC%9D%B4.png"
+   }
+  },
+  {
+   "id": "Q380118",
+   "name": "현빈",
+   "en": "Hyun Bin",
+   "birth": "1982-09-25",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 40,
+   "slug": "hyun-bin",
+   "img": "/img/people/hyun-bin.webp",
+   "credit": {
+    "artist": "John Sears",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Hyun_Bin_at_the_2024_Toronto_International_Film_Festival_2_(cropped).jpg"
+   }
+  },
+  {
+   "id": "Q19603924",
+   "name": "황인범",
+   "en": "Hwang In-beom",
+   "birth": "1996-09-20",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 40,
+   "slug": "hwang-in-beom",
+   "img": "/img/people/hwang-in-beom.webp",
+   "credit": {
+    "artist": "Explicit",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:240611_%EB%8C%80%ED%95%9C%EB%AF%BC%EA%B5%AD_vs_%EC%A4%91%EA%B5%AD_(%ED%99%A9%EC%9D%B8%EB%B2%94).jpg"
+   }
+  },
+  {
+   "id": "Q483683",
+   "name": "CL",
+   "en": "CL",
+   "birth": "1991-02-26",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 40,
+   "slug": "cl",
+   "img": "/img/people/cl.webp",
+   "credit": {
+    "artist": "티비텐",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:CL_%EC%8A%A4%ED%83%80%EC%9D%BC_%EC%96%B4%EC%9B%8C%EC%A6%88_2024_(2).jpg"
+   }
+  },
+  {
+   "id": "Q464574",
+   "name": "김태희",
+   "en": "Kim Tae-hee",
+   "birth": "1980-03-29",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 39,
+   "slug": "kim-tae-hee",
+   "img": "/img/people/kim-tae-hee.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kim_Tae-hee_in_October_2026.png"
+   }
+  },
+  {
+   "id": "Q20063575",
+   "name": "류준열",
+   "en": "Ryu Jun-yeol",
+   "birth": "1986-09-25",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 39,
+   "slug": "ryu-jun-yeol",
+   "img": "/img/people/ryu-jun-yeol.webp",
+   "credit": {
+    "artist": "Republic of Korea",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Ryu_Jun-yeol.jpg"
+   }
+  },
+  {
+   "id": "Q496170",
+   "name": "박산다라",
+   "en": "Sandara Park",
+   "birth": "1984-11-12",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 39,
+   "slug": "sandara-park",
+   "img": "/img/people/sandara-park.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Sandara_Park_Airport_Departure_2022_2_(cropped).jpg"
+   }
+  },
+  {
+   "id": "Q299395",
+   "name": "이루마",
+   "en": "Yiruma",
+   "birth": "1978-02-15",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 39,
+   "slug": "yiruma",
+   "img": "/img/people/yiruma.webp",
+   "credit": {
+    "artist": "Trainholic",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Yiruma_2017_Suwon.jpg"
+   }
+  },
+  {
+   "id": "Q310673",
+   "name": "정대세",
+   "en": "Jong Tae-se",
+   "birth": "1984-03-02",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 39,
+   "slug": "jong-tae-se",
+   "img": "/img/people/jong-tae-se.webp",
+   "credit": {
+    "artist": "Marcello Casal Jr/ABr",
+    "license": "CC BY 3.0 br",
+    "url": "https://commons.wikimedia.org/wiki/File:Jong_Tae-Se.jpg"
+   }
+  },
+  {
+   "id": "Q625128",
+   "name": "지창욱",
+   "en": "Ji Chang-wook",
+   "birth": "1987-07-05",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 39,
+   "slug": "ji-chang-wook",
+   "img": "/img/people/ji-chang-wook.webp",
+   "credit": {
+    "artist": "Republic of Korea",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Ji_Chang-wook.jpg"
+   }
+  },
+  {
+   "id": "Q21060390",
+   "name": "차은우",
+   "en": "Cha Eun-woo",
+   "birth": "1997-03-30",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 39,
+   "slug": "cha-eun-woo",
+   "img": "/img/people/cha-eun-woo.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Cha_Eun-woo,_March_31,_2025.png"
+   }
+  },
+  {
+   "id": "Q348543",
+   "name": "구자철",
+   "en": "Koo Ja-cheol",
+   "birth": "1989-02-27",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 38,
+   "slug": "koo-ja-cheol",
+   "img": "/img/people/koo-ja-cheol.webp",
+   "credit": {
+    "artist": "대한민국 국군 Republic of Korea Armed Forces",
+    "license": "CC BY-SA 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:2012.8.16_%EA%B3%B5%EA%B5%B0,_%EA%B5%AC%EC%9E%90%EC%B2%A0_%EC%84%A0%EC%88%98_%ED%99%8D%EB%B3%B4%EB%8C%80%EC%82%AC%EB%A1%9C_%EC%9C%84%EC%B4%89_Rep.of_Korea_Airforce_(7799743422).jpg"
+   }
+  },
+  {
+   "id": "Q15111667",
+   "name": "도경수",
+   "en": "Doh Kyung-soo",
+   "birth": "1993-01-12",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 38,
+   "slug": "doh-kyung-soo",
+   "img": "/img/people/doh-kyung-soo.webp",
+   "credit": {
+    "artist": "Marie Claire Korea",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:D.O._modeling_for_Marie_Claire_Korea,_August_issue,_2023_(3).jpg"
+   }
+  },
+  {
+   "id": "Q498374",
+   "name": "마동석",
+   "en": "Ma Dong-seok",
+   "birth": "1971-03-01",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 38,
+   "slug": "ma-dong-seok",
+   "img": "/img/people/ma-dong-seok.webp",
+   "credit": {
+    "artist": "Gage Skidmore",
+    "license": "CC BY-SA 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Don_Lee_by_Gage_Skidmore.jpg"
+   }
+  },
+  {
+   "id": "Q10834841",
+   "name": "시우민",
+   "en": "Xiumin",
+   "birth": "1990-03-26",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 38,
+   "slug": "xiumin",
+   "img": "/img/people/xiumin.webp",
+   "credit": {
+    "artist": "티비텐",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Xiumin_at_Billboard_K_POWER_100_on_August_27,_2024.png"
+   }
+  },
+  {
+   "id": "Q487391",
+   "name": "에일리",
+   "en": "Ailee",
+   "birth": "1989-05-30",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 38,
+   "slug": "ailee",
+   "img": "/img/people/ailee.webp",
+   "credit": {
+    "artist": "Kevin Paul",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Ailee_at_Korea_Expo_Los_Angeles_2026-1.jpg"
+   }
+  },
+  {
+   "id": "Q495571",
+   "name": "T.O.P",
+   "en": "T.O.P",
+   "birth": "1987-11-04",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 38,
+   "slug": "t-o-p",
+   "img": "/img/people/t-o-p.webp",
+   "credit": {
+    "artist": "Always Be Pretty",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:T.O.P_-_0.TO.10_in_Seoul_-_2.jpg"
+   }
+  },
+  {
+   "id": "Q496324",
+   "name": "김범",
+   "en": "Kim Bum",
+   "birth": "1989-07-07",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 37,
+   "slug": "kim-bum",
+   "img": "/img/people/kim-bum.webp",
+   "credit": {
+    "artist": "Viu Philippines",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kim_Bum_in_2023_02.jpg"
+   }
+  },
+  {
+   "id": "Q489854",
+   "name": "김현중",
+   "en": "Kim Hyun-joong",
+   "birth": "1986-06-06",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 37,
+   "slug": "kim-hyun-joong",
+   "img": "/img/people/kim-hyun-joong.webp",
+   "credit": {
+    "artist": "뉴스인스타",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:181023_%27%EC%8B%9C%EA%B0%84%EC%9D%B4_%EB%A9%88%EC%B6%94%EB%8A%94_%EA%B7%B8%EB%95%8C%27_%EC%A0%9C%EC%9E%91%EB%B0%9C%ED%91%9C%ED%9A%8C_%EA%B9%80%ED%98%84%EC%A4%91.png"
+   }
+  },
+  {
+   "id": "Q134575",
+   "name": "민호",
+   "en": "Choi Min-ho",
+   "birth": "1991-12-09",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 37,
+   "slug": "choi-min-ho",
+   "img": "/img/people/choi-min-ho.webp",
+   "credit": {
+    "artist": "Marie Claire Korea",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Minho_for_Marie_Claire_Magazine_August_Issue_2021_05.png"
+   }
+  },
+  {
+   "id": "Q269742",
+   "name": "배두나",
+   "en": "Bae Doona",
+   "birth": "1979-10-11",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 37,
+   "slug": "bae-doona",
+   "img": "/img/people/bae-doona.webp",
+   "credit": {
+    "artist": "Elena Ternovaja",
+    "license": "CC BY-SA 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Bae_Doona_at_Berlinale_2026.jpg"
+   }
+  },
+  {
+   "id": "Q233385",
+   "name": "수영",
+   "en": "Sooyoung",
+   "birth": "1990-02-10",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 37,
+   "slug": "sooyoung",
+   "img": "/img/people/sooyoung.webp",
+   "credit": {
+    "artist": "티비텐",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Choi_Sooyoung_LONGCHAMP_2024.jpg"
+   }
+  },
+  {
+   "id": "Q494714",
+   "name": "이동욱",
+   "en": "Lee Dong-wook",
+   "birth": "1981-11-06",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 37,
+   "slug": "lee-dong-wook",
+   "img": "/img/people/lee-dong-wook.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Lee_Dong-wook_20260721.png"
+   }
+  },
+  {
+   "id": "Q130947",
+   "name": "이준기",
+   "en": "Lee Joon-gi",
+   "birth": "1982-04-17",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 37,
+   "slug": "lee-joon-gi",
+   "img": "/img/people/lee-joon-gi.webp",
+   "credit": {
+    "artist": "Viu Indonesia",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:2022_Again_My_Life_Lee_Joon-gi_%EC%9D%B4%EC%A4%80%EA%B8%B0_(2).jpg"
+   }
+  },
+  {
+   "id": "Q217104",
+   "name": "이청용",
+   "en": "Lee Chung-yong",
+   "birth": "1988-07-02",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 37,
+   "slug": "lee-chung-yong",
+   "img": "/img/people/lee-chung-yong.webp",
+   "credit": {
+    "artist": "Explicit",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:260705_FC_%EC%84%9C%EC%9A%B8_vs_%EC%9D%B8%EC%B2%9C_(%EC%9D%B4%EC%B2%AD%EC%9A%A9).jpg"
+   }
+  },
+  {
+   "id": "Q464623",
+   "name": "정수정",
+   "en": "Krystal Jung",
+   "birth": "1994-10-24",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 37,
+   "slug": "krystal-jung",
+   "img": "/img/people/krystal-jung.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Krystal_in_2026.png"
+   }
+  },
+  {
+   "id": "Q346751",
+   "name": "차범근",
+   "en": "Cha Bum-kun",
+   "birth": "1953-05-22",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 37,
+   "slug": "cha-bum-kun",
+   "img": "/img/people/cha-bum-kun.webp",
+   "credit": {
+    "artist": "Nationaal Archief, Den Haag, Rijksfotoarchief: Fotocollectie Algemeen Nederlands",
+    "license": "CC BY-SA 3.0 nl",
+    "url": "https://commons.wikimedia.org/wiki/File:Cha_Bum_Kun.jpg"
+   }
+  },
+  {
+   "id": "Q236355",
+   "name": "티파니 영",
+   "en": "Tiffany Young",
+   "birth": "1989-08-01",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 37,
+   "slug": "tiffany-young",
+   "img": "/img/people/tiffany-young.webp",
+   "credit": {
+    "artist": "sublimitas viii",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:260215_TIFFANY_@33th_Hanteo_Music_Awards_2025_4_(cropped).jpg"
+   }
+  },
+  {
+   "id": "Q19603912",
+   "name": "화사",
+   "en": "Hwasa",
+   "birth": "1995-07-23",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 37,
+   "slug": "hwasa",
+   "img": "/img/people/hwasa.webp",
+   "credit": {
+    "artist": "TV10",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Hwasa_in_January_2026.png"
+   }
+  },
+  {
+   "id": "Q237673",
+   "name": "구혜선",
+   "en": "Koo Hye-sun",
+   "birth": "1984-11-09",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 36,
+   "slug": "koo-hye-sun",
+   "img": "/img/people/koo-hye-sun.webp",
+   "credit": {
+    "artist": "티비텐",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:%EA%B5%AC%ED%98%9C%EC%84%A0_2020.jpg"
+   }
+  },
+  {
+   "id": "Q6408653",
+   "name": "김고은",
+   "en": "Kim Go-eun",
+   "birth": "1991-07-02",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 36,
+   "slug": "kim-go-eun",
+   "img": "/img/people/kim-go-eun.webp",
+   "credit": {
+    "artist": "John Sears",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kim_Go-eun_at_the_2024_Toronto_International_Film_Festival_(cropped).jpg"
+   }
+  },
+  {
+   "id": "Q494154",
+   "name": "박봄",
+   "en": "Park Bom",
+   "birth": "1984-03-24",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 36,
+   "slug": "park-bom",
+   "img": "/img/people/park-bom.webp",
+   "credit": {
+    "artist": "Acrofan",
+    "license": "CC BY-SA 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:2NE1_Park_Bom_from_acrofan_2025.jpg"
+   }
+  },
+  {
+   "id": "Q3788246",
+   "name": "수현",
+   "en": "Claudia Kim",
+   "birth": "1985-01-25",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 36,
+   "slug": "claudia-kim",
+   "img": "/img/people/claudia-kim.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Claudia_Kim_in_August_2024_02.png"
+   }
+  },
+  {
+   "id": "Q314728",
+   "name": "이운재",
+   "en": "Lee Woon-jae",
+   "birth": "1973-04-26",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 36,
+   "slug": "lee-woon-jae",
+   "img": "/img/people/lee-woon-jae.webp",
+   "credit": {
+    "artist": "신유식",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Lee_Woon-Jae.jpg"
+   }
+  },
+  {
+   "id": "Q56476186",
+   "name": "장원영",
+   "en": "Jang Won-young",
+   "birth": "2004-08-31",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 36,
+   "slug": "jang-won-young",
+   "img": "/img/people/jang-won-young.webp",
+   "credit": {
+    "artist": "Ten Asia",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:051226_Jang_Won-young_airport_departure_(2).jpg"
+   }
+  },
+  {
+   "id": "Q486320",
+   "name": "김유정",
+   "en": "Kim You-jung",
+   "birth": "1990-09-22",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 35,
+   "slug": "kim-you-jung",
+   "img": "/img/people/kim-you-jung.webp",
+   "credit": {
+    "artist": "TV10",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kim_Yoo-jung_in_October_2025_02.png"
+   }
+  },
+  {
+   "id": "Q240082",
+   "name": "서현",
+   "en": "Seo Joo-hyun",
+   "birth": "1991-06-28",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 35,
+   "slug": "seo-joo-hyun",
+   "img": "/img/people/seo-joo-hyun.webp",
+   "credit": {
+    "artist": "SparkleS805",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Seohyun_at_Incheon_International_Airport_in_February_2019_(1).jpg"
+   }
+  },
+  {
+   "id": "Q491013",
+   "name": "윤여정",
+   "en": "Youn Yuh-jung",
+   "birth": "1947-06-19",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 35,
+   "slug": "youn-yuh-jung",
+   "img": "/img/people/youn-yuh-jung.webp",
+   "credit": {
+    "artist": "TV10",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Youn_Yuh-jung_in_February_2026.png"
+   }
+  },
+  {
+   "id": "Q494266",
+   "name": "이근호",
+   "en": "Lee Keun-ho",
+   "birth": "1985-04-11",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 35,
+   "slug": "lee-keun-ho",
+   "img": "/img/people/lee-keun-ho.webp",
+   "credit": {
+    "artist": "Explicit",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:230819_FC_%EC%84%9C%EC%9A%B8_vs_%EB%8C%80%EA%B5%AC_FC_(%EC%9D%B4%EA%B7%BC%ED%98%B8).jpg"
+   }
+  },
+  {
+   "id": "Q232491",
+   "name": "이효리",
+   "en": "Lee Hyori",
+   "birth": "1979-02-19",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 35,
+   "slug": "lee-hyori",
+   "img": "/img/people/lee-hyori.webp",
+   "credit": {
+    "artist": "Marie Claire Korea",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Lee_Hyori_in_May_2025_01.png"
+   }
+  },
+  {
+   "id": "Q25374501",
+   "name": "정연",
+   "en": "Yoo Jeong-yeon",
+   "birth": "1996-11-01",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 35,
+   "slug": "yoo-jeong-yeon",
+   "img": "/img/people/yoo-jeong-yeon.webp",
+   "credit": {
+    "artist": "Caroline Charruyer",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:260306_Twice_Hamilton_Jeongyeon_%ED%8A%B8%EC%99%80%EC%9D%B4%EC%8A%A4_%EC%A0%95%EC%97%B0_(5)_(cropped).jpg"
+   }
+  },
+  {
+   "id": "Q310971",
+   "name": "차두리",
+   "en": "Cha Du-ri",
+   "birth": "1980-07-25",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 35,
+   "slug": "cha-du-ri",
+   "img": "/img/people/cha-du-ri.webp",
+   "credit": {
+    "artist": "Alasdair Middleton from Rothesay, Scotland",
+    "license": "CC BY 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Cha_Du-Ri_-_celtic.jpg"
+   }
+  },
+  {
+   "id": "Q24043625",
+   "name": "채영",
+   "en": "Son Chaeyoung",
+   "birth": "1999-04-23",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 35,
+   "slug": "son-chaeyoung",
+   "img": "/img/people/son-chaeyoung.webp",
+   "credit": {
+    "artist": "시간은금!",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Chaeyoung_at_Gaon_Awards_red_carpet_on_January_23,_2019.jpg"
+   }
+  },
+  {
+   "id": "Q44260",
+   "name": "하지원",
+   "en": "Ha Ji-won",
+   "birth": "1978-06-28",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 35,
+   "slug": "ha-ji-won",
+   "img": "/img/people/ha-ji-won.webp",
+   "credit": {
+    "artist": "티비텐 TV10",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:20250915_Ha_Jiwon(%ED%95%98%EC%A7%80%EC%9B%90).png"
+   }
+  },
+  {
+   "id": "Q65345",
+   "name": "김소현",
+   "en": "Kim So-hyun",
+   "birth": "1999-06-04",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 34,
+   "slug": "kim-so-hyun",
+   "img": "/img/people/kim-so-hyun.webp",
+   "credit": {
+    "artist": "TV10",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kim_So-hyun_in_October_2025.png"
+   }
+  },
+  {
+   "id": "Q6409355",
+   "name": "김승규",
+   "en": "Kim Seung-gyu",
+   "birth": "1990-09-30",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 34,
+   "slug": "kim-seung-gyu",
+   "img": "/img/people/kim-seung-gyu.webp",
+   "credit": {
+    "artist": "Manri Cheon",
+    "license": "CC BY 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kim_Seung-Gyu.jpg"
+   }
+  },
+  {
+   "id": "Q2680695",
+   "name": "김지원",
+   "en": "Kim Ji-won",
+   "birth": "1992-10-19",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 34,
+   "slug": "kim-ji-won",
+   "img": "/img/people/kim-ji-won.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇 TV10",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kim_Jiwon_%EA%B9%80%EC%A7%80%EC%9B%90_Airport_Departure_May_2025.png"
+   }
+  },
+  {
+   "id": "Q211698",
+   "name": "박주호",
+   "en": "Park Joo-ho",
+   "birth": "1987-01-16",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 34,
+   "slug": "park-joo-ho",
+   "img": "/img/people/park-joo-ho.webp",
+   "credit": {
+    "artist": "Антон Зайцев",
+    "license": "CC BY-SA 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Park_Joo-Ho_2018.jpg"
+   }
+  },
+  {
+   "id": "Q312512",
+   "name": "이영표",
+   "en": "Lee Young-pyo",
+   "birth": "1977-04-23",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 34,
+   "slug": "lee-young-pyo",
+   "img": "/img/people/lee-young-pyo.webp",
+   "credit": {
+    "artist": "Lord Bob",
+    "license": "CC0",
+    "url": "https://commons.wikimedia.org/wiki/File:Leeyoungpyo.jpg"
+   }
+  },
+  {
+   "id": "Q350199",
+   "name": "정성룡",
+   "en": "Jung Sung-ryong",
+   "birth": "1985-01-04",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 34,
+   "slug": "jung-sung-ryong",
+   "img": "/img/people/jung-sung-ryong.webp",
+   "credit": {
+    "artist": "Camw",
+    "license": "CC BY-SA 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Jung_Sung-Ryong.jpg"
+   }
+  },
+  {
+   "id": "Q484575",
+   "name": "최민식",
+   "en": "Choi Min-sik",
+   "birth": "1962-04-27",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 34,
+   "slug": "choi-min-sik",
+   "img": "/img/people/choi-min-sik.webp",
+   "credit": {
+    "artist": "che (Please credit as \"Petr Novák, Wikipedia\" in case you use this outside Wikim",
+    "license": "CC BY-SA 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Choi_Min-sik.jpg"
+   }
+  },
+  {
+   "id": "Q153597",
+   "name": "태민",
+   "en": "Lee Taemin",
+   "birth": "1993-07-18",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 34,
+   "slug": "lee-taemin",
+   "img": "/img/people/lee-taemin.webp",
+   "credit": {
+    "artist": "marie claire korea",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:TAEMIN_AT_BST_HYDE_PARK_FESTIVAL(260729).png"
+   }
+  },
+  {
+   "id": "Q356065",
+   "name": "김남일",
+   "en": "Kim Nam-il",
+   "birth": "1977-03-14",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 33,
+   "slug": "kim-nam-il",
+   "img": "/img/people/kim-nam-il.webp",
+   "credit": {
+    "artist": "Amarhgil",
+    "license": "CC BY-SA 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kim_Nam-Il_IMG_2896.jpg"
+   }
+  },
+  {
+   "id": "Q368408",
+   "name": "김보경",
+   "en": "Kim Bo-kyung",
+   "birth": "1989-10-06",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 33,
+   "slug": "kim-bo-kyung",
+   "img": "/img/people/kim-bo-kyung.webp",
+   "credit": {
+    "artist": "Jon Candy",
+    "license": "CC BY-SA 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kim_Bo_Kyung_(cropped).jpg"
+   }
+  },
+  {
+   "id": "Q5356443",
+   "name": "김우빈",
+   "en": "Kim Woo-bin",
+   "birth": "1989-07-16",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 33,
+   "slug": "kim-woo-bin",
+   "img": "/img/people/kim-woo-bin.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kim_Woo-bin_in_2026.png"
+   }
+  },
+  {
+   "id": "Q17500112",
+   "name": "남주혁",
+   "en": "Nam Joo-hyuk",
+   "birth": "1994-02-22",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 33,
+   "slug": "nam-joo-hyuk",
+   "img": "/img/people/nam-joo-hyuk.webp",
+   "credit": {
+    "artist": "beautypl",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:2017_%EB%82%A8%EC%A3%BC%ED%98%81_05.png"
+   }
+  },
+  {
+   "id": "Q12597820",
+   "name": "백승호",
+   "en": "Paik Seung-ho",
+   "birth": "1997-03-17",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 33,
+   "slug": "paik-seung-ho",
+   "img": "/img/people/paik-seung-ho.webp",
+   "credit": {
+    "artist": "Nori Picture",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:190608_%EC%98%A4%ED%94%88_%ED%8A%B8%EB%A0%88%EC%9D%B4%EB%8B%9D_%EB%8D%B0%EC%9D%B4_%EB%B0%B1%EC%8A%B9%ED%98%B8_1.jpg"
+   }
+  },
+  {
+   "id": "Q428490",
+   "name": "승리",
+   "en": "Seungri",
+   "birth": "1990-12-12",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 33,
+   "slug": "seungri",
+   "img": "/img/people/seungri.webp",
+   "credit": {
+    "artist": "NINE STARS",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:181001_%EC%8A%B9%EB%A6%AC_02.png"
+   }
+  },
+  {
+   "id": "Q276158",
+   "name": "유리",
+   "en": "Kwon Yu-ri",
+   "birth": "1989-12-05",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 33,
+   "slug": "kwon-yu-ri",
+   "img": "/img/people/kwon-yu-ri.webp",
+   "credit": {
+    "artist": "sublimitas viii",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:260426_YURI_@_THE_WASP_(Theatre)_Final_performance_as_Carla.jpg"
+   }
+  },
+  {
+   "id": "Q16234741",
+   "name": "이재성",
+   "en": "Lee Jae-sung",
+   "birth": "1992-08-10",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 33,
+   "slug": "lee-jae-sung",
+   "img": "/img/people/lee-jae-sung.webp",
+   "credit": {
+    "artist": "GOAL TV",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:%EC%9D%B4%EC%9E%AC%EC%84%B1_(%EC%B6%95%EA%B5%AC_%EC%84%A0%EC%88%98).jpg"
+   }
+  },
+  {
+   "id": "Q69696822",
+   "name": "조규성",
+   "en": "Cho Gue-sung",
+   "birth": "1998-01-25",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 33,
+   "slug": "cho-gue-sung",
+   "img": "/img/people/cho-gue-sung.webp",
+   "credit": {
+    "artist": "Nori Picture",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:191130_%EB%B6%80%EC%82%B0%EC%95%84%EC%9D%B4%ED%8C%8C%ED%81%AC_VS_FC%EC%95%88%EC%96%91_%ED%94%8C%EB%A0%88%EC%9D%B4%EC%98%A4%ED%94%84,_%EC%A1%B0%EA%B7%9C%EC%84%B1_2.jpg"
+   }
+  },
+  {
+   "id": "Q371788",
+   "name": "지동원",
+   "en": "Ji Dong-won",
+   "birth": "1991-05-28",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 33,
+   "slug": "ji-dong-won",
+   "img": "/img/people/ji-dong-won.webp",
+   "credit": {
+    "artist": "FC SEOUL",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:%EC%A7%80%EB%8F%99%EC%9B%90%EC%9D%98_FC%EC%84%9C%EC%9A%B8_%EC%9E%85%EB%8B%A8_%EC%B2%AB_%EC%9D%B8%ED%84%B0%EB%B7%B0.jpg"
+   }
+  },
+  {
+   "id": "Q350215",
+   "name": "김정우",
+   "en": "Kim Jung-woo",
+   "birth": "1982-05-09",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 32,
+   "slug": "kim-jung-woo",
+   "img": "/img/people/kim-jung-woo.webp",
+   "credit": {
+    "artist": "Alexchen4836",
+    "license": "CC BY-SA 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kim_Jung-Woo.JPG"
+   }
+  },
+  {
+   "id": "Q107619893",
+   "name": "김제덕",
+   "en": "Kim Je-deok",
+   "birth": "2004-04-12",
+   "job": "양궁 선수",
+   "jobs": [
+    "양궁 선수"
+   ],
+   "links": 32,
+   "slug": "kim-je-deok",
+   "img": "/img/people/kim-je-deok.webp",
+   "credit": {
+    "artist": "Trainholic",
+    "license": "CC BY-SA 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Archery_Kim_Je-deok.jpg"
+   }
+  },
+  {
+   "id": "Q18732317",
+   "name": "박해수",
+   "en": "Park Hae-soo",
+   "birth": "1981-11-21",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 32,
+   "slug": "park-hae-soo",
+   "img": "/img/people/park-hae-soo.webp",
+   "credit": {
+    "artist": "Marie Claire Korea",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:20221012_Park_Hae-soo_(%EB%B0%95%ED%95%B4%EC%88%98)_BIFF_Asia_Star_Awards_(1)_cropped.jpg"
+   }
+  },
+  {
+   "id": "Q41777221",
+   "name": "송강",
+   "en": "Song Kang",
+   "birth": "1994-04-23",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 32,
+   "slug": "song-kang",
+   "img": "/img/people/song-kang.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Song_Kang_in_March_2026.png"
+   }
+  },
+  {
+   "id": "Q497404",
+   "name": "신태용",
+   "en": "Shin Tae-yong",
+   "birth": "1970-10-11",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 32,
+   "slug": "shin-tae-yong",
+   "img": "/img/people/shin-tae-yong.webp",
+   "credit": {
+    "artist": "SE Asian Football",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:%EC%8B%A0%ED%83%9C%EC%9A%A9_(Shin_Tae-yong).jpg"
+   }
+  },
+  {
+   "id": "Q233894",
+   "name": "써니",
+   "en": "Sunny",
+   "birth": "1989-05-15",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 32,
+   "slug": "sunny",
+   "img": "/img/people/sunny.webp",
+   "credit": {
+    "artist": "Spes Sublimitas",
+    "license": "CC BY-SA 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:220820_Sunny_@SM_TOWN.jpg"
+   }
+  },
+  {
+   "id": "Q19940498",
+   "name": "예리",
+   "en": "Yeri",
+   "birth": "1999-03-05",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 32,
+   "slug": "yeri",
+   "img": "/img/people/yeri.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:240511_Red_Velvet_Yeri.jpg"
+   }
+  },
+  {
+   "id": "Q63344470",
+   "name": "오현규",
+   "en": "Oh Hyeon-gyu",
+   "birth": "2001-04-12",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 32,
+   "slug": "oh-hyeon-gyu"
+  },
+  {
+   "id": "Q489930",
+   "name": "유아인",
+   "en": "Yoo Ah-in",
+   "birth": "1986-10-06",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 32,
+   "slug": "yoo-ah-in",
+   "img": "/img/people/yoo-ah-in.webp",
+   "credit": {
+    "artist": "NewsInStar",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Yoo_Ah-In_%EC%9C%A0%EC%95%84%EC%9D%B8_20181206.jpg"
+   }
+  },
+  {
+   "id": "Q347423",
+   "name": "이동국",
+   "en": "Lee Dong-gook",
+   "birth": "1979-04-29",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 32,
+   "slug": "lee-dong-gook",
+   "img": "/img/people/lee-dong-gook.webp",
+   "credit": {
+    "artist": "GOAL TV",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:%EC%9D%B4%EB%8F%99%EA%B5%AD_2020%EB%85%84.jpg"
+   }
+  },
+  {
+   "id": "Q32049",
+   "name": "장근석",
+   "en": "Jang Keun-suk",
+   "birth": "1987-08-04",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 32,
+   "slug": "jang-keun-suk",
+   "img": "/img/people/jang-keun-suk.webp",
+   "credit": {
+    "artist": "TV10",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Jang_Keun-suk_in_December_2025.png"
+   }
+  },
+  {
+   "id": "Q168448",
+   "name": "장현수",
+   "en": "Jang Hyun-soo",
+   "birth": "1991-09-28",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 32,
+   "slug": "jang-hyun-soo",
+   "img": "/img/people/jang-hyun-soo.webp",
+   "credit": {
+    "artist": "Светлана Бекетова",
+    "license": "CC BY-SA 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Mex-Kor_(37)_(cropped)_2.jpg"
+   }
+  },
+  {
+   "id": "Q22910214",
+   "name": "전소미",
+   "en": "Jeon Somi",
+   "birth": "2001-03-09",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 32,
+   "slug": "jeon-somi",
+   "img": "/img/people/jeon-somi.webp",
+   "credit": {
+    "artist": "f2.8",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:20170610_%EC%A0%84%EC%86%8C%EB%AF%B8_%EC%84%9C%EB%93%A0%EC%96%B4%ED%83%9D_%EB%AF%B8%EB%8B%88%ED%8C%AC%EB%AF%B8%ED%8C%85_(2)_(cropped).jpg"
+   }
+  },
+  {
+   "id": "Q233739",
+   "name": "제나 우슈코비츠",
+   "en": "Jenna Ushkowitz",
+   "birth": "1986-04-28",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 32,
+   "slug": "jenna-ushkowitz",
+   "img": "/img/people/jenna-ushkowitz.webp",
+   "credit": {
+    "artist": "Gage Skidmore",
+    "license": "CC BY-SA 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Jenna_Ushkowitz_Skidmore_2011_crop.jpg"
+   }
+  },
+  {
+   "id": "Q483563",
+   "name": "지연",
+   "en": "Park Ji-yeon",
+   "birth": "1993-06-07",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 32,
+   "slug": "park-ji-yeon",
+   "img": "/img/people/park-ji-yeon.webp",
+   "credit": {
+    "artist": "photomami",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:170614_T-ARA_Park_Ji-yeon_at_What%27s_My_Name_Showcase.jpg"
+   }
+  },
+  {
+   "id": "Q259409",
+   "name": "고아라",
+   "en": "Go Ara",
+   "birth": "1990-02-11",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 31,
+   "slug": "go-ara",
+   "img": "/img/people/go-ara.webp",
+   "credit": {
+    "artist": "Marie Claire Korea",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Go_Ara_in_December_2020.png"
+   }
+  },
+  {
+   "id": "Q169717",
+   "name": "김재중",
+   "en": "Kim Jae-joong",
+   "birth": "1986-01-26",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 31,
+   "slug": "kim-jae-joong",
+   "img": "/img/people/kim-jae-joong.webp",
+   "credit": {
+    "artist": "뉴스인스타",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:180611_%EA%B9%80%EC%9E%AC%EC%A4%91.jpg"
+   }
+  },
+  {
+   "id": "Q492597",
+   "name": "김진수",
+   "en": "Kim Jin-su",
+   "birth": "1992-06-13",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 31,
+   "slug": "kim-jin-su",
+   "img": "/img/people/kim-jin-su.webp",
+   "credit": {
+    "artist": "Explicit",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:240611_%EB%8C%80%ED%95%9C%EB%AF%BC%EA%B5%AD_vs_%EC%A4%91%EA%B5%AD_(%EA%B9%80%EC%A7%84%EC%88%98).jpg"
+   }
+  },
+  {
+   "id": "Q18700040",
+   "name": "박소담",
+   "en": "Park So-dam",
+   "birth": "1991-09-08",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 31,
+   "slug": "park-so-dam",
+   "img": "/img/people/park-so-dam.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇 TV10",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Park_So-dam_%EB%B0%95%EC%86%8C%EB%8B%B4_2022.jpg"
+   }
+  },
+  {
+   "id": "Q316523",
+   "name": "박태환",
+   "en": "Park Tae-Hwan",
+   "birth": "1989-09-27",
+   "job": "수영 선수",
+   "jobs": [
+    "수영 선수"
+   ],
+   "links": 31,
+   "slug": "park-tae-hwan",
+   "img": "/img/people/park-tae-hwan.webp",
+   "credit": {
+    "artist": "JD Lasica from Pleasanton, CA, US",
+    "license": "CC BY 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Taehwan_Park_(7470701988).jpg"
+   }
+  },
+  {
+   "id": "Q10802388",
+   "name": "세훈",
+   "en": "Oh Se-hun",
+   "birth": "1994-04-12",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 31,
+   "slug": "oh-se-hun",
+   "img": "/img/people/oh-se-hun.webp",
+   "credit": {
+    "artist": "L'OFFICIEL KOREA",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Sehun_for_L%27Officiel_Korea_2020_02.png"
+   }
+  },
+  {
+   "id": "Q318757",
+   "name": "이천수",
+   "en": "Lee Chun-soo",
+   "birth": "1981-07-09",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 31,
+   "slug": "lee-chun-soo",
+   "img": "/img/people/lee-chun-soo.webp",
+   "credit": {
+    "artist": "ⓒ블루포토 홍준기",
+    "license": "CC BY-SA 2.0 kr",
+    "url": "https://commons.wikimedia.org/wiki/File:Lee_Chun-Soo.jpg"
+   }
+  },
+  {
+   "id": "Q314086",
+   "name": "임동현",
+   "en": "Im Dong-hyun",
+   "birth": "1986-05-12",
+   "job": "양궁 선수",
+   "jobs": [
+    "양궁 선수"
+   ],
+   "links": 31,
+   "slug": "im-dong-hyun",
+   "img": "/img/people/im-dong-hyun.webp",
+   "credit": {
+    "artist": "https://www.flickr.com/photos/ianpatterson/",
+    "license": "CC BY 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Archery_at_the_2012_Summer_Olympics_%E2%80%93_Men%27s_Team_%E2%80%93_Im_Dong-Hyun.jpg"
+   }
+  },
+  {
+   "id": "Q494190",
+   "name": "장나라",
+   "en": "Jang Na-ra",
+   "birth": "1981-03-18",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 31,
+   "slug": "jang-na-ra",
+   "img": "/img/people/jang-na-ra.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Jang_Na-ra_in_July_2024.png"
+   }
+  },
+  {
+   "id": "Q16262298",
+   "name": "장혜진",
+   "en": "Chang Hye-jin",
+   "birth": "1987-05-13",
+   "job": "양궁 선수",
+   "jobs": [
+    "양궁 선수"
+   ],
+   "links": 31,
+   "slug": "chang-hye-jin",
+   "img": "/img/people/chang-hye-jin.webp",
+   "credit": {
+    "artist": "Sam Bryant",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Jinjanghye.jpg"
+   }
+  },
+  {
+   "id": "Q26707915",
+   "name": "전소연",
+   "en": "Jeon Soyeon",
+   "birth": "1998-08-26",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 31,
+   "slug": "jeon-soyeon",
+   "img": "/img/people/jeon-soyeon.webp",
+   "credit": {
+    "artist": "News in Star",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:0226_(%EC%97%AC%EC%9E%90)%EC%95%84%EC%9D%B4%EB%93%A4_%EC%86%8C%EC%97%B0_%ED%8F%AC%EC%BB%A4%EC%8A%A4%26%EC%84%B8%EB%A1%9C%EC%BA%A0,_2nd_%EB%AF%B8%EB%8B%88%EC%95%A8%EB%B2%94_%27I_made%27_%EC%87%BC%EC%BC%80%EC%9D%B4%EC%8A%A4_%ED%8F%AC%ED%86%A0%ED%83%80%EC%9E%84_(derived).jpg"
+   }
+  },
+  {
+   "id": "Q17484113",
+   "name": "조이",
+   "en": "Joy",
+   "birth": "1996-09-03",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 31,
+   "slug": "joy",
+   "img": "/img/people/joy.webp",
+   "credit": {
+    "artist": "Hey Day",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Joy_Park_at_INK_Concert_in_September_01,_2018_(8).jpg"
+   }
+  },
+  {
+   "id": "Q15622446",
+   "name": "조현우",
+   "en": "Jo Hyeon-woo",
+   "birth": "1991-09-25",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 31,
+   "slug": "jo-hyeon-woo",
+   "img": "/img/people/jo-hyeon-woo.webp",
+   "credit": {
+    "artist": "Explicit",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:260726_FC_%EC%84%9C%EC%9A%B8_vs_%EC%9A%B8%EC%82%B0_(%EC%A1%B0%ED%98%84%EC%9A%B0).jpg"
+   }
+  },
+  {
+   "id": "Q16098027",
+   "name": "첸",
+   "en": "Chen",
+   "birth": "1992-09-21",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 31,
+   "slug": "chen",
+   "img": "/img/people/chen.webp",
+   "credit": {
+    "artist": "티비텐",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Chen_at_Billboard_K_POWER_100_on_August_27,_2024.png"
+   }
+  },
+  {
+   "id": "Q253619",
+   "name": "효연",
+   "en": "Kim Hyo-yeon",
+   "birth": "1989-09-22",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 31,
+   "slug": "kim-hyo-yeon",
+   "img": "/img/people/kim-hyo-yeon.webp",
+   "credit": {
+    "artist": "티비텐",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:20220323_%EC%86%8C%EB%85%80%EC%8B%9C%EB%8C%80_%ED%9A%A8%EC%97%B0.jpg"
+   }
+  },
+  {
+   "id": "Q483842",
+   "name": "공민지",
+   "en": "Minzy",
+   "birth": "1994-01-18",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 30,
+   "slug": "minzy",
+   "img": "/img/people/minzy.webp",
+   "credit": {
+    "artist": "CBSJOY",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Minzy_CBS_Joy_2018.png"
+   }
+  },
+  {
+   "id": "Q482839",
+   "name": "기보배",
+   "en": "Ki Bo-bae",
+   "birth": "1988-02-20",
+   "job": "양궁 선수",
+   "jobs": [
+    "양궁 선수"
+   ],
+   "links": 30,
+   "slug": "ki-bo-bae",
+   "img": "/img/people/ki-bo-bae.webp",
+   "credit": {
+    "artist": "Korea.net / Korean Culture and Information Service (Korean Olympic Committee)",
+    "license": "CC BY-SA 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Korea_Olympic_KiBobae_01_(7730588128).jpg"
+   }
+  },
+  {
+   "id": "Q464372",
+   "name": "김소연",
+   "en": "Kim So-yeon",
+   "birth": "1980-11-02",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 30,
+   "slug": "kim-so-yeon",
+   "img": "/img/people/kim-so-yeon.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kim_So-yeon_in_October_2024_02.png"
+   }
+  },
+  {
+   "id": "Q26214034",
+   "name": "김청하",
+   "en": "Chungha",
+   "birth": "1996-02-09",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 30,
+   "slug": "chungha",
+   "img": "/img/people/chungha.webp",
+   "credit": {
+    "artist": "Marie Claire Korea",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Chung_Ha_in_March_2025.png"
+   }
+  },
+  {
+   "id": "Q12596240",
+   "name": "민아",
+   "en": "Bang Min-ah",
+   "birth": "1993-05-13",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 30,
+   "slug": "bang-min-ah",
+   "img": "/img/people/bang-min-ah.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Bang_Minah_in_February_2023.png"
+   }
+  },
+  {
+   "id": "Q490918",
+   "name": "박보영",
+   "en": "Park Bo-young",
+   "birth": "1990-02-12",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 30,
+   "slug": "park-bo-young",
+   "img": "/img/people/park-bo-young.webp",
+   "credit": {
+    "artist": "티비텐 TV10",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:2026-05-08_Baeksang_Arts_Awards_red_carpet_02_(cropped).jpg"
+   }
+  },
+  {
+   "id": "Q96189818",
+   "name": "박지후",
+   "en": "Park Ji-hu",
+   "birth": "2003-11-07",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 30,
+   "slug": "park-ji-hu",
+   "img": "/img/people/park-ji-hu.webp",
+   "credit": {
+    "artist": "Marie Claire Korea",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Park_Jihoo_2022_2.png"
+   }
+  },
+  {
+   "id": "Q16181177",
+   "name": "서예지",
+   "en": "Seo Yea-ji",
+   "birth": "1990-04-06",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 30,
+   "slug": "seo-yea-ji",
+   "img": "/img/people/seo-yea-ji.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Seo_Yea-ji_in_August_2024.png"
+   }
+  },
+  {
+   "id": "Q491648",
+   "name": "서인국",
+   "en": "Seo In-guk",
+   "birth": "1987-10-23",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 30,
+   "slug": "seo-in-guk",
+   "img": "/img/people/seo-in-guk.webp",
+   "credit": {
+    "artist": "Marie Claire Korea",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Seo_In-Guk_210601.png"
+   }
+  },
+  {
+   "id": "Q211691",
+   "name": "석현준",
+   "en": "Suk Hyun-jun",
+   "birth": "1991-06-29",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 30,
+   "slug": "suk-hyun-jun",
+   "img": "/img/people/suk-hyun-jun.webp",
+   "credit": {
+    "artist": "ESTAC Troyes",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Suk_Hyun-jun_(2020).jpg"
+   }
+  },
+  {
+   "id": "Q624995",
+   "name": "선미",
+   "en": "",
+   "birth": "1992-05-02",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 30,
+   "slug": "q624995",
+   "img": "/img/people/q624995.webp",
+   "credit": {
+    "artist": "티비텐",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Lee_Sunmi_%EC%9D%B4%EC%84%A0%EB%AF%B8_2024_06.jpg"
+   }
+  },
+  {
+   "id": "Q484965",
+   "name": "송지효",
+   "en": "Song Ji-hyo",
+   "birth": "1981-08-15",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 30,
+   "slug": "song-ji-hyo",
+   "img": "/img/people/song-ji-hyo.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Song_Ji-hyo_in_December_2024.png"
+   }
+  },
+  {
+   "id": "Q484165",
+   "name": "이수만",
+   "en": "Lee Soo-man",
+   "birth": "1952-06-18",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 30,
+   "slug": "lee-soo-man",
+   "img": "/img/people/lee-soo-man.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Lee_Soo-man_in_2024.jpg"
+   }
+  },
+  {
+   "id": "Q180941",
+   "name": "정우영",
+   "en": "Jung Woo-young",
+   "birth": "1989-12-14",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 30,
+   "slug": "jung-woo-young",
+   "img": "/img/people/jung-woo-young.webp",
+   "credit": {
+    "artist": "Дмитрий Голубович",
+    "license": "CC BY-SA 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Rus-SK2017_(19)_(cropped).jpg"
+   }
+  },
+  {
+   "id": "Q379517",
+   "name": "진종오",
+   "en": "Jin Jong-oh",
+   "birth": "1979-09-24",
+   "job": "운동선수",
+   "jobs": [
+    "운동선수"
+   ],
+   "links": 30,
+   "slug": "jin-jong-oh",
+   "img": "/img/people/jin-jong-oh.webp",
+   "credit": {
+    "artist": "Korea.net / Korean Culture and Information Service (Korean Olympic Committee)",
+    "license": "CC BY-SA 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:KOCIS_London_Korea_Jinjongoh_Shooting_06_(7683325808).jpg"
+   }
+  },
+  {
+   "id": "Q140099",
+   "name": "함은정",
+   "en": "Hahm Eun-jung",
+   "birth": "1988-12-12",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 30,
+   "slug": "hahm-eun-jung",
+   "img": "/img/people/hahm-eun-jung.webp",
+   "credit": {
+    "artist": "photomami",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:170614_T-ARA_40.jpg"
+   }
+  },
+  {
+   "id": "Q483065",
+   "name": "황선홍",
+   "en": "Hwang Sun-hong",
+   "birth": "1968-07-14",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 30,
+   "slug": "hwang-sun-hong",
+   "img": "/img/people/hwang-sun-hong.webp",
+   "credit": {
+    "artist": "Explicit",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:260815_FC_%EC%84%9C%EC%9A%B8_vs_%EB%8C%80%EC%A0%84_(%ED%99%A9%EC%84%A0%ED%99%8D).jpg"
+   }
+  },
+  {
+   "id": "Q37565564",
+   "name": "김선호",
+   "en": "Kim Seon-ho",
+   "birth": "1986-05-08",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 29,
+   "slug": "kim-seon-ho",
+   "img": "/img/people/kim-seon-ho.webp",
+   "credit": {
+    "artist": "@_TV10",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kim_Seon-ho_Bottega_2026_A.jpg"
+   }
+  },
+  {
+   "id": "Q16173210",
+   "name": "김설현",
+   "en": "Kim Seolhyun",
+   "birth": "1995-01-03",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 29,
+   "slug": "kim-seolhyun",
+   "img": "/img/people/kim-seolhyun.webp",
+   "credit": {
+    "artist": "yooop",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:16.06.11_AOA_Mini_Live_Good_Luck_to_ELVIS_4.jpg"
+   }
+  },
+  {
+   "id": "Q19483782",
+   "name": "문별",
+   "en": "Moonbyul",
+   "birth": "1992-12-22",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 29,
+   "slug": "moonbyul",
+   "img": "/img/people/moonbyul.webp",
+   "credit": {
+    "artist": "open!sesame",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Mamamoo_Moonbyul_240324.jpg"
+   }
+  },
+  {
+   "id": "Q429046",
+   "name": "박재범",
+   "en": "Jay Park",
+   "birth": "1987-04-25",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 29,
+   "slug": "jay-park",
+   "img": "/img/people/jay-park.webp",
+   "credit": {
+    "artist": "Tourism.Victoria",
+    "license": "CC BY 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Jay_Park_in_Flinders_Street_Station,_in_September_2012.png"
+   }
+  },
+  {
+   "id": "Q107618974",
+   "name": "안산",
+   "en": "An San",
+   "birth": "2001-02-27",
+   "job": "양궁 선수",
+   "jobs": [
+    "양궁 선수"
+   ],
+   "links": 29,
+   "slug": "an-san",
+   "img": "/img/people/an-san.webp",
+   "credit": {
+    "artist": "Trainholic",
+    "license": "CC BY-SA 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Archery_An_San.jpg"
+   }
+  },
+  {
+   "id": "Q483633",
+   "name": "안소희",
+   "en": "Sohee",
+   "birth": "1992-06-27",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 29,
+   "slug": "sohee",
+   "img": "/img/people/sohee.webp",
+   "credit": {
+    "artist": "NINE STARS",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:20180830%E2%80%94Ahn_So-hee_%EC%95%88%EC%86%8C%ED%9D%AC,_Chanel_event,_Seongsu-dong,_Seoul,_South_Korea,_screenshot_(00m41s).jpg"
+   }
+  },
+  {
+   "id": "Q490938",
+   "name": "양현석",
+   "en": "Yang Hyun-suk",
+   "birth": "1970-01-09",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 29,
+   "slug": "yang-hyun-suk",
+   "img": "/img/people/yang-hyun-suk.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:161110_%EC%96%91%ED%98%84%EC%84%9D.png"
+   }
+  },
+  {
+   "id": "Q356839",
+   "name": "오범석",
+   "en": "Oh Beom-seok",
+   "birth": "1984-07-29",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 29,
+   "slug": "oh-beom-seok",
+   "img": "/img/people/oh-beom-seok.webp",
+   "credit": {
+    "artist": "Camw",
+    "license": "CC BY-SA 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Oh_Beom-Seok.jpg"
+   }
+  },
+  {
+   "id": "Q55737623",
+   "name": "위하준",
+   "en": "Wi  Ha-jun",
+   "birth": "1991-08-05",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 29,
+   "slug": "wi-ha-jun",
+   "img": "/img/people/wi-ha-jun.webp",
+   "credit": {
+    "artist": "ELLE TAIWAN",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Wi_Ha-joon_September_2021.png"
+   }
+  },
+  {
+   "id": "Q485905",
+   "name": "유재석",
+   "en": "Yoo Jae-suk",
+   "birth": "1972-08-14",
+   "job": "코미디언",
+   "jobs": [
+    "코미디언"
+   ],
+   "links": 29,
+   "slug": "yoo-jae-suk",
+   "img": "/img/people/yoo-jae-suk.webp",
+   "credit": {
+    "artist": "Republic of Korea",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Yoo_Jae-suk.jpg"
+   }
+  },
+  {
+   "id": "Q485775",
+   "name": "윤석영",
+   "en": "Yun Suk-young",
+   "birth": "1990-02-13",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 29,
+   "slug": "yun-suk-young",
+   "img": "/img/people/yun-suk-young.webp",
+   "credit": {
+    "artist": "Manri Cheon",
+    "license": "CC BY 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Yun_Suk-Young_2013.09.06.jpg"
+   }
+  },
+  {
+   "id": "Q494725",
+   "name": "윤은혜",
+   "en": "Yoon Eun-hye",
+   "birth": "1984-10-03",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 29,
+   "slug": "yoon-eun-hye",
+   "img": "/img/people/yoon-eun-hye.webp",
+   "credit": {
+    "artist": "SBS Radio",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Yoon_Eun-hye_in_April_2021.png"
+   }
+  },
+  {
+   "id": "Q16182353",
+   "name": "이승우",
+   "en": "Lee Seung-woo",
+   "birth": "1998-01-06",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 29,
+   "slug": "lee-seung-woo",
+   "img": "/img/people/lee-seung-woo.webp",
+   "credit": {
+    "artist": "Explicit",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:260411_FC_%EC%84%9C%EC%9A%B8_vs_%EC%A0%84%EB%B6%81_(%EC%9D%B4%EC%8A%B9%EC%9A%B0).jpg"
+   }
+  },
+  {
+   "id": "Q489838",
+   "name": "이특",
+   "en": "Leeteuk",
+   "birth": "1983-07-01",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 29,
+   "slug": "leeteuk",
+   "img": "/img/people/leeteuk.webp",
+   "credit": {
+    "artist": "Daegil yoo",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:171115_%EC%8A%88%ED%8D%BC%EC%A3%BC%EB%8B%88%EC%96%B4_%EC%9D%B4%ED%8A%B9.jpg"
+   }
+  },
+  {
+   "id": "Q24945",
+   "name": "이하이",
+   "en": "Lee Hi",
+   "birth": "1996-09-23",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 29,
+   "slug": "lee-hi",
+   "img": "/img/people/lee-hi.webp",
+   "credit": {
+    "artist": "SBS Radio",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:LeeHi_2021_(derived).jpg"
+   }
+  },
+  {
+   "id": "Q487831",
+   "name": "정은지",
+   "en": "Jeong Eun-ji",
+   "birth": "1993-08-18",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 29,
+   "slug": "jeong-eun-ji",
+   "img": "/img/people/jeong-eun-ji.webp",
+   "credit": {
+    "artist": "TV10",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Jung_Eun-ji_in_December_2025.png"
+   }
+  },
+  {
+   "id": "Q56259927",
+   "name": "조미연",
+   "en": "Cho Mi-yeon",
+   "birth": "1997-01-31",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 29,
+   "slug": "cho-mi-yeon",
+   "img": "/img/people/cho-mi-yeon.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:(G)I-DLE_Airport_Departure_2024_Miyeon_waving_hands.png"
+   }
+  },
+  {
+   "id": "Q483041",
+   "name": "최강창민",
+   "en": "Changmin",
+   "birth": "1988-02-18",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 29,
+   "slug": "changmin",
+   "img": "/img/people/changmin.webp",
+   "credit": {
+    "artist": "Newsenstar1",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Changmin_at_Gimpo_International_Airport_in_January_2019.png"
+   }
+  },
+  {
+   "id": "Q482991",
+   "name": "태양",
+   "en": "Taeyang",
+   "birth": "1988-05-18",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 29,
+   "slug": "taeyang",
+   "img": "/img/people/taeyang.webp",
+   "credit": {
+    "artist": "GOM",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Taeyang_-_MADE_THE_MOVIE_Premiere_(Chopped).png"
+   }
+  },
+  {
+   "id": "Q11073341",
+   "name": "혜리",
+   "en": "Lee Hye-ri",
+   "birth": "1994-06-09",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 29,
+   "slug": "lee-hye-ri",
+   "img": "/img/people/lee-hye-ri.webp",
+   "credit": {
+    "artist": "TV10",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Hyeri_in_July_2025.png"
+   }
+  },
+  {
+   "id": "Q14320553",
+   "name": "황의조",
+   "en": "Hwang Ui-jo",
+   "birth": "1992-08-28",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 29,
+   "slug": "hwang-ui-jo",
+   "img": "/img/people/hwang-ui-jo.webp",
+   "credit": {
+    "artist": "Explicit",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:230624_%EC%88%98%EC%9B%90_%EC%82%BC%EC%84%B1_%EB%B8%94%EB%A3%A8%EC%9C%99%EC%A6%88_vs_FC_%EC%84%9C%EC%9A%B8_(%ED%99%A9%EC%9D%98%EC%A1%B0).jpg"
+   }
+  },
+  {
+   "id": "Q263279",
+   "name": "효민",
+   "en": "Hyomin",
+   "birth": "1989-05-30",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 29,
+   "slug": "hyomin",
+   "img": "/img/people/hyomin.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Hyomin_in_October_2024.png"
+   }
+  },
+  {
+   "id": "Q483980",
+   "name": "Key",
+   "en": "Key",
+   "birth": "1991-09-23",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 29,
+   "slug": "key",
+   "img": "/img/people/key.webp",
+   "credit": {
+    "artist": "TV10",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Key_in_November_2025.png"
+   }
+  },
+  {
+   "id": "Q484787",
+   "name": "공효진",
+   "en": "Gong Hyo-jin",
+   "birth": "1980-04-04",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 28,
+   "slug": "gong-hyo-jin",
+   "img": "/img/people/gong-hyo-jin.webp",
+   "credit": {
+    "artist": "SSG BLOG (Shinsegye official)",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Gong_Hyo_Jin_(Sep_2016).png"
+   }
+  },
+  {
+   "id": "Q494816",
+   "name": "규현",
+   "en": "Cho Kyuhyun",
+   "birth": "1988-02-03",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 28,
+   "slug": "cho-kyuhyun",
+   "img": "/img/people/cho-kyuhyun.webp",
+   "credit": {
+    "artist": "디스패치",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:190919_%EA%B7%9C%ED%98%84_(2)_(cropped).jpg"
+   }
+  },
+  {
+   "id": "Q356046",
+   "name": "김동진",
+   "en": "Kim Dong-jin",
+   "birth": "1982-01-29",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 28,
+   "slug": "kim-dong-jin",
+   "img": "/img/people/kim-dong-jin.webp",
+   "credit": {
+    "artist": "Dmitry Kiselev for Soccer.ru",
+    "license": "CC BY-SA 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:KimDongJin.jpg"
+   }
+  },
+  {
+   "id": "Q498660",
+   "name": "김민우",
+   "en": "Kim Min-woo",
+   "birth": "1990-02-25",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 28,
+   "slug": "kim-min-woo",
+   "img": "/img/people/kim-min-woo.webp",
+   "credit": {
+    "artist": "Антон Зайцев",
+    "license": "CC BY-SA 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kim_Min-woo.jpg"
+   }
+  },
+  {
+   "id": "Q488717",
+   "name": "김신욱",
+   "en": "Kim Shin-wook",
+   "birth": "1988-04-14",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 28,
+   "slug": "kim-shin-wook",
+   "img": "/img/people/kim-shin-wook.webp",
+   "credit": {
+    "artist": "Republic of Korea",
+    "license": "CC BY-SA 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Team_Korea_Russia_WorldCup_03_(cropped_2).jpg"
+   }
+  },
+  {
+   "id": "Q461284",
+   "name": "리웨이펑",
+   "en": "Li Weifeng",
+   "birth": "1978-12-01",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 28,
+   "slug": "li-weifeng",
+   "img": "/img/people/li-weifeng.webp",
+   "credit": {
+    "artist": "신유식",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Li_Weifeng.jpg"
+   }
+  },
+  {
+   "id": "Q482519",
+   "name": "박유천",
+   "en": "Park Yoo-chun",
+   "birth": "1986-06-04",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 28,
+   "slug": "park-yoo-chun",
+   "img": "/img/people/park-yoo-chun.webp",
+   "credit": {
+    "artist": "Bonjour Lavender",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Yoochun_at_Busan_International_Film_Festival_%22Sea_Fog%22_outdoor_stage_greeting,_3_October_2014_03.jpg"
+   }
+  },
+  {
+   "id": "Q483283",
+   "name": "박진영",
+   "en": "J.Y. Park",
+   "birth": "1971-12-13",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 28,
+   "slug": "j-y-park",
+   "img": "/img/people/j-y-park.webp",
+   "credit": {
+    "artist": "acrofan.com",
+    "license": "CC BY-SA 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Park_Jin-young_(Founder_of_JYP_Entertainment)_in_February_2011_from_acrofan.jpg"
+   }
+  },
+  {
+   "id": "Q6757073",
+   "name": "박형식",
+   "en": "Park Hyung-sik",
+   "birth": "1991-11-16",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 28,
+   "slug": "park-hyung-sik",
+   "img": "/img/people/park-hyung-sik.webp",
+   "credit": {
+    "artist": "무릎팍타짱 CJH",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:20230425_Park_Hyung-sik_%EB%B0%95%ED%98%95%EC%8B%9D.jpg"
+   }
+  },
+  {
+   "id": "Q354638",
+   "name": "세븐",
+   "en": "SE7EN",
+   "birth": "1984-11-09",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 28,
+   "slug": "se7en",
+   "img": "/img/people/se7en.webp",
+   "credit": {
+    "artist": "acrofan.com",
+    "license": "CC BY-SA 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Seven_(South_Korean_singer)_from_acrofan.jpg"
+   }
+  },
+  {
+   "id": "Q464569",
+   "name": "신민아",
+   "en": "Shin Min-a",
+   "birth": "1984-04-05",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 28,
+   "slug": "shin-min-a",
+   "img": "/img/people/shin-min-a.webp",
+   "credit": {
+    "artist": "Marie Claire Korea",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Shin_Min-a_in_August_2022.jpg"
+   }
+  },
+  {
+   "id": "Q54152908",
+   "name": "안세영",
+   "en": "An Se-young",
+   "birth": "2002-02-05",
+   "job": "배드민턴 선수",
+   "jobs": [
+    "배드민턴 선수"
+   ],
+   "links": 28,
+   "slug": "an-se-young",
+   "img": "/img/people/an-se-young.webp",
+   "credit": {
+    "artist": "KOCIS(Korean Culture and Information Service) Official Photographer : Kim Sunjoo",
+    "license": "CC BY-SA 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Hangzhou_AsianGames_Team_Korea_05_(An_Se-young).jpg"
+   }
+  },
+  {
+   "id": "Q486338",
+   "name": "여진구",
+   "en": "Yeo Jin-goo",
+   "birth": "1997-08-13",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 28,
+   "slug": "yeo-jin-goo",
+   "img": "/img/people/yeo-jin-goo.webp",
+   "credit": {
+    "artist": "침착맨 플러스",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Yeo_Jin-goo_in_July_2024.png"
+   }
+  },
+  {
+   "id": "Q488908",
+   "name": "오진혁",
+   "en": "Oh Jin-hyek",
+   "birth": "1981-08-15",
+   "job": "양궁 선수",
+   "jobs": [
+    "양궁 선수"
+   ],
+   "links": 28,
+   "slug": "oh-jin-hyek",
+   "img": "/img/people/oh-jin-hyek.webp",
+   "credit": {
+    "artist": "Korea.net / Korean Culture and Information Service (Korean Olympic Committee)",
+    "license": "CC BY-SA 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:KOCIS_Korea_London_OhJinhyek_01_(7730608452).jpg"
+   }
+  },
+  {
+   "id": "Q494692",
+   "name": "온유",
+   "en": "Onew",
+   "birth": "1989-12-14",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 28,
+   "slug": "onew",
+   "img": "/img/people/onew.webp",
+   "credit": {
+    "artist": "Marie Claire Korea",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Onew_for_Marie_Claire_Magazine_August_Issue_2021_03.png"
+   }
+  },
+  {
+   "id": "Q18044568",
+   "name": "이기홍",
+   "en": "Ki-hong Lee",
+   "birth": "1986-09-30",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 28,
+   "slug": "ki-hong-lee",
+   "img": "/img/people/ki-hong-lee.webp",
+   "credit": {
+    "artist": "Gage Skidmore",
+    "license": "CC BY-SA 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Ki_Hong_Lee_by_Gage_Skidmore.jpg"
+   }
+  },
+  {
+   "id": "Q483571",
+   "name": "이승기",
+   "en": "Lee Seung-gi",
+   "birth": "1987-01-13",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 28,
+   "slug": "lee-seung-gi",
+   "img": "/img/people/lee-seung-gi.webp",
+   "credit": {
+    "artist": "프로스펙스",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:LeeSeunggi4.jpg"
+   }
+  },
+  {
+   "id": "Q462537",
+   "name": "이승렬",
+   "en": "Lee Seung-yeoul",
+   "birth": "1989-03-06",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 28,
+   "slug": "lee-seung-yeoul",
+   "img": "/img/people/lee-seung-yeoul.webp",
+   "credit": {
+    "artist": "Explicit",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:260726_FC_%EC%84%9C%EC%9A%B8_vs_%EC%9A%B8%EC%82%B0_(%EC%9D%B4%EC%8A%B9%EB%A0%AC).jpg"
+   }
+  },
+  {
+   "id": "Q443720",
+   "name": "이호",
+   "en": "Lee Ho",
+   "birth": "1984-10-22",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 28,
+   "slug": "lee-ho"
+  },
+  {
+   "id": "Q486077",
+   "name": "정유미",
+   "en": "Jung Yu-mi",
+   "birth": "1983-01-18",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 28,
+   "slug": "jung-yu-mi",
+   "img": "/img/people/jung-yu-mi.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Jung_Yu-mi_in_December_2024.png"
+   }
+  },
+  {
+   "id": "Q12616349",
+   "name": "제시",
+   "en": "Jessi",
+   "birth": "1988-12-17",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 28,
+   "slug": "jessi",
+   "img": "/img/people/jessi.webp",
+   "credit": {
+    "artist": "SBS Radio",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Jessi_(%EC%A0%9C%EC%8B%9C)_in_October_2023.png"
+   }
+  },
+  {
+   "id": "Q56678033",
+   "name": "조유리",
+   "en": "Jo Yu-ri",
+   "birth": "2001-10-22",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 28,
+   "slug": "jo-yu-ri",
+   "img": "/img/people/jo-yu-ri.webp",
+   "credit": {
+    "artist": "TV10 / Ten Asia",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:082125_Jo_Yuri_for_Maradi_Mercredi_photo_call_01.png"
+   }
+  },
+  {
+   "id": "Q16172242",
+   "name": "최미선",
+   "en": "Choi Mi-sun",
+   "birth": "1996-07-01",
+   "job": "양궁 선수",
+   "jobs": [
+    "양궁 선수"
+   ],
+   "links": 28,
+   "slug": "choi-mi-sun",
+   "img": "/img/people/choi-mi-sun.webp",
+   "credit": {
+    "artist": "Gobierno CDMX",
+    "license": "CC0",
+    "url": "https://commons.wikimedia.org/wiki/File:Campeonato_de_Tiro_con_Arco_2017_-i---i-_(37854308232).jpg"
+   }
+  },
+  {
+   "id": "Q153657",
+   "name": "최시원",
+   "en": "Choi Siwon",
+   "birth": "1986-04-07",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 28,
+   "slug": "choi-siwon",
+   "img": "/img/people/choi-siwon.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:240813_Choi_Si-won.png"
+   }
+  },
+  {
+   "id": "Q496329",
+   "name": "효린",
+   "en": "Hyolyn",
+   "birth": "1990-12-11",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 28,
+   "slug": "hyolyn",
+   "img": "/img/people/hyolyn.webp",
+   "credit": {
+    "artist": "dispatchsns",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:%E2%80%9C%ED%9D%B0%ED%8B%B0%EC%97%90_%EC%B2%AD%EB%B0%94%EC%A7%80%EB%A7%8C_%EA%B1%B8%EC%B3%90%EB%8F%84%E2%80%9D_...%ED%9A%A8%EB%A6%B0,_%ED%95%AB%ED%95%9C_%EA%B3%B5%ED%95%AD%ED%8C%A8%EC%85%98_%ED%9A%A8%EB%A6%B0_(%EB%94%94%ED%8C%A8%EC%A7%A4)_2.png"
+   }
+  },
+  {
+   "id": "Q56327848",
+   "name": "김다미",
+   "en": "Kim Da-mi",
+   "birth": "1995-04-09",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 27,
+   "slug": "kim-da-mi",
+   "img": "/img/people/kim-da-mi.webp",
+   "credit": {
+    "artist": "디스패치",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:191028_%EA%B9%80%EB%8B%A4%EB%AF%B8_(1).jpg"
+   }
+  },
+  {
+   "id": "Q484936",
+   "name": "김민희",
+   "en": "Kim Min-hee",
+   "birth": "1982-03-01",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 27,
+   "slug": "kim-min-hee",
+   "img": "/img/people/kim-min-hee.webp",
+   "credit": {
+    "artist": "Walid Farouk",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kim_Min-hee_at_the_79th_Locarno_Film_Festival_3_(cropped).jpg"
+   }
+  },
+  {
+   "id": "Q22911780",
+   "name": "김세정",
+   "en": "Kim Se-jeong",
+   "birth": "1996-08-28",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 27,
+   "slug": "kim-se-jeong",
+   "img": "/img/people/kim-se-jeong.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kim_Sejeong_in_June_2025.png"
+   }
+  },
+  {
+   "id": "Q496433",
+   "name": "김소은",
+   "en": "Kim So-eun",
+   "birth": "1989-09-06",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 27,
+   "slug": "kim-so-eun",
+   "img": "/img/people/kim-so-eun.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kim_So-eun_in_January_2023_01.jpg"
+   }
+  },
+  {
+   "id": "Q482783",
+   "name": "김준수",
+   "en": "Kim Junsu",
+   "birth": "1986-12-15",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 27,
+   "slug": "kim-junsu",
+   "img": "/img/people/kim-junsu.webp",
+   "credit": {
+    "artist": "scene PLAYBILL",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:(%EC%94%AC%ED%94%8C%EB%A0%88%EC%9D%B4%EB%B9%8C)_7%EC%9B%94%ED%98%B8_%EA%B9%80%EC%A4%80%EC%88%98_(1).jpg"
+   }
+  },
+  {
+   "id": "Q483070",
+   "name": "김진규",
+   "en": "Kim Jin-kyu",
+   "birth": "1985-02-16",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 27,
+   "slug": "kim-jin-kyu"
+  },
+  {
+   "id": "Q168480",
+   "name": "김진현",
+   "en": "Kim Jin-hyeon",
+   "birth": "1987-07-06",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 27,
+   "slug": "kim-jin-hyeon",
+   "img": "/img/people/kim-jin-hyeon.webp",
+   "credit": {
+    "artist": "Manri Cheon",
+    "license": "CC BY 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kim_Jin-Hyeon.jpg"
+   }
+  },
+  {
+   "id": "Q292687",
+   "name": "김하늘",
+   "en": "Kim Ha-neul",
+   "birth": "1978-02-21",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 27,
+   "slug": "kim-ha-neul",
+   "img": "/img/people/kim-ha-neul.webp",
+   "credit": {
+    "artist": "디스패치",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:JTBC_%EC%9B%94%ED%99%94%EB%93%9C%EB%9D%BC%EB%A7%88_%27%EB%B0%94%EB%9E%8C%EC%9D%B4_%EB%B6%84%EB%8B%A4%27_%EC%A0%9C%EC%9E%91%EB%B0%9C%ED%91%9C%ED%9A%8C_%EA%B9%80%ED%95%98%EB%8A%98.jpg"
+   }
+  },
+  {
+   "id": "Q380123",
+   "name": "김희철",
+   "en": "Kim Hee-chul",
+   "birth": "1983-07-10",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 27,
+   "slug": "kim-hee-chul",
+   "img": "/img/people/kim-hee-chul.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:11%EC%9B%94_9%EC%9D%BC_%EC%B1%84%EB%84%90A_%27%EC%8B%B1%EB%8D%B0%EB%A0%90%EB%9D%BC%27_%EC%A0%9C%EC%9E%91%EB%B0%9C%ED%91%9C%ED%9A%8C_%ED%98%84%EC%9E%A5.jpg"
+   }
+  },
+  {
+   "id": "Q483510",
+   "name": "남태희",
+   "en": "Nam Tae-hee",
+   "birth": "1991-07-03",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 27,
+   "slug": "nam-tae-hee",
+   "img": "/img/people/nam-tae-hee.webp",
+   "credit": {
+    "artist": "Explicit",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:260509_%EC%A0%9C%EC%A3%BC_vs_FC_%EC%84%9C%EC%9A%B8_(%EB%82%A8%ED%83%9C%ED%9D%AC)_2.jpg"
+   }
+  },
+  {
+   "id": "Q153638",
+   "name": "동해",
+   "en": "Lee Dong-hae",
+   "birth": "1986-10-15",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 27,
+   "slug": "lee-dong-hae",
+   "img": "/img/people/lee-dong-hae.webp",
+   "credit": {
+    "artist": "Daegil yoo",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:171115_%EC%8A%88%ED%8D%BC%EC%A3%BC%EB%8B%88%EC%96%B4_%EB%8F%99%ED%95%B4.jpg"
+   }
+  },
+  {
+   "id": "Q12968338",
+   "name": "문가영",
+   "en": "Moon Ga-young",
+   "birth": "1996-07-10",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 27,
+   "slug": "moon-ga-young",
+   "img": "/img/people/moon-ga-young.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Moon_Ga-young_in_July_2026.png"
+   }
+  },
+  {
+   "id": "Q59670293",
+   "name": "방찬",
+   "en": "Bang Chan",
+   "birth": "1997-10-03",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 27,
+   "slug": "bang-chan",
+   "img": "/img/people/bang-chan.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Bang_Chan_of_Stray_Kids,_February_23,_2026_(1).png"
+   }
+  },
+  {
+   "id": "Q55730330",
+   "name": "변우석",
+   "en": "Byeon Woo-seok",
+   "birth": "1991-10-31",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 27,
+   "slug": "byeon-woo-seok",
+   "img": "/img/people/byeon-woo-seok.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:20261030_Byeon_Woo-seok.png"
+   }
+  },
+  {
+   "id": "Q359789",
+   "name": "설기현",
+   "en": "Seol Ki-hyeon",
+   "birth": "1979-01-08",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 27,
+   "slug": "seol-ki-hyeon",
+   "img": "/img/people/seol-ki-hyeon.webp",
+   "credit": {
+    "artist": "Mikhail Slain",
+    "license": "CC BY-SA 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Seol_Ki-Hyeon.JPG"
+   }
+  },
+  {
+   "id": "Q492666",
+   "name": "손나은",
+   "en": "Son Na-eun",
+   "birth": "1994-02-10",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 27,
+   "slug": "son-na-eun",
+   "img": "/img/people/son-na-eun.webp",
+   "credit": {
+    "artist": "Korea.net",
+    "license": "CC BY-SA 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Naeun_at_Korea_Sale_Festa_Opening_Ceremony,_30_September_2016.png"
+   }
+  },
+  {
+   "id": "Q16767951",
+   "name": "안희연",
+   "en": "Hani",
+   "birth": "1992-05-01",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 27,
+   "slug": "hani",
+   "img": "/img/people/hani.webp",
+   "credit": {
+    "artist": "Cheer on LE",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:180802_2018_%EC%BD%94%EB%A6%AC%EC%95%84_%EB%AE%A4%EC%A7%81_%ED%8E%98%EC%8A%A4%ED%8B%B0%EB%B2%8C(KMF)_%EA%B3%A0%EC%B2%99%EB%8F%94_EXID_%ED%95%98%EB%8B%88_%EC%A7%81%EC%B0%8D_(1).jpg"
+   }
+  },
+  {
+   "id": "Q494654",
+   "name": "유승호",
+   "en": "Yoo Seung-ho",
+   "birth": "1993-08-17",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 27,
+   "slug": "yoo-seung-ho",
+   "img": "/img/people/yoo-seung-ho.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:%EC%9C%A0%EC%8A%B9%ED%98%B8_%ED%8D%BC%EC%8A%A4%ED%8A%B8%EB%B8%8C%EB%9E%9C%EB%93%9C%EB%8C%80%EC%83%81_2024.jpg"
+   }
+  },
+  {
+   "id": "Q255420",
+   "name": "이상화",
+   "en": "Lee Sang-hwa",
+   "birth": "1989-02-25",
+   "job": "운동선수",
+   "jobs": [
+    "운동선수"
+   ],
+   "links": 27,
+   "slug": "lee-sang-hwa",
+   "img": "/img/people/lee-sang-hwa.webp",
+   "credit": {
+    "artist": "Republic of Korea",
+    "license": "CC BY-SA 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Korea_Lee_Sanghwa_Gold_Medal_Ceremony_02.jpg"
+   }
+  },
+  {
+   "id": "Q490170",
+   "name": "이지아",
+   "en": "Lee Ji-ah",
+   "birth": "1978-08-06",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 27,
+   "slug": "lee-ji-ah",
+   "img": "/img/people/lee-ji-ah.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Lee_Ji-ah_in_May_2025.png"
+   }
+  },
+  {
+   "id": "Q380125",
+   "name": "정성하",
+   "en": "Sungha Jung",
+   "birth": "1996-09-02",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 27,
+   "slug": "sungha-jung",
+   "img": "/img/people/sungha-jung.webp",
+   "credit": {
+    "artist": "sdo216",
+    "license": "Public domain",
+    "url": "https://commons.wikimedia.org/wiki/File:2016_Musikmesse_Frankfurt_in_Sungha_Jung_02.jpg"
+   }
+  },
+  {
+   "id": "Q170001",
+   "name": "정소민",
+   "en": "Jung So-min",
+   "birth": "1989-03-16",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 27,
+   "slug": "jung-so-min",
+   "img": "/img/people/jung-so-min.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Jung_So-min_in_March_2025.png"
+   }
+  },
+  {
+   "id": "Q494116",
+   "name": "정일우",
+   "en": "Jung Il-woo",
+   "birth": "1987-09-09",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 27,
+   "slug": "jung-il-woo",
+   "img": "/img/people/jung-il-woo.webp",
+   "credit": {
+    "artist": "dramax iHQ",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Jung_Il-woo_in_May_2021.png"
+   }
+  },
+  {
+   "id": "Q626347",
+   "name": "조여정",
+   "en": "Cho Yeo-jeong",
+   "birth": "1981-02-10",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 27,
+   "slug": "cho-yeo-jeong",
+   "img": "/img/people/cho-yeo-jeong.webp",
+   "credit": {
+    "artist": "Republic of Korea",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Cho_Yeo-jeong.jpg"
+   }
+  },
+  {
+   "id": "Q492701",
+   "name": "최우식",
+   "en": "Choi Woo-shik",
+   "birth": "1990-03-26",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 27,
+   "slug": "choi-woo-shik",
+   "img": "/img/people/choi-woo-shik.webp",
+   "credit": {
+    "artist": "프레쉬 코리아",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:211227_%EC%B5%9C%EC%9A%B0%EC%8B%9D.png"
+   }
+  },
+  {
+   "id": "Q494337",
+   "name": "최지우",
+   "en": "Choi Ji-woo",
+   "birth": "1975-06-11",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 27,
+   "slug": "choi-ji-woo",
+   "img": "/img/people/choi-ji-woo.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Choi_Ji-woo_in_April_2024.png"
+   }
+  },
+  {
+   "id": "Q101161002",
+   "name": "카리나",
+   "en": "",
+   "birth": "2000-04-11",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 27,
+   "slug": "q101161002",
+   "img": "/img/people/q101161002.webp",
+   "credit": {
+    "artist": "David Lee",
+    "license": "CC BY 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:KARINA_-_AESPA_-_2025.01.28.jpg"
+   }
+  },
+  {
+   "id": "Q61100678",
+   "name": "필릭스",
+   "en": "Felix",
+   "birth": "2000-09-15",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 27,
+   "slug": "felix",
+   "img": "/img/people/felix.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Felix_of_Stray_Kids_at_a_Louis_Vuitton_event,_August_22,_2025.png"
+   }
+  },
+  {
+   "id": "Q495020",
+   "name": "한승연",
+   "en": "Han Seung-yeon",
+   "birth": "1988-07-24",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 27,
+   "slug": "han-seung-yeon",
+   "img": "/img/people/han-seung-yeon.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Han_Seung-yeon_in_February_2024.png"
+   }
+  },
+  {
+   "id": "Q262520",
+   "name": "한혜진",
+   "en": "Han Hye-jin",
+   "birth": "1981-10-27",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 27,
+   "slug": "han-hye-jin",
+   "img": "/img/people/han-hye-jin.webp",
+   "credit": {
+    "artist": "SBS Radio 에라오",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Han_Hye_Jin_(actress).jpg"
+   }
+  },
+  {
+   "id": "Q712786",
+   "name": "강소라",
+   "en": "Kang So-ra",
+   "birth": "1990-02-18",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 26,
+   "slug": "kang-so-ra",
+   "img": "/img/people/kang-so-ra.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kang_So-ra_in_July_2024.jpg"
+   }
+  },
+  {
+   "id": "Q21005304",
+   "name": "강채영",
+   "en": "Kang Chae-young",
+   "birth": "1996-06-08",
+   "job": "양궁 선수",
+   "jobs": [
+    "양궁 선수"
+   ],
+   "links": 26,
+   "slug": "kang-chae-young",
+   "img": "/img/people/kang-chae-young.webp",
+   "credit": {
+    "artist": "Voltmetro",
+    "license": "CC0",
+    "url": "https://commons.wikimedia.org/wiki/File:2019-09-07_-_Archery_World_Cup_Final_-_Women%27s_Recurve_-_Kang_Chae-young.jpg"
+   }
+  },
+  {
+   "id": "Q495413",
+   "name": "개리",
+   "en": "Gary",
+   "birth": "1978-02-24",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 26,
+   "slug": "gary",
+   "img": "/img/people/gary.webp",
+   "credit": {
+    "artist": "Jinho Jung",
+    "license": "CC BY-SA 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kang_Gary.jpg"
+   }
+  },
+  {
+   "id": "Q483471",
+   "name": "곽태휘",
+   "en": "Kwak Tae-hwi",
+   "birth": "1981-07-08",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 26,
+   "slug": "kwak-tae-hwi",
+   "img": "/img/people/kwak-tae-hwi.webp",
+   "credit": {
+    "artist": "Manri Cheon",
+    "license": "CC BY 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kwak_Tae-Hwi.jpg"
+   }
+  },
+  {
+   "id": "Q21066506",
+   "name": "구본찬",
+   "en": "Ku Bon-chan",
+   "birth": "1993-01-31",
+   "job": "양궁 선수",
+   "jobs": [
+    "양궁 선수"
+   ],
+   "links": 26,
+   "slug": "ku-bon-chan",
+   "img": "/img/people/ku-bon-chan.webp",
+   "credit": {
+    "artist": "Sander van Ginkel",
+    "license": "CC BY-SA 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Ku_Bon-chan_Rio2016.jpg"
+   }
+  },
+  {
+   "id": "Q302129",
+   "name": "김도훈",
+   "en": "Kim Do-hoon",
+   "birth": "1970-07-21",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 26,
+   "slug": "kim-do-hoon",
+   "img": "/img/people/kim-do-hoon.webp",
+   "credit": {
+    "artist": "Mehdi Zare",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kim_Do-hoon_13990928000200637438936196291499.jpg"
+   }
+  },
+  {
+   "id": "Q381169",
+   "name": "김영광",
+   "en": "Kim Young-kwang",
+   "birth": "1983-06-28",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 26,
+   "slug": "kim-young-kwang",
+   "img": "/img/people/kim-young-kwang.webp",
+   "credit": {
+    "artist": "Explicit",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:240816_%EC%84%9C%EC%9A%B8%EC%9B%94%EB%93%9C%EC%BB%B5%EA%B2%BD%EA%B8%B0%EC%9E%A5_(%EA%B9%80%EC%98%81%EA%B4%91).jpg"
+   }
+  },
+  {
+   "id": "Q448133",
+   "name": "김재범",
+   "en": "Kim Jae-bum",
+   "birth": "1985-01-25",
+   "job": "운동선수",
+   "jobs": [
+    "운동선수"
+   ],
+   "links": 26,
+   "slug": "kim-jae-bum",
+   "img": "/img/people/kim-jae-bum.webp",
+   "credit": {
+    "artist": "Korea.net / Korean Culture and Information Service (Korean Olympic Committee)",
+    "license": "CC BY-SA 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:KOCIS_Korea_Judo_Kim_Jaebum_London_32_(7696362732).jpg"
+   }
+  },
+  {
+   "id": "Q485431",
+   "name": "김지연",
+   "en": "Kim Ji-yeon",
+   "birth": "1988-03-12",
+   "job": "운동선수",
+   "jobs": [
+    "운동선수"
+   ],
+   "links": 26,
+   "slug": "kim-ji-yeon",
+   "img": "/img/people/kim-ji-yeon.webp",
+   "credit": {
+    "artist": "Marie-Lan Nguyen",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kim_Ji-yeon_2014_Orleans_Sabre_Grand_Prix_t151932.jpg"
+   }
+  },
+  {
+   "id": "Q464601",
+   "name": "김희선",
+   "en": "Kim Hee-sun",
+   "birth": "1977-06-11",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 26,
+   "slug": "kim-hee-sun",
+   "img": "/img/people/kim-hee-sun.webp",
+   "credit": {
+    "artist": "디스패치 / Dispatch",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:%E2%80%9C%ED%99%94%EC%82%AC%ED%95%9C_%EA%BD%83%EB%AF%B8%EB%AA%A8_%E2%80%9D_..._%EA%B9%80%ED%9D%AC%EC%84%A0_(1).jpg"
+   }
+  },
+  {
+   "id": "Q194798",
+   "name": "대성",
+   "en": "Daesung",
+   "birth": "1989-04-26",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 26,
+   "slug": "daesung",
+   "img": "/img/people/daesung.webp",
+   "credit": {
+    "artist": "GOM",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Daesung_-_MADE_THE_MOVIE_Premiere.jpg"
+   }
+  },
+  {
+   "id": "Q489432",
+   "name": "루나",
+   "en": "Luna",
+   "birth": "1993-08-12",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 26,
+   "slug": "luna",
+   "img": "/img/people/luna.webp",
+   "credit": {
+    "artist": "Idol Story",
+    "license": "CC BY 2.0 kr",
+    "url": "https://commons.wikimedia.org/wiki/File:Luna_at_the_2010_KBS_Gayo_Daejun.jpg"
+   }
+  },
+  {
+   "id": "Q376215",
+   "name": "모태범",
+   "en": "Mo Tae-bum",
+   "birth": "1989-02-15",
+   "job": "운동선수",
+   "jobs": [
+    "운동선수"
+   ],
+   "links": 26,
+   "slug": "mo-tae-bum",
+   "img": "/img/people/mo-tae-bum.webp",
+   "credit": {
+    "artist": "Bjarte Hetland",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Mo_Tae_Bum_2010.jpg"
+   }
+  },
+  {
+   "id": "Q495000",
+   "name": "박규리",
+   "en": "",
+   "birth": "1988-05-21",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 26,
+   "slug": "q495000",
+   "img": "/img/people/q495000.webp",
+   "credit": {
+    "artist": "뉴스인스타",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:190613_%EB%B0%95%EA%B7%9C%EB%A6%AC_(3).jpg"
+   }
+  },
+  {
+   "id": "Q233884",
+   "name": "박성현",
+   "en": "Park Sung-hyun",
+   "birth": "1983-01-01",
+   "job": "양궁 선수",
+   "jobs": [
+    "양궁 선수"
+   ],
+   "links": 26,
+   "slug": "park-sung-hyun"
+  },
+  {
+   "id": "Q484859",
+   "name": "소지섭",
+   "en": "So Ji-sub",
+   "birth": "1977-11-04",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 26,
+   "slug": "so-ji-sub",
+   "img": "/img/people/so-ji-sub.webp",
+   "credit": {
+    "artist": "Marie Claire Korea",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:So_Ji-sub_in_May_2025.png"
+   }
+  },
+  {
+   "id": "Q20871414",
+   "name": "안바울",
+   "en": "An Ba-ul",
+   "birth": "1994-03-25",
+   "job": "운동선수",
+   "jobs": [
+    "운동선수"
+   ],
+   "links": 26,
+   "slug": "an-ba-ul",
+   "img": "/img/people/an-ba-ul.webp",
+   "credit": {
+    "artist": "FISU",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Anbaul2017.png"
+   }
+  },
+  {
+   "id": "Q5909378",
+   "name": "엘",
+   "en": "Kim Myung-soo",
+   "birth": "1992-03-13",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 26,
+   "slug": "kim-myung-soo",
+   "img": "/img/people/kim-myung-soo.webp",
+   "credit": {
+    "artist": "디스패치",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:2019_%EC%95%84%EC%8B%9C%EC%95%84%EB%AA%A8%EB%8D%B8%EC%96%B4%EC%9B%8C%EC%A6%88_%EA%B9%80%EB%AA%85%EC%88%98_(1).jpg"
+   }
+  },
+  {
+   "id": "Q494856",
+   "name": "원빈",
+   "en": "Won Bin",
+   "birth": "1977-11-10",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 26,
+   "slug": "won-bin",
+   "img": "/img/people/won-bin.webp",
+   "credit": {
+    "artist": "acrofan.com",
+    "license": "CC BY-SA 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Won_Bin_from_acrofan.jpg"
+   }
+  },
+  {
+   "id": "Q348202",
+   "name": "유승민",
+   "en": "Ryu Seung-min",
+   "birth": "1982-08-05",
+   "job": "운동선수",
+   "jobs": [
+    "운동선수"
+   ],
+   "links": 26,
+   "slug": "ryu-seung-min",
+   "img": "/img/people/ryu-seung-min.webp",
+   "credit": {
+    "artist": "Marcus Cyron",
+    "license": "CC BY-SA 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Table_tennis_at_the_2018_Summer_Youth_Olympics_%E2%80%93_Athlete_Role_Model%27s_on_Singles_final_day_10_(cropped).jpg"
+   }
+  },
+  {
+   "id": "Q8061211",
+   "name": "윤영선",
+   "en": "Yun Young-sun",
+   "birth": "1988-10-04",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 26,
+   "slug": "yun-young-sun",
+   "img": "/img/people/yun-young-sun.webp",
+   "credit": {
+    "artist": "FC SEOUL",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:%EC%9C%A4%EC%98%81%EC%84%A0_2020.jpg"
+   }
+  },
+  {
+   "id": "Q496384",
+   "name": "이민정",
+   "en": "Lee Min-jung",
+   "birth": "1982-02-16",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 26,
+   "slug": "lee-min-jung",
+   "img": "/img/people/lee-min-jung.webp",
+   "credit": {
+    "artist": "TV10 / Ten Asia",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:051226_Lee_Min-jung_for_Bulgari_brand_event.png"
+   }
+  },
+  {
+   "id": "Q497633",
+   "name": "이범영",
+   "en": "Lee Bum-young",
+   "birth": "1989-04-02",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 26,
+   "slug": "lee-bum-young",
+   "img": "/img/people/lee-bum-young.webp",
+   "credit": {
+    "artist": "Explicit",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:230712_FC_%EC%84%9C%EC%9A%B8_vs_%EC%88%98%EC%9B%90_FC_(%EC%9D%B4%EB%B2%94%EC%98%81).jpg"
+   }
+  },
+  {
+   "id": "Q491807",
+   "name": "이보영",
+   "en": "Lee Bo-young",
+   "birth": "1979-01-12",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 26,
+   "slug": "lee-bo-young",
+   "img": "/img/people/lee-bo-young.webp",
+   "credit": {
+    "artist": "10Asia",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Lee_Bo-young_2017.jpg"
+   }
+  },
+  {
+   "id": "Q15618298",
+   "name": "이상혁",
+   "en": "Faker",
+   "birth": "1996-05-07",
+   "job": "프로게이머",
+   "jobs": [
+    "프로게이머"
+   ],
+   "links": 26,
+   "slug": "faker",
+   "img": "/img/people/faker.webp",
+   "credit": {
+    "artist": "Marie Claire",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:T1_Faker_Lee_Sang-Hyeok_in_a_2026_Interview.png"
+   }
+  },
+  {
+   "id": "Q495221",
+   "name": "이성진",
+   "en": "Lee Sung-Jin",
+   "birth": "1985-03-07",
+   "job": "양궁 선수",
+   "jobs": [
+    "양궁 선수"
+   ],
+   "links": 26,
+   "slug": "lee-sung-jin",
+   "img": "/img/people/lee-sung-jin.webp",
+   "credit": {
+    "artist": "Korea.net / Korean Culture and Information Service (Korean Olympic Committee)",
+    "license": "CC BY-SA 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:KOCIS_Korea_London_Olympic_Archery_Womenteam_17_(7682349056).jpg"
+   }
+  },
+  {
+   "id": "Q15222017",
+   "name": "이승윤",
+   "en": "Lee Seung-yun",
+   "birth": "1995-04-18",
+   "job": "양궁 선수",
+   "jobs": [
+    "양궁 선수"
+   ],
+   "links": 26,
+   "slug": "lee-seung-yun",
+   "img": "/img/people/lee-seung-yun.webp",
+   "credit": {
+    "artist": "FISU",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Leeseungyun2015.png"
+   }
+  },
+  {
+   "id": "Q6515614",
+   "name": "이용",
+   "en": "Lee Yong",
+   "birth": "1986-12-24",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 26,
+   "slug": "lee-yong",
+   "img": "/img/people/lee-yong.webp",
+   "credit": {
+    "artist": "Explicit",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:230712_FC_%EC%84%9C%EC%9A%B8_vs_%EC%88%98%EC%9B%90_FC_(%EC%9D%B4%EC%9A%A9).jpg"
+   }
+  },
+  {
+   "id": "Q19359987",
+   "name": "이유미",
+   "en": "Lee You-mi",
+   "birth": "1994-07-18",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 26,
+   "slug": "lee-you-mi",
+   "img": "/img/people/lee-you-mi.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:241104_Lee_You_Mi_(%EC%9D%B4%EC%9C%A0%EB%AF%B8).png"
+   }
+  },
+  {
+   "id": "Q82788",
+   "name": "임시완",
+   "en": "Yim Si-wan",
+   "birth": "1988-12-01",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 26,
+   "slug": "yim-si-wan",
+   "img": "/img/people/yim-si-wan.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:241209_Yim_Siwan_(%EC%9E%84%EC%8B%9C%EC%99%84).png"
+   }
+  },
+  {
+   "id": "Q36346274",
+   "name": "정우영",
+   "en": "Jeong Woo-yeong",
+   "birth": "1999-09-20",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 26,
+   "slug": "jeong-woo-yeong",
+   "img": "/img/people/jeong-woo-yeong.webp",
+   "credit": {
+    "artist": "GOAL TV",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:%EC%9D%B8%EA%B0%80_%ED%97%B7%EA%B0%88%EB%A6%AC%EB%8A%94_%EC%A0%95%EC%9A%B0%EC%98%81%EC%9D%B4_%EB%B0%9D%ED%9E%88%EB%8A%94_%EC%9D%B4%EA%B0%95%EC%9D%B8%EA%B3%BC%EC%9D%98_%ED%98%B8%ED%9D%A1.jpg"
+   }
+  },
+  {
+   "id": "Q17504174",
+   "name": "정해인",
+   "en": "Jung Hae-in",
+   "birth": "1988-04-01",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 26,
+   "slug": "jung-hae-in",
+   "img": "/img/people/jung-hae-in.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Jung_Hae-in_20260827.png"
+   }
+  },
+  {
+   "id": "Q13616024",
+   "name": "정현",
+   "en": "Chung Hyeon",
+   "birth": "1996-05-19",
+   "job": "운동선수",
+   "jobs": [
+    "운동선수"
+   ],
+   "links": 26,
+   "slug": "chung-hyeon",
+   "img": "/img/people/chung-hyeon.webp",
+   "credit": {
+    "artist": "si.robi",
+    "license": "CC BY-SA 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Chung_WMQ23_(53062101050).jpg"
+   }
+  },
+  {
+   "id": "Q357391",
+   "name": "제임스 기선 리",
+   "en": "James Kyson",
+   "birth": "1975-12-13",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 26,
+   "slug": "james-kyson",
+   "img": "/img/people/james-kyson.webp",
+   "credit": {
+    "artist": "Photoren",
+    "license": "CC BY 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:JamesKysonLee.jpg"
+   }
+  },
+  {
+   "id": "Q483704",
+   "name": "차태현",
+   "en": "Cha Tae-hyun",
+   "birth": "1976-03-25",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 26,
+   "slug": "cha-tae-hyun",
+   "img": "/img/people/cha-tae-hyun.webp",
+   "credit": {
+    "artist": "달빛마차 (MoonLight_iu@Twitter)",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:KBS_%22The_Producers%22_press_conference,_11_May_2015_06.jpg"
+   }
+  },
+  {
+   "id": "Q483898",
+   "name": "최용수",
+   "en": "Choi Yong-soo",
+   "birth": "1973-09-10",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 26,
+   "slug": "choi-yong-soo",
+   "img": "/img/people/choi-yong-soo.webp",
+   "credit": {
+    "artist": "GOAL TV",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:%EC%B5%9C%EC%9A%A9%EC%88%98_2022.jpg"
+   }
+  },
+  {
+   "id": "Q492572",
+   "name": "한국영",
+   "en": "Han Kook-young",
+   "birth": "1990-04-19",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 26,
+   "slug": "han-kook-young",
+   "img": "/img/people/han-kook-young.webp",
+   "credit": {
+    "artist": "Manri Cheon",
+    "license": "CC BY 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Han_Kook-Young.jpg"
+   }
+  },
+  {
+   "id": "Q348758",
+   "name": "허정무",
+   "en": "Huh Jung-moo",
+   "birth": "1955-01-13",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 26,
+   "slug": "huh-jung-moo",
+   "img": "/img/people/huh-jung-moo.webp",
+   "credit": {
+    "artist": "acrofan.com",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Huh_Jung-Moo_from_acrofan.jpg"
+   }
+  },
+  {
+   "id": "Q484572",
+   "name": "홍상수",
+   "en": "Hong Sang-soo",
+   "birth": "1960-10-25",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 26,
+   "slug": "hong-sang-soo",
+   "img": "/img/people/hong-sang-soo.webp",
+   "credit": {
+    "artist": "Elena Ternovaja",
+    "license": "CC BY-SA 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Hong_Sang-soo,_2025.jpg"
+   }
+  },
+  {
+   "id": "Q623387",
+   "name": "황석호",
+   "en": "Hwang Seok-ho",
+   "birth": "1989-06-27",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 26,
+   "slug": "hwang-seok-ho",
+   "img": "/img/people/hwang-seok-ho.webp",
+   "credit": {
+    "artist": "Manri Cheon",
+    "license": "CC BY 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Hwang_Seok-Ho_2013.09.06.jpg"
+   }
+  },
+  {
+   "id": "Q60870268",
+   "name": "황예지",
+   "en": "Hwang Ye-ji",
+   "birth": "2000-05-26",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 26,
+   "slug": "hwang-ye-ji",
+   "img": "/img/people/hwang-ye-ji.webp",
+   "credit": {
+    "artist": "티비텐 TV10",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Yeji_at_Tommy_Hilfiger_PhotoCall_on_October_28,_2025.png"
+   }
+  },
+  {
+   "id": "Q97210760",
+   "name": "고윤정",
+   "en": "Go Youn-jung",
+   "birth": "1996-04-22",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 25,
+   "slug": "go-youn-jung",
+   "img": "/img/people/go-youn-jung.webp",
+   "credit": {
+    "artist": "K-POPit 티비텐",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Go_Youn-jung_in_May_2026.png"
+   }
+  },
+  {
+   "id": "Q766423",
+   "name": "권창훈",
+   "en": "Kwon Chang-hoon",
+   "birth": "1994-06-30",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 25,
+   "slug": "kwon-chang-hoon",
+   "img": "/img/people/kwon-chang-hoon.webp",
+   "credit": {
+    "artist": "Explicit",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:260509_%EC%A0%9C%EC%A3%BC_vs_FC_%EC%84%9C%EC%9A%B8_(%EA%B6%8C%EC%B0%BD%ED%9B%88).jpg"
+   }
+  },
+  {
+   "id": "Q464663",
+   "name": "김사랑",
+   "en": "Kim Sa-rang",
+   "birth": "1978-01-12",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 25,
+   "slug": "kim-sa-rang",
+   "img": "/img/people/kim-sa-rang.webp",
+   "credit": {
+    "artist": "디스패치",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:190409_%EA%B9%80%EC%82%AC%EB%9E%91_(1).jpg"
+   }
+  },
+  {
+   "id": "Q239901",
+   "name": "김수녕",
+   "en": "Kim Soo-nyung",
+   "birth": "1971-04-05",
+   "job": "양궁 선수",
+   "jobs": [
+    "양궁 선수"
+   ],
+   "links": 25,
+   "slug": "kim-soo-nyung"
+  },
+  {
+   "id": "Q483527",
+   "name": "김종국",
+   "en": "Kim Jong-kook",
+   "birth": "1976-04-25",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 25,
+   "slug": "kim-jong-kook",
+   "img": "/img/people/kim-jong-kook.webp",
+   "credit": {
+    "artist": "Vernon Chan from Kuala Lumpur, Malaysia",
+    "license": "CC BY 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kim_Jong_Kook_at_Malaysia_for_Running_Man_Fan_Meeting_Asian_Tour_2014.jpg"
+   }
+  },
+  {
+   "id": "Q497337",
+   "name": "김창수",
+   "en": "Kim Chang-soo",
+   "birth": "1985-09-12",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 25,
+   "slug": "kim-chang-soo",
+   "img": "/img/people/kim-chang-soo.webp",
+   "credit": {
+    "artist": "Manri Cheon",
+    "license": "CC BY 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kim_Chang-Soo_2013.09.06_(cropped).jpg"
+   }
+  },
+  {
+   "id": "Q494992",
+   "name": "니콜",
+   "en": "Nicole Jung",
+   "birth": "1991-10-07",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 25,
+   "slug": "nicole-jung",
+   "img": "/img/people/nicole-jung.webp",
+   "credit": {
+    "artist": "Republic of Korea",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Nicole_Jung_in_2026_02_(cropped).jpg"
+   }
+  },
+  {
+   "id": "Q28790332",
+   "name": "로운",
+   "en": "Ro Woon",
+   "birth": "1996-08-07",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 25,
+   "slug": "ro-woon",
+   "img": "/img/people/ro-woon.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:231214_Rowoon.jpg"
+   }
+  },
+  {
+   "id": "Q241873",
+   "name": "린다 박",
+   "en": "Linda Park",
+   "birth": "1978-07-09",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 25,
+   "slug": "linda-park",
+   "img": "/img/people/linda-park.webp",
+   "credit": {
+    "artist": "Crosa from Nuernberg",
+    "license": "CC BY 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Linda_Park_(8734458654).jpg"
+   }
+  },
+  {
+   "id": "Q491387",
+   "name": "박은빈",
+   "en": "Park Eun-bin",
+   "birth": "1992-09-04",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 25,
+   "slug": "park-eun-bin",
+   "img": "/img/people/park-eun-bin.webp",
+   "credit": {
+    "artist": "티비텐",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Park_Eun-bin_in_July_2025.png"
+   }
+  },
+  {
+   "id": "Q30114466",
+   "name": "박지훈",
+   "en": "Park Ji-hoon",
+   "birth": "1999-05-29",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 25,
+   "slug": "park-ji-hoon",
+   "img": "/img/people/park-ji-hoon.webp",
+   "credit": {
+    "artist": "Nine Stars",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:%EB%B0%95%EC%A7%80%ED%9B%88_(PARK_JI_HOON)_%ED%99%98%EA%B2%BD%EB%B6%80_%EA%B8%B0%ED%9B%84%EB%B3%80%ED%99%94_%EC%9C%84%EC%B4%89%EC%8B%9D_-6_%EA%B8%B0%EB%85%90%EC%B4%AC%EC%98%81_01.png"
+   }
+  },
+  {
+   "id": "Q492738",
+   "name": "박초롱",
+   "en": "Park Cho-rong",
+   "birth": "1991-03-03",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 25,
+   "slug": "park-cho-rong",
+   "img": "/img/people/park-cho-rong.webp",
+   "credit": {
+    "artist": "Korea.net",
+    "license": "CC BY-SA 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Chorong_at_Korea_Sale_Festa_Opening_Ceremony,_30_September_2016.png"
+   }
+  },
+  {
+   "id": "Q486429",
+   "name": "박해진",
+   "en": "Park Hae-jin",
+   "birth": "1983-05-01",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 25,
+   "slug": "park-hae-jin",
+   "img": "/img/people/park-hae-jin.webp",
+   "credit": {
+    "artist": "Viu Indonesia",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:%EB%B0%95%ED%95%B4%EC%A7%84(Park_Hae_Jin).jpg"
+   }
+  },
+  {
+   "id": "Q61100297",
+   "name": "서수진",
+   "en": "Soojin",
+   "birth": "1998-03-09",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 25,
+   "slug": "soojin",
+   "img": "/img/people/soojin.webp",
+   "credit": {
+    "artist": "사진기자머길",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Seo_Soo-jin_of_(G)I-DLE_in_2020_02.png"
+   }
+  },
+  {
+   "id": "Q484886",
+   "name": "소연",
+   "en": "Park So-yeon",
+   "birth": "1987-10-05",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 25,
+   "slug": "park-so-yeon",
+   "img": "/img/people/park-so-yeon.webp",
+   "credit": {
+    "artist": "Long_Key",
+    "license": "CC BY-SA 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Park_So-yeon_@_SC_showcase_2015.jpg"
+   }
+  },
+  {
+   "id": "Q484840",
+   "name": "송일국",
+   "en": "Song Il-kook",
+   "birth": "1971-10-01",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 25,
+   "slug": "song-il-kook",
+   "img": "/img/people/song-il-kook.webp",
+   "credit": {
+    "artist": "Korea.net / Korean Culture and Information Service (Jeon Han)",
+    "license": "CC BY-SA 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Korea_Makgeolli_Wanderers_05_Song_Il_Gook.png"
+   }
+  },
+  {
+   "id": "Q60870265",
+   "name": "신류진",
+   "en": "Shin Ryu-jin",
+   "birth": "2001-04-17",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 25,
+   "slug": "shin-ryu-jin",
+   "img": "/img/people/shin-ryu-jin.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:ITZY%27s_Shin_Ryujin_in_August_2023_01.jpg"
+   }
+  },
+  {
+   "id": "Q494342",
+   "name": "신세경",
+   "en": "Shin Sae-kyeong",
+   "birth": "1990-07-29",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 25,
+   "slug": "shin-sae-kyeong",
+   "img": "/img/people/shin-sae-kyeong.webp",
+   "credit": {
+    "artist": "티비텐 TV10",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:2026-05-08_Baeksang_Arts_Awards_red_carpet_03_(cropped).jpg"
+   }
+  },
+  {
+   "id": "Q16162831",
+   "name": "신혜선",
+   "en": "Shin Hae-sun",
+   "birth": "1989-08-31",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 25,
+   "slug": "shin-hae-sun",
+   "img": "/img/people/shin-hae-sun.webp",
+   "credit": {
+    "artist": "디스패치 / Dispatch",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:190521_%EC%8B%A0%ED%98%9C%EC%84%A0.jpg"
+   }
+  },
+  {
+   "id": "Q9006285",
+   "name": "안재현",
+   "en": "Ahn Jae-hyun",
+   "birth": "1987-07-01",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 25,
+   "slug": "ahn-jae-hyun",
+   "img": "/img/people/ahn-jae-hyun.webp",
+   "credit": {
+    "artist": "디스패치",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:%E2%80%9C%EC%9E%98%EC%83%9D%EA%B9%80_%EB%81%9D%ED%8C%90%EC%99%95%E2%80%9D%E2%80%A6%EC%95%88%EC%9E%AC%ED%98%84,_%ED%95%98%EC%96%80_%EB%B1%80%ED%8C%8C%EC%9D%B4%EC%96%B4_%EB%B9%84%EC%A3%BC%EC%96%BC.jpg"
+   }
+  },
+  {
+   "id": "Q483158",
+   "name": "예성",
+   "en": "Yesung",
+   "birth": "1984-08-24",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 25,
+   "slug": "yesung",
+   "img": "/img/people/yesung.webp",
+   "credit": {
+    "artist": "Dick Thomas Johnson from Tokyo, Japan",
+    "license": "CC BY 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Yesung_from_%22My_Korean_Teacher%22_at_Opening_Ceremony_of_the_Tokyo_International_Film_Festival_2016_(32801121644).jpg"
+   }
+  },
+  {
+   "id": "Q486536",
+   "name": "오연서",
+   "en": "Oh Yeon-seo",
+   "birth": "1987-06-22",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 25,
+   "slug": "oh-yeon-seo",
+   "img": "/img/people/oh-yeon-seo.webp",
+   "credit": {
+    "artist": "밤새",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:170821_%EC%98%A4%EC%97%B0%EC%84%9C_02.jpg"
+   }
+  },
+  {
+   "id": "Q4798670",
+   "name": "오하영",
+   "en": "Oh Ha-young",
+   "birth": "1996-07-19",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 25,
+   "slug": "oh-ha-young",
+   "img": "/img/people/oh-ha-young.webp",
+   "credit": {
+    "artist": "147company",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Hayoung_at_Tencent_KPOP_Concert,_20_July_2015_01.jpg"
+   }
+  },
+  {
+   "id": "Q495352",
+   "name": "유노윤호",
+   "en": "Yunho",
+   "birth": "1986-02-06",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 25,
+   "slug": "yunho",
+   "img": "/img/people/yunho.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:20230818_YUNHO_(%EC%9C%A0%EB%85%B8%EC%9C%A4%ED%98%B8).jpg"
+   }
+  },
+  {
+   "id": "Q491413",
+   "name": "유인나",
+   "en": "Yoo In-na",
+   "birth": "1982-06-05",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 25,
+   "slug": "yoo-in-na",
+   "img": "/img/people/yoo-in-na.webp",
+   "credit": {
+    "artist": "Marie Claire Korea",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Yoo_In-na_for_Marie_Claire_Korea_X_Didier_Dubot_on_07032023_(2).png"
+   }
+  },
+  {
+   "id": "Q2495400",
+   "name": "윤보미",
+   "en": "Yoon Bo-mi",
+   "birth": "1993-08-13",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 25,
+   "slug": "yoon-bo-mi",
+   "img": "/img/people/yoon-bo-mi.webp",
+   "credit": {
+    "artist": "147company",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:A_Pink_Tencent_K-POP_concert_06.jpg"
+   }
+  },
+  {
+   "id": "Q488090",
+   "name": "이광수",
+   "en": "Lee Kwang-soo",
+   "birth": "1985-07-14",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 25,
+   "slug": "lee-kwang-soo",
+   "img": "/img/people/lee-kwang-soo.webp",
+   "credit": {
+    "artist": "Republic of Korea",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Lee_Kwang-soo_2026.jpg"
+   }
+  },
+  {
+   "id": "Q66737132",
+   "name": "이도현",
+   "en": "Lee Do-hyun",
+   "birth": "1995-04-11",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 25,
+   "slug": "lee-do-hyun",
+   "img": "/img/people/lee-do-hyun.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:230315_Lee_Do-hyun_(%EC%9D%B4%EB%8F%84%ED%98%84).jpg"
+   }
+  },
+  {
+   "id": "Q16182344",
+   "name": "이성경",
+   "en": "Lee Sung-kyoung",
+   "birth": "1990-08-10",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 25,
+   "slug": "lee-sung-kyoung",
+   "img": "/img/people/lee-sung-kyoung.webp",
+   "credit": {
+    "artist": "sublimitas viii",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:260228_Lee_Sung-kyung_@_Dolce_%26_Gabbana_FW_26.27_Show_in_Milan.jpg"
+   }
+  },
+  {
+   "id": "Q182089",
+   "name": "이승훈",
+   "en": "Lee Seung-hoon",
+   "birth": "1988-03-06",
+   "job": "빙상 선수",
+   "jobs": [
+    "빙상 선수"
+   ],
+   "links": 25,
+   "slug": "lee-seung-hoon",
+   "img": "/img/people/lee-seung-hoon.webp",
+   "credit": {
+    "artist": "acrofan.com",
+    "license": "CC BY-SA 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Lee_Seung-Hoon_from_acrofan.jpg"
+   }
+  },
+  {
+   "id": "Q496846",
+   "name": "이준",
+   "en": "Lee Joon",
+   "birth": "1988-02-07",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 25,
+   "slug": "lee-joon",
+   "img": "/img/people/lee-joon.webp",
+   "credit": {
+    "artist": "Republic of Korea",
+    "license": "CC BY-SA 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Lee_Joon.jpg"
+   }
+  },
+  {
+   "id": "Q267037",
+   "name": "전도연",
+   "en": "Jeon Do-yeon",
+   "birth": "1973-02-11",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 25,
+   "slug": "jeon-do-yeon",
+   "img": "/img/people/jeon-do-yeon.webp",
+   "credit": {
+    "artist": "Republic of Korea",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Jeon_Do-yeon_Press_Conference_for_%27Possible_Love%27_(crop).jpg"
+   }
+  },
+  {
+   "id": "Q235200",
+   "name": "조수미",
+   "en": "Sumi Jo",
+   "birth": "1962-11-22",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 25,
+   "slug": "sumi-jo",
+   "img": "/img/people/sumi-jo.webp",
+   "credit": {
+    "artist": "Korea.net / Korean Culture and Information Service (Jeon Han)",
+    "license": "CC BY-SA 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Sumi_Jo_(cropped).jpg"
+   }
+  },
+  {
+   "id": "Q168642",
+   "name": "조영철",
+   "en": "Cho Young-cheol",
+   "birth": "1989-05-31",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 25,
+   "slug": "cho-young-cheol",
+   "img": "/img/people/cho-young-cheol.webp",
+   "credit": {
+    "artist": "yoppy from Kawasaki, Kanagawa, Japan",
+    "license": "CC BY 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Cho_Young-Cheol.jpg"
+   }
+  },
+  {
+   "id": "Q493184",
+   "name": "지소연",
+   "en": "Ji So-Yun",
+   "birth": "1991-02-21",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 25,
+   "slug": "ji-so-yun",
+   "img": "/img/people/ji-so-yun.webp",
+   "credit": {
+    "artist": "Hameltion",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:NC_Courage_vs_Seattle_Reign_(Apr_2024)_094.jpg"
+   }
+  },
+  {
+   "id": "Q5608072",
+   "name": "최민호",
+   "en": "Choi Min-ho",
+   "birth": "1980-08-18",
+   "job": "운동선수",
+   "jobs": [
+    "운동선수"
+   ],
+   "links": 25,
+   "slug": "choi-min-ho-1980"
+  },
+  {
+   "id": "Q5103567",
+   "name": "최진혁",
+   "en": "Choi Jin-hyuk",
+   "birth": "1986-02-09",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 25,
+   "slug": "choi-jin-hyuk",
+   "img": "/img/people/choi-jin-hyuk.webp",
+   "credit": {
+    "artist": "acrofan.com",
+    "license": "CC BY-SA 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Choi_Jin-hyuk_from_acrofan.jpg"
+   }
+  },
+  {
+   "id": "Q26459163",
+   "name": "태용",
+   "en": "Lee Tae-yong",
+   "birth": "1995-07-01",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 25,
+   "slug": "lee-tae-yong",
+   "img": "/img/people/lee-tae-yong.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:20231006_Taeyong_(NCT).jpg"
+   }
+  },
+  {
+   "id": "Q482786",
+   "name": "하리수",
+   "en": "Harisu",
+   "birth": "1975-02-17",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 25,
+   "slug": "harisu",
+   "img": "/img/people/harisu.webp",
+   "credit": {
+    "artist": "sj",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:2018_LBMA_STAR_%EB%9D%BC%EB%B0%94%EC%9A%B0%EB%A8%BC_%ED%8C%A8%EC%85%98%EC%87%BC_(2).jpg"
+   }
+  },
+  {
+   "id": "Q495069",
+   "name": "한선화",
+   "en": "Han Seon-hwa",
+   "birth": "1990-10-06",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 25,
+   "slug": "han-seon-hwa",
+   "img": "/img/people/han-seon-hwa.webp",
+   "credit": {
+    "artist": "롯데엔터테인먼트",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Han_Sun-hwa_in_August_2024.png"
+   }
+  },
+  {
+   "id": "Q19603930",
+   "name": "휘인",
+   "en": "Wheein",
+   "birth": "1995-04-17",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 25,
+   "slug": "wheein",
+   "img": "/img/people/wheein.webp",
+   "credit": {
+    "artist": "THEL1VE",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Wheein_in_2022.jpg"
+   }
+  },
+  {
+   "id": "Q483175",
+   "name": "강인",
+   "en": "Kangin",
+   "birth": "1985-01-17",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 24,
+   "slug": "kangin",
+   "img": "/img/people/kangin.webp",
+   "credit": {
+    "artist": "ArcyArcanine25",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kangin2014.jpg"
+   }
+  },
+  {
+   "id": "Q495009",
+   "name": "강지영",
+   "en": "Kang Ji-young",
+   "birth": "1994-01-18",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 24,
+   "slug": "kang-ji-young",
+   "img": "/img/people/kang-ji-young.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kang_Ji-young_in_February_2024.png"
+   }
+  },
+  {
+   "id": "Q12583151",
+   "name": "강하늘",
+   "en": "Kang Ha-neul",
+   "birth": "1990-02-21",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 24,
+   "slug": "kang-ha-neul",
+   "img": "/img/people/kang-ha-neul.webp",
+   "credit": {
+    "artist": "HeyDay",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kang_Ha-neul_at_Midnight_Runners_VIP_premiere_in_August_2017.jpg"
+   }
+  },
+  {
+   "id": "Q56505060",
+   "name": "권은비",
+   "en": "Kwon Eun-bi",
+   "birth": "1995-09-27",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 24,
+   "slug": "kwon-eun-bi",
+   "img": "/img/people/kwon-eun-bi.webp",
+   "credit": {
+    "artist": "TV10",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kwon_Eun-bi_in_May_2026.png"
+   }
+  },
+  {
+   "id": "Q4460516",
+   "name": "김남주",
+   "en": "Kim Nam-joo",
+   "birth": "1995-04-15",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 24,
+   "slug": "kim-nam-joo",
+   "img": "/img/people/kim-nam-joo.webp",
+   "credit": {
+    "artist": "Republic of Korea",
+    "license": "CC BY-SA 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Namjoo_at_Korea_Sale_Festa_Opening_Ceremony,_30_September_2016.png"
+   }
+  },
+  {
+   "id": "Q31146726",
+   "name": "김문환",
+   "en": "Kim Moon-hwan",
+   "birth": "1995-08-01",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 24,
+   "slug": "kim-moon-hwan",
+   "img": "/img/people/kim-moon-hwan.webp",
+   "credit": {
+    "artist": "Nori Picture",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:191202_K%EB%A6%AC%EA%B7%B8_%EC%8B%9C%EC%83%81%EC%8B%9D,_%EA%B9%80%EB%AC%B8%ED%99%98_3.jpg"
+   }
+  },
+  {
+   "id": "Q487653",
+   "name": "김정환",
+   "en": "Kim Jung-Hwan",
+   "birth": "1983-09-02",
+   "job": "운동선수",
+   "jobs": [
+    "운동선수"
+   ],
+   "links": 24,
+   "slug": "kim-jung-hwan",
+   "img": "/img/people/kim-jung-hwan.webp",
+   "credit": {
+    "artist": "Marie-Lan Nguyen",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kim_Jung-hwan_2015_WCh_SMS-EQ_t145753.jpg"
+   }
+  },
+  {
+   "id": "Q56660174",
+   "name": "김채원",
+   "en": "Kim Chaewon",
+   "birth": "2000-08-01",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 24,
+   "slug": "kim-chaewon",
+   "img": "/img/people/kim-chaewon.webp",
+   "credit": {
+    "artist": "David Lee from Redmond, WA, USA",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Easy_Crazy_Hot_Tour_in_Seattle_-_le_sserafim_(54797154470).jpg"
+   }
+  },
+  {
+   "id": "Q196223",
+   "name": "김혜수",
+   "en": "Kim Hye-soo",
+   "birth": "1970-09-05",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 24,
+   "slug": "kim-hye-soo",
+   "img": "/img/people/kim-hye-soo.webp",
+   "credit": {
+    "artist": "Napim22",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kim_Hye-Soo_(%EA%B9%80%ED%98%9C%EC%88%98)_%5E.jpg"
+   }
+  },
+  {
+   "id": "Q491515",
+   "name": "나나",
+   "en": "Nana",
+   "birth": "1991-09-14",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 24,
+   "slug": "nana",
+   "img": "/img/people/nana.webp",
+   "credit": {
+    "artist": "티비텐",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Nana_at_Dalba_Photo_Call,_January_13,_2025.png"
+   }
+  },
+  {
+   "id": "Q59260597",
+   "name": "리노",
+   "en": "Lee Know",
+   "birth": "1998-10-25",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 24,
+   "slug": "lee-know",
+   "img": "/img/people/lee-know.webp",
+   "credit": {
+    "artist": "Marie Claire Korea",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Lee_Know_for_Marie_Claire_Korea,_April_22,_2026_(1).png"
+   }
+  },
+  {
+   "id": "Q16235005",
+   "name": "문선민",
+   "en": "Moon Seon-min",
+   "birth": "1992-06-09",
+   "job": "축구 선수",
+   "jobs": [
+    "축구 선수"
+   ],
+   "links": 24,
+   "slug": "moon-seon-min",
+   "img": "/img/people/moon-seon-min.webp",
+   "credit": {
+    "artist": "Explicit",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:250222_FC_%EC%84%9C%EC%9D%84_vs_%EC%95%88%EC%96%91_(%EB%AC%B8%EC%84%A0%EB%AF%BC).jpg"
+   }
+  },
+  {
+   "id": "Q492313",
+   "name": "박진영",
+   "en": "Park Jin-young",
+   "birth": "1994-09-22",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 24,
+   "slug": "park-jin-young",
+   "img": "/img/people/park-jin-young.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Park_Jin-young_at_Brunello_Cucinelli_Photocall,_23_October_2025_04.jpg"
+   }
+  },
+  {
+   "id": "Q496875",
+   "name": "박한별",
+   "en": "Park Han-byul",
+   "birth": "1984-11-17",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 24,
+   "slug": "park-han-byul",
+   "img": "/img/people/park-han-byul.webp",
+   "credit": {
+    "artist": "dispatchsns",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:MBC_%EB%93%9C%EB%9D%BC%EB%A7%88_%27%EC%8A%AC%ED%94%8C_%EB%95%8C_%EC%82%AC%EB%9E%91%ED%95%9C%EB%8B%A4%27_%EC%A0%9C%EC%9E%91%EB%B0%9C%ED%91%9C%ED%9A%8C_%EB%B0%95%ED%95%9C%EB%B3%84.jpg"
+   }
+  },
+  {
+   "id": "Q497735",
+   "name": "백아연",
+   "en": "Baek A-yeon",
+   "birth": "1993-03-11",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 24,
+   "slug": "baek-a-yeon",
+   "img": "/img/people/baek-a-yeon.webp",
+   "credit": {
+    "artist": "shaq32",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:160217_%EB%B0%B1%EC%95%84%EC%97%B0.jpg"
+   }
+  },
+  {
+   "id": "Q5363925",
+   "name": "보라",
+   "en": "Yoon Bo-ra",
+   "birth": "1989-12-30",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 24,
+   "slug": "yoon-bo-ra",
+   "img": "/img/people/yoon-bo-ra.webp",
+   "credit": {
+    "artist": "B516",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Yoon_Bo-ra_going_to_a_Hit_The_Stage_recording_in_July_2016_01.png"
+   }
+  },
+  {
+   "id": "Q15972890",
+   "name": "서강준",
+   "en": "Seo Kang-jun",
+   "birth": "1993-10-12",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 24,
+   "slug": "seo-kang-jun",
+   "img": "/img/people/seo-kang-jun.webp",
+   "credit": {
+    "artist": "티비텐 TV10",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:20250523_%EC%84%9C%EA%B0%95%EC%A4%80_SEO_KANG-JUN.jpg"
+   }
+  },
+  {
+   "id": "Q486483",
+   "name": "손지현",
+   "en": "Nam Ji-hyun",
+   "birth": "1990-01-09",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 24,
+   "slug": "nam-ji-hyun",
+   "img": "/img/people/nam-ji-hyun.webp",
+   "credit": {
+    "artist": "뉴스인스타",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:191017_%EC%86%90%EC%A7%80%ED%98%84.jpg"
+   }
+  },
+  {
+   "id": "Q55694622",
+   "name": "안유진",
+   "en": "An Yu-jin",
+   "birth": "2003-09-01",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 24,
+   "slug": "an-yu-jin",
+   "img": "/img/people/an-yu-jin.webp",
+   "credit": {
+    "artist": "조선팔도",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:181029_IZ*ONE_Yujin_02.png"
+   }
+  },
+  {
+   "id": "Q93132814",
+   "name": "알렉사",
+   "en": "AleXa",
+   "birth": "1996-12-09",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 24,
+   "slug": "alexa",
+   "img": "/img/people/alexa.webp",
+   "credit": {
+    "artist": "Adam Fröjdfeldt",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:AleXa,_Melodifestivalen_2026,_artists_press_conference-33_(cropped).jpg"
+   }
+  },
+  {
+   "id": "Q272329",
+   "name": "엄정화",
+   "en": "Uhm Jeong-hwa",
+   "birth": "1969-08-17",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 24,
+   "slug": "uhm-jeong-hwa",
+   "img": "/img/people/uhm-jeong-hwa.webp",
+   "credit": {
+    "artist": "티비텐",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Uhm_Junghwa_Kolon_Sports_50th_Anniversary_Event_1.jpg"
+   }
+  },
+  {
+   "id": "Q12606686",
+   "name": "에릭 남",
+   "en": "Eric Nam",
+   "birth": "1988-11-17",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 24,
+   "slug": "eric-nam",
+   "img": "/img/people/eric-nam.webp",
+   "credit": {
+    "artist": "Eric Nam",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Eric_Nam_(2021).jpg"
+   }
+  },
+  {
+   "id": "Q101161289",
+   "name": "윈터",
+   "en": "",
+   "birth": "2001-01-01",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 24,
+   "slug": "q101161289",
+   "img": "/img/people/q101161289.webp",
+   "credit": {
+    "artist": "snow plumflower",
+    "license": "CC BY-SA 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:250315-16_aespa_Winter_06.jpg"
+   }
+  },
+  {
+   "id": "Q12609731",
+   "name": "유라",
+   "en": "Yura",
+   "birth": "1992-11-06",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 24,
+   "slug": "yura",
+   "img": "/img/people/yura.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Yura_in_April_2024.png"
+   }
+  },
+  {
+   "id": "Q489006",
+   "name": "유이",
+   "en": "Uee",
+   "birth": "1988-04-09",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 24,
+   "slug": "uee",
+   "img": "/img/people/uee.webp",
+   "credit": {
+    "artist": "TV10",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:18092025_Uee_01.png"
+   }
+  },
+  {
+   "id": "Q485894",
+   "name": "이요원",
+   "en": "Lee Yo-won",
+   "birth": "1980-04-09",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 24,
+   "slug": "lee-yo-won",
+   "img": "/img/people/lee-yo-won.webp",
+   "credit": {
+    "artist": "티비텐",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Lee_Yo-won_in_October_2025.png"
+   }
+  },
+  {
+   "id": "Q56441288",
+   "name": "이채연",
+   "en": "Chaeyeon",
+   "birth": "2000-01-11",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 24,
+   "slug": "chaeyeon",
+   "img": "/img/people/chaeyeon.webp",
+   "credit": {
+    "artist": "Upload: 박우진 wootube",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:260326_Lee_Chaeyeon.png"
+   }
+  },
+  {
+   "id": "Q16091351",
+   "name": "임세미",
+   "en": "Lim Semi",
+   "birth": "1987-05-29",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 24,
+   "slug": "lim-semi",
+   "img": "/img/people/lim-semi.webp",
+   "credit": {
+    "artist": "Marie Claire Korea",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Im_Se-mi_in_November_2023.png"
+   }
+  },
+  {
+   "id": "Q16865262",
+   "name": "임지연",
+   "en": "Lim Ji-yeon",
+   "birth": "1990-06-23",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 24,
+   "slug": "lim-ji-yeon",
+   "img": "/img/people/lim-ji-yeon.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Lim_Ji-yeon_in_July_2024.png"
+   }
+  },
+  {
+   "id": "Q9348951",
+   "name": "조보아",
+   "en": "Cho Bo-ah",
+   "birth": "1991-08-22",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 24,
+   "slug": "cho-bo-ah",
+   "img": "/img/people/cho-bo-ah.webp",
+   "credit": {
+    "artist": "티비텐",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Jo_Boah_on_CHANEL_Coco_Crush_pop-up_photocall.png"
+   }
+  },
+  {
+   "id": "Q494734",
+   "name": "주지훈",
+   "en": "Ju Ji-hoon",
+   "birth": "1982-05-16",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 24,
+   "slug": "ju-ji-hoon",
+   "img": "/img/people/ju-ji-hoon.webp",
+   "credit": {
+    "artist": "TV10",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Ju_Ji-hoon_in_February_2025.png"
+   }
+  },
+  {
+   "id": "Q492656",
+   "name": "진세연",
+   "en": "Jin Se-yeon",
+   "birth": "1994-02-15",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 24,
+   "slug": "jin-se-yeon",
+   "img": "/img/people/jin-se-yeon.webp",
+   "credit": {
+    "artist": "뉴스인스타",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:191212_%EC%A7%84%EC%84%B8%EC%97%B0_(2).jpg"
+   }
+  },
+  {
+   "id": "Q18815764",
+   "name": "채수빈",
+   "en": "Chae Soo-bin",
+   "birth": "1994-07-10",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 24,
+   "slug": "chae-soo-bin",
+   "img": "/img/people/chae-soo-bin.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Chae_Soo-bin_in_November_2024.png"
+   }
+  },
+  {
+   "id": "Q16092089",
+   "name": "초아",
+   "en": "Choa",
+   "birth": "1990-03-06",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 24,
+   "slug": "choa",
+   "img": "/img/people/choa.webp",
+   "credit": {
+    "artist": "Shaq32",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Park_Cho-a,_2016_(cropped).jpg"
+   }
+  },
+  {
+   "id": "Q55694544",
+   "name": "최예나",
+   "en": "Choi Ye-na",
+   "birth": "1999-09-29",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 24,
+   "slug": "choi-ye-na",
+   "img": "/img/people/choi-ye-na.webp",
+   "credit": {
+    "artist": "티비텐 (TV10)",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:CHOI_YENA_(%EC%B5%9C%EC%98%88%EB%82%98)_%E2%80%93_2024.09.30_%E2%80%93_P1.jpg"
+   }
+  },
+  {
+   "id": "Q485698",
+   "name": "허가윤",
+   "en": "Heo Ga-yoon",
+   "birth": "1990-05-18",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 24,
+   "slug": "heo-ga-yoon",
+   "img": "/img/people/heo-ga-yoon.webp",
+   "credit": {
+    "artist": "the.angrycamel from Singapore, Singapore",
+    "license": "CC BY-SA 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Ga-yoon_cropped.jpg"
+   }
+  },
+  {
+   "id": "Q485672",
+   "name": "가인",
+   "en": "Gain",
+   "birth": "1987-09-20",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 23,
+   "slug": "gain",
+   "img": "/img/people/gain.webp",
+   "credit": {
+    "artist": "곰탱유",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:(2016.09.11)%EB%A9%9C%EB%A1%9C%EB%94%94%ED%8F%AC%EB%A0%88%EC%8A%A4%ED%8A%B8%EC%BA%A0%ED%94%84_%EC%A0%9C%EC%95%84%EB%8B%98_%EA%B0%80%EC%9D%B8%EB%8B%98_%EC%A7%81%EC%B0%8D_by%EA%B3%B0%ED%83%B1%EC%9C%A0_(1).jpg"
+   }
+  },
+  {
+   "id": "Q485966",
+   "name": "강민혁",
+   "en": "Kang Min-hyuk",
+   "birth": "1991-06-28",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 23,
+   "slug": "kang-min-hyuk",
+   "img": "/img/people/kang-min-hyuk.webp",
+   "credit": {
+    "artist": "Marie Claire Korea",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:CNBLUE_%EC%94%A8%EC%97%94%EB%B8%94%EB%A3%A8_%EC%B4%AC%EC%98%81%EC%9E%A5_%EC%8A%A4%EC%BC%80%EC%B9%98_%EA%B0%95%EB%AF%BC%ED%98%81.jpg"
+   }
+  },
+  {
+   "id": "Q446878",
+   "name": "거미",
+   "en": "Gummy",
+   "birth": "1981-04-08",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 23,
+   "slug": "gummy",
+   "img": "/img/people/gummy.webp",
+   "credit": {
+    "artist": "관인생략",
+    "license": "CC BY-SA 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Gummy_20111124.jpg"
+   }
+  },
+  {
+   "id": "Q6408548",
+   "name": "김다솜",
+   "en": "Kim Da-som",
+   "birth": "1993-05-06",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 23,
+   "slug": "kim-da-som",
+   "img": "/img/people/kim-da-som.webp",
+   "credit": {
+    "artist": "소유왕팬",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Dasom_3734.jpg"
+   }
+  },
+  {
+   "id": "Q21575818",
+   "name": "김태리",
+   "en": "Kim Tae-ri",
+   "birth": "1990-04-24",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 23,
+   "slug": "kim-tae-ri",
+   "img": "/img/people/kim-tae-ri.webp",
+   "credit": {
+    "artist": "TV10",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kim_Tae-ri_in_April_2026.png"
+   }
+  },
+  {
+   "id": "Q60679665",
+   "name": "김혜윤",
+   "en": "Kim Hye-yoon",
+   "birth": "1996-11-10",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 23,
+   "slug": "kim-hye-yoon",
+   "img": "/img/people/kim-hye-yoon.webp",
+   "credit": {
+    "artist": "TV10",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kim_Hye-yoon_in_January_2026.png"
+   }
+  },
+  {
+   "id": "Q625480",
+   "name": "김혜자",
+   "en": "Kim Hye-ja",
+   "birth": "1941-10-25",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 23,
+   "slug": "kim-hye-ja",
+   "img": "/img/people/kim-hye-ja.webp",
+   "credit": {
+    "artist": "뉴스인스타",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Kim_Hye-ja_in_Feb_2019.png"
+   }
+  },
+  {
+   "id": "Q16767981",
+   "name": "나해령",
+   "en": "Na Hae-ryung",
+   "birth": "1994-11-11",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 23,
+   "slug": "na-hae-ryung",
+   "img": "/img/people/na-hae-ryung.webp",
+   "credit": {
+    "artist": "oldlady",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Na_Haeryung_on_7_June_2015.jpg"
+   }
+  },
+  {
+   "id": "Q412342",
+   "name": "남궁민",
+   "en": "Namkoong Min",
+   "birth": "1978-03-12",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 23,
+   "slug": "namkoong-min",
+   "img": "/img/people/namkoong-min.webp",
+   "credit": {
+    "artist": "Marie Claire Korea",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Namkoong_Min_2025.png"
+   }
+  },
+  {
+   "id": "Q494351",
+   "name": "문채원",
+   "en": "Moon Chae-won",
+   "birth": "1986-11-13",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 23,
+   "slug": "moon-chae-won",
+   "img": "/img/people/moon-chae-won.webp",
+   "credit": {
+    "artist": "뉴스인스타",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:180813_%EB%AC%B8%EC%B1%84%EC%9B%90_(3).png"
+   }
+  },
+  {
+   "id": "Q55729961",
+   "name": "박규영",
+   "en": "Park Gyu-young",
+   "birth": "1993-07-27",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 23,
+   "slug": "park-gyu-young",
+   "img": "/img/people/park-gyu-young.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:20240910_Park_Gyu-young_Gucci_photo_call.jpg"
+   }
+  },
+  {
+   "id": "Q16082706",
+   "name": "방시혁",
+   "en": "Bang Si-hyuk",
+   "birth": "1972-08-09",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 23,
+   "slug": "bang-si-hyuk",
+   "img": "/img/people/bang-si-hyuk.webp",
+   "credit": {
+    "artist": "Metropolitan City of Busan",
+    "license": "KOGL Type 1",
+    "url": "https://commons.wikimedia.org/wiki/File:Bang_Si-hyuk_on_24_June_2022.jpg"
+   }
+  },
+  {
+   "id": "Q491625",
+   "name": "서지혜",
+   "en": "Seo Ji-hye",
+   "birth": "1984-08-24",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 23,
+   "slug": "seo-ji-hye",
+   "img": "/img/people/seo-ji-hye.webp",
+   "credit": {
+    "artist": "Marie Claire Korea",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Seo_Ji-Hye_para_Marie_Claire_Korea_01.jpg"
+   }
+  },
+  {
+   "id": "Q485279",
+   "name": "서현진",
+   "en": "Seo Hyun-jin",
+   "birth": "1985-02-27",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 23,
+   "slug": "seo-hyun-jin",
+   "img": "/img/people/seo-hyun-jin.webp",
+   "credit": {
+    "artist": "티비텐 TV10",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Seo_Hyun-Jin_20251218.png"
+   }
+  },
+  {
+   "id": "Q30138752",
+   "name": "설인아",
+   "en": "Seol In-ah",
+   "birth": "1996-01-03",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 23,
+   "slug": "seol-in-ah",
+   "img": "/img/people/seol-in-ah.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Seol_In-ah_in_September_2024.png"
+   }
+  },
+  {
+   "id": "Q494222",
+   "name": "성민",
+   "en": "Lee Sungmin",
+   "birth": "1986-01-01",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 23,
+   "slug": "lee-sungmin",
+   "img": "/img/people/lee-sungmin.webp",
+   "credit": {
+    "artist": "Malyn18",
+    "license": "CC BY-SA 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Lee_Sungmin.jpg"
+   }
+  },
+  {
+   "id": "Q12602587",
+   "name": "소진",
+   "en": "Park So-jin",
+   "birth": "1986-05-21",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 23,
+   "slug": "park-so-jin",
+   "img": "/img/people/park-so-jin.webp",
+   "credit": {
+    "artist": "by 덴오빠",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:151016_%EA%B1%B8%EC%8A%A4%EB%8D%B0%EC%9D%B4_%EC%86%8C%EC%A7%84_-_KBS_%EB%AE%A4%EC%A7%81%EB%B1%85%ED%81%AC_%EC%9D%B8%EC%B2%9C%EA%B3%B5%ED%95%AD_%EC%8A%A4%EC%B9%B4%EC%9D%B4_%ED%8E%98%EC%8A%A4%ED%8B%B0%EB%B2%8C_%EA%B3%B5%EA%B0%9C%EB%B0%A9%EC%86%A1_(2).jpg"
+   }
+  },
+  {
+   "id": "Q483638",
+   "name": "예은",
+   "en": "Park Ye-eun",
+   "birth": "1989-05-26",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 23,
+   "slug": "park-ye-eun",
+   "img": "/img/people/park-ye-eun.webp",
+   "credit": {
+    "artist": "SBS Radio",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Park_Ye-eun_in_September_2020.png"
+   }
+  },
+  {
+   "id": "Q16171180",
+   "name": "육성재",
+   "en": "Yook Sung-jae",
+   "birth": "1995-05-02",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 23,
+   "slug": "yook-sung-jae",
+   "img": "/img/people/yook-sung-jae.webp",
+   "credit": {
+    "artist": "티비텐",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Yook_Sung-jae_in_September_2025.png"
+   }
+  },
+  {
+   "id": "Q235613",
+   "name": "윤하",
+   "en": "Younha",
+   "birth": "1988-04-29",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 23,
+   "slug": "younha",
+   "img": "/img/people/younha.webp",
+   "credit": {
+    "artist": "티비텐 TV10",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Younha_at_Incheon_Airport_on_050123_(2).png"
+   }
+  },
+  {
+   "id": "Q486518",
+   "name": "이다해",
+   "en": "Lee Da-hae",
+   "birth": "1984-04-19",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 23,
+   "slug": "lee-da-hae",
+   "img": "/img/people/lee-da-hae.webp",
+   "credit": {
+    "artist": "Korea.net / Korean Culture and Information Service (Jeon Han)",
+    "license": "CC BY-SA 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:K_Drama_IRIS2_Press_08_(8454487129).jpg"
+   }
+  },
+  {
+   "id": "Q489046",
+   "name": "이시영",
+   "en": "Lee Si-young",
+   "birth": "1982-04-17",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 23,
+   "slug": "lee-si-young",
+   "img": "/img/people/lee-si-young.webp",
+   "credit": {
+    "artist": "K-POPIT 케이팝잇",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Lee_Si-young_in_April_2025.png"
+   }
+  },
+  {
+   "id": "Q496314",
+   "name": "이제훈",
+   "en": "Lee Je-hoon",
+   "birth": "1984-07-04",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 23,
+   "slug": "lee-je-hoon",
+   "img": "/img/people/lee-je-hoon.webp",
+   "credit": {
+    "artist": "TV10",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Lee_Je-hoon_in_November_2025.png"
+   }
+  },
+  {
+   "id": "Q488838",
+   "name": "이현우",
+   "en": "Lee Hyun-woo",
+   "birth": "1993-03-23",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 23,
+   "slug": "lee-hyun-woo",
+   "img": "/img/people/lee-hyun-woo.webp",
+   "credit": {
+    "artist": "mang2goon",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Lee_Hyun-woo_in_November_2022.png"
+   }
+  },
+  {
+   "id": "Q491612",
+   "name": "전지윤",
+   "en": "Jeon Ji-yoon",
+   "birth": "1990-10-15",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 23,
+   "slug": "jeon-ji-yoon",
+   "img": "/img/people/jeon-ji-yoon.webp",
+   "credit": {
+    "artist": "KIYOUNG KIM",
+    "license": "CC BY 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Jeon_Ji-yoon_in_2011.jpg"
+   }
+  },
+  {
+   "id": "Q491568",
+   "name": "전효성",
+   "en": "Jun Hyo-seong",
+   "birth": "1989-10-13",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 23,
+   "slug": "jun-hyo-seong",
+   "img": "/img/people/jun-hyo-seong.webp",
+   "credit": {
+    "artist": "Zscrertime",
+    "license": "CC0",
+    "url": "https://commons.wikimedia.org/wiki/File:Jun_Hyoseong_150517_(3).jpg"
+   }
+  },
+  {
+   "id": "Q496439",
+   "name": "한가인",
+   "en": "Han Ga-in",
+   "birth": "1982-02-02",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 23,
+   "slug": "han-ga-in",
+   "img": "/img/people/han-ga-in.webp",
+   "credit": {
+    "artist": "BH Entertainment",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Han_Ga-in,_2018_(cropped).jpg"
+   }
+  },
+  {
+   "id": "Q12624268",
+   "name": "한예리",
+   "en": "Han Ye-ri",
+   "birth": "1984-12-23",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 23,
+   "slug": "han-ye-ri",
+   "img": "/img/people/han-ye-ri.webp",
+   "credit": {
+    "artist": "Marie Claire Korea",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Han_Ye-ri_at_Asian_Star_Awards_2018.jpg"
+   }
+  },
+  {
+   "id": "Q490365",
+   "name": "한채영",
+   "en": "Han Chae-young",
+   "birth": "1980-09-13",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 23,
+   "slug": "han-chae-young",
+   "img": "/img/people/han-chae-young.webp",
+   "credit": {
+    "artist": "SSG BLOG (official)",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:%EC%84%B8%EB%A0%A8%EB%90%98%EA%B3%A0_%EB%8F%84%EC%8B%9C%EC%A0%81%EC%9D%B8_%EC%9D%B4%EB%AF%B8%EC%A7%80%EB%A5%BC_%EB%8C%80%ED%91%9C%ED%95%98%EB%8B%A4_%E2%80%98%ED%95%9C%EC%B1%84%EC%98%81%E2%80%99_%EB%B9%84%EB%94%94%EB%B9%84%EC%B9%98_%EC%A0%84%EC%86%8D%EB%AA%A8%EB%8D%B8%EB%A1%9C_%EB%B0%9C%ED%83%81.jpg"
+   }
+  },
+  {
+   "id": "Q135108208",
+   "name": "EJAE",
+   "en": "Ejae",
+   "birth": "1991-12-06",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 23,
+   "slug": "ejae",
+   "img": "/img/people/ejae.webp",
+   "credit": {
+    "artist": "TV10",
+    "license": "CC BY 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Ejae_in_April_2026_02.png"
+   }
+  },
+  {
+   "id": "Q491048",
+   "name": "JAY B",
+   "en": "JAY B",
+   "birth": "1994-01-06",
+   "job": "가수",
+   "jobs": [
+    "가수"
+   ],
+   "links": 23,
+   "slug": "jay-b",
+   "img": "/img/people/jay-b.webp",
+   "credit": {
+    "artist": "THHeadline",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Siam_Center_x_JAY_B_The_2nd_Exhibition_in_Bangkok_press_conference,_13_January_2025_02_(cropped).png"
+   }
+  },
+  {
+   "id": "Q55727372",
+   "name": "고민시",
+   "en": "Go Min-si",
+   "birth": "1995-02-15",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 22,
+   "slug": "go-min-si",
+   "img": "/img/people/go-min-si.webp",
+   "credit": {
+    "artist": "Marie Claire Korea",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:%EA%B3%A0%EB%AF%BC%EC%8B%9C%EC%99%80_%ED%95%A8%EA%BB%98%ED%95%9C_%EB%B7%B0%ED%8B%B0%ED%99%94%EB%B3%B4_02.png"
+   }
+  },
+  {
+   "id": "Q291446",
+   "name": "고아성",
+   "en": "Ko A-sung",
+   "birth": "1992-08-10",
+   "job": "배우",
+   "jobs": [
+    "배우"
+   ],
+   "links": 22,
+   "slug": "ko-a-sung",
+   "img": "/img/people/ko-a-sung.webp",
+   "credit": {
+    "artist": "월드비전 World Vision Korea",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:%EA%B3%A0%EC%95%84%EC%84%B1_2022-01.jpg"
+   }
+  }
+ ]
+}

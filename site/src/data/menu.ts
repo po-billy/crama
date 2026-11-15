@@ -9,14 +9,19 @@ export type MenuTab = { slug: string; name: string; href: string; color: string;
 
 export const MENU: MenuTab[] = [
   {
-    slug: 'people', name: '인물', href: '/hub/people/', color: '#ec4899',
+    slug: 'people', name: '인물', href: '/people/', color: '#ec4899',
     groups: [
       {
         slug: 'people', name: '인물', icon: 'user', color: '#ec4899',
         desc: '나이·띠·별자리로 찾아보는 인물 정보',
         items: [
-          { name: '인물 검색' }, { name: '오늘 생일인 인물' }, { name: '이달의 생일' }, { name: '출생연도별 인물' },
-          { name: '띠별 인물' }, { name: '별자리별 인물' }, { name: '직업별 인물' }, { name: '조회 순위' },
+          { name: '인물 찾아보기', href: '/people/', desc: '이름으로 검색하고 나이·생일 확인' },
+          { name: '오늘·이달의 생일', href: '/people/#pp-month-sec', desc: '이번 달 생일인 인물' },
+          { name: '출생연도별 인물', href: '/people/#by-year', desc: '같은 해에 태어난 인물' },
+          { name: '띠별 인물', href: '/people/#by-zodiac', desc: '12띠별 인물과 나이표' },
+          { name: '별자리별 인물', href: '/people/#by-star', desc: '12별자리별 인물' },
+          { name: '직업별 인물', href: '/people/#by-job', desc: '가수·배우·운동선수' },
+          { name: '조회 순위' },
         ],
       },
     ],
@@ -81,9 +86,13 @@ export const MENU: MenuTab[] = [
         slug: 'date', name: '나이·날짜', icon: 'calendar', color: '#3b82f6',
         desc: '만 나이, 띠, D-day, 공휴일',
         items: [
-          { name: '만 나이 계산기' }, { name: '띠·나이 조회' }, { name: 'D-day 계산기' }, { name: '영업일 계산기' }, { name: '음력·양력 변환' },
+          { name: '만 나이 계산기', href: '/age/', desc: '생년월일로 오늘 기준 나이 계산' },
+          { name: '출생연도별 나이표', href: '/born/', desc: '연도별 만 나이·띠·학번 한 표로' },
+          { name: '띠별 나이표', href: '/people/zodiac/rat/', desc: '12띠의 출생연도와 나이' },
+          { name: 'D-day 계산기', href: '/dday/', desc: '남은 날·기념일 계산' },
+          { name: '영업일 계산기' }, { name: '음력·양력 변환' },
           { name: '전역일 계산기', href: '/discharge/', desc: '입대일로 전역일·D-day 계산' },
-          { name: '공휴일·황금연휴' }, { name: '출생연도별 나이표' },
+          { name: '공휴일·황금연휴' },
         ],
       },
       {
@@ -153,7 +162,7 @@ export const MENU: MenuTab[] = [
         desc: '표로 정리한 생활 정보',
         items: [
           { name: '연봉별 실수령액 표', href: '/salary/' },
-          { name: '연도별 최저임금' }, { name: '대한민국 인구 통계' }, { name: '띠 총정리' }, { name: '별자리 총정리' },
+          { name: '연도별 최저임금' }, { name: '대한민국 인구 통계' }, { name: '띠 총정리', href: '/people/zodiac/rat/' }, { name: '별자리 총정리', href: '/people/star/aries/' },
           { name: '용어 사전', href: '/glossary/', desc: '금융·AI 용어를 쉽게' },
         ],
       },
@@ -181,6 +190,8 @@ export const MENU: MenuTab[] = [
 ];
 
 export const allGroups = (): (MenuGroup & { tab: MenuTab })[] => MENU.flatMap((t) => t.groups.map((g) => ({ ...g, tab: t })));
+// 분야 대표 주소 — 인물은 전용 목록 페이지가 있다
+export const groupHref = (g: { slug: string }) => (g.slug === 'people' ? '/people/' : `/hub/${g.slug}/`);
 export const readyCount = (g: MenuGroup) => g.items.filter((i) => i.href).length;
 export const tabReady = (t: MenuTab) => t.groups.reduce((n, g) => n + readyCount(g), 0);
 // 상단 탭에는 실제로 들어갈 페이지가 하나라도 있는 것만 노출(빈 탭 방지)

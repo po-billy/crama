@@ -1,0 +1,99 @@
+---
+// 만 나이 계산기 — 생년월일을 넣으면 오늘 기준 만 나이·세는 나이·연 나이·띠·다음 생일까지 남은 날.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { ZODIAC, BORN_FROM, BORN_TO } from '../lib/people';
+import '../styles/portal.css';
+const zodiacNames = ZODIAC.map((z) => `${z.emoji} ${z.name}`);
+const zodiacSlugs = ZODIAC.map((z) => z.slug);
+const faq = [
+  { q: '만 나이는 어떻게 계산하나요?', a: '올해 연도에서 태어난 연도를 뺀 뒤, 올해 생일이 아직 지나지 않았다면 1을 더 뺍니다. 태어난 날은 0세로 시작하고 생일마다 한 살씩 늘어납니다.' },
+  { q: '만 나이, 연 나이, 세는 나이는 어떻게 다른가요?', a: '만 나이는 생일 기준, 연 나이는 올해 연도에서 출생연도를 뺀 값, 세는 나이는 태어나자마자 1세로 시작해 해가 바뀔 때마다 한 살씩 더하는 방식입니다. 2023년 6월 28일부터 행정·민사상 나이는 만 나이로 통일되었습니다.' },
+  { q: '만 나이로 통일된 뒤에도 연 나이를 쓰는 곳이 있나요?', a: '네. 병역 의무, 청소년 보호법상 술·담배 구매, 초등학교 입학 시기 등 일부 제도는 연 나이(출생연도 기준)를 계속 사용합니다.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title="만 나이 계산기 — 생년월일로 오늘 기준 나이 계산" description="생년월일만 넣으면 오늘 기준 만 나이, 세는 나이, 연 나이, 띠, 다음 생일까지 남은 날을 바로 계산합니다. 만 나이 통일 기준 반영." jsonLd={jsonLd}>
+  <div class="pt pt-narrow">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/date/">나이·날짜</a> › 만 나이 계산기</nav>
+    <header class="pt-hubhero" style="--c:#3b82f6">
+      <img src="/img/portal/g-date.webp" alt="" width="200" height="200" />
+      <div><h1>만 나이 계산기</h1><p>생년월일만 넣으면 오늘 기준 나이를 알려드려요</p></div>
+    </header>
+
+    <section class="pt-sec">
+      <div class="tl-card">
+        <div class="tl-row">
+          <label class="tl-field">생년월일<input id="ag-birth" type="date" min="1920-01-01" /></label>
+          <label class="tl-field">기준일<input id="ag-base" type="date" /></label>
+          <button type="button" class="tl-btn" id="ag-go">계산하기</button>
+        </div>
+        <div class="tl-quick" id="ag-quick">
+          <button type="button" data-y="1988">1988년생</button><button type="button" data-y="1990">1990년생</button><button type="button" data-y="1995">1995년생</button><button type="button" data-y="2000">2000년생</button>
+        </div>
+      </div>
+      <div class="tl-result" id="ag-result" hidden aria-live="polite">
+        <div class="tl-result__label" id="ag-label">오늘 기준</div>
+        <div class="tl-result__big" id="ag-big"></div>
+        <div class="tl-result__sub" id="ag-sub"></div>
+      </div>
+      <div class="pp-facts pp-facts--4" id="ag-facts" hidden>
+        <div><span>세는 나이</span><b id="ag-k"></b></div>
+        <div><span>연 나이</span><b id="ag-y"></b></div>
+        <a id="ag-z-link" href="#"><span>띠</span><b id="ag-z"></b></a>
+        <div><span>태어난 지</span><b id="ag-days"></b></div>
+      </div>
+      <div class="pp-links" id="ag-more" hidden style="margin-top:0.8rem">
+        <a class="pp-link" id="ag-born" href="/born/"><span><b id="ag-born-t">출생연도 모아보기</b><span>건강검진 대상·학번·같은 해 인물까지</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+      </div>
+    </section>
+
+    <div class="pt-ad"><AdSlot slot="age-mid" /></div>
+
+    <section class="pt-sec pt-prose">
+      <h2>자주 묻는 질문</h2>
+      {faq.map((f) => <p><b>{f.q}</b><br />{f.a}</p>)}
+    </section>
+
+    <section class="pt-sec pp-links">
+      <a class="pp-link" href="/born/"><span><b>출생연도별 나이표</b><span>연도별 만 나이·띠·학번 한 표로</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+      <a class="pp-link" href="/dday/"><span><b>D-day 계산기</b><span>기념일·시험·전역까지 남은 날</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+    </section>
+  </div>
+
+  <script is:inline define:vars={{ zodiacNames, zodiacSlugs, BORN_FROM, BORN_TO }}>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const iso = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      const parse = (s) => { const p = s.split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]); };
+      $('ag-base').value = iso(new Date());
+      function calc() {
+        if (!$('ag-birth').value) { $('ag-birth').focus(); return; }
+        const b = parse($('ag-birth').value), base = $('ag-base').value ? parse($('ag-base').value) : new Date();
+        if (isNaN(b) || b > base) { $('ag-result').hidden = false; $('ag-big').textContent = '날짜를 확인해 주세요'; $('ag-sub').textContent = '생년월일이 기준일보다 뒤에 있어요.'; $('ag-facts').hidden = true; $('ag-more').hidden = true; return; }
+        const before = base.getMonth() < b.getMonth() || (base.getMonth() === b.getMonth() && base.getDate() < b.getDate());
+        const age = base.getFullYear() - b.getFullYear() - (before ? 1 : 0);
+        let next = new Date(base.getFullYear(), b.getMonth(), b.getDate());
+        const b0 = new Date(base.getFullYear(), base.getMonth(), base.getDate());
+        if (next < b0) next = new Date(base.getFullYear() + 1, b.getMonth(), b.getDate());
+        const dd = Math.round((next - b0) / 864e5);
+        $('ag-label').textContent = iso(base) === iso(new Date()) ? '오늘 기준' : iso(base) + ' 기준';
+        $('ag-big').textContent = '만 ' + age + '세';
+        $('ag-sub').textContent = dd === 0 ? '오늘이 생일이에요 🎂' : '다음 생일까지 ' + dd + '일 남았어요';
+        $('ag-k').textContent = (base.getFullYear() - b.getFullYear() + 1) + '세';
+        $('ag-y').textContent = (base.getFullYear() - b.getFullYear()) + '세';
+        const zi = (((b.getFullYear() - 4) % 12) + 12) % 12;
+        $('ag-z').textContent = zodiacNames[zi]; $('ag-z-link').href = '/people/zodiac/' + zodiacSlugs[zi] + '/';
+        $('ag-days').textContent = Math.round((b0 - b) / 864e5).toLocaleString('ko-KR') + '일';
+        $('ag-result').hidden = false; $('ag-facts').hidden = false;
+        const y = b.getFullYear();
+        if (y >= BORN_FROM && y <= BORN_TO) { $('ag-born').href = '/born/' + y + '/'; $('ag-born-t').textContent = y + '년생 모아보기'; $('ag-more').hidden = false; } else $('ag-more').hidden = true;
+        try { if (window.gtag) window.gtag('event', 'tool_use', { tool: 'age' }); } catch (e) {}
+      }
+      $('ag-go').addEventListener('click', calc);
+      $('ag-birth').addEventListener('change', calc);
+      $('ag-base').addEventListener('change', () => { if ($('ag-birth').value) calc(); });
+      $('ag-quick').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; $('ag-birth').value = b.dataset.y + '-01-01'; calc(); });
+    })();
+  </script>
+</BaseLayout>

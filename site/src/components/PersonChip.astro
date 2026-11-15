@@ -1,0 +1,16 @@
+---
+// 인물 한 명을 동그란 사진(없으면 이름 첫 글자) + 이름으로 보여주는 링크.
+import type { Person } from '../lib/people';
+import { initial, parts } from '../lib/people';
+interface Props { p: Person; sub?: 'job' | 'birth' | 'md' | 'none'; size?: 'sm' | 'md' }
+const { p, sub = 'job', size = 'md' } = Astro.props;
+const { y, m, d } = parts(p.birth);
+const subText = sub === 'job' ? p.job : sub === 'birth' ? `${y}년생` : sub === 'md' ? `${m}.${String(d).padStart(2, '0')}` : '';
+---
+<a class={`pp-chip pp-chip--${size}`} href={`/people/${p.slug}/`}>
+  {p.img
+    ? <img class="pp-ava" src={p.img} alt={`${p.name} 사진`} loading="lazy" width="96" height="96" />
+    : <span class="pp-ava pp-ava--txt" aria-hidden="true">{initial(p.name)}</span>}
+  <b>{p.name}</b>
+  {subText && <small>{subText}</small>}
+</a>

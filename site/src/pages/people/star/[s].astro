@@ -1,0 +1,47 @@
+---
+// 별자리별 인물 + 해당 별자리 기간.
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import PersonChip from '../../../components/PersonChip.astro';
+import { PEOPLE, STARS, personStar, starRange, parts } from '../../../lib/people';
+import '../../../styles/portal.css';
+
+export function getStaticPaths() { return STARS.map((s) => ({ params: { s: s.slug }, props: { slug: s.slug } })); }
+const { slug } = Astro.props as { slug: string };
+const s = STARS.find((x) => x.slug === slug)!;
+const people = PEOPLE.filter((p) => personStar(p).slug === slug).sort((a, b) => {
+  const pa = parts(a.birth), pb = parts(b.birth);
+  const k = (x: { m: number; d: number }) => ((x.m * 100 + x.d - (s.from[0] * 100 + s.from[1]) + 1300) % 1300);
+  return k(pa) - k(pb);
+});
+---
+<BaseLayout title={`${s.name} 날짜·기간 (${starRange(s)}) + ${s.name} 인물 ${people.length}명`} description={`${s.name}는 ${starRange(s)}에 태어난 사람의 별자리입니다. ${s.name} 인물 ${people.length}명과 12별자리 날짜를 한눈에 확인하세요.`}>
+  <div class="pt pt-narrow">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/people/">인물</a> › {s.name}</nav>
+    <header class="pt-hubhero" style="--c:#6366f1">
+      <span style="font-size:3.4rem;line-height:1" aria-hidden="true">{s.emoji}</span>
+      <div><h1>{s.name}</h1><p>{starRange(s)}</p></div>
+    </header>
+
+    {people.length > 0 && (
+      <section class="pt-sec">
+        <div class="pt-sec__head"><div><h2>{s.name} 인물</h2><p>{people.length}명 · 생일 순</p></div></div>
+        <div class="pp-grid">{people.map((p) => <PersonChip p={p} sub="md" />)}</div>
+      </section>
+    )}
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>12별자리 날짜</h2></div></div>
+      <div class="tl-wrap">
+        <table class="tl-table">
+          <thead><tr><th>별자리</th><th>기간</th></tr></thead>
+          <tbody>
+            {STARS.map((x) => (
+              <tr><td><a href={`/people/star/${x.slug}/`}>{x.emoji} {x.name}</a></td><td class={x.slug === slug ? 'is-on' : ''}>{starRange(x)}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="pp-note">※ 별자리 경계일은 해마다 하루 정도 달라질 수 있습니다. 경계일에 태어났다면 태어난 해의 정확한 시각으로 확인하는 것이 좋습니다.</p>
+    </section>
+  </div>
+</BaseLayout>

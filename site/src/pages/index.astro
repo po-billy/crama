@@ -5,7 +5,9 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import AdSlot from '../components/AdSlot.astro';
 import { SITE, CATEGORIES } from '../consts';
-import { allGroups, readyCount } from '../data/menu';
+import { allGroups, readyCount, groupHref } from '../data/menu';
+import PersonChip from '../components/PersonChip.astro';
+import { PEOPLE } from '../lib/people';
 import ratesData from '../data/rates.json';
 import policyEvents from '../data/policy-events.json';
 import '../styles/portal.css';
@@ -93,7 +95,7 @@ const fields = [...ready.filter((g) => g.tab.slug === 'life'), ...ready.filter((
         </section>
 
         <section class="pt-sec">
-          <div class="pt-sec__head"><div><h2>출생연도로 바로 확인</h2><p>{THIS_YEAR}년 건강검진 대상인지 한 번에</p></div><a class="pt-more" href="/health-check/">전체 연도 →</a></div>
+          <div class="pt-sec__head"><div><h2>출생연도로 바로 확인</h2><p>{THIS_YEAR}년 건강검진 대상인지 한 번에</p></div><a class="pt-more" href="/born/">연도별 나이표 →</a></div>
           <div class="pt-chips">
             {hotYears.map((y) => (
               <a class="pt-chip" href={`/health-check/${y}/`}>{y}년생{(y % 2 === 0) === evenYear && <small>대상</small>}</a>
@@ -102,10 +104,15 @@ const fields = [...ready.filter((g) => g.tab.slug === 'life'), ...ready.filter((
         </section>
 
         <section class="pt-sec">
+          <div class="pt-sec__head"><div><h2>인물</h2><p>나이·생일·띠·별자리로 찾아보기</p></div><a class="pt-more" href="/people/">전체 {PEOPLE.length}명 →</a></div>
+          <div class="pp-row">{PEOPLE.slice(0, 14).map((p) => <PersonChip p={p} />)}</div>
+        </section>
+
+        <section class="pt-sec">
           <div class="pt-sec__head"><div><h2>전체 분야</h2><p>필요한 계산기와 조회를 분야별로</p></div><button type="button" class="pt-more" data-open-menu style="border:0;background:none;font:inherit;font-weight:700;cursor:pointer">전체 메뉴 →</button></div>
           <div class="pt-fields">
             {fields.map((g) => (
-              <a class="pt-field" href={`/hub/${g.slug}/`} style={`--c:${g.color}`}>
+              <a class="pt-field" href={groupHref(g)} style={`--c:${g.color}`}>
                 <img src={`/img/portal/g-${g.slug}.webp`} alt="" loading="lazy" width="96" height="96" />
                 <span><b>{g.name}</b><span>{readyCount(g)}개</span></span>
               </a>

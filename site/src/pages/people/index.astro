@@ -1,0 +1,112 @@
+---
+// 인물 목록 — 이름 검색, 오늘·이달의 생일, 출생연도·띠·별자리·직업별 찾아보기.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import PersonChip from '../../components/PersonChip.astro';
+import { PEOPLE, PEOPLE_UPDATED, ZODIAC, STARS, parts, zodiacOf, personStar, BORN_FROM, BORN_TO } from '../../lib/people';
+import '../../styles/portal.css';
+
+const top = PEOPLE.slice(0, 24);
+const years = [...new Set(PEOPLE.map((p) => parts(p.birth).y))].filter((y) => y >= BORN_FROM && y <= BORN_TO).sort((a, b) => b - a);
+const countYear = (y: number) => PEOPLE.filter((p) => parts(p.birth).y === y).length;
+const countZ = (slug: string) => PEOPLE.filter((p) => zodiacOf(parts(p.birth).y).slug === slug).length;
+const countS = (slug: string) => PEOPLE.filter((p) => personStar(p).slug === slug).length;
+const jobs = [...new Set(PEOPLE.flatMap((p) => p.jobs))].map((j) => ({ j, n: PEOPLE.filter((p) => p.jobs.includes(j)).length })).sort((a, b) => b.n - a.n).filter((x) => x.n >= 3);
+// 검색·생일 계산용 슬림 목록(클라이언트)
+const slim = PEOPLE.map((p) => [p.slug, p.name, p.en, p.birth, p.job, p.img ? 1 : 0]);
+---
+<BaseLayout title={`인물 ${PEOPLE.length}명 — 나이·생일·띠·별자리로 찾기`} description="가수·배우·운동선수의 나이와 생일, 띠, 별자리를 한눈에. 오늘 생일인 인물, 출생연도별·띠별·별자리별로 찾아볼 수 있어요.">
+  <div class="pt">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › 인물</nav>
+    <header class="pt-hubhero" style="--c:#ec4899">
+      <img src="/img/portal/g-people.webp" alt="" width="200" height="200" />
+      <div><h1>인물</h1><p>나이·생일·띠·별자리로 찾아보는 인물 {PEOPLE.length}명</p></div>
+    </header>
+
+    <section class="pt-sec">
+      <label class="pp-search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="pp-q" type="search" placeholder="이름 검색 (예: 아이유, IU)" autocomplete="off" aria-label="인물 이름 검색" />
+      </label>
+      <div class="pp-results pp-grid" id="pp-results" hidden></div>
+    </section>
+
+    <section class="pt-sec" id="pp-today-sec" hidden>
+      <div class="pt-sec__head"><div><h2>오늘 생일인 인물</h2><p id="pp-today-date"></p></div></div>
+      <div class="pp-row" id="pp-today"></div>
+    </section>
+
+    <section class="pt-sec" id="pp-month-sec" hidden>
+      <div class="pt-sec__head"><div><h2>이달의 생일</h2><p id="pp-month-label"></p></div></div>
+      <div class="pp-row" id="pp-month"></div>
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>많이 알려진 인물</h2></div></div>
+      <div class="pp-grid">{top.map((p) => <PersonChip p={p} />)}</div>
+    </section>
+
+    <div class="pt-ad"><AdSlot slot="people-index-mid" /></div>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2 id="by-year" style="scroll-margin-top:8rem">출생연도별</h2><p>같은 해에 태어난 인물과 그 해의 나이·띠</p></div><a class="pt-more" href="/born/">나이표 →</a></div>
+      <div class="pt-chips">{years.map((y) => <a class="pt-chip" href={`/born/${y}/`}>{y}년생 <small style="color:var(--muted)">{countYear(y)}</small></a>)}</div>
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2 id="by-zodiac" style="scroll-margin-top:8rem">띠별</h2></div></div>
+      <div class="pt-chips">{ZODIAC.map((z) => <a class="pt-chip" href={`/people/zodiac/${z.slug}/`}>{z.emoji} {z.name} <small style="color:var(--muted)">{countZ(z.slug)}</small></a>)}</div>
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2 id="by-star" style="scroll-margin-top:8rem">별자리별</h2></div></div>
+      <div class="pt-chips">{STARS.map((s) => <a class="pt-chip" href={`/people/star/${s.slug}/`}>{s.emoji} {s.name} <small style="color:var(--muted)">{countS(s.slug)}</small></a>)}</div>
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2 id="by-job" style="scroll-margin-top:8rem">직업별</h2></div></div>
+      <div class="pt-chips">{jobs.map((x) => <button type="button" class="pt-chip" data-job={x.j} style="cursor:pointer;font-family:inherit">{x.j} <small style="color:var(--muted)">{x.n}</small></button>)}</div>
+      <div class="pp-results pp-grid" id="pp-job-results" hidden></div>
+    </section>
+
+    <p class="pp-note">※ 인물 정보는 위키데이터의 공개 정보(생년월일·직업)를 바탕으로 정리했고, 사진은 위키미디어 코먼스에서 자유 이용이 허락된 것만 사용합니다({PEOPLE_UPDATED} 기준). 수정·삭제 요청은 <a href="/contact/">문의</a>로 보내주세요.</p>
+  </div>
+
+  <script is:inline define:vars={{ slim }}>
+    (() => {
+      const chip = (r, sub) => {
+        const a = document.createElement('a'); a.className = 'pp-chip'; a.href = '/people/' + r[0] + '/';
+        if (r[5]) { const im = document.createElement('img'); im.className = 'pp-ava'; im.src = '/img/people/' + r[0] + '.webp'; im.alt = ''; im.loading = 'lazy'; a.appendChild(im); }
+        else { const s = document.createElement('span'); s.className = 'pp-ava pp-ava--txt'; s.textContent = r[1].charAt(0); a.appendChild(s); }
+        const b = document.createElement('b'); b.textContent = r[1]; a.appendChild(b);
+        const sm = document.createElement('small'); sm.textContent = sub || r[4]; a.appendChild(sm);
+        return a;
+      };
+      const fill = (el, rows, subFn) => { el.textContent = ''; rows.forEach((r) => el.appendChild(chip(r, subFn && subFn(r)))); };
+      // 오늘·이달의 생일
+      const n = new Date(), m = n.getMonth() + 1, d = n.getDate();
+      const md = (r) => { const p = r[3].split('-'); return [Number(p[1]), Number(p[2])]; };
+      const today = slim.filter((r) => { const x = md(r); return x[0] === m && x[1] === d; });
+      if (today.length) { fill(document.getElementById('pp-today'), today, (r) => r[3].slice(0, 4) + '년생'); document.getElementById('pp-today-date').textContent = m + '월 ' + d + '일'; document.getElementById('pp-today-sec').hidden = false; }
+      const month = slim.filter((r) => md(r)[0] === m).sort((a, b) => md(a)[1] - md(b)[1]);
+      if (month.length) { fill(document.getElementById('pp-month'), month, (r) => m + '.' + String(md(r)[1]).padStart(2, '0')); document.getElementById('pp-month-label').textContent = m + '월 · ' + month.length + '명'; document.getElementById('pp-month-sec').hidden = false; }
+      // 이름 검색
+      const q = document.getElementById('pp-q'), res = document.getElementById('pp-results');
+      q.addEventListener('input', () => {
+        const v = q.value.trim().toLowerCase();
+        if (!v) { res.hidden = true; return; }
+        const hit = slim.filter((r) => r[1].toLowerCase().indexOf(v) !== -1 || (r[2] || '').toLowerCase().indexOf(v) !== -1).slice(0, 30);
+        res.hidden = false;
+        if (!hit.length) { res.textContent = '찾는 인물이 아직 없어요.'; return; }
+        fill(res, hit);
+      });
+      // 직업별
+      const jr = document.getElementById('pp-job-results');
+      document.querySelectorAll('[data-job]').forEach((b) => b.addEventListener('click', () => {
+        const j = b.dataset.job;
+        fill(jr, slim.filter((r) => r[4].split('·').indexOf(j) !== -1)); jr.hidden = false;
+        jr.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }));
+    })();
+  </script>
+</BaseLayout>

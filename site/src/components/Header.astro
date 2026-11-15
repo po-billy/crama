@@ -2,7 +2,7 @@
 // 포털형 헤더 — 로고 · 검색 · 전체 메뉴 + 상단 탭.
 // 메뉴 내용은 src/data/menu.ts 하나에서 온다. (이전 헤더는 src/legacy/HeaderLegacy.astro 에 보관)
 import { SITE } from '../consts';
-import { MENU, visibleTabs, allGroups, readyCount, ICONS } from '../data/menu';
+import { MENU, visibleTabs, allGroups, readyCount, groupHref, ICONS } from '../data/menu';
 
 const path = Astro.url.pathname;
 const tabs = visibleTabs();
@@ -77,7 +77,7 @@ const ico = (name: string) => ICONS[name] ?? ICONS.grid;
         {groups.map((g) => (
           <section class="pm__group" id={`pm-g-${g.slug}`} style={`--c:${g.color}`}>
             <h2>
-              {readyCount(g) > 0 ? <a href={`/hub/${g.slug}/`}>{g.name}</a> : <span class="pm__gname">{g.name}</span>}
+              {readyCount(g) > 0 ? <a href={groupHref(g)}>{g.name}</a> : <span class="pm__gname">{g.name}</span>}
               <span>{readyCount(g)}</span>
             </h2>
             {g.items.map((it) =>

@@ -1,0 +1,99 @@
+---
+// 출생연도 모아보기 — 그 해에 태어난 사람에게 해당하는 것을 한 화면에(나이·띠·학번·건강검진·국민연금·같은 해 인물).
+// 건강검진 유입(/health-check/[year]/)을 인물·운세 등 다른 콘텐츠로 이어주는 다리 역할.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import PersonChip from '../../components/PersonChip.astro';
+import { THIS_YEAR, zodiacOf, classOf, pensionAge, checkupTarget, bornYears, peopleOfYear, BORN_FROM, BORN_TO } from '../../lib/people';
+import '../../styles/portal.css';
+
+export function getStaticPaths() { return bornYears().map((y) => ({ params: { year: String(y) }, props: { year: y } })); }
+const { year } = Astro.props as { year: number };
+const z = zodiacOf(year);
+const age = THIS_YEAR - year;
+const people = peopleOfYear(year);
+const target = checkupTarget(year);
+const pAge = pensionAge(year);
+const short = String(year).slice(2);
+const title = `${year}년생 나이·띠·학번 (${THIS_YEAR}년 기준) — ${short}년생 총정리`;
+const description = `${year}년생은 ${THIS_YEAR}년 기준 만 ${age - 1}~${age}세, ${z.name}, ${classOf(year)}학번입니다. 건강검진 대상 여부, 국민연금 수령 나이, 같은 해 태어난 인물까지 한 번에 확인하세요.`;
+const faq = [
+  { q: `${year}년생은 ${THIS_YEAR}년에 몇 살인가요?`, a: `생일이 지났으면 만 ${age}세, 지나지 않았으면 만 ${age - 1}세입니다. 연 나이는 ${age}세, 세는 나이는 ${age + 1}세입니다.` },
+  { q: `${year}년생은 무슨 띠인가요?`, a: `${z.name}입니다. 다만 띠는 음력 설을 기준으로 보기도 해서, 1~2월 설 이전에 태어났다면 전년도 띠로 보는 경우가 있습니다.` },
+  { q: `${year}년생은 ${THIS_YEAR}년 건강검진 대상인가요?`, a: target ? `네. ${THIS_YEAR}년은 ${THIS_YEAR % 2 === 0 ? '짝수' : '홀수'}년생이 일반건강검진 대상이라 ${year}년생이 해당합니다(지역가입자·피부양자·사무직 기준).` : `${THIS_YEAR}년은 ${THIS_YEAR % 2 === 0 ? '짝수' : '홀수'}년생이 대상이라 ${year}년생은 내년이 대상 연도입니다. 다만 비사무직 직장가입자는 매년 대상입니다.` },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+  <div class="pt pt-narrow">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/born/">출생연도별 나이</a> › {year}년생</nav>
+    <header class="pt-hubhero" style="--c:#3b82f6">
+      <span style="font-size:3.4rem;line-height:1" aria-hidden="true">{z.emoji}</span>
+      <div><h1>{year}년생</h1><p>{THIS_YEAR}년 기준 나이·띠·학번과 올해 챙길 것</p></div>
+    </header>
+
+    <div class="pp-facts pp-facts--4">
+      <div><span>만 나이</span><b>{age - 1}~{age}세</b></div>
+      <div><span>세는 나이</span><b>{age + 1}세</b></div>
+      <a href={`/people/zodiac/${z.slug}/`}><span>띠</span><b>{z.name}</b></a>
+      <div><span>학번</span><b>{classOf(year)}학번</b></div>
+    </div>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>{year}년생이 올해 챙길 것</h2></div></div>
+      <div class="pt-cards">
+        <a class="pt-card" href={`/health-check/${year}/`} style="--c:#16a34a">
+          <img class="pt-card__img" src="/img/portal/c-checkup.webp" alt="" loading="lazy" width="640" height="400" />
+          <span class="pt-card__body"><span class="pt-card__tag">건강검진</span><span class="pt-card__title">{THIS_YEAR}년 건강검진 {target ? '대상이에요' : '대상 연도가 아니에요'}</span><span class="pt-card__desc">받는 검진 항목 자세히 보기</span></span>
+        </a>
+        <a class="pt-card" href="/salary/" style="--c:#10b981">
+          <img class="pt-card__img" src="/img/portal/c-salary.webp" alt="" loading="lazy" width="640" height="400" />
+          <span class="pt-card__body"><span class="pt-card__tag">월급·세금</span><span class="pt-card__title">내 연봉 실수령액</span><span class="pt-card__desc">세후 한 달에 얼마 받는지</span></span>
+        </a>
+        <a class="pt-card" href="/benefits/" style="--c:#f97316">
+          <img class="pt-card__img" src="/img/portal/c-benefits.webp" alt="" loading="lazy" width="640" height="400" />
+          <span class="pt-card__body"><span class="pt-card__tag">지원금</span><span class="pt-card__title">만 {age - 1}~{age}세가 받을 수 있는 혜택</span><span class="pt-card__desc">조건 넣고 바로 찾기</span></span>
+        </a>
+      </div>
+    </section>
+
+    <section class="pt-sec">
+      <div class="tl-wrap">
+        <table class="tl-table">
+          <thead><tr><th>항목</th><th>{year}년생</th></tr></thead>
+          <tbody>
+            <tr><td>만 나이</td><td>생일 지남 {age}세 · 안 지남 {age - 1}세</td></tr>
+            <tr><td>연 나이 / 세는 나이</td><td>{age}세 / {age + 1}세</td></tr>
+            <tr><td>띠</td><td>{z.emoji} {z.name}</td></tr>
+            <tr><td>학번(대학 입학 연도)</td><td>{classOf(year)}학번 ({year + 19}년 입학)</td></tr>
+            <tr><td>{THIS_YEAR}년 일반건강검진</td><td class={target ? 'is-on' : ''}>{target ? '대상' : '내년 대상'}</td></tr>
+            <tr><td>국민연금 받기 시작하는 나이</td><td>만 {pAge}세 ({year + pAge}년부터)</td></tr>
+            <tr><td>만 60세가 되는 해</td><td>{year + 60}년</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="pp-note">※ 학번은 빠른년생·재수 등을 고려하지 않은 일반적인 기준입니다. 건강검진은 지역가입자·피부양자·사무직 직장가입자의 2년 주기 기준이며, 비사무직 직장가입자는 매년 대상입니다. 국민연금 수급 개시 나이는 국민연금법의 출생연도별 기준(1969년생 이후 만 65세)에 따른 것으로, 제도가 바뀌면 달라질 수 있습니다.</p>
+    </section>
+
+    {people.length > 0 && (
+      <section class="pt-sec">
+        <div class="pt-sec__head"><div><h2>{year}년생 인물</h2><p>{people.length}명</p></div><a class="pt-more" href="/people/">인물 전체 →</a></div>
+        <div class="pp-grid">{people.map((p) => <PersonChip p={p} />)}</div>
+      </section>
+    )}
+
+    <div class="pt-ad"><AdSlot slot="born-mid" /></div>
+
+    <section class="pt-sec pt-prose">
+      <h2>자주 묻는 질문</h2>
+      {faq.map((f) => (<><p><b>{f.q}</b><br />{f.a}</p></>))}
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>다른 출생연도</h2></div><a class="pt-more" href="/born/">전체 나이표 →</a></div>
+      <div class="pt-chips">
+        {[-3, -2, -1, 1, 2, 3].map((k) => year + k).filter((y) => y >= BORN_FROM && y <= BORN_TO).map((y) => <a class="pt-chip" href={`/born/${y}/`}>{y}년생</a>)}
+      </div>
+    </section>
+  </div>
+</BaseLayout>

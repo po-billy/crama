@@ -1,0 +1,64 @@
+---
+// 출생연도별 나이표 — 올해 기준 만 나이·세는 나이·띠·학번을 한 표로.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import { THIS_YEAR, zodiacOf, classOf, checkupTarget, bornYears, ZODIAC } from '../../lib/people';
+import '../../styles/portal.css';
+const years = bornYears();
+---
+<BaseLayout title={`${THIS_YEAR}년 출생연도별 나이표 — 만 나이·띠·학번 한눈에`} description={`${THIS_YEAR}년 기준 출생연도별 만 나이, 세는 나이, 띠, 학번을 한 표로 정리했습니다. 내 출생연도를 누르면 건강검진 대상 여부와 같은 해 인물까지 볼 수 있어요.`}>
+  <div class="pt pt-narrow">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/date/">나이·날짜</a> › 출생연도별 나이표</nav>
+    <header class="pt-hubhero" style="--c:#3b82f6">
+      <img src="/img/portal/g-date.webp" alt="" width="200" height="200" />
+      <div><h1>출생연도별 나이표</h1><p>{THIS_YEAR}년 기준 만 나이·세는 나이·띠·학번</p></div>
+    </header>
+
+    <section class="pt-sec">
+      <div class="tl-card">
+        <div class="tl-row">
+          <label class="tl-field">내 출생연도
+            <select id="bn-year">{years.map((y) => <option value={y} selected={y === 1990}>{y}년생</option>)}</select>
+          </label>
+          <button type="button" class="tl-btn" id="bn-go">바로 보기</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="pt-sec">
+      <div class="tl-wrap">
+        <table class="tl-table">
+          <thead><tr><th>출생연도</th><th>만 나이</th><th>세는 나이</th><th>띠</th><th>학번</th><th>건강검진</th></tr></thead>
+          <tbody>
+            {years.map((y) => (
+              <tr>
+                <td><a href={`/born/${y}/`}>{y}년생</a></td>
+                <td>{THIS_YEAR - y - 1}~{THIS_YEAR - y}세</td>
+                <td>{THIS_YEAR - y + 1}세</td>
+                <td>{zodiacOf(y).name}</td>
+                <td>{classOf(y)}</td>
+                <td class={checkupTarget(y) ? 'is-on' : ''}>{checkupTarget(y) ? '대상' : '-'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="pp-note">※ 만 나이는 생일이 지났으면 큰 숫자, 지나지 않았으면 작은 숫자입니다. 2023년 6월부터 법적·사회적 나이는 만 나이로 통일되었습니다. 건강검진 표시는 {THIS_YEAR}년 일반건강검진 대상(2년 주기) 여부입니다.</p>
+    </section>
+
+    <div class="pt-ad"><AdSlot slot="born-index-mid" /></div>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>띠별로 보기</h2></div></div>
+      <div class="pt-chips">{ZODIAC.map((z) => <a class="pt-chip" href={`/people/zodiac/${z.slug}/`}>{z.emoji} {z.name}</a>)}</div>
+    </section>
+
+    <section class="pt-sec pp-links">
+      <a class="pp-link" href="/age/"><span><b>만 나이 계산기</b><span>생년월일로 오늘 기준 만 나이 계산</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+      <a class="pp-link" href="/health-check/"><span><b>건강검진 대상 조회</b><span>출생연도별 {THIS_YEAR}년 대상 여부</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+    </section>
+  </div>
+  <script is:inline>
+    document.getElementById('bn-go')?.addEventListener('click', () => { location.href = '/born/' + document.getElementById('bn-year').value + '/'; });
+  </script>
+</BaseLayout>

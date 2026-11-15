@@ -47,6 +47,13 @@ const cards = [
   latest[0] && { href: `/blog/${latest[0].id}/`, src: thumb(latest[0].data.heroImage), tag: '새 글', color: '#6c5ce7', title: latest[0].data.title, desc: CATEGORIES[latest[0].data.category].name },
 ].filter(Boolean) as { href: string; img?: string; src?: string; tag: string; color: string; title: string; desc: string; id?: string }[];
 
+const games = [
+  { href: '/games/sudoku/', img: 'c-sudoku', title: '오늘의 스도쿠' },
+  { href: '/games/mines/', img: 'c-minesweeper', title: '지뢰 찾기' },
+  { href: '/games/bricks/', img: 'c-breakout', title: '벽돌깨기' },
+  { href: '/games/quiz/', img: 'c-quiz', title: '상식 퀴즈' },
+];
+
 // 출생연도 바로가기 — 실제 조회가 많은 순서(GA 기준)로 앞에 배치
 const hotYears = [1984, 1976, 1986, 1988, 1972, 1978, 1994, 1998, 1980, 1974, 1982, 1996];
 
@@ -101,6 +108,18 @@ const fields = [...ready.filter((g) => g.tab.slug === 'life'), ...ready.filter((
           <div class="pt-chips">
             {hotYears.map((y) => (
               <a class="pt-chip" href={`/health-check/${y}/`}>{y}년생{(y % 2 === 0) === evenYear && <small>대상</small>}</a>
+            ))}
+          </div>
+        </section>
+
+        <section class="pt-sec">
+          <div class="pt-sec__head"><div><h2>오늘의 게임</h2><p>설치 없이 바로 한 판</p></div><a class="pt-more" href="/hub/games/">전체 →</a></div>
+          <div class="pt-cards pt-cards--4">
+            {games.map((c) => (
+              <a class="pt-card" href={c.href} style="--c:#f59e0b">
+                <img class="pt-card__img" src={`/img/portal/${c.img}.webp`} alt="" loading="lazy" width="640" height="400" />
+                <span class="pt-card__body"><span class="pt-card__title">{c.title}</span></span>
+              </a>
             ))}
           </div>
         </section>

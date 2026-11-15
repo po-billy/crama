@@ -1,0 +1,113 @@
+---
+// 벽돌깨기 — 막대로 공을 튕겨 벽돌을 모두 없애는 아케이드. 캔버스로 직접 그린다.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import '../../styles/portal.css';
+---
+<BaseLayout title="벽돌깨기 무료 게임 — 설치 없이 바로 하기" description="막대를 움직여 공을 튕기고 벽돌을 모두 깨 보세요. PC는 마우스·방향키, 모바일은 손가락으로 즐기는 무료 벽돌깨기 게임.">
+  <div class="pt pt-narrow" style="--c:#6366f1">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/games/">게임</a> › 벽돌깨기</nav>
+    <div class="gm-head">
+      <h1>벽돌깨기</h1>
+      <span class="pt-card__tag" id="bk-stage">1단계</span>
+      <span class="gm-timer" id="bk-score">0점 · ❤ 3</span>
+    </div>
+    <div class="bk-wrap">
+      <canvas id="bk-cv" width="480" height="600" aria-label="벽돌깨기 게임 화면"></canvas>
+      <button type="button" class="tl-btn bk-start" id="bk-start">시작하기</button>
+    </div>
+    <p class="gm-msg" id="bk-msg" aria-live="polite">막대를 좌우로 움직여 공을 받아내세요</p>
+
+    <div class="pt-ad"><AdSlot slot="game-bricks" /></div>
+
+    <section class="pt-sec pt-prose">
+      <h2>하는 법</h2>
+      <ul>
+        <li>PC: 마우스를 움직이거나 ← → 방향키로 막대를 움직입니다.</li>
+        <li>모바일: 게임 화면을 손가락으로 좌우로 끌어 주세요.</li>
+        <li>막대의 가장자리에 맞을수록 공이 옆으로 크게 튑니다. 벽돌을 모두 깨면 다음 단계로 넘어가요.</li>
+      </ul>
+    </section>
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>다른 게임</h2></div></div>
+      <div class="pt-chips"><a class="pt-chip" href="/games/sudoku/">스도쿠</a><a class="pt-chip" href="/games/mines/">지뢰 찾기</a><a class="pt-chip" href="/games/number-baseball/">숫자 야구</a><a class="pt-chip" href="/games/quiz/">상식 퀴즈</a></div>
+    </section>
+  </div>
+
+  <style is:global>
+    .gm-head { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.8rem; }
+    .gm-head h1 { margin: 0; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; }
+    .gm-timer { margin-left: auto; font-size: 1.05rem; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+    .gm-msg { text-align: center; font-weight: 800; color: var(--accent); min-height: 1.6rem; margin: 0.8rem 0 0; }
+    .bk-wrap { position: relative; max-width: 26rem; margin: 0 auto; }
+    #bk-cv { display: block; width: 100%; height: auto; border-radius: 16px; background: #14122b; touch-action: none; cursor: none; }
+    .bk-start { position: absolute; left: 50%; top: 58%; transform: translate(-50%, -50%); }
+    .bk-start[hidden] { display: none; }
+  </style>
+
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const cv = $('bk-cv'), g = cv.getContext('2d'), W = cv.width, H = cv.height;
+      const COLORS = ['#f43f5e', '#f97316', '#f5b400', '#22c55e', '#0ea5e9', '#8b5cf6'];
+      let px, pw, ball, bricks, score, lives, stage, run = false, raf = 0, keys = {};
+      function build() {
+        bricks = []; const cols = 8, rows = Math.min(4 + stage, 8), bw = (W - 40 - (cols - 1) * 6) / cols, bh = 20;
+        for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+          if (stage > 1 && (r + c + stage) % 7 === 0) continue; // 단계마다 빈칸 무늬
+          bricks.push({ x: 20 + c * (bw + 6), y: 70 + r * (bh + 6), w: bw, h: bh, color: COLORS[r % COLORS.length], on: true });
+        }
+      }
+      function serve() { pw = Math.max(64, 100 - stage * 6); px = (W - pw) / 2; const sp = 4.4 + stage * 0.45; ball = { x: W / 2, y: H - 60, vx: sp * (Math.random() < 0.5 ? -0.6 : 0.6), vy: -sp, r: 7, sp: sp }; }
+      function init() { score = 0; lives = 3; stage = 1; build(); serve(); hud(); draw(); }
+      const hud = () => { $('bk-score').textContent = score + '점 · ❤ ' + lives; $('bk-stage').textContent = stage + '단계'; };
+      function draw() {
+        g.clearRect(0, 0, W, H);
+        bricks.forEach((b) => { if (!b.on) return; g.fillStyle = b.color; g.beginPath(); g.roundRect(b.x, b.y, b.w, b.h, 5); g.fill(); });
+        g.fillStyle = '#ffffff'; g.beginPath(); g.roundRect(px, H - 30, pw, 12, 6); g.fill();
+        g.fillStyle = '#ffd84d'; g.beginPath(); g.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2); g.fill();
+      }
+      function step() {
+        if (keys.ArrowLeft) px -= 8; if (keys.ArrowRight) px += 8;
+        px = Math.max(0, Math.min(W - pw, px));
+        ball.x += ball.vx; ball.y += ball.vy;
+        if (ball.x < ball.r) { ball.x = ball.r; ball.vx = Math.abs(ball.vx); }
+        if (ball.x > W - ball.r) { ball.x = W - ball.r; ball.vx = -Math.abs(ball.vx); }
+        if (ball.y < ball.r) { ball.y = ball.r; ball.vy = Math.abs(ball.vy); }
+        // 막대: 맞은 위치에 따라 튀는 각도가 달라진다
+        if (ball.vy > 0 && ball.y + ball.r >= H - 30 && ball.y + ball.r <= H - 14 && ball.x >= px - 4 && ball.x <= px + pw + 4) {
+          const hit = (ball.x - (px + pw / 2)) / (pw / 2), ang = hit * 1.05;
+          ball.vx = ball.sp * Math.sin(ang); ball.vy = -ball.sp * Math.cos(ang); ball.y = H - 30 - ball.r;
+        }
+        for (const b of bricks) {
+          if (!b.on) continue;
+          if (ball.x + ball.r > b.x && ball.x - ball.r < b.x + b.w && ball.y + ball.r > b.y && ball.y - ball.r < b.y + b.h) {
+            b.on = false; score += 10;
+            const ox = Math.min(ball.x + ball.r - b.x, b.x + b.w - (ball.x - ball.r)), oy = Math.min(ball.y + ball.r - b.y, b.y + b.h - (ball.y - ball.r));
+            if (ox < oy) ball.vx = -ball.vx; else ball.vy = -ball.vy;
+            hud(); break;
+          }
+        }
+        if (ball.y > H + 20) {
+          lives--; hud();
+          if (lives <= 0) { end('게임 종료 · ' + score + '점', '다시 하기'); return; }
+          serve(); pause('공을 놓쳤어요', '이어 하기'); return;
+        }
+        if (bricks.every((b) => !b.on)) { stage++; build(); serve(); hud(); try { if (window.gtag) window.gtag('event', 'game_clear', { game: 'bricks', stage: stage - 1 }); } catch (e) {} pause((stage - 1) + '단계 통과! 🎉', '다음 단계'); return; }
+        draw(); raf = requestAnimationFrame(step);
+      }
+      function pause(msg, label) { run = false; draw(); $('bk-msg').textContent = msg; $('bk-start').textContent = label; $('bk-start').hidden = false; }
+      // 게임이 끝나면 다음 시작 때 점수·목숨·단계를 처음으로 되돌린다
+      let needInit = false;
+      function end(msg, label) { pause(msg, label); needInit = true; }
+      $('bk-start').addEventListener('click', () => { if (needInit) { needInit = false; init(); } $('bk-start').hidden = true; $('bk-msg').textContent = ''; run = true; cancelAnimationFrame(raf); raf = requestAnimationFrame(step); });
+      const move = (clientX) => { const r = cv.getBoundingClientRect(); px = ((clientX - r.left) / r.width) * W - pw / 2; if (!run) { px = Math.max(0, Math.min(W - pw, px)); draw(); } };
+      cv.addEventListener('pointermove', (e) => move(e.clientX));
+      cv.addEventListener('pointerdown', (e) => move(e.clientX));
+      document.addEventListener('keydown', (e) => { if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { keys[e.key] = true; if (run) e.preventDefault(); } });
+      document.addEventListener('keyup', (e) => { keys[e.key] = false; });
+      document.addEventListener('visibilitychange', () => { if (document.hidden && run) pause('잠시 멈춤', '이어 하기'); });
+      init();
+    })();
+  </script>
+</BaseLayout>

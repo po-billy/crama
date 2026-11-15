@@ -1,0 +1,158 @@
+---
+// 스도쿠 — 브라우저에서 퍼즐을 만들어 푼다(해가 하나뿐인 퍼즐만 출제). '오늘의 퍼즐'은 날짜로 고정.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import '../../styles/portal.css';
+---
+<BaseLayout title="스도쿠 무료 게임 — 오늘의 스도쿠 (쉬움·보통·어려움)" description="설치 없이 바로 하는 무료 스도쿠. 매일 바뀌는 오늘의 퍼즐과 난이도별 새 게임, 메모·힌트·타이머 기능을 제공합니다.">
+  <div class="pt pt-narrow" style="--c:#6c5ce7">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/games/">게임</a> › 스도쿠</nav>
+    <div class="gm-head">
+      <h1>오늘의 스도쿠</h1>
+      <span class="pt-card__tag" id="sd-level-tag">보통</span>
+      <span class="gm-timer" id="sd-timer">00:00</span>
+    </div>
+
+    <div class="tl-quick" style="margin:0 0 0.8rem">
+      <button type="button" data-new="daily">오늘의 퍼즐</button><button type="button" data-new="easy">새 게임 · 쉬움</button><button type="button" data-new="normal">새 게임 · 보통</button><button type="button" data-new="hard">새 게임 · 어려움</button>
+    </div>
+
+    <div class="sd-board" id="sd-board" role="grid" aria-label="스도쿠 판"></div>
+    <div class="sd-pad" id="sd-pad">{[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => <button type="button" data-n={n}>{n}</button>)}</div>
+    <div class="tl-quick" style="justify-content:center">
+      <button type="button" id="sd-erase">지우기</button><button type="button" id="sd-memo">메모 끔</button><button type="button" id="sd-hint">힌트</button><button type="button" id="sd-check">틀린 칸 보기</button>
+    </div>
+    <p class="gm-msg" id="sd-msg" aria-live="polite"></p>
+
+    <div class="pt-ad"><AdSlot slot="game-sudoku" /></div>
+
+    <section class="pt-sec pt-prose">
+      <h2>스도쿠 하는 법</h2>
+      <ul>
+        <li>가로줄, 세로줄, 굵은 선으로 나뉜 3×3 칸마다 1부터 9까지 숫자가 한 번씩만 들어가야 합니다.</li>
+        <li>칸을 누른 뒤 아래 숫자를 눌러 채웁니다. 키보드 숫자와 방향키도 쓸 수 있어요.</li>
+        <li>확신이 없을 때는 메모를 켜고 후보 숫자를 작게 적어 두세요.</li>
+      </ul>
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>다른 게임</h2></div></div>
+      <div class="pt-chips"><a class="pt-chip" href="/games/mines/">지뢰 찾기</a><a class="pt-chip" href="/games/bricks/">벽돌깨기</a><a class="pt-chip" href="/games/number-baseball/">숫자 야구</a><a class="pt-chip" href="/games/quiz/">상식 퀴즈</a></div>
+    </section>
+  </div>
+
+  <style is:global>
+    .gm-head { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.8rem; }
+    .gm-head h1 { margin: 0; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; }
+    .gm-timer { margin-left: auto; font-size: 1.1rem; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+    .gm-msg { text-align: center; font-weight: 800; color: var(--accent); min-height: 1.6rem; margin: 0.8rem 0 0; }
+    .sd-board { display: grid; grid-template-columns: repeat(9, 1fr); max-width: 30rem; margin: 0 auto; border: 2.5px solid var(--ink); border-radius: 8px; overflow: hidden; background: var(--paper); touch-action: manipulation; }
+    .sd-cell { aspect-ratio: 1; display: grid; place-items: center; border: 0; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); background: none; font: inherit; font-size: clamp(1rem, 4.6vw, 1.5rem); font-weight: 700; color: var(--accent); cursor: pointer; padding: 0; position: relative; }
+    .sd-cell.is-given { color: var(--ink); font-weight: 800; }
+    .sd-cell.c3 { border-right: 2px solid var(--ink); } .sd-cell.r3 { border-bottom: 2px solid var(--ink); }
+    .sd-cell.is-peer { background: var(--paper-2); }
+    .sd-cell.is-same { background: color-mix(in srgb, var(--accent) 16%, var(--paper)); }
+    .sd-cell.is-sel { background: color-mix(in srgb, var(--accent) 30%, var(--paper)); }
+    .sd-cell.is-bad { color: #e11d48; background: color-mix(in srgb, #f43f5e 14%, var(--paper)); }
+    .sd-notes { position: absolute; inset: 2px; display: grid; grid-template-columns: repeat(3, 1fr); font-size: clamp(0.42rem, 1.7vw, 0.62rem); font-weight: 600; color: var(--muted); line-height: 1; }
+    .sd-notes span { display: grid; place-items: center; }
+    .sd-pad { display: grid; grid-template-columns: repeat(9, 1fr); gap: 0.3rem; max-width: 30rem; margin: 0.8rem auto 0.4rem; }
+    .sd-pad button { aspect-ratio: 1; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); font: inherit; font-size: 1.15rem; font-weight: 800; color: var(--ink); cursor: pointer; padding: 0; }
+    .sd-pad button:hover { border-color: var(--accent); color: var(--accent); }
+    .sd-pad button.is-done { opacity: 0.3; }
+    .tl-quick button.is-on { border-color: var(--accent); background: var(--accent); color: #fff; }
+  </style>
+
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const board = $('sd-board');
+      let rnd = Math.random, sol = [], given = [], val = [], notes = [], sel = -1, memo = false, t0 = 0, timer = null, done = false;
+      const seeded = (s) => () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
+      const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+      function solved() {
+        // 기본 패턴을 행·열·숫자 단위로 섞어 완성판을 만든다
+        const base = (r, c) => (3 * (r % 3) + Math.floor(r / 3) + c) % 9;
+        const rows = [].concat(...shuffle([0, 1, 2]).map((g) => shuffle([0, 1, 2]).map((r) => g * 3 + r)));
+        const cols = [].concat(...shuffle([0, 1, 2]).map((g) => shuffle([0, 1, 2]).map((c) => g * 3 + c)));
+        const nums = shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        const g = []; for (const r of rows) for (const c of cols) g.push(nums[base(r, c)]);
+        return g;
+      }
+      const ok = (g, i, n) => { const r = Math.floor(i / 9), c = i % 9, br = r - (r % 3), bc = c - (c % 3); for (let k = 0; k < 9; k++) { if (g[r * 9 + k] === n || g[k * 9 + c] === n || g[(br + Math.floor(k / 3)) * 9 + bc + (k % 3)] === n) return false; } return true; };
+      function count(g, limit) { // 해의 개수(최대 limit)
+        let best = -1, bestN = 10;
+        for (let i = 0; i < 81; i++) if (!g[i]) { let n = 0; for (let v = 1; v <= 9; v++) if (ok(g, i, v)) n++; if (n < bestN) { bestN = n; best = i; if (n <= 1) break; } }
+        if (best === -1) return 1;
+        let total = 0;
+        for (let v = 1; v <= 9 && total < limit; v++) if (ok(g, best, v)) { g[best] = v; total += count(g, limit - total); g[best] = 0; }
+        return total;
+      }
+      function make(level) {
+        sol = solved(); const g = sol.slice(), target = level === 'easy' ? 40 : level === 'hard' ? 54 : 47;
+        let removed = 0;
+        for (const i of shuffle([...Array(81).keys()])) {
+          if (removed >= target) break;
+          const keep = g[i]; g[i] = 0;
+          if (count(g.slice(), 2) !== 1) g[i] = keep; else removed++;
+        }
+        return g;
+      }
+      function start(mode) {
+        const n = new Date();
+        let level = mode;
+        if (mode === 'daily') { rnd = seeded(n.getFullYear() * 10000 + (n.getMonth() + 1) * 100 + n.getDate()); level = 'normal'; } else rnd = Math.random;
+        given = make(level); val = given.slice(); notes = Array.from({ length: 81 }, () => new Set()); sel = -1; done = false;
+        document.querySelector('.gm-head h1').textContent = mode === 'daily' ? '오늘의 스도쿠' : '스도쿠';
+        $('sd-level-tag').textContent = { easy: '쉬움', normal: '보통', hard: '어려움' }[level];
+        $('sd-msg').textContent = '';
+        t0 = Date.now(); clearInterval(timer); timer = setInterval(tick, 1000); tick(); draw();
+      }
+      const tick = () => { const s = Math.floor((Date.now() - t0) / 1000); $('sd-timer').textContent = String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
+      function draw(showBad) {
+        board.textContent = '';
+        const sr = Math.floor(sel / 9), sc = sel % 9, sv = sel >= 0 ? val[sel] : 0;
+        for (let i = 0; i < 81; i++) {
+          const r = Math.floor(i / 9), c = i % 9, b = document.createElement('button');
+          b.type = 'button'; b.className = 'sd-cell' + (given[i] ? ' is-given' : '') + (c % 3 === 2 && c < 8 ? ' c3' : '') + (r % 3 === 2 && r < 8 ? ' r3' : '');
+          if (sel >= 0 && (r === sr || c === sc || (Math.floor(r / 3) === Math.floor(sr / 3) && Math.floor(c / 3) === Math.floor(sc / 3)))) b.classList.add('is-peer');
+          if (sv && val[i] === sv) b.classList.add('is-same');
+          if (i === sel) b.classList.add('is-sel');
+          if (showBad && val[i] && !given[i] && val[i] !== sol[i]) b.classList.add('is-bad');
+          if (val[i]) b.textContent = val[i];
+          else if (notes[i].size) { const d = document.createElement('span'); d.className = 'sd-notes'; for (let n = 1; n <= 9; n++) { const s = document.createElement('span'); s.textContent = notes[i].has(n) ? n : ''; d.appendChild(s); } b.appendChild(d); }
+          b.setAttribute('aria-label', (r + 1) + '행 ' + (c + 1) + '열' + (val[i] ? ' ' + val[i] : ' 빈칸'));
+          b.addEventListener('click', () => { sel = i; draw(); });
+          board.appendChild(b);
+        }
+        const cnt = Array(10).fill(0); val.forEach((v) => cnt[v]++);
+        $('sd-pad').querySelectorAll('button').forEach((b) => b.classList.toggle('is-done', cnt[Number(b.dataset.n)] >= 9));
+      }
+      function put(n) {
+        if (done || sel < 0 || given[sel]) return;
+        if (memo && n) { if (val[sel]) return; notes[sel].has(n) ? notes[sel].delete(n) : notes[sel].add(n); draw(); return; }
+        val[sel] = n; if (n) notes[sel].clear();
+        draw();
+        if (val.every((v, i) => v === sol[i])) { done = true; clearInterval(timer); $('sd-msg').textContent = '완성! 기록 ' + $('sd-timer').textContent + ' 🎉'; try { if (window.gtag) window.gtag('event', 'game_clear', { game: 'sudoku' }); } catch (e) {} }
+      }
+      $('sd-pad').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) put(Number(b.dataset.n)); });
+      $('sd-erase').addEventListener('click', () => { if (sel >= 0 && !given[sel]) { notes[sel].clear(); put(0); } });
+      $('sd-memo').addEventListener('click', () => { memo = !memo; $('sd-memo').textContent = memo ? '메모 켬' : '메모 끔'; $('sd-memo').classList.toggle('is-on', memo); });
+      $('sd-hint').addEventListener('click', () => {
+        if (done) return;
+        let i = sel >= 0 && !given[sel] && val[sel] !== sol[sel] ? sel : val.findIndex((v, k) => v !== sol[k]);
+        if (i < 0) return; sel = i; val[i] = sol[i]; notes[i].clear(); given[i] = sol[i]; draw();
+        if (val.every((v, k) => v === sol[k])) { done = true; clearInterval(timer); $('sd-msg').textContent = '완성! (힌트 사용)'; }
+      });
+      $('sd-check').addEventListener('click', () => { draw(true); const bad = val.filter((v, i) => v && v !== sol[i]).length; $('sd-msg').textContent = bad ? '틀린 칸 ' + bad + '개' : '지금까지 모두 맞아요'; });
+      document.querySelectorAll('[data-new]').forEach((b) => b.addEventListener('click', () => start(b.dataset.new)));
+      document.addEventListener('keydown', (e) => {
+        if (e.target.closest('input,textarea,select')) return;
+        if (/^[1-9]$/.test(e.key)) { put(Number(e.key)); e.preventDefault(); }
+        else if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') { if (sel >= 0 && !given[sel]) { notes[sel].clear(); put(0); } e.preventDefault(); }
+        else if (sel >= 0 && e.key.indexOf('Arrow') === 0) { const d = { ArrowUp: -9, ArrowDown: 9, ArrowLeft: -1, ArrowRight: 1 }[e.key], n = sel + d; if (n >= 0 && n < 81 && !(Math.abs(d) === 1 && Math.floor(n / 9) !== Math.floor(sel / 9))) { sel = n; draw(); } e.preventDefault(); }
+      });
+      start('daily');
+    })();
+  </script>
+</BaseLayout>

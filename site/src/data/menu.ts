@@ -32,7 +32,13 @@ export const MENU: MenuTab[] = [
       {
         slug: 'games', name: '미니게임', icon: 'game', color: '#f59e0b',
         desc: '설치 없이 바로 하는 미니게임',
-        items: [{ name: '오늘의 스도쿠' }, { name: '단어 맞추기' }, { name: '벽돌깨기' }, { name: '지뢰찾기' }, { name: '상식 퀴즈' }],
+        items: [
+          { name: '오늘의 스도쿠', href: '/games/sudoku/', desc: '매일 바뀌는 퍼즐과 난이도별 새 게임' },
+          { name: '지뢰 찾기', href: '/games/mines/', desc: '숫자를 보고 지뢰 피하기' },
+          { name: '벽돌깨기', href: '/games/bricks/', desc: '공을 튕겨 벽돌 깨기' },
+          { name: '숫자 야구', href: '/games/number-baseball/', desc: '스트라이크·볼로 숫자 맞히기' },
+          { name: '상식 퀴즈', href: '/games/quiz/', desc: '10문제로 보는 내 상식 점수' },
+        ],
       },
     ],
   },

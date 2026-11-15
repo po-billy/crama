@@ -1,0 +1,110 @@
+---
+// 지뢰 찾기 — 숫자를 보고 지뢰를 피해 모든 칸을 여는 퍼즐. 첫 칸은 항상 안전.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import '../../styles/portal.css';
+---
+<BaseLayout title="지뢰 찾기 무료 게임 — 초급·중급·고급" description="설치 없이 바로 하는 무료 지뢰 찾기. 첫 칸은 항상 안전하고, 모바일에서는 깃발 모드로 편하게 즐길 수 있어요.">
+  <div class="pt pt-narrow" style="--c:#0ea5e9">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/games/">게임</a> › 지뢰 찾기</nav>
+    <div class="gm-head">
+      <h1>지뢰 찾기</h1>
+      <span class="pt-card__tag" id="mn-left">🚩 10</span>
+      <span class="gm-timer" id="mn-timer">00:00</span>
+    </div>
+    <div class="tl-quick" style="margin:0 0 0.8rem">
+      <button type="button" data-lv="9,9,10">초급</button><button type="button" data-lv="12,12,24">중급</button><button type="button" data-lv="16,12,36">고급</button>
+      <button type="button" id="mn-flag">깃발 모드 끔</button>
+    </div>
+    <div class="mn-wrap"><div class="mn-board" id="mn-board"></div></div>
+    <p class="gm-msg" id="mn-msg" aria-live="polite"></p>
+
+    <div class="pt-ad"><AdSlot slot="game-mines" /></div>
+
+    <section class="pt-sec pt-prose">
+      <h2>하는 법</h2>
+      <ul>
+        <li>칸을 누르면 열립니다. 숫자는 그 칸을 둘러싼 8칸에 숨은 지뢰의 개수예요.</li>
+        <li>지뢰라고 생각하는 칸에는 깃발을 꽂으세요. PC는 오른쪽 클릭, 모바일은 길게 누르거나 깃발 모드를 켜면 됩니다.</li>
+        <li>지뢰가 없는 칸을 모두 열면 성공입니다.</li>
+      </ul>
+    </section>
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>다른 게임</h2></div></div>
+      <div class="pt-chips"><a class="pt-chip" href="/games/sudoku/">스도쿠</a><a class="pt-chip" href="/games/bricks/">벽돌깨기</a><a class="pt-chip" href="/games/number-baseball/">숫자 야구</a><a class="pt-chip" href="/games/quiz/">상식 퀴즈</a></div>
+    </section>
+  </div>
+
+  <style is:global>
+    .gm-head { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.8rem; }
+    .gm-head h1 { margin: 0; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; }
+    .gm-timer { margin-left: auto; font-size: 1.1rem; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+    .gm-msg { text-align: center; font-weight: 800; color: var(--accent); min-height: 1.6rem; margin: 0.8rem 0 0; }
+    .tl-quick button.is-on { border-color: var(--accent); background: var(--accent); color: #fff; }
+    .mn-wrap { overflow-x: auto; }
+    .mn-board { display: grid; gap: 3px; margin: 0 auto; width: fit-content; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+    .mn-cell { width: 2.15rem; height: 2.15rem; display: grid; place-items: center; border: 0; border-radius: 6px; background: color-mix(in srgb, var(--accent) 22%, var(--paper-2)); font: inherit; font-size: 1rem; font-weight: 800; cursor: pointer; padding: 0; color: var(--ink); -webkit-touch-callout: none; }
+    .mn-cell:hover { filter: brightness(1.05); }
+    .mn-cell.is-open { background: var(--paper-2); cursor: default; }
+    .mn-cell.is-boom { background: #f43f5e; }
+    .mn-cell.n1 { color: #2563eb; } .mn-cell.n2 { color: #16a34a; } .mn-cell.n3 { color: #dc2626; } .mn-cell.n4 { color: #7c3aed; } .mn-cell.n5 { color: #b45309; } .mn-cell.n6 { color: #0891b2; } .mn-cell.n7 { color: #111827; } .mn-cell.n8 { color: #6b7280; }
+    @media (max-width: 480px) { .mn-cell { width: 1.95rem; height: 1.95rem; } }
+  </style>
+
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      let R = 9, C = 9, M = 10, mine = [], open = [], flag = [], started = false, over = false, flagMode = false, t0 = 0, timer = null;
+      const board = $('mn-board');
+      const around = (i) => { const r = Math.floor(i / C), c = i % C, out = []; for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) { if (!dr && !dc) continue; const rr = r + dr, cc = c + dc; if (rr >= 0 && rr < R && cc >= 0 && cc < C) out.push(rr * C + cc); } return out; };
+      const num = (i) => around(i).filter((k) => mine[k]).length;
+      const tick = () => { const s = Math.floor((Date.now() - t0) / 1000); $('mn-timer').textContent = String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
+      function reset() {
+        mine = Array(R * C).fill(false); open = Array(R * C).fill(false); flag = Array(R * C).fill(false); started = false; over = false;
+        clearInterval(timer); $('mn-timer').textContent = '00:00'; $('mn-msg').textContent = '';
+        board.style.gridTemplateColumns = 'repeat(' + C + ', auto)'; draw();
+      }
+      function place(safe) { // 첫 칸과 그 주변에는 지뢰를 두지 않는다
+        const ban = new Set([safe].concat(around(safe))); let n = 0;
+        while (n < M) { const i = Math.floor(Math.random() * R * C); if (mine[i] || ban.has(i)) continue; mine[i] = true; n++; }
+      }
+      function reveal(i) {
+        const stack = [i];
+        while (stack.length) { const k = stack.pop(); if (open[k] || flag[k]) continue; open[k] = true; if (!mine[k] && num(k) === 0) around(k).forEach((x) => { if (!open[x]) stack.push(x); }); }
+      }
+      function click(i) {
+        if (over || open[i]) return;
+        if (flagMode) return toggle(i);
+        if (flag[i]) return;
+        if (!started) { started = true; place(i); t0 = Date.now(); timer = setInterval(tick, 1000); }
+        if (mine[i]) { over = true; clearInterval(timer); open[i] = true; draw(i); $('mn-msg').textContent = '지뢰를 밟았어요. 다시 도전!'; return; }
+        reveal(i);
+        if (open.filter(Boolean).length === R * C - M) { over = true; clearInterval(timer); $('mn-msg').textContent = '성공! 기록 ' + $('mn-timer').textContent + ' 🎉'; try { if (window.gtag) window.gtag('event', 'game_clear', { game: 'mines' }); } catch (e) {} }
+        draw();
+      }
+      function toggle(i) { if (over || open[i]) return; flag[i] = !flag[i]; draw(); }
+      function draw(boom) {
+        board.textContent = '';
+        for (let i = 0; i < R * C; i++) {
+          const b = document.createElement('button'); b.type = 'button'; b.className = 'mn-cell';
+          if (open[i] || (over && mine[i])) {
+            b.classList.add('is-open');
+            if (mine[i]) { b.textContent = '💣'; if (i === boom) b.classList.add('is-boom'); }
+            else { const n = num(i); if (n) { b.textContent = n; b.classList.add('n' + n); } }
+          } else if (flag[i]) b.textContent = '🚩';
+          b.addEventListener('click', () => click(i));
+          b.addEventListener('contextmenu', (e) => { e.preventDefault(); toggle(i); });
+          let lp = null;
+          b.addEventListener('touchstart', () => { lp = setTimeout(() => { lp = 'done'; toggle(i); }, 420); }, { passive: true });
+          b.addEventListener('touchend', (e) => { if (lp === 'done') e.preventDefault(); else clearTimeout(lp); lp = null; });
+          b.addEventListener('touchmove', () => { if (lp !== 'done') clearTimeout(lp); }, { passive: true });
+          board.appendChild(b);
+        }
+        $('mn-left').textContent = '🚩 ' + (M - flag.filter(Boolean).length);
+      }
+      document.querySelectorAll('[data-lv]').forEach((b) => b.addEventListener('click', () => { const p = b.dataset.lv.split(',').map(Number); R = p[0]; C = p[1]; M = p[2]; reset(); }));
+      $('mn-flag').addEventListener('click', () => { flagMode = !flagMode; $('mn-flag').textContent = flagMode ? '깃발 모드 켬' : '깃발 모드 끔'; $('mn-flag').classList.toggle('is-on', flagMode); });
+      reset();
+    })();
+  </script>
+</BaseLayout>

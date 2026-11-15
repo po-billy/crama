@@ -1,0 +1,85 @@
+---
+// 숫자 야구 — 서로 다른 숫자 3~4개를 추리해서 맞히는 전통 추리 놀이.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import '../../styles/portal.css';
+---
+<BaseLayout title="숫자 야구 게임 — 스트라이크·볼로 숫자 맞히기" description="서로 다른 숫자 3개(또는 4개)를 스트라이크와 볼 힌트로 추리해 맞히는 숫자 야구. 설치 없이 무료로 바로 즐기세요.">
+  <div class="pt pt-narrow" style="--c:#10b981">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/games/">게임</a> › 숫자 야구</nav>
+    <div class="gm-head">
+      <h1>숫자 야구</h1>
+      <span class="pt-card__tag" id="nb-tag">3자리</span>
+      <span class="gm-timer" id="nb-count">0번째 시도</span>
+    </div>
+    <div class="tl-quick" style="margin:0 0 0.8rem"><button type="button" data-len="3">새 게임 · 3자리</button><button type="button" data-len="4">새 게임 · 4자리</button></div>
+
+    <div class="tl-card">
+      <div class="tl-row">
+        <label class="tl-field">서로 다른 숫자<input id="nb-in" type="text" inputmode="numeric" autocomplete="off" maxlength="4" placeholder="예: 123" /></label>
+        <button type="button" class="tl-btn" id="nb-go">던지기</button>
+      </div>
+      <p id="nb-err" style="margin:0.7rem 0 0;font-size:0.85rem;color:#e11d48" hidden></p>
+    </div>
+    <p class="gm-msg" id="nb-msg" aria-live="polite"></p>
+    <div class="tl-wrap" id="nb-wrap" hidden>
+      <table class="tl-table"><thead><tr><th>#</th><th>내 숫자</th><th>결과</th></tr></thead><tbody id="nb-body"></tbody></table>
+    </div>
+
+    <div class="pt-ad"><AdSlot slot="game-number-baseball" /></div>
+
+    <section class="pt-sec pt-prose">
+      <h2>하는 법</h2>
+      <ul>
+        <li>컴퓨터가 서로 다른 숫자(0~9)로 이루어진 수를 정합니다.</li>
+        <li>숫자와 자리가 모두 맞으면 <b>스트라이크(S)</b>, 숫자는 있지만 자리가 다르면 <b>볼(B)</b>입니다.</li>
+        <li>하나도 맞지 않으면 <b>아웃</b>. 모든 자리를 스트라이크로 만들면 성공입니다.</li>
+      </ul>
+    </section>
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>다른 게임</h2></div></div>
+      <div class="pt-chips"><a class="pt-chip" href="/games/sudoku/">스도쿠</a><a class="pt-chip" href="/games/mines/">지뢰 찾기</a><a class="pt-chip" href="/games/bricks/">벽돌깨기</a><a class="pt-chip" href="/games/quiz/">상식 퀴즈</a></div>
+    </section>
+  </div>
+
+  <style is:global>
+    .gm-head { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.8rem; }
+    .gm-head h1 { margin: 0; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; }
+    .gm-timer { margin-left: auto; font-size: 1.05rem; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+    .gm-msg { text-align: center; font-weight: 800; color: var(--accent); min-height: 1.6rem; margin: 0.8rem 0; }
+  </style>
+
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      let len = 3, answer = '', tries = 0, done = false;
+      function start(n) {
+        len = n; const d = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']; answer = '';
+        while (answer.length < len) answer += d.splice(Math.floor(Math.random() * d.length), 1)[0];
+        tries = 0; done = false;
+        $('nb-tag').textContent = len + '자리'; $('nb-count').textContent = '0번째 시도'; $('nb-body').textContent = ''; $('nb-wrap').hidden = true;
+        $('nb-msg').textContent = ''; $('nb-in').value = ''; $('nb-in').maxLength = len; $('nb-in').placeholder = len === 3 ? '예: 123' : '예: 1234'; $('nb-err').hidden = true;
+      }
+      function go() {
+        if (done) return;
+        const v = $('nb-in').value.trim(), err = $('nb-err');
+        if (!new RegExp('^[0-9]{' + len + '}$').test(v) || new Set(v).size !== len) { err.textContent = '서로 다른 숫자 ' + len + '개를 입력해 주세요.'; err.hidden = false; return; }
+        err.hidden = true; tries++;
+        let s = 0, b = 0;
+        for (let i = 0; i < len; i++) { if (v[i] === answer[i]) s++; else if (answer.indexOf(v[i]) !== -1) b++; }
+        const res = s === len ? '정답!' : (s || b ? (s ? s + 'S ' : '') + (b ? b + 'B' : '') : '아웃');
+        const tr = document.createElement('tr');
+        [tries, v, res].forEach((c, i) => { const td = document.createElement('td'); td.textContent = c; if (i === 2 && s === len) td.className = 'is-on'; tr.appendChild(td); });
+        $('nb-body').insertBefore(tr, $('nb-body').firstChild); $('nb-wrap').hidden = false;
+        $('nb-count').textContent = tries + '번째 시도'; $('nb-in').value = ''; $('nb-in').focus();
+        if (s === len) { done = true; $('nb-msg').textContent = tries + '번 만에 맞혔어요! 🎉'; try { if (window.gtag) window.gtag('event', 'game_clear', { game: 'number-baseball', tries: tries }); } catch (e) {} }
+        else $('nb-msg').textContent = res;
+      }
+      $('nb-go').addEventListener('click', go);
+      $('nb-in').addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
+      $('nb-in').addEventListener('input', (e) => { e.target.value = e.target.value.replace(/[^0-9]/g, ''); });
+      document.querySelectorAll('[data-len]').forEach((b) => b.addEventListener('click', () => start(Number(b.dataset.len))));
+      start(3);
+    })();
+  </script>
+</BaseLayout>

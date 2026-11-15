@@ -1,0 +1,96 @@
+---
+// 상식 퀴즈 — 10문제를 무작위로 풀고 점수와 해설을 본다.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import { QUIZ } from '../../data/quiz';
+import '../../styles/portal.css';
+const cats = [...new Set(QUIZ.map((q) => q.cat))];
+---
+<BaseLayout title="상식 퀴즈 — 10문제로 보는 내 상식 점수" description={`과학·한국사·지리·경제·문화 ${QUIZ.length}문제 중 10문제를 무작위로 풀어 보세요. 문제마다 해설을 바로 확인할 수 있는 무료 상식 퀴즈.`}>
+  <div class="pt pt-narrow" style="--c:#0ea5e9">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/games/">게임</a> › 상식 퀴즈</nav>
+    <div class="gm-head">
+      <h1>상식 퀴즈</h1>
+      <span class="pt-card__tag" id="qz-cat">종합</span>
+      <span class="gm-timer" id="qz-prog">1 / 10</span>
+    </div>
+    <div class="tl-quick" id="qz-cats" style="margin:0 0 0.8rem"><button type="button" data-cat="" class="is-on">종합</button>{cats.map((c) => <button type="button" data-cat={c}>{c}</button>)}</div>
+
+    <div class="tl-card" id="qz-card">
+      <p id="qz-q" style="margin:0 0 1rem;font-size:1.15rem;font-weight:800;line-height:1.45"></p>
+      <div class="qz-opts" id="qz-opts"></div>
+      <p id="qz-exp" class="pt-prose" style="margin:1rem 0 0" hidden></p>
+      <button type="button" class="tl-btn" id="qz-next" style="width:100%;margin-top:1rem" hidden>다음 문제</button>
+    </div>
+    <div class="tl-result" id="qz-result" hidden aria-live="polite" style="background:linear-gradient(135deg,#0ea5e9,#38bdf8)">
+      <div class="tl-result__label">내 상식 점수</div>
+      <div class="tl-result__big" id="qz-score"></div>
+      <div class="tl-result__sub" id="qz-comment"></div>
+    </div>
+    <div class="tl-quick" id="qz-end" hidden style="justify-content:center"><button type="button" id="qz-again">다시 풀기</button><button type="button" id="qz-share">결과 공유</button></div>
+
+    <div class="pt-ad"><AdSlot slot="game-quiz" /></div>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>다른 게임</h2></div></div>
+      <div class="pt-chips"><a class="pt-chip" href="/games/sudoku/">스도쿠</a><a class="pt-chip" href="/games/mines/">지뢰 찾기</a><a class="pt-chip" href="/games/bricks/">벽돌깨기</a><a class="pt-chip" href="/games/number-baseball/">숫자 야구</a></div>
+    </section>
+  </div>
+
+  <style is:global>
+    .gm-head { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.8rem; }
+    .gm-head h1 { margin: 0; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; }
+    .gm-timer { margin-left: auto; font-size: 1.05rem; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+    .tl-quick button.is-on { border-color: var(--accent); background: var(--accent); color: #fff; }
+    .qz-opts { display: grid; gap: 0.5rem; }
+    .qz-opts button { padding: 0.85rem 1rem; border: 1.5px solid var(--line); border-radius: 12px; background: var(--paper); font: inherit; font-size: 1rem; font-weight: 700; color: var(--ink); text-align: left; cursor: pointer; }
+    .qz-opts button:hover:not(:disabled) { border-color: var(--accent); }
+    .qz-opts button.is-right { border-color: #16a34a; background: color-mix(in srgb, #22c55e 14%, var(--paper)); color: #15803d; }
+    .qz-opts button.is-wrong { border-color: #e11d48; background: color-mix(in srgb, #f43f5e 12%, var(--paper)); color: #be123c; }
+    #qz-card[hidden] { display: none; }
+  </style>
+
+  <script is:inline define:vars={{ QUIZ }}>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      let cat = '', set = [], idx = 0, score = 0;
+      const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+      function start() {
+        const pool = QUIZ.filter((q) => !cat || q.cat === cat);
+        // 보기 순서도 매번 섞는다(정답 위치가 한쪽으로 쏠리지 않게)
+        set = shuffle(pool).slice(0, Math.min(10, pool.length)).map((q) => { const order = shuffle([0, 1, 2, 3]); return { q: q.q, e: q.e, a: order.map((k) => q.a[k]), c: order.indexOf(q.c) }; }); idx = 0; score = 0;
+        $('qz-cat').textContent = cat || '종합'; $('qz-card').hidden = false; $('qz-result').hidden = true; $('qz-end').hidden = true; show();
+      }
+      function show() {
+        const q = set[idx];
+        $('qz-prog').textContent = (idx + 1) + ' / ' + set.length; $('qz-q').textContent = q.q;
+        $('qz-exp').hidden = true; $('qz-next').hidden = true;
+        const box = $('qz-opts'); box.textContent = '';
+        q.a.forEach((t, i) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = (i + 1) + '. ' + t; b.addEventListener('click', () => answer(i)); box.appendChild(b); });
+      }
+      function answer(i) {
+        const q = set[idx], btns = $('qz-opts').querySelectorAll('button');
+        btns.forEach((b, k) => { b.disabled = true; if (k === q.c) b.classList.add('is-right'); else if (k === i) b.classList.add('is-wrong'); });
+        if (i === q.c) score++;
+        $('qz-exp').textContent = (i === q.c ? '정답! ' : '아쉬워요. ') + q.e; $('qz-exp').hidden = false;
+        $('qz-next').textContent = idx + 1 < set.length ? '다음 문제' : '결과 보기'; $('qz-next').hidden = false;
+      }
+      $('qz-next').addEventListener('click', () => {
+        idx++;
+        if (idx < set.length) { show(); return; }
+        const pct = Math.round((score / set.length) * 100);
+        $('qz-card').hidden = true; $('qz-result').hidden = false; $('qz-end').hidden = false;
+        $('qz-score').textContent = score + ' / ' + set.length; $('qz-prog').textContent = '완료';
+        $('qz-comment').textContent = pct === 100 ? '만점! 상식 박사시네요 🎉' : pct >= 80 ? '훌륭해요. 거의 다 맞혔어요' : pct >= 50 ? '절반 이상 맞혔어요. 한 번 더 도전!' : '괜찮아요, 해설을 보며 하나씩 알아 가요';
+        try { if (window.gtag) window.gtag('event', 'game_clear', { game: 'quiz', score: score }); } catch (e) {}
+      });
+      $('qz-again').addEventListener('click', start);
+      $('qz-share').addEventListener('click', async () => {
+        const text = '상식 퀴즈 ' + $('qz-score').textContent + ' — ' + $('qz-comment').textContent;
+        try { if (navigator.share) await navigator.share({ title: '상식 퀴즈', text: text, url: location.href }); else { await navigator.clipboard.writeText(text + ' ' + location.href); $('qz-share').textContent = '복사됐어요'; } } catch (e) {}
+      });
+      $('qz-cats').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; cat = b.dataset.cat; $('qz-cats').querySelectorAll('button').forEach((x) => x.classList.toggle('is-on', x === b)); start(); });
+      start();
+    })();
+  </script>
+</BaseLayout>

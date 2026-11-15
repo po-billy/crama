@@ -1,0 +1,217 @@
+---
+// 이름·변환 도구 5종 — 단위 변환, 글자 수 세기, 영문 이름 변환, 닉네임 생성기, 신발 사이즈.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import { CONVERT_TOOLS, SHOE_TABLE, NICK } from '../../data/convert-tools';
+import '../../styles/portal.css';
+
+export function getStaticPaths() { return CONVERT_TOOLS.map((t) => ({ params: { tool: t.slug }, props: { slug: t.slug } })); }
+const { slug } = Astro.props as { slug: string };
+const t = CONVERT_TOOLS.find((x) => x.slug === slug)!;
+const others = CONVERT_TOOLS.filter((x) => x.slug !== slug);
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: t.faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title={t.title} description={t.desc} jsonLd={jsonLd}>
+  <div class="pt pt-narrow" style="--c:#64748b">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/convert/">이름·변환</a> › {t.name}</nav>
+    <header class="pt-hubhero">
+      <img src="/img/portal/g-convert.webp" alt="" width="200" height="200" />
+      <div><h1>{t.name}</h1><p>{t.lead}</p></div>
+    </header>
+
+    <section class="pt-sec" id="cv-root" data-tool={slug}>
+      {slug === 'unit' && (
+        <div class="tl-card">
+          <div class="tl-quick" id="un-cats" style="margin:0 0 0.9rem"><button type="button" data-k="len" class="is-on">길이</button><button type="button" data-k="wt">무게</button><button type="button" data-k="area">넓이</button><button type="button" data-k="vol">부피</button><button type="button" data-k="temp">온도</button></div>
+          <div class="tl-row">
+            <label class="tl-field">값<input id="un-val" type="number" inputmode="decimal" step="any" value="1" /></label>
+            <label class="tl-field">단위<select id="un-from"></select></label>
+          </div>
+          <div class="tl-wrap" style="margin-top:0.9rem"><table class="tl-table"><tbody id="un-body"></tbody></table></div>
+        </div>
+      )}
+      {slug === 'text-count' && (
+        <>
+          <textarea id="tc-in" class="cv-area" placeholder="여기에 글을 입력하거나 붙여 넣으세요" aria-label="글자 수를 셀 내용"></textarea>
+          <div class="pp-facts pp-facts--4" style="margin-top:0.8rem">
+            <div><span>공백 포함</span><b id="tc-all">0</b></div>
+            <div><span>공백 제외</span><b id="tc-nosp">0</b></div>
+            <div><span>단어</span><b id="tc-word">0</b></div>
+            <div><span>줄</span><b id="tc-line">0</b></div>
+          </div>
+          <div class="pp-facts" style="margin-top:0.6rem">
+            <div><span>바이트(UTF-8)</span><b id="tc-b3">0</b></div>
+            <div><span>바이트(EUC-KR)</span><b id="tc-b2">0</b></div>
+            <div><span>원고지(200자)</span><b id="tc-page">0장</b></div>
+          </div>
+          <div class="tl-quick"><button type="button" id="tc-clear">지우기</button><button type="button" id="tc-copy">복사</button></div>
+        </>
+      )}
+      {slug === 'romanize' && (
+        <>
+          <div class="tl-card">
+            <div class="tl-row">
+              <label class="tl-field">성<input id="rm-s" type="text" maxlength="2" placeholder="예: 홍" autocomplete="off" /></label>
+              <label class="tl-field">이름<input id="rm-n" type="text" maxlength="4" placeholder="예: 길동" autocomplete="off" /></label>
+              <button type="button" class="tl-btn" id="rm-go">변환하기</button>
+            </div>
+          </div>
+          <div class="tl-result" id="rm-result" hidden aria-live="polite">
+            <div class="tl-result__label">로마자 표기법 기준</div>
+            <div class="tl-result__big" id="rm-big" style="font-size:2rem"></div>
+            <div class="tl-result__sub" id="rm-sub"></div>
+          </div>
+          <div class="tl-wrap" id="rm-wrap" hidden style="margin-top:0.8rem"><table class="tl-table"><tbody id="rm-body"></tbody></table></div>
+        </>
+      )}
+      {slug === 'nickname' && (
+        <>
+          <div class="tl-card">
+            <div class="tl-quick" id="nk-moods" style="margin:0 0 0.9rem">{Object.entries(NICK).map(([k, v], i) => <button type="button" data-k={k} class={i === 0 ? 'is-on' : ''}>{v.name}</button>)}</div>
+            <button type="button" class="tl-btn" id="nk-go" style="width:100%">닉네임 만들기</button>
+          </div>
+          <div class="pt-chips" id="nk-out" style="margin-top:1rem"></div>
+          <p id="nk-msg" class="pp-note" style="margin-top:0.6rem">닉네임을 누르면 복사돼요.</p>
+        </>
+      )}
+      {slug === 'shoe-size' && (
+        <>
+          <div class="tl-card">
+            <div class="tl-row">
+              <label class="tl-field">한국 사이즈(mm)<select id="sh-mm">{SHOE_TABLE.map((r) => <option value={r[0]} selected={r[0] === 260}>{r[0]}mm</option>)}</select></label>
+              <label class="tl-field">구분<select id="sh-sex"><option value="m">남성</option><option value="f">여성</option></select></label>
+            </div>
+          </div>
+          <div class="pp-facts" id="sh-facts" style="margin-top:0.8rem">
+            <div><span>미국(US)</span><b id="sh-us"></b></div>
+            <div><span>영국(UK)</span><b id="sh-uk"></b></div>
+            <div><span>유럽(EU)</span><b id="sh-eu"></b></div>
+          </div>
+          <div class="tl-wrap" style="margin-top:1rem">
+            <table class="tl-table">
+              <thead><tr><th>한국(mm)</th><th>US 남</th><th>US 여</th><th>UK</th><th>EU</th></tr></thead>
+              <tbody>{SHOE_TABLE.map((r) => <tr><td><b>{r[0]}</b></td><td>{r[1]}</td><td>{r[2]}</td><td>{r[3]}</td><td>{r[4]}</td></tr>)}</tbody>
+            </table>
+          </div>
+        </>
+      )}
+      <p class="pp-note">※ {t.notes}</p>
+    </section>
+
+    <div class="pt-ad"><AdSlot slot="convert-mid" /></div>
+
+    <section class="pt-sec pt-prose">
+      <h2>자주 묻는 질문</h2>
+      {t.faq.map((f) => <p><b>{f.q}</b><br />{f.a}</p>)}
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>다른 변환 도구</h2></div></div>
+      <div class="pt-chips">{others.map((o) => <a class="pt-chip" href={`/convert/${o.slug}/`}>{o.name}</a>)}<a class="pt-chip" href="/tools/pyeong-converter/">평수 변환</a></div>
+    </section>
+  </div>
+
+  <style is:global>
+    .tl-quick button.is-on { border-color: var(--accent); background: var(--accent); color: #fff; }
+    .cv-area { width: 100%; min-height: 12rem; padding: 1rem; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); font: inherit; font-size: 1rem; line-height: 1.7; color: var(--ink); resize: vertical; }
+    .cv-area:focus { outline: none; border-color: var(--accent); }
+    #nk-out .pt-chip { cursor: pointer; font-family: inherit; font-size: 1rem; }
+  </style>
+
+  <script is:inline define:vars={{ SHOE_TABLE, NICK }}>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const tool = $('cv-root').dataset.tool;
+      const used = (name) => { try { if (window.gtag) window.gtag('event', 'tool_use', { tool: 'convert-' + name }); } catch (e) {} };
+      const nice = (x) => { if (!isFinite(x)) return '-'; const a = Math.abs(x); return a === 0 ? '0' : (a >= 1000 ? x.toLocaleString('ko-KR', { maximumFractionDigits: 2 }) : a >= 1 ? String(Math.round(x * 10000) / 10000) : String(Number(x.toPrecision(4)))); };
+
+      if (tool === 'unit') {
+        // 기준 단위(첫 항목)에 대한 배수
+        const U = {
+          len: [['mm', 0.001], ['cm', 0.01], ['m', 1], ['km', 1000], ['인치(in)', 0.0254], ['피트(ft)', 0.3048], ['야드(yd)', 0.9144], ['마일(mi)', 1609.344]],
+          wt: [['g', 0.001], ['kg', 1], ['t(톤)', 1000], ['온스(oz)', 0.028349523], ['파운드(lb)', 0.45359237], ['근(600g)', 0.6], ['돈(3.75g)', 0.00375]],
+          area: [['㎡', 1], ['평', 3.305785], ['㎢', 1e6], ['ha(헥타르)', 10000], ['제곱피트(ft²)', 0.09290304], ['에이커(ac)', 4046.8564]],
+          vol: [['mL', 0.001], ['L', 1], ['㎥', 1000], ['컵(200mL)', 0.2], ['갤런(US)', 3.785412], ['온스(fl oz, US)', 0.0295735]],
+          temp: [['섭씨(℃)', 0], ['화씨(℉)', 0], ['켈빈(K)', 0]],
+        };
+        let cat = 'len';
+        const fill = () => { const s = $('un-from'); s.textContent = ''; U[cat].forEach((u, i) => { const o = document.createElement('option'); o.value = i; o.textContent = u[0]; s.appendChild(o); }); s.value = cat === 'len' ? 1 : cat === 'wt' ? 1 : 0; };
+        const calc = () => {
+          const v = Number($('un-val').value), i = Number($('un-from').value), body = $('un-body'); body.textContent = '';
+          U[cat].forEach((u, k) => {
+            if (k === i) return;
+            let out;
+            if (cat === 'temp') { const c = i === 0 ? v : i === 1 ? (v - 32) * 5 / 9 : v - 273.15; out = k === 0 ? c : k === 1 ? c * 9 / 5 + 32 : c + 273.15; }
+            else out = v * U[cat][i][1] / u[1];
+            const tr = document.createElement('tr'); [u[0], nice(out)].forEach((c, n) => { const td = document.createElement('td'); td.textContent = c; if (n) { td.style.fontWeight = '800'; td.style.textAlign = 'right'; } else td.style.textAlign = 'left'; tr.appendChild(td); }); body.appendChild(tr);
+          });
+        };
+        $('un-cats').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; cat = b.dataset.k; $('un-cats').querySelectorAll('button').forEach((x) => x.classList.toggle('is-on', x === b)); fill(); calc(); used('unit'); });
+        $('un-val').addEventListener('input', calc); $('un-from').addEventListener('change', calc);
+        fill(); calc();
+      }
+
+      if (tool === 'text-count') {
+        const calc = () => {
+          const s = $('tc-in').value, chars = [...s];
+          $('tc-all').textContent = chars.length.toLocaleString('ko-KR');
+          $('tc-nosp').textContent = chars.filter((c) => !/\s/.test(c)).length.toLocaleString('ko-KR');
+          $('tc-word').textContent = (s.trim() ? s.trim().split(/\s+/).length : 0).toLocaleString('ko-KR');
+          $('tc-line').textContent = (s ? s.split(/\r\n|\r|\n/).length : 0).toLocaleString('ko-KR');
+          let b3 = 0, b2 = 0; for (const c of chars) { const cp = c.codePointAt(0); b3 += cp < 0x80 ? 1 : cp < 0x800 ? 2 : cp < 0x10000 ? 3 : 4; b2 += cp < 0x80 ? 1 : 2; }
+          $('tc-b3').textContent = b3.toLocaleString('ko-KR'); $('tc-b2').textContent = b2.toLocaleString('ko-KR');
+          $('tc-page').textContent = (Math.round((chars.length / 200) * 10) / 10) + '장';
+        };
+        $('tc-in').addEventListener('input', calc);
+        $('tc-clear').addEventListener('click', () => { $('tc-in').value = ''; calc(); $('tc-in').focus(); });
+        $('tc-copy').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('tc-in').value); $('tc-copy').textContent = '복사됐어요'; setTimeout(() => ($('tc-copy').textContent = '복사'), 1500); } catch (e) {} });
+        calc();
+      }
+
+      if (tool === 'romanize') {
+        const CHO = ['g', 'kk', 'n', 'd', 'tt', 'r', 'm', 'b', 'pp', 's', 'ss', '', 'j', 'jj', 'ch', 'k', 't', 'p', 'h'];
+        const JUNG = ['a', 'ae', 'ya', 'yae', 'eo', 'e', 'yeo', 'ye', 'o', 'wa', 'wae', 'oe', 'yo', 'u', 'wo', 'we', 'wi', 'yu', 'eu', 'ui', 'i'];
+        const JONG = ['', 'k', 'k', 'k', 'n', 'n', 'n', 't', 'l', 'k', 'm', 'l', 'l', 'l', 'p', 'l', 'm', 'p', 'p', 't', 't', 'ng', 't', 't', 'k', 't', 'p', 't'];
+        const COMMON = { 김: 'Kim', 이: 'Lee', 박: 'Park', 최: 'Choi', 정: 'Jung', 강: 'Kang', 조: 'Cho', 윤: 'Yoon', 장: 'Jang', 임: 'Lim', 한: 'Han', 오: 'Oh', 서: 'Seo', 신: 'Shin', 권: 'Kwon', 황: 'Hwang', 안: 'Ahn', 송: 'Song', 유: 'Yoo', 류: 'Ryu', 전: 'Jeon', 홍: 'Hong', 고: 'Ko', 문: 'Moon', 양: 'Yang', 손: 'Son', 배: 'Bae', 백: 'Baek', 허: 'Heo', 노: 'Noh', 남: 'Nam', 심: 'Shim', 하: 'Ha', 곽: 'Kwak', 성: 'Sung', 차: 'Cha', 주: 'Joo', 우: 'Woo', 구: 'Koo', 민: 'Min', 나: 'Na', 지: 'Ji', 진: 'Jin', 엄: 'Um', 채: 'Chae', 원: 'Won', 천: 'Cheon', 방: 'Bang', 공: 'Kong', 현: 'Hyun', 함: 'Ham', 변: 'Byun', 염: 'Yeom', 여: 'Yeo', 추: 'Choo', 도: 'Do', 소: 'So', 석: 'Seok', 선: 'Sun', 설: 'Seol', 마: 'Ma', 길: 'Gil', 연: 'Yeon', 위: 'Wi', 표: 'Pyo', 명: 'Myung', 기: 'Ki', 반: 'Ban', 왕: 'Wang', 금: 'Keum', 옥: 'Ok', 육: 'Yuk', 인: 'In', 맹: 'Maeng', 제: 'Je', 모: 'Mo', 탁: 'Tak', 국: 'Kook', 어: 'Eo', 은: 'Eun', 편: 'Pyeon', 용: 'Yong' };
+        const syl = (ch) => { const c = ch.charCodeAt(0) - 0xac00; if (c < 0 || c > 11171) return null; return CHO[Math.floor(c / 588)] + JUNG[Math.floor((c % 588) / 28)] + JONG[c % 28]; };
+        const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+        const run = () => {
+          const s = $('rm-s').value.trim(), n = $('rm-n').value.trim();
+          const all = [...(s + n)];
+          if (!s || !n || all.some((ch) => syl(ch) === null)) { $('rm-result').hidden = false; $('rm-big').textContent = '한글로 입력해 주세요'; $('rm-sub').textContent = '성과 이름을 한글로 적어 주세요.'; $('rm-wrap').hidden = true; return; }
+          const sur = cap([...s].map(syl).join('')), parts = [...n].map(syl);
+          const given = cap(parts.join('')), hyph = parts.map((p, i) => (i ? p : cap(p))).join('-');
+          $('rm-big').textContent = sur + ' ' + given; $('rm-sub').textContent = '이름 → 성 순서: ' + given + ' ' + sur;
+          const rows = [['표기법 기준', sur + ' ' + given], ['붙임표 사용', sur + ' ' + hyph]];
+          const cm = s.length === 1 ? COMMON[s] : null;
+          if (cm && cm !== sur) { rows.push(['많이 쓰는 성 표기', cm + ' ' + given]); rows.push(['많이 쓰는 성 표기 + 붙임표', cm + ' ' + hyph]); }
+          const body = $('rm-body'); body.textContent = '';
+          rows.forEach((r) => { const tr = document.createElement('tr'); r.forEach((c, i) => { const td = document.createElement('td'); td.textContent = c; if (i) td.style.fontWeight = '800'; tr.appendChild(td); }); body.appendChild(tr); });
+          $('rm-result').hidden = false; $('rm-wrap').hidden = false; used('romanize');
+        };
+        $('rm-go').addEventListener('click', run);
+        $('rm-n').addEventListener('keydown', (e) => { if (e.key === 'Enter') run(); });
+      }
+
+      if (tool === 'nickname') {
+        let mood = Object.keys(NICK)[0];
+        const pick = (a) => a[Math.floor(Math.random() * a.length)];
+        const run = () => {
+          const out = $('nk-out'); out.textContent = ''; const seen = new Set();
+          while (seen.size < 10) seen.add(pick(NICK[mood].adj) + pick(NICK[mood].noun));
+          seen.forEach((nick) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'pt-chip'; b.textContent = nick; b.addEventListener('click', async () => { try { await navigator.clipboard.writeText(nick); $('nk-msg').textContent = '"' + nick + '" 복사됐어요.'; } catch (e) {} }); out.appendChild(b); });
+          used('nickname');
+        };
+        $('nk-moods').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; mood = b.dataset.k; $('nk-moods').querySelectorAll('button').forEach((x) => x.classList.toggle('is-on', x === b)); run(); });
+        $('nk-go').addEventListener('click', run);
+        run();
+      }
+
+      if (tool === 'shoe-size') {
+        const run = () => { const r = SHOE_TABLE.find((x) => x[0] === Number($('sh-mm').value)), f = $('sh-sex').value === 'f'; $('sh-us').textContent = String(f ? r[2] : r[1]); $('sh-uk').textContent = String(r[3]); $('sh-eu').textContent = String(r[4]); };
+        $('sh-mm').addEventListener('change', () => { run(); used('shoe-size'); }); $('sh-sex').addEventListener('change', run);
+        run();
+      }
+    })();
+  </script>
+</BaseLayout>

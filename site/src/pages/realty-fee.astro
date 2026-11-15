@@ -1,0 +1,100 @@
+---
+// 부동산 중개수수료(중개보수) 계산기 — 주택 매매·전세·월세. 2021년 10월 개정 상한요율(공인중개사법 시행규칙) 기준.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AdSlot from '../components/AdSlot.astro';
+import '../styles/portal.css';
+// [금액 상한(원, 미만), 요율(%), 한도액(원, 없으면 0)]
+const SALE = [[50_000_000, 0.6, 250_000], [200_000_000, 0.5, 800_000], [900_000_000, 0.4, 0], [1_200_000_000, 0.5, 0], [1_500_000_000, 0.6, 0], [Infinity, 0.7, 0]];
+const RENT = [[50_000_000, 0.5, 200_000], [100_000_000, 0.4, 300_000], [600_000_000, 0.3, 0], [1_200_000_000, 0.4, 0], [1_500_000_000, 0.5, 0], [Infinity, 0.6, 0]];
+const T = { SALE: SALE.map((r) => [r[0] === Infinity ? 0 : r[0], r[1], r[2]]), RENT: RENT.map((r) => [r[0] === Infinity ? 0 : r[0], r[1], r[2]]) };
+const eok = (n: number) => (n >= 100_000_000 ? `${n / 100_000_000}억` : `${n / 10_000_000}천만`);
+const rangeLabel = (list: number[][], i: number) => (i === 0 ? `${eok(list[0][0])}원 미만` : list[i][0] === Infinity ? `${eok(list[i - 1][0])}원 이상` : `${eok(list[i - 1][0])}원 이상 ~ ${eok(list[i][0])}원 미만`);
+const faq = [
+  { q: '중개수수료는 꼭 상한요율대로 내야 하나요?', a: '아닙니다. 표의 요율은 받을 수 있는 최대치(상한)이고, 실제 금액은 그 범위 안에서 중개사와 협의해 정합니다. 계약 전에 미리 협의해 두는 것이 좋습니다.' },
+  { q: '월세의 거래금액은 어떻게 계산하나요?', a: '보증금 + (월세 × 100)으로 환산합니다. 이렇게 계산한 금액이 5천만원 미만이면 보증금 + (월세 × 70)으로 다시 계산합니다.' },
+  { q: '부가세는 별도인가요?', a: '중개사가 일반과세자면 중개보수의 10%, 간이과세자면 그보다 낮은 부가세가 따로 붙을 수 있습니다. 사업자등록증으로 과세 유형을 확인하세요.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title="부동산 중개수수료 계산기 — 매매·전세·월세 복비 (상한요율)" description="주택 매매·전세·월세 거래금액을 넣으면 중개보수 상한액을 바로 계산합니다. 2021년 개정 상한요율과 한도액, 월세 환산 방식까지 반영했습니다." jsonLd={jsonLd}>
+  <div class="pt pt-narrow" style="--c:#a855f7">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/home-car/">집·자동차</a> › 중개수수료 계산기</nav>
+    <header class="pt-hubhero">
+      <img src="/img/portal/g-home-car.webp" alt="" width="200" height="200" />
+      <div><h1>중개수수료 계산기</h1><p>매매·전세·월세 복비, 최대 얼마까지 내는지</p></div>
+    </header>
+
+    <section class="pt-sec">
+      <div class="tl-card">
+        <div class="tl-row">
+          <label class="tl-field">거래 종류<select id="rf-type"><option value="sale">매매</option><option value="jeonse">전세</option><option value="wolse">월세</option></select></label>
+          <label class="tl-field" data-field="price"><span id="rf-price-label">매매가(만원)</span><input id="rf-price" type="number" inputmode="numeric" min="0" step="100" placeholder="예: 50000" /></label>
+          <label class="tl-field" data-field="rent" hidden>월세(만원)<input id="rf-rent" type="number" inputmode="numeric" min="0" step="1" placeholder="예: 70" /></label>
+          <button type="button" class="tl-btn" id="rf-go">계산하기</button>
+        </div>
+      </div>
+      <div class="tl-result" id="rf-result" hidden aria-live="polite" style="background:linear-gradient(135deg,#a855f7,#c084fc)">
+        <div class="tl-result__label">중개보수 상한액</div>
+        <div class="tl-result__big" id="rf-big"></div>
+        <div class="tl-result__sub" id="rf-sub"></div>
+      </div>
+      <div class="pp-facts" id="rf-facts" hidden>
+        <div><span>거래금액</span><b id="rf-base"></b></div>
+        <div><span>상한요율</span><b id="rf-rate"></b></div>
+        <div><span>부가세 10% 포함 시</span><b id="rf-vat"></b></div>
+      </div>
+      <p class="pp-note">※ 주택(부속토지 포함) 기준이며 지역 조례에 따라 일부 다를 수 있습니다. 오피스텔(전용 85㎡ 이하 주거용)은 매매 0.5%·임대차 0.4%, 그 밖의 건물·토지는 0.9% 이내에서 협의합니다. 실제 보수는 상한 안에서 협의로 정해집니다.</p>
+    </section>
+
+    <div class="pt-ad"><AdSlot slot="realty-fee-mid" /></div>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>매매 상한요율</h2></div></div>
+      <div class="tl-wrap"><table class="tl-table"><thead><tr><th>거래금액</th><th>상한요율</th><th>한도액</th></tr></thead><tbody>{SALE.map((r, i) => <tr><td>{rangeLabel(SALE, i)}</td><td>{r[1]}%</td><td>{r[2] ? `${r[2] / 10000}만원` : '-'}</td></tr>)}</tbody></table></div>
+    </section>
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>전세·월세 상한요율</h2></div></div>
+      <div class="tl-wrap"><table class="tl-table"><thead><tr><th>거래금액</th><th>상한요율</th><th>한도액</th></tr></thead><tbody>{RENT.map((r, i) => <tr><td>{rangeLabel(RENT, i)}</td><td>{r[1]}%</td><td>{r[2] ? `${r[2] / 10000}만원` : '-'}</td></tr>)}</tbody></table></div>
+    </section>
+
+    <section class="pt-sec pt-prose">
+      <h2>자주 묻는 질문</h2>
+      {faq.map((f) => <p><b>{f.q}</b><br />{f.a}</p>)}
+    </section>
+
+    <section class="pt-sec pp-links">
+      <a class="pp-link" href="/tools/jeonse-wolse-calculator/"><span><b>전월세 전환 계산기</b><span>전세를 월세로, 월세를 전세로</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+      <a class="pp-link" href="/tools/loan-calculator/"><span><b>대출 이자 계산</b><span>월 상환액과 총 이자</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+    </section>
+  </div>
+
+  <script is:inline define:vars={{ T }}>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const won = (n) => Math.round(n).toLocaleString('ko-KR') + '원';
+      const man = (n) => { const m = Math.round(n / 10000); return m >= 10000 ? (Math.floor(m / 10000) + '억' + (m % 10000 ? ' ' + (m % 10000).toLocaleString('ko-KR') + '만' : '')) + '원' : m.toLocaleString('ko-KR') + '만원'; };
+      const sync = () => { const t = $('rf-type').value; $('rf-price-label').textContent = t === 'sale' ? '매매가(만원)' : t === 'jeonse' ? '전세 보증금(만원)' : '월세 보증금(만원)'; document.querySelector('[data-field=rent]').hidden = t !== 'wolse'; };
+      function calc() {
+        const t = $('rf-type').value, price = Number($('rf-price').value) * 10000, rent = Number($('rf-rent').value || 0) * 10000;
+        if (!(price > 0) && !(t === 'wolse' && rent > 0)) { $('rf-price').focus(); return; }
+        let base = price, how = '';
+        if (t === 'wolse') { base = price + rent * 100; how = '보증금 + 월세×100'; if (base < 50000000) { base = price + rent * 70; how = '보증금 + 월세×70 (5천만원 미만)'; } }
+        const list = t === 'sale' ? T.SALE : T.RENT;
+        const row = list.find((r) => r[0] === 0 || base < r[0]);
+        let fee = base * row[1] / 100, capped = false;
+        if (row[2] && fee > row[2]) { fee = row[2]; capped = true; }
+        $('rf-big').textContent = won(fee);
+        $('rf-sub').textContent = (capped ? '한도액 적용 · ' : '') + '이 금액 안에서 협의해요';
+        $('rf-base').textContent = man(base) + (how ? ' (' + how + ')' : '');
+        $('rf-rate').textContent = row[1] + '%' + (row[2] ? ' (한도 ' + (row[2] / 10000) + '만원)' : '');
+        $('rf-vat').textContent = won(fee * 1.1);
+        $('rf-result').hidden = false; $('rf-facts').hidden = false;
+        try { if (window.gtag) window.gtag('event', 'tool_use', { tool: 'realty-fee' }); } catch (e) {}
+      }
+      $('rf-type').addEventListener('change', sync);
+      $('rf-go').addEventListener('click', calc);
+      $('rf-price').addEventListener('keydown', (e) => { if (e.key === 'Enter') calc(); });
+      sync();
+    })();
+  </script>
+</BaseLayout>

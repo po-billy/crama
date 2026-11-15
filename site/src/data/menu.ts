@@ -163,7 +163,7 @@ export const MENU: MenuTab[] = [
           { name: '전월세 전환', href: '/tools/jeonse-wolse-calculator/' },
           { name: '평수 변환', href: '/tools/pyeong-converter/' },
           { name: 'LTV 계산기', href: '/tools/ltv-calculator/' },
-          { name: '중개수수료 계산기' }, { name: '취득세 계산기' }, { name: '청약 가점 계산기' },
+          { name: '중개수수료 계산기', href: '/realty-fee/', desc: '매매·전세·월세 복비 상한액' }, { name: '취득세 계산기' }, { name: '청약 가점 계산기' },
           { name: '자동차세', href: '/car-tax/', desc: '배기량·연식으로 자동차세 계산' },
           { name: '자동차 할부 계산기' }, { name: '신차 등록비용' },
         ],
@@ -171,7 +171,14 @@ export const MENU: MenuTab[] = [
       {
         slug: 'convert', name: '이름·변환', icon: 'text', color: '#64748b',
         desc: '영문 이름, 단위, 사이즈 변환',
-        items: [{ name: '영문 이름 변환' }, { name: '영문 주소 변환' }, { name: '닉네임 생성기' }, { name: '신발 사이즈 변환' }, { name: '단위 변환' }, { name: '글자 수 세기' }],
+        items: [
+          { name: '단위 변환', href: '/convert/unit/', desc: '길이·무게·넓이·부피·온도' },
+          { name: '글자 수 세기', href: '/convert/text-count/', desc: '공백 포함·제외, 바이트 수' },
+          { name: '영문 이름 변환', href: '/convert/romanize/', desc: '한글 이름 로마자 표기' },
+          { name: '닉네임 생성기', href: '/convert/nickname/', desc: '버튼 한 번으로 닉네임 10개' },
+          { name: '신발 사이즈 변환', href: '/convert/shoe-size/', desc: '한국·미국·영국·유럽 사이즈표' },
+          { name: '영문 주소 변환' },
+        ],
       },
       {
         slug: 'tables', name: '한눈에 보기', icon: 'grid', color: '#eab308',

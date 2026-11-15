@@ -1,0 +1,90 @@
+---
+// 분야 페이지 — /hub/health/, /hub/pay/ … 메뉴 데이터(src/data/menu.ts)의 분야 하나를 보여준다.
+// 들어갈 페이지가 하나도 없는 분야는 만들지 않는다(빈 페이지 방지).
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import { CATEGORIES } from '../../consts';
+import { allGroups, readyCount, ICONS } from '../../data/menu';
+import '../../styles/portal.css';
+
+export function getStaticPaths() {
+  return allGroups().filter((g) => readyCount(g) > 0).map((g) => ({ params: { slug: g.slug }, props: { slug: g.slug } }));
+}
+const { slug } = Astro.props as { slug: string };
+const g = allGroups().find((x) => x.slug === slug)!;
+const ready = g.items.filter((i) => i.href);
+const soon = g.items.filter((i) => !i.href);
+const others = allGroups().filter((x) => x.slug !== slug && readyCount(x) > 0 && x.tab.slug === g.tab.slug);
+
+const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.webp$/, '-hero-thumb.webp') : h);
+const posts = slug === 'guide'
+  ? (await getCollection('blog')).filter((p) => !p.data.draft).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()).slice(0, 12)
+  : [];
+const title = slug === 'guide' ? '가이드 — 직접 해보고 정리한 글' : `${g.name} — 계산기·조회 ${ready.length}종`;
+const description = `${g.desc}. ${ready.slice(0, 5).map((i) => i.name).join(', ')}${ready.length > 5 ? ' 등' : ''}을 한곳에서.`;
+---
+<BaseLayout title={title} description={description}>
+  <div class="pt" style={`--c:${g.color}`}>
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › {g.tab.slug === 'life' ? <><a href="/hub/">생활 조회</a> › </> : null}{g.name}</nav>
+    <header class="pt-hubhero">
+      <img src={`/img/portal/g-${g.slug}.webp`} alt="" width="200" height="200" />
+      <div>
+        <h1>{g.name}</h1>
+        <p>{g.desc}</p>
+      </div>
+    </header>
+
+    <section class="pt-sec">
+      <div class="pt-tools pt-tools--3">
+        {ready.map((it) => (
+          <a class="pt-tool" href={it.href}>
+            <span class="pt-tool__ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" set:html={ICONS[g.icon] ?? ICONS.grid}></svg></span>
+            <span><b>{it.name}</b>{it.desc && <span>{it.desc}</span>}</span>
+            <svg class="pt-tool__go" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    {posts.length > 0 && (
+      <section class="pt-sec">
+        <div class="pt-sec__head"><div><h2>새로 올라온 글</h2></div></div>
+        <div class="pt-cards pt-cards--4">
+          {posts.map((p) => (
+            <a class="pt-card" href={`/blog/${p.id}/`}>
+              {p.data.heroImage && <img class="pt-card__img" src={thumb(p.data.heroImage)} alt="" loading="lazy" width="640" height="400" />}
+              <span class="pt-card__body">
+                <span class="pt-card__tag">{CATEGORIES[p.data.category].name}</span>
+                <span class="pt-card__title">{p.data.title}</span>
+              </span>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <div class="pt-ad"><AdSlot slot="hub-mid" /></div>
+
+    {soon.length > 0 && (
+      <section class="pt-sec">
+        <div class="pt-sec__head"><div><h2>곧 추가돼요</h2></div></div>
+        <div class="pt-chips">{soon.map((it) => <span class="pt-chip is-soon">{it.name}</span>)}</div>
+      </section>
+    )}
+
+    {others.length > 0 && (
+      <section class="pt-sec">
+        <div class="pt-sec__head"><div><h2>다른 분야</h2></div></div>
+        <div class="pt-fields">
+          {others.map((o) => (
+            <a class="pt-field" href={`/hub/${o.slug}/`} style={`--c:${o.color}`}>
+              <img src={`/img/portal/g-${o.slug}.webp`} alt="" loading="lazy" width="96" height="96" />
+              <span><b>{o.name}</b><span>{readyCount(o)}개</span></span>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+  </div>
+</BaseLayout>

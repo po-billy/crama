@@ -1,0 +1,205 @@
+---
+import { SITE, NAV, MEMBER_UI } from '../consts';
+import DuoIcon from './DuoIcon.astro';
+---
+<header class="site-header">
+  <div class="wrap site-header__inner">
+    <button class="nav-toggle" id="nav-toggle" type="button" aria-label="메뉴" aria-expanded="false" aria-controls="nav">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+    <a href="/" class="brand" aria-label={`${SITE.name} 홈`}>
+      Cr<span>a</span>ma
+      <small>{SITE.tagline}</small>
+    </a>
+    <div class="header-actions">
+      <a href="/install/" class="search-link" aria-label="앱 설치" title="앱 설치" id="header-install">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v10m-4-4l4 4 4-4"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+      </a>
+      <button class="theme-toggle" id="theme-toggle" aria-label="다크 모드 전환" title="다크 모드 전환">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3v18a9 9 0 000-18z" fill="currentColor" stroke="none"/></svg>
+      </button>
+      <a href="/search/" class="search-link" aria-label="검색" title="검색">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      </a>
+      {MEMBER_UI ? (<>
+      <a href="/me/" class="hd-worm" id="hd-worm" hidden aria-label="내 밀웜" title="내 밀웜">
+        <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="16.5" r="3.6" fill="currentColor" opacity="0.92"/><circle cx="9" cy="14.5" r="4" fill="currentColor"/><circle cx="13" cy="12" r="4.1" fill="currentColor"/><circle cx="16.6" cy="9.6" r="3.7" fill="currentColor"/><circle cx="19.5" cy="7.6" r="3.1" fill="currentColor"/><circle cx="20.6" cy="6.7" r="0.85" fill="#1a1a1a"/></svg>
+        <b id="hd-worm-n">0</b>
+      </a>
+      <a href="/me/" class="search-link" aria-label="내 계정" title="내 계정" style="display:inline-flex;align-items:center">
+        <span id="me-ava"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.6 3.2-5.5 7-5.5s7 1.9 7 5.5"/></svg></span>
+      </a>
+      </>) : (
+      <a href="/saved-picks/" class="search-link" aria-label="내 관심함" title="내 관심함">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5l-7.3-7.3a4.9 4.9 0 0 1 6.9-6.9l.4.4.4-.4a4.9 4.9 0 0 1 6.9 6.9z"/></svg>
+      </a>
+      )}
+    </div>
+    <nav class="nav" id="nav" aria-label="주요 메뉴">
+      {NAV.map((item) =>
+        item.children ? (
+          <div class="nav-group">
+            <button type="button" class="nav-group__trigger" aria-expanded="false">
+              {item.label}
+              <svg class="nav-group__chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            <div class="nav-group__dropdown">
+              {item.children.map((child) => (
+                <a href={child.href}>
+                  {child.icon && <DuoIcon name={child.icon} class="nav-drop__icon" />}
+                  {child.label}
+                </a>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <a href={item.href} class={item.href === '/briefing/' ? 'nav-shine' : ''}>{item.label}</a>
+        )
+      )}
+    </nav>
+  </div>
+</header>
+<script is:inline>
+  document.getElementById('theme-toggle')?.addEventListener('click', () => {
+    const el = document.documentElement;
+    const dark = el.dataset.theme === 'dark';
+    el.dataset.theme = dark ? '' : 'dark';
+    localStorage.setItem('theme', dark ? 'light' : 'dark');
+  });
+
+  // 햄버거 메뉴 토글
+  (() => {
+    const t = document.getElementById('nav-toggle');
+    const nav = document.getElementById('nav');
+    if (!t || !nav) return;
+    const focusables = nav.querySelectorAll('a, button');
+    const set = (o) => {
+      nav.classList.toggle('is-open', o);
+      t.setAttribute('aria-expanded', String(o));
+      document.body.style.overflow = o ? 'hidden' : '';
+      // 첫 링크 포커스는 터치 사용자에게 포커스 링이 떠 깨져 보임 → 컨테이너에 포커스(키보드 Tab 흐름 유지)
+      if (o) { nav.setAttribute('tabindex', '-1'); nav.focus({ preventScroll: true }); }
+      else t.focus();
+    };
+    t.addEventListener('click', (e) => { e.stopPropagation(); set(!nav.classList.contains('is-open')); });
+    nav.addEventListener('click', (e) => { if (e.target.closest('a')) set(false); });
+    // nav 가 '열려 있을 때만' 바깥 클릭으로 닫는다. (닫혀 있을 때도 set(false)를 부르면
+    // set()이 t.focus()로 햄버거에 포커스를 뺏어가, 모바일에서 모든 입력창 클릭이 막히던 버그)
+    document.addEventListener('click', (e) => { if (nav.classList.contains('is-open') && !nav.contains(e.target) && !t.contains(e.target)) set(false); });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && nav.classList.contains('is-open')) { set(false); return; }
+      if (!nav.classList.contains('is-open') || !focusables.length) return;
+      if (e.key === 'Tab') {
+        if (e.shiftKey && document.activeElement === focusables[0]) { e.preventDefault(); focusables[focusables.length - 1].focus(); }
+        else if (!e.shiftKey && document.activeElement === focusables[focusables.length - 1]) { e.preventDefault(); focusables[0].focus(); }
+      }
+    });
+  })();
+
+  // 드롭다운 그룹 — PC: hover로 열기 / 모바일: CSS로 항상 펼침
+  (() => {
+    var isMobile = function () { return window.matchMedia('(max-width: 768px)').matches; };
+
+    document.querySelectorAll('.nav-group').forEach(function (group) {
+      var btn = group.querySelector('.nav-group__trigger');
+      var openTimer, closeTimer;
+      function open() {
+        clearTimeout(closeTimer);
+        document.querySelectorAll('.nav-group.is-open').forEach(function (g) { if (g !== group) { g.classList.remove('is-open'); g.querySelector('.nav-group__trigger').setAttribute('aria-expanded', 'false'); } });
+        group.classList.add('is-open');
+        btn.setAttribute('aria-expanded', 'true');
+      }
+      function close() {
+        clearTimeout(openTimer);
+        closeTimer = setTimeout(function () {
+          group.classList.remove('is-open');
+          btn.setAttribute('aria-expanded', 'false');
+        }, 150);
+      }
+      // PC: hover
+      group.addEventListener('mouseenter', function () { if (!isMobile()) { clearTimeout(closeTimer); openTimer = setTimeout(open, 80); } });
+      group.addEventListener('mouseleave', function () { if (!isMobile()) close(); });
+      // PC: click도 지원 (접근성)
+      btn.addEventListener('click', function (e) {
+        if (isMobile()) return;
+        e.stopPropagation();
+        if (group.classList.contains('is-open')) close();
+        else open();
+      });
+    });
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.nav-group')) {
+        document.querySelectorAll('.nav-group.is-open').forEach(function (g) { g.classList.remove('is-open'); g.querySelector('.nav-group__trigger').setAttribute('aria-expanded', 'false'); });
+      }
+    });
+  })();
+
+  // 이미 설치된(standalone) 환경이면 설치 아이콘 숨기기
+  (() => {
+    var standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+    if (standalone) { var el = document.getElementById('header-install'); if (el) el.hidden = true; }
+  })();
+
+  // 스크롤 내리면 브랜드 줄을 숨기고 메뉴·검색·테마 바만 남기기.
+  (() => {
+    const header = document.querySelector('.site-header');
+    if (!header) return;
+    let compact = false, ticking = false;
+    const update = () => {
+      ticking = false;
+      const y = window.scrollY || window.pageYOffset || 0;
+      if (!compact && y > 140) { compact = true; header.classList.add('is-compact'); }
+      else if (compact && y < 70) { compact = false; header.classList.remove('is-compact'); }
+    };
+    window.addEventListener('scroll', () => {
+      if (!ticking) { ticking = true; requestAnimationFrame(update); }
+    }, { passive: true });
+    update();
+  })();
+</script>
+
+<script is:inline>
+  // 헤더 밀웜 배지 — 로그인 + 캐시 보유 시 즉시 표시(정확값은 아래 모듈 스크립트가 갱신)
+  (() => {
+    try {
+      var logged = Object.keys(localStorage).some(function (k) { return k.includes('-auth-token'); });
+      var bal = localStorage.getItem('crama:bal');
+      if (logged && bal !== null) {
+        document.getElementById('hd-worm-n').textContent = Number(bal).toLocaleString('ko-KR');
+        document.getElementById('hd-worm').hidden = false;
+      }
+    } catch (e) {}
+  })();
+</script>
+
+<script>
+  // 로그인 시 프로필 아이콘에 내 크라미(착장)를 동그라미로 — 로그인된 경우에만 supabase 동적 로드
+  (async () => {
+    const el = document.getElementById('me-ava');
+    if (!el) return;
+    let hasSession = false;
+    try { hasSession = Object.keys(localStorage).some((k) => k.includes('-auth-token')); } catch {}
+    if (!hasSession) return;
+    const { getUser, equippedMap, wormBalance } = await import('../lib/api');
+    if (!(await getUser())) return;
+    // 밀웜 잔액 — 배지 갱신 + 캐시
+    try {
+      const bal = await wormBalance();
+      if (typeof bal === 'number') {
+        const n = document.getElementById('hd-worm-n');
+        if (n) { n.textContent = bal.toLocaleString('ko-KR'); document.getElementById('hd-worm')!.hidden = false; }
+        localStorage.setItem('crama:bal', String(bal));
+      }
+    } catch {}
+    const eq = await equippedMap();
+    const IMG = (id: string) => `/img/wardrobe/${id}.webp`;
+    let html = '<img class="base base-body" src="/img/generated/meerkat-body.webp" alt="">';
+    if (eq.outfit) html += `<img class="layer gear" src="${IMG(eq.outfit)}" alt="">`;
+    if (eq.scarf) html += `<img class="layer gear-scarf" src="${IMG(eq.scarf)}" alt="">`;
+    html += '<img class="base base-head" src="/img/generated/meerkat-head.webp" alt="">';
+    if (eq.glasses) html += `<img class="layer acc-glasses" src="${IMG(eq.glasses)}" alt="">`;
+    if (eq.hat) html += `<img class="layer acc-hat" src="${IMG(eq.hat)}" alt="">`;
+    el.classList.add('me-ava');
+    el.innerHTML = `<div class="char">${html}</div>`;
+  })();
+</script>

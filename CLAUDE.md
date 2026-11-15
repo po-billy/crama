@@ -27,6 +27,17 @@ supabase/             DB 스키마 SQL (saved_items, push_subscriptions 등)
 - pSEO 계산표: `/salary/[amount]` `/wage/[hourly]` `/interest/[amount]` `/severance/[pay]` `/rates` `/loans`
 - 리텐션: `/saved-picks`(내 관심함, 로그인 전용) — 하트 저장은 `window.CramaSaved`(BaseLayout 정의)
 
+## 포털 개편 (브랜치 `redesign-portal`, 진행 중)
+
+"금융 매거진"에서 "매일 쓰는 조회·계산기 + 볼거리 포털"로 전환 중. 참고 사이트는 k-calc.com(구조만 참고, 코드·문구 복제 금지).
+
+- **메뉴의 원본은 `site/src/data/menu.ts` 하나.** 헤더 탭·전체 메뉴·홈·분야 페이지(`/hub/[slug]/`)가 전부 이 파일을 읽는다. 항목에 `href`가 있으면 공개, 없으면 '준비 중'(메뉴에는 숨기고 분야 페이지의 '곧 추가돼요'에만 노출). 새 페이지를 만들면 `href`만 채우면 된다. 들어갈 페이지가 0개인 탭·분야는 자동으로 숨는다.
+- 공통 스타일 `site/src/styles/portal.css`(클래스 접두사 `pt-`), 헤더 `ph-`, 전체 메뉴 `pm-`. 색은 기존 토큰(`--paper`, `--ink`, `--accent` …)만 사용.
+- 카드 그림은 `site/public/img/portal/*.webp` — OpenAI `gpt-image-2.6-sunburst`(quality high, 1024px, 장당 약 $0.05)로 생성. 분야 표지는 `g-{slug}.webp`, 개별 카드는 `c-*.webp`.
+- 이전 홈·헤더는 `site/src/legacy/`에 보관(빌드에 포함 안 됨).
+- 남은 묶음: 인물(위키데이터) · 나이·날짜 · 월급·세금·건강 계산기 · 운세·테스트(미리 만든 문장, 실시간 AI 금지) · 미니게임 · 집·자동차 등 · 기존 페이지를 새 톤으로 이전. 방문자 수에 비례해 API 비용이 나가는 기능은 광고 승인 전까지 만들지 않는다.
+- 실존 인물은 공개된 사실 정보(생년월일·직업)만, 사진은 위키미디어 코먼스의 자유 이용 허락분만.
+
 ## 회원 UI 스위치 (`MEMBER_UI`, 현재 꺼짐)
 
 애드센스 심사 대응으로 회원 기능을 **삭제하지 않고 숨겼다**. `site/src/consts.ts`의 `MEMBER_UI = false`.

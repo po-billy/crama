@@ -1,13 +1,13 @@
 // 사이트 전역 상수 — 브랜드/SEO 기본값
 export const SITE = {
   name: 'Crama',
-  title: '크라마(Crama) · 머니·재테크·AI 트렌드 인사이트 매거진',
+  title: '크라마(Crama) · 매일 쓰는 조회·계산기 모음',
   description:
-    '크라마(Crama)는 주식·재테크와 AI 트렌드를 먼저 읽는 인사이트 매거진입니다. 매일 업데이트되는 원본 분석·가이드·계산기와 오디오 브리핑까지. (크림·크레마 아님)',
+    '크라마(Crama)는 건강검진 대상 조회, 연봉 실수령액, 지원금 찾기, 금리 비교처럼 매일 필요한 조회와 계산기를 한곳에 모은 생활 포털입니다. 직접 해보고 정리한 가이드도 함께 봅니다.',
   url: 'https://crama.app',
   author: 'Crama 편집부',
   locale: 'ko_KR',
-  tagline: '트렌드를 읽다',
+  tagline: '궁금한 건 바로 조회',
 } as const;
 
 export type CategorySlug = 'money' | 'ai' | 'income';

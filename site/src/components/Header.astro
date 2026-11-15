@@ -1,205 +1,226 @@
 ---
-import { SITE, NAV, MEMBER_UI } from '../consts';
-import DuoIcon from './DuoIcon.astro';
+// 포털형 헤더 — 로고 · 검색 · 전체 메뉴 + 상단 탭.
+// 메뉴 내용은 src/data/menu.ts 하나에서 온다. (이전 헤더는 src/legacy/HeaderLegacy.astro 에 보관)
+import { SITE } from '../consts';
+import { MENU, visibleTabs, allGroups, readyCount, ICONS } from '../data/menu';
+
+const path = Astro.url.pathname;
+const tabs = visibleTabs();
+// 전체 메뉴에는 실제로 들어갈 페이지가 있는 분야·항목만 보여준다(준비 중 항목은 분야 페이지의 '곧 추가돼요'에만 노출)
+const groups = allGroups().filter((g) => readyCount(g) > 0).map((g) => ({ ...g, items: g.items.filter((i) => i.href) }));
+// 현재 경로가 속한 탭(항목 href 로 역추적) — 없으면 홈
+const hrefTab = new Map<string, string>();
+for (const t of MENU) {
+  hrefTab.set(t.href, t.slug);
+  for (const g of t.groups) {
+    hrefTab.set(`/hub/${g.slug}/`, t.slug);
+    for (const i of g.items) if (i.href) hrefTab.set(i.href, t.slug);
+  }
+}
+const match = [...hrefTab.keys()].filter((h) => h !== '/' && path.startsWith(h)).sort((a, b) => b.length - a.length)[0];
+const blogTab = /^\/(blog|category|tag|column|guides|briefing|shorts|authors)(\/|$)/.test(path) ? 'guide' : undefined;
+const activeTab = path === '/' ? 'home' : (match ? hrefTab.get(match) : blogTab);
+const ico = (name: string) => ICONS[name] ?? ICONS.grid;
 ---
-<header class="site-header">
-  <div class="wrap site-header__inner">
-    <button class="nav-toggle" id="nav-toggle" type="button" aria-label="메뉴" aria-expanded="false" aria-controls="nav">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-    </button>
-    <a href="/" class="brand" aria-label={`${SITE.name} 홈`}>
-      Cr<span>a</span>ma
-      <small>{SITE.tagline}</small>
-    </a>
-    <div class="header-actions">
-      <a href="/install/" class="search-link" aria-label="앱 설치" title="앱 설치" id="header-install">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v10m-4-4l4 4 4-4"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+<header class="ph">
+  <div class="ph__top">
+    <a href="/" class="ph__logo" aria-label={`${SITE.name} 홈`}>Crama</a>
+    <form class="ph__search" action="/search/" method="get" role="search">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="search" name="q" placeholder="계산기, 조회, 글 검색" aria-label="검색" autocomplete="off" />
+    </form>
+    <div class="ph__acts">
+      <a href="/search/" class="ph__btn ph__btn--search" aria-label="검색">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
       </a>
-      <button class="theme-toggle" id="theme-toggle" aria-label="다크 모드 전환" title="다크 모드 전환">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3v18a9 9 0 000-18z" fill="currentColor" stroke="none"/></svg>
+      <button class="ph__btn" id="theme-toggle" type="button" aria-label="다크 모드 전환" title="다크 모드 전환">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3v18a9 9 0 000-18z" fill="currentColor" stroke="none"/></svg>
       </button>
-      <a href="/search/" class="search-link" aria-label="검색" title="검색">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-      </a>
-      {MEMBER_UI ? (<>
-      <a href="/me/" class="hd-worm" id="hd-worm" hidden aria-label="내 밀웜" title="내 밀웜">
-        <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="16.5" r="3.6" fill="currentColor" opacity="0.92"/><circle cx="9" cy="14.5" r="4" fill="currentColor"/><circle cx="13" cy="12" r="4.1" fill="currentColor"/><circle cx="16.6" cy="9.6" r="3.7" fill="currentColor"/><circle cx="19.5" cy="7.6" r="3.1" fill="currentColor"/><circle cx="20.6" cy="6.7" r="0.85" fill="#1a1a1a"/></svg>
-        <b id="hd-worm-n">0</b>
-      </a>
-      <a href="/me/" class="search-link" aria-label="내 계정" title="내 계정" style="display:inline-flex;align-items:center">
-        <span id="me-ava"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.6 3.2-5.5 7-5.5s7 1.9 7 5.5"/></svg></span>
-      </a>
-      </>) : (
-      <a href="/saved-picks/" class="search-link" aria-label="내 관심함" title="내 관심함">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5l-7.3-7.3a4.9 4.9 0 0 1 6.9-6.9l.4.4.4-.4a4.9 4.9 0 0 1 6.9 6.9z"/></svg>
-      </a>
-      )}
+      <button class="ph__btn ph__menu-btn" id="pm-open" type="button" aria-haspopup="dialog" aria-controls="pm" aria-expanded="false">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <span>전체 메뉴</span>
+      </button>
     </div>
-    <nav class="nav" id="nav" aria-label="주요 메뉴">
-      {NAV.map((item) =>
-        item.children ? (
-          <div class="nav-group">
-            <button type="button" class="nav-group__trigger" aria-expanded="false">
-              {item.label}
-              <svg class="nav-group__chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
-            </button>
-            <div class="nav-group__dropdown">
-              {item.children.map((child) => (
-                <a href={child.href}>
-                  {child.icon && <DuoIcon name={child.icon} class="nav-drop__icon" />}
-                  {child.label}
-                </a>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <a href={item.href} class={item.href === '/briefing/' ? 'nav-shine' : ''}>{item.label}</a>
-        )
-      )}
-    </nav>
   </div>
+  <nav class="ph__tabs" aria-label="주요 메뉴">
+    <div class="ph__tabs-in">
+      <a href="/" class:list={['ph__tab', { 'is-on': activeTab === 'home' }]} aria-current={activeTab === 'home' ? 'page' : undefined}>홈</a>
+      {tabs.map((t) => (
+        <a href={t.href} class:list={['ph__tab', { 'is-on': activeTab === t.slug }]} aria-current={activeTab === t.slug ? 'page' : undefined}>{t.name}</a>
+      ))}
+    </div>
+  </nav>
 </header>
+
+<!-- 전체 메뉴: 왼쪽 분야 · 오른쪽 항목 -->
+<div class="pm" id="pm" role="dialog" aria-modal="true" aria-label="전체 메뉴" hidden>
+  <div class="pm__panel">
+    <div class="pm__head">
+      <form class="pm__search" action="/search/" method="get" role="search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="search" name="q" placeholder="검색어를 입력해 주세요" aria-label="검색" autocomplete="off" />
+      </form>
+      <button type="button" class="pm__close" id="pm-close" aria-label="메뉴 닫기">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="pm__body">
+      <div class="pm__rail" id="pm-rail">
+        {groups.map((g, i) => (
+          <button type="button" class:list={['pm__rail-item', { 'is-on': i === 0 }]} data-target={`pm-g-${g.slug}`} style={`--c:${g.color}`}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" set:html={ico(g.icon)}></svg>
+            <span>{g.name}</span>
+          </button>
+        ))}
+      </div>
+      <div class="pm__list" id="pm-list">
+        {groups.map((g) => (
+          <section class="pm__group" id={`pm-g-${g.slug}`} style={`--c:${g.color}`}>
+            <h2>
+              {readyCount(g) > 0 ? <a href={`/hub/${g.slug}/`}>{g.name}</a> : <span class="pm__gname">{g.name}</span>}
+              <span>{readyCount(g)}</span>
+            </h2>
+            {g.items.map((it) =>
+              it.href ? (
+                <a class="pm__item" href={it.href}>
+                  <span>{it.name}</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+                </a>
+              ) : (
+                <div class="pm__item is-soon"><span>{it.name}</span><em>준비 중</em></div>
+              )
+            )}
+          </section>
+        ))}
+        <section class="pm__group pm__group--info">
+          <h2>안내</h2>
+          <a class="pm__item" href="/about/"><span>소개</span></a>
+          <a class="pm__item" href="/contact/"><span>광고 문의</span></a>
+          <a class="pm__item" href="/saved-picks/"><span>내 관심함</span></a>
+          <a class="pm__item" href="/privacy/"><span>개인정보처리방침</span></a>
+          <a class="pm__item" href="/terms/"><span>이용약관</span></a>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script is:inline>
+  // 테마 전환
   document.getElementById('theme-toggle')?.addEventListener('click', () => {
     const el = document.documentElement;
     const dark = el.dataset.theme === 'dark';
     el.dataset.theme = dark ? '' : 'dark';
-    localStorage.setItem('theme', dark ? 'light' : 'dark');
+    try { localStorage.setItem('theme', dark ? 'light' : 'dark'); } catch (e) {}
   });
 
-  // 햄버거 메뉴 토글
+  // 전체 메뉴 열기/닫기 + 왼쪽 분야 ↔ 오른쪽 목록 연동
   (() => {
-    const t = document.getElementById('nav-toggle');
-    const nav = document.getElementById('nav');
-    if (!t || !nav) return;
-    const focusables = nav.querySelectorAll('a, button');
-    const set = (o) => {
-      nav.classList.toggle('is-open', o);
-      t.setAttribute('aria-expanded', String(o));
-      document.body.style.overflow = o ? 'hidden' : '';
-      // 첫 링크 포커스는 터치 사용자에게 포커스 링이 떠 깨져 보임 → 컨테이너에 포커스(키보드 Tab 흐름 유지)
-      if (o) { nav.setAttribute('tabindex', '-1'); nav.focus({ preventScroll: true }); }
-      else t.focus();
+    const pm = document.getElementById('pm');
+    const openBtn = document.getElementById('pm-open');
+    if (!pm || !openBtn) return;
+    const list = document.getElementById('pm-list');
+    const rail = document.getElementById('pm-rail');
+    const railItems = [...rail.querySelectorAll('.pm__rail-item')];
+    const setOn = (id) => railItems.forEach((b) => b.classList.toggle('is-on', b.dataset.target === id));
+    const open = (targetId) => {
+      pm.hidden = false;
+      document.body.style.overflow = 'hidden';
+      openBtn.setAttribute('aria-expanded', 'true');
+      if (targetId) { const el = document.getElementById(targetId); if (el) { list.scrollTop = el.offsetTop - list.offsetTop; setOn(targetId); } }
+      document.getElementById('pm-close').focus({ preventScroll: true });
     };
-    t.addEventListener('click', (e) => { e.stopPropagation(); set(!nav.classList.contains('is-open')); });
-    nav.addEventListener('click', (e) => { if (e.target.closest('a')) set(false); });
-    // nav 가 '열려 있을 때만' 바깥 클릭으로 닫는다. (닫혀 있을 때도 set(false)를 부르면
-    // set()이 t.focus()로 햄버거에 포커스를 뺏어가, 모바일에서 모든 입력창 클릭이 막히던 버그)
-    document.addEventListener('click', (e) => { if (nav.classList.contains('is-open') && !nav.contains(e.target) && !t.contains(e.target)) set(false); });
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && nav.classList.contains('is-open')) { set(false); return; }
-      if (!nav.classList.contains('is-open') || !focusables.length) return;
-      if (e.key === 'Tab') {
-        if (e.shiftKey && document.activeElement === focusables[0]) { e.preventDefault(); focusables[focusables.length - 1].focus(); }
-        else if (!e.shiftKey && document.activeElement === focusables[focusables.length - 1]) { e.preventDefault(); focusables[0].focus(); }
-      }
-    });
-  })();
-
-  // 드롭다운 그룹 — PC: hover로 열기 / 모바일: CSS로 항상 펼침
-  (() => {
-    var isMobile = function () { return window.matchMedia('(max-width: 768px)').matches; };
-
-    document.querySelectorAll('.nav-group').forEach(function (group) {
-      var btn = group.querySelector('.nav-group__trigger');
-      var openTimer, closeTimer;
-      function open() {
-        clearTimeout(closeTimer);
-        document.querySelectorAll('.nav-group.is-open').forEach(function (g) { if (g !== group) { g.classList.remove('is-open'); g.querySelector('.nav-group__trigger').setAttribute('aria-expanded', 'false'); } });
-        group.classList.add('is-open');
-        btn.setAttribute('aria-expanded', 'true');
-      }
-      function close() {
-        clearTimeout(openTimer);
-        closeTimer = setTimeout(function () {
-          group.classList.remove('is-open');
-          btn.setAttribute('aria-expanded', 'false');
-        }, 150);
-      }
-      // PC: hover
-      group.addEventListener('mouseenter', function () { if (!isMobile()) { clearTimeout(closeTimer); openTimer = setTimeout(open, 80); } });
-      group.addEventListener('mouseleave', function () { if (!isMobile()) close(); });
-      // PC: click도 지원 (접근성)
-      btn.addEventListener('click', function (e) {
-        if (isMobile()) return;
-        e.stopPropagation();
-        if (group.classList.contains('is-open')) close();
-        else open();
+    const close = () => {
+      pm.hidden = true;
+      document.body.style.overflow = '';
+      openBtn.setAttribute('aria-expanded', 'false');
+    };
+    window.CramaMenu = { open, close };
+    openBtn.addEventListener('click', () => open());
+    document.getElementById('pm-close').addEventListener('click', close);
+    pm.addEventListener('click', (e) => { if (e.target === pm) close(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !pm.hidden) close(); });
+    document.addEventListener('click', (e) => { const t = e.target.closest('[data-open-menu]'); if (t) { e.preventDefault(); open(t.dataset.openMenu || undefined); } });
+    railItems.forEach((b) => b.addEventListener('click', () => {
+      const el = document.getElementById(b.dataset.target);
+      if (el) list.scrollTo({ top: el.offsetTop - list.offsetTop, behavior: 'smooth' });
+      setOn(b.dataset.target);
+    }));
+    // 목록을 스크롤하면 왼쪽 분야 표시도 따라간다
+    let tick = false;
+    list.addEventListener('scroll', () => {
+      if (tick) return; tick = true;
+      requestAnimationFrame(() => {
+        tick = false;
+        const top = list.scrollTop + 24;
+        let cur = null;
+        list.querySelectorAll('.pm__group[id]').forEach((s) => { if (s.offsetTop - list.offsetTop <= top) cur = s.id; });
+        if (cur) setOn(cur);
       });
-    });
-    document.addEventListener('click', function (e) {
-      if (!e.target.closest('.nav-group')) {
-        document.querySelectorAll('.nav-group.is-open').forEach(function (g) { g.classList.remove('is-open'); g.querySelector('.nav-group__trigger').setAttribute('aria-expanded', 'false'); });
-      }
-    });
-  })();
-
-  // 이미 설치된(standalone) 환경이면 설치 아이콘 숨기기
-  (() => {
-    var standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
-    if (standalone) { var el = document.getElementById('header-install'); if (el) el.hidden = true; }
-  })();
-
-  // 스크롤 내리면 브랜드 줄을 숨기고 메뉴·검색·테마 바만 남기기.
-  (() => {
-    const header = document.querySelector('.site-header');
-    if (!header) return;
-    let compact = false, ticking = false;
-    const update = () => {
-      ticking = false;
-      const y = window.scrollY || window.pageYOffset || 0;
-      if (!compact && y > 140) { compact = true; header.classList.add('is-compact'); }
-      else if (compact && y < 70) { compact = false; header.classList.remove('is-compact'); }
-    };
-    window.addEventListener('scroll', () => {
-      if (!ticking) { ticking = true; requestAnimationFrame(update); }
     }, { passive: true });
-    update();
+    document.addEventListener('astro:before-preparation', close);
   })();
 </script>
 
-<script is:inline>
-  // 헤더 밀웜 배지 — 로그인 + 캐시 보유 시 즉시 표시(정확값은 아래 모듈 스크립트가 갱신)
-  (() => {
-    try {
-      var logged = Object.keys(localStorage).some(function (k) { return k.includes('-auth-token'); });
-      var bal = localStorage.getItem('crama:bal');
-      if (logged && bal !== null) {
-        document.getElementById('hd-worm-n').textContent = Number(bal).toLocaleString('ko-KR');
-        document.getElementById('hd-worm').hidden = false;
-      }
-    } catch (e) {}
-  })();
-</script>
+<style is:global>
+  .ph { position: sticky; top: 0; z-index: 50; background: color-mix(in srgb, var(--paper) 94%, transparent); -webkit-backdrop-filter: saturate(150%) blur(12px); backdrop-filter: saturate(150%) blur(12px); border-bottom: 1px solid var(--line); }
+  .ph__top { max-width: 76rem; margin: 0 auto; padding: 0.7rem 1.1rem; display: flex; align-items: center; gap: 1rem; }
+  .ph__logo { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.03em; color: var(--accent); text-decoration: none; line-height: 1; flex: none; }
+  .ph__logo:hover { color: var(--accent); opacity: 0.85; }
+  .ph__search { flex: 1; max-width: 30rem; margin-inline: auto; display: flex; align-items: center; gap: 0.5rem; padding: 0 0.95rem; height: 2.6rem; border: 1px solid var(--line); border-radius: 999px; background: var(--paper-2); color: var(--muted); }
+  .ph__search:focus-within { border-color: var(--accent); background: var(--paper); }
+  .ph__search input { flex: 1; min-width: 0; border: 0; background: none; outline: none; font: inherit; font-size: 0.95rem; color: var(--ink); }
+  .ph__acts { display: flex; align-items: center; gap: 0.25rem; flex: none; }
+  .ph__btn { display: inline-flex; align-items: center; gap: 0.4rem; height: 2.5rem; padding: 0 0.6rem; border: 0; border-radius: 10px; background: none; color: var(--ink); font: inherit; font-size: 0.9rem; font-weight: 700; cursor: pointer; text-decoration: none; }
+  .ph__btn:hover { background: var(--paper-2); color: var(--accent); }
+  .ph__btn--search { display: none; }
+  .ph__tabs { border-top: 1px solid color-mix(in srgb, var(--line) 60%, transparent); }
+  .ph__tabs-in { max-width: 76rem; margin: 0 auto; padding: 0 0.6rem; display: flex; gap: 0.2rem; overflow-x: auto; scrollbar-width: none; }
+  .ph__tabs-in::-webkit-scrollbar { display: none; }
+  .ph__tab { flex: none; padding: 0.72rem 0.85rem 0.62rem; font-size: 0.98rem; font-weight: 700; color: var(--muted); text-decoration: none; border-bottom: 3px solid transparent; white-space: nowrap; }
+  .ph__tab:hover { color: var(--ink); }
+  .ph__tab.is-on { color: var(--accent); border-bottom-color: var(--accent); }
+  @media (max-width: 720px) {
+    .ph__top { padding: 0.55rem 0.9rem; gap: 0.4rem; }
+    .ph__search { display: none; }
+    .ph__acts { margin-left: auto; }
+    .ph__btn--search { display: inline-flex; }
+    .ph__menu-btn span { display: none; }
+    .ph__tab { padding-inline: 0.7rem; font-size: 0.94rem; }
+  }
 
-<script>
-  // 로그인 시 프로필 아이콘에 내 크라미(착장)를 동그라미로 — 로그인된 경우에만 supabase 동적 로드
-  (async () => {
-    const el = document.getElementById('me-ava');
-    if (!el) return;
-    let hasSession = false;
-    try { hasSession = Object.keys(localStorage).some((k) => k.includes('-auth-token')); } catch {}
-    if (!hasSession) return;
-    const { getUser, equippedMap, wormBalance } = await import('../lib/api');
-    if (!(await getUser())) return;
-    // 밀웜 잔액 — 배지 갱신 + 캐시
-    try {
-      const bal = await wormBalance();
-      if (typeof bal === 'number') {
-        const n = document.getElementById('hd-worm-n');
-        if (n) { n.textContent = bal.toLocaleString('ko-KR'); document.getElementById('hd-worm')!.hidden = false; }
-        localStorage.setItem('crama:bal', String(bal));
-      }
-    } catch {}
-    const eq = await equippedMap();
-    const IMG = (id: string) => `/img/wardrobe/${id}.webp`;
-    let html = '<img class="base base-body" src="/img/generated/meerkat-body.webp" alt="">';
-    if (eq.outfit) html += `<img class="layer gear" src="${IMG(eq.outfit)}" alt="">`;
-    if (eq.scarf) html += `<img class="layer gear-scarf" src="${IMG(eq.scarf)}" alt="">`;
-    html += '<img class="base base-head" src="/img/generated/meerkat-head.webp" alt="">';
-    if (eq.glasses) html += `<img class="layer acc-glasses" src="${IMG(eq.glasses)}" alt="">`;
-    if (eq.hat) html += `<img class="layer acc-hat" src="${IMG(eq.hat)}" alt="">`;
-    el.classList.add('me-ava');
-    el.innerHTML = `<div class="char">${html}</div>`;
-  })();
-</script>
+  /* 전체 메뉴 */
+  .pm { position: fixed; inset: 0; z-index: 90; background: rgba(15, 14, 24, 0.5); display: flex; justify-content: center; align-items: flex-start; padding: 3.5vh 1rem; }
+  .pm[hidden] { display: none; }
+  .pm__panel { width: 100%; max-width: 52rem; max-height: 93vh; display: flex; flex-direction: column; background: var(--paper); border-radius: 20px; overflow: hidden; box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28); }
+  .pm__head { display: flex; align-items: center; gap: 0.6rem; padding: 0.9rem 1rem; border-bottom: 1px solid var(--line); }
+  .pm__search { flex: 1; display: flex; align-items: center; gap: 0.5rem; height: 2.8rem; padding: 0 1rem; border-radius: 12px; background: var(--paper-2); color: var(--muted); }
+  .pm__search input { flex: 1; min-width: 0; border: 0; background: none; outline: none; font: inherit; font-size: 1rem; color: var(--ink); }
+  .pm__close { flex: none; width: 2.8rem; height: 2.8rem; display: grid; place-items: center; border: 0; border-radius: 12px; background: none; color: var(--ink); cursor: pointer; }
+  .pm__close:hover { background: var(--paper-2); }
+  .pm__body { display: flex; min-height: 0; flex: 1; }
+  .pm__rail { flex: none; width: 13.5rem; overflow-y: auto; padding: 0.6rem; border-right: 1px solid var(--line); background: var(--paper-2); }
+  .pm__rail-item { width: 100%; display: flex; align-items: center; gap: 0.6rem; padding: 0.68rem 0.75rem; border: 0; border-radius: 10px; background: none; font: inherit; font-size: 0.95rem; font-weight: 600; color: var(--ink-soft); text-align: left; cursor: pointer; border-left: 3px solid transparent; }
+  .pm__rail-item svg { flex: none; color: var(--c); }
+  .pm__rail-item:hover { background: var(--paper); }
+  .pm__rail-item.is-on { background: var(--paper); color: var(--ink); font-weight: 800; border-left-color: var(--c); }
+  .pm__list { flex: 1; min-width: 0; overflow-y: auto; padding: 0.4rem 1.2rem 2rem; position: relative; }
+  .pm__group { padding-top: 1.1rem; }
+  .pm__group h2 { display: flex; align-items: baseline; gap: 0.45rem; margin: 0 0 0.3rem; font-size: 1.05rem; font-weight: 800; }
+  .pm__group h2 a { color: var(--c, var(--ink)); text-decoration: none; }
+  .pm__group h2 .pm__gname { font-size: inherit; font-weight: 800; color: var(--c, var(--ink)); }
+  .pm__group h2 span { font-size: 0.8rem; font-weight: 800; color: var(--muted); }
+  .pm__item { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; padding: 0.78rem 0.2rem; border-bottom: 1px solid var(--line); font-size: 0.98rem; font-weight: 600; color: var(--ink); text-decoration: none; }
+  .pm__item svg { flex: none; color: var(--muted); }
+  a.pm__item:hover { color: var(--accent); }
+  .pm__item.is-soon { color: var(--muted); font-weight: 500; }
+  .pm__item.is-soon em { font-style: normal; font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 999px; background: var(--paper-2); color: var(--muted); }
+  @media (max-width: 720px) {
+    .pm { padding: 0; }
+    .pm__panel { max-width: none; max-height: none; height: 100%; border-radius: 0; }
+    .pm__rail { width: 7.4rem; padding: 0.4rem; }
+    .pm__rail-item { flex-direction: column; gap: 0.25rem; padding: 0.6rem 0.2rem; font-size: 0.76rem; text-align: center; border-left: 0; }
+    .pm__rail-item.is-on { box-shadow: inset 3px 0 0 var(--c); }
+    .pm__list { padding-inline: 0.9rem; }
+  }
+</style>

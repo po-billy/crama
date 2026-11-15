@@ -1,0 +1,51 @@
+---
+// 생활 조회 전체 — 분야별로 지금 쓸 수 있는 계산기·조회를 한 화면에.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import { MENU, readyCount, ICONS } from '../../data/menu';
+import '../../styles/portal.css';
+
+const life = MENU.find((t) => t.slug === 'life')!;
+const groups = life.groups.filter((g) => readyCount(g) > 0);
+const total = groups.reduce((n, g) => n + readyCount(g), 0);
+---
+<BaseLayout title={`생활 조회 — 계산기·조회 ${total}종 모음`} description="건강검진 대상, 연봉 실수령액, 지원금, 금리 비교, 세금까지. 매일 쓰는 계산기와 조회를 분야별로 모았습니다.">
+  <div class="pt">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › 생활 조회</nav>
+    <header class="pt-hubhero">
+      <img src="/img/portal/g-tables.webp" alt="" width="200" height="200" />
+      <div>
+        <h1>생활 조회</h1>
+        <p>매일 쓰는 계산기와 조회 {total}종을 분야별로 모았어요.</p>
+      </div>
+    </header>
+
+    <section class="pt-sec">
+      <div class="pt-fields">
+        {groups.map((g) => (
+          <a class="pt-field" href={`#${g.slug}`} style={`--c:${g.color}`}>
+            <img src={`/img/portal/g-${g.slug}.webp`} alt="" loading="lazy" width="96" height="96" />
+            <span><b>{g.name}</b><span>{readyCount(g)}개</span></span>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    {groups.map((g, i) => (
+      <>
+        <section class="pt-sec" id={g.slug} style={`--c:${g.color};scroll-margin-top:8rem`}>
+          <div class="pt-sec__head"><div><h2>{g.name}</h2><p>{g.desc}</p></div><a class="pt-more" href={`/hub/${g.slug}/`}>분야 보기 →</a></div>
+          <div class="pt-tools pt-tools--3">
+            {g.items.filter((it) => it.href).map((it) => (
+              <a class="pt-tool" href={it.href}>
+                <span class="pt-tool__ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" set:html={ICONS[g.icon] ?? ICONS.grid}></svg></span>
+                <span><b>{it.name}</b>{it.desc && <span>{it.desc}</span>}</span>
+              </a>
+            ))}
+          </div>
+        </section>
+        {i === 2 && <div class="pt-ad"><AdSlot slot="hub-index-mid" /></div>}
+      </>
+    ))}
+  </div>
+</BaseLayout>

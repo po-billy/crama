@@ -35,8 +35,13 @@ supabase/             DB 스키마 SQL (saved_items, push_subscriptions 등)
 - 공통 스타일 `site/src/styles/portal.css`(클래스 접두사 `pt-`), 헤더 `ph-`, 전체 메뉴 `pm-`. 색은 기존 토큰(`--paper`, `--ink`, `--accent` …)만 사용.
 - 카드 그림은 `site/public/img/portal/*.webp` — OpenAI `gpt-image-2.6-sunburst`(quality high, 1024px, 장당 약 $0.05)로 생성. 분야 표지는 `g-{slug}.webp`, 개별 카드는 `c-*.webp`.
 - 이전 홈·헤더는 `site/src/legacy/`에 보관(빌드에 포함 안 됨).
-- 남은 묶음: 인물(위키데이터) · 나이·날짜 · 월급·세금·건강 계산기 · 운세·테스트(미리 만든 문장, 실시간 AI 금지) · 미니게임 · 집·자동차 등 · 기존 페이지를 새 톤으로 이전. 방문자 수에 비례해 API 비용이 나가는 기능은 광고 승인 전까지 만들지 않는다.
-- 실존 인물은 공개된 사실 정보(생년월일·직업)만, 사진은 위키미디어 코먼스의 자유 이용 허락분만.
+- 방문자 수에 비례해 API 비용이 나가는 기능은 광고 승인 전까지 만들지 않는다. 운세·타로·궁합 문장은 `data/fun.ts`에 미리 써 둔 것을 날짜·입력값으로 고르는 방식(실시간 AI 금지).
+- 실존 인물은 공개된 사실 정보(생년월일·대표 직업 1개)만, 사진은 위키미디어 코먼스의 자유 이용 허락분만(저작자·라이선스 표기). 고인·미성년 제외. 갱신은 `node automation/sync-people.mjs`(무료, 키 불필요).
+- **세금·보험 요율은 `site/src/lib/salary.ts`가 원본**(2026년: 국민연금 4.75%, 건강보험 3.595%, 장기요양 13.14%, 고용 0.9%, 연금 기준소득월액 41만~659만). 매년 1월(요율)과 7월(연금 상·하한)에 확인해 고칠 것. 연봉·월급·4대보험 계산기가 모두 이 값을 쓴다.
+- 새로 만든 구역: `/people/`(목록·상세·띠·별자리) `/born/`(출생연도 모아보기 — 건강검진 유입을 다른 콘텐츠로 잇는 다리) `/age/` `/dday/` `/salary/monthly/` `/insurance/` `/freelance-tax/` `/realty-fee/` `/health/[tool]/` `/health-check/cancer/` `/convert/[tool]/` `/fortune/` `/tarot/` `/name-match/` `/zodiac-match/` `/lotto/` `/lunch/` `/games/*`.
+- 계산기 공통 틀은 portal.css의 `tl-*`(입력 카드·결과·표), 인물은 `pp-*`. `[hidden]`이 flex/grid에 눌리지 않도록 portal.css 끝의 규칙에 클래스를 추가할 것.
+- 동적 라우트에서 `getStaticPaths`는 같은 파일 프런트매터의 `const`를 못 읽는다 → 설정은 `src/data/*.ts`로 빼서 import.
+- **보류(조건 충족 시 진행)**: 공휴일·영업일 계산기(`automation/sync-holidays.mjs` 준비됨 — 공공데이터포털에서 '특일 정보' 활용신청 필요), 취득세·청약 가점·국민연금 예상 수령액·군인 월급(기준 검증 필요), 인물 근황 AI 요약(광고 승인 후), 쿠폰·핫딜(쿠팡 파트너스 API), 조회 순위 자동 집계(홈의 '많이 찾는 조회'는 수동 목록).
 
 ## 회원 UI 스위치 (`MEMBER_UI`, 현재 꺼짐)
 

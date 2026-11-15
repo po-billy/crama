@@ -5,14 +5,16 @@ const catNames = Object.fromEntries(
   Object.values(CATEGORIES).map((c) => [c.slug, c.name]),
 );
 const KINDS = {
+  tool: { label: '도구', color: '#f59e0b' },
+  person: { label: '인물', color: '#ec4899' },
   article: { label: '글', color: '#6c5ce7' },
   youth: { label: '청년', color: '#06b6d4' },
   welfare: { label: '복지', color: '#ec4899' },
   benefit: { label: '혜택', color: '#10b981' },
 };
-const POPULAR = ['청년도약계좌', '월세 지원', 'ETF', '의료비', '창업 지원', '연말정산', '육아', '비상금'];
+const POPULAR = ['건강검진', '실수령액', '만 나이', '운세', '청년도약계좌', '월세 지원', '퇴직금', '스도쿠'];
 ---
-<BaseLayout title="검색" description="글·청년 정책·복지 서비스·혜택을 한 번에 검색하세요.">
+<BaseLayout title="검색" description="계산기·조회·인물·글·정책·복지를 한 번에 검색하세요.">
   <div class="wrap">
     <header class="page-hero">
       <span class="eyebrow">Search</span>
@@ -59,7 +61,7 @@ const POPULAR = ['청년도약계좌', '월세 지원', 'ETF', '의료비', '창
     const suggest = document.getElementById('search-suggest');
     const clearBtn = document.getElementById('search-clear');
     const RKEY = 'crama:recent-search';
-    const KIND_ORDER = ['article', 'youth', 'welfare', 'benefit'];
+    const KIND_ORDER = ['tool', 'person', 'article', 'youth', 'welfare', 'benefit'];
     let data = [];
     let lastHits = [];
     let activeKind = null;

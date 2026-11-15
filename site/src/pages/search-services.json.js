@@ -1,11 +1,25 @@
 import youthData from '../data/youth-policies.json';
 import welfareData from '../data/welfare-services.json';
 import { BENEFITS, BENEFIT_CATEGORIES } from '../data/benefits';
+import { MENU } from '../data/menu';
+import peopleData from '../data/people.json';
 
 // 통합 검색용 서비스 인덱스 — 청년 정책 + 중앙 복지 + 혜택(정적)
 // (지자체 4600건은 용량상 제외 — /welfare 지역 선택 온디맨드로 제공)
 export async function GET() {
   const items = [];
+
+  // 계산기·조회·게임·운세(메뉴 데이터) — 검색 결과 앞쪽에 오도록 먼저 넣는다
+  const seen = new Set();
+  for (const tab of MENU) for (const g of tab.groups) for (const it of g.items) {
+    if (!it.href || it.href.includes('#') || seen.has(it.href)) continue;
+    seen.add(it.href);
+    items.push({ kind: 'tool', title: it.name, description: it.desc || g.desc, tags: [g.name, tab.name], catLabel: g.name, url: it.href, external: false });
+  }
+  // 인물 — 이름·영문 이름으로 검색
+  (peopleData.people || []).forEach((p) => {
+    items.push({ kind: 'person', title: p.name, description: p.job + ' · ' + p.birth.slice(0, 4) + '년생', tags: [p.en, p.job, '인물'].filter(Boolean), catLabel: '인물', url: '/people/' + p.slug + '/', external: false });
+  });
 
   (youthData.policies || []).forEach((p) => {
     items.push({

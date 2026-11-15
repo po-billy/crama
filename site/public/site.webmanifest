@@ -1,8 +1,8 @@
 {
-  "name": "Crama — 트렌드를 읽다",
+  "name": "Crama — 궁금한 건 바로 조회",
   "short_name": "Crama",
   "id": "/",
-  "description": "주식·재테크와 AI 트렌드를 깊이 있게 읽는 인사이트 매거진.",
+  "description": "건강검진 대상 조회, 실수령액 계산, 지원금 찾기, 운세와 미니게임까지. 매일 쓰는 조회·계산기 모음.",
   "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
@@ -10,16 +10,53 @@
   "theme_color": "#6c5ce7",
   "lang": "ko-KR",
   "orientation": "portrait-primary",
-  "categories": ["finance", "education", "news"],
+  "categories": [
+    "utilities",
+    "finance",
+    "lifestyle"
+  ],
   "icons": [
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ],
   "shortcuts": [
-    { "name": "내 혜택 찾기", "short_name": "혜택", "url": "/benefits/?source=pwa", "description": "나에게 해당되는 지원금 찾기" },
-    { "name": "재무 건강 체크업", "short_name": "체크업", "url": "/checkup/?source=pwa", "description": "내 돈 상태 5분 진단" },
-    { "name": "정책 캘린더", "short_name": "캘린더", "url": "/policy-calendar/?source=pwa", "description": "놓치면 손해인 일정 확인" },
-    { "name": "Today 브리핑", "short_name": "브리핑", "url": "/briefing/?source=pwa", "description": "오늘의 3분 브리핑" }
+    {
+      "name": "건강검진 대상 조회",
+      "short_name": "건강검진",
+      "url": "/health-check/?source=pwa",
+      "description": "출생연도로 올해 대상 확인"
+    },
+    {
+      "name": "연봉 실수령액",
+      "short_name": "실수령액",
+      "url": "/salary/?source=pwa",
+      "description": "세후 월급 계산"
+    },
+    {
+      "name": "오늘의 운세",
+      "short_name": "운세",
+      "url": "/fortune/?source=pwa",
+      "description": "띠별 오늘의 운세"
+    },
+    {
+      "name": "내 혜택 찾기",
+      "short_name": "혜택",
+      "url": "/benefits/?source=pwa",
+      "description": "받을 수 있는 지원금 찾기"
+    }
   ]
 }

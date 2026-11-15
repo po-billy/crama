@@ -1,234 +1,73 @@
 ---
+// 소개 — 사이트가 무엇을 하는 곳인지, 데이터는 어디서 오는지, 어떻게 운영하는지. (이전 소개는 src/legacy/AboutLegacy.astro)
 import BaseLayout from '../layouts/BaseLayout.astro';
-import PodcastLinks from '../components/PodcastLinks.astro';
-import DuoIcon from '../components/DuoIcon.astro';
-import { SITE } from '../consts';
-const desc = '크라마(Crama)는 돈과 AI 트렌드를 남보다 먼저·쉽게·오디오로 읽어주는 매거진이에요. 어려운 정보를 대신 정리해 드립니다.';
+import { allGroups, readyCount, groupHref } from '../data/menu';
+import { PEOPLE } from '../lib/people';
+import '../styles/portal.css';
+const groups = allGroups().filter((g) => readyCount(g) > 0);
+const total = groups.reduce((n, g) => n + readyCount(g), 0);
+const desc = '크라마(Crama)는 건강검진 대상 조회, 실수령액 계산, 지원금 찾기처럼 매일 필요한 조회와 계산기를 한곳에 모은 생활 포털입니다. 데이터 출처와 운영 원칙을 안내합니다.';
+const faq = [
+  { q: '크라마는 어떤 사이트인가요?', a: '궁금한 것을 바로 조회할 수 있도록 계산기·조회·인물 정보·미니게임·운세와 가이드 글을 모아 둔 생활 포털입니다. 가입 없이 무료로 이용할 수 있습니다.' },
+  { q: '계산 결과는 정확한가요?', a: '세금·보험료·연금 등은 관련 법령과 공공기관이 공개한 기준으로 계산하며, 페이지마다 기준 연도와 가정을 적어 둡니다. 다만 개인 사정에 따라 실제 금액은 달라질 수 있어 참고용으로 사용해 주세요.' },
+  { q: '입력한 정보는 저장되나요?', a: '계산기에 입력한 값은 서버로 보내지 않고 이용 중인 기기 안에서만 계산합니다. 관심 저장과 최근 본 항목도 가입 없이 이 기기에만 저장됩니다.' },
+  { q: '크라마는 크림·크리마·크레마와 관계가 있나요?', a: '아닙니다. 한정판 거래 플랫폼 크림(KREAM), 리뷰 솔루션 크리마, 전자책 단말기 크레마와는 무관한 독립 서비스입니다.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
 ---
-<BaseLayout title="소개 — 크라마는 어떤 서비스인가요" description={desc}>
-  <!-- 히어로 (드라마틱 다크) -->
-  <section class="mf-hero">
-    <div class="mf-hero__in">
-      <span class="mf-eyebrow">ABOUT</span>
-      <h1>트렌드를 먼저<br />읽는 사람들</h1>
-      <p class="mf-lead">돈과 AI — 세상을 바꾸는 두 흐름을, 어렵지 않게 <em>대신 읽어드릴게요.</em></p>
-    </div>
-  </section>
+<BaseLayout title="소개 — 크라마는 어떤 서비스인가요" description={desc} jsonLd={jsonLd}>
+  <div class="pt pt-narrow">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › 소개</nav>
+    <header class="pt-hubhero">
+      <img src="/img/portal/g-tables.webp" alt="" width="200" height="200" />
+      <div><h1>궁금한 건, 바로 조회</h1><p>매일 필요한 조회와 계산기를 한곳에 모았습니다</p></div>
+    </header>
 
-  <div class="wrap mf-body">
-    <!-- 테제 -->
-    <p class="mf-thesis">부의 격차는 돈에서 시작되지 않아요.<br /><strong>정보의 ‘시차’에서 시작돼요.</strong></p>
+    <section class="pt-sec pt-prose">
+      <p>
+        "올해 건강검진 대상인가?", "월급 300이면 통장에 얼마 들어오지?", "내가 받을 수 있는 지원금이 있나?" —
+        이런 질문은 답이 정해져 있는데도 찾으려면 여러 사이트를 돌아다녀야 합니다.
+        <b>크라마(Crama)</b>는 그런 질문에 숫자 하나, 연도 하나만 넣으면 바로 답이 나오도록 만든 생활 포털입니다.
+      </p>
+      <p>지금 <b>{total}종</b>의 계산기·조회·게임·테스트와 인물 <b>{PEOPLE.length}명</b>의 정보, 그리고 직접 정리한 가이드 글을 가입 없이 무료로 쓸 수 있습니다.</p>
+    </section>
 
-    <div class="prose measure">
-      <p>흐름을 먼저 아는 사람은 한 발 앞서 움직여요. 그런데 대부분은 그게 뉴스가 된 뒤에야 알게 되죠. 그 며칠, 몇 달의 <strong>시차</strong>가 기회의 크기를 가릅니다. 정책 신청 기간을 뒤늦게 알고, 다들 아는 종목을 가장 늦게 사고, AI가 일하는 방식을 바꾼 뒤에야 부랴부랴 따라가고요.</p>
-      <p><strong>크라마는 바로 그 시차를 좁혀드리려고 만들었어요.</strong> 어려운 정책은 쉬운 말로 풀고, 쏟아지는 AI 소식은 ‘그래서 나한테 뭐가 달라지는데?’로 정리하고, 시장의 소음에서 흐름만 추려 읽어드립니다. 게다가 모든 글을 <strong>음성으로 들려드려</strong>, 출퇴근길에 듣는 것만으로도 따라잡을 수 있어요.</p>
-      <p style="color:var(--muted);font-size:.95rem"><strong>‘크라마(Crama)’</strong>는 한정판 거래 플랫폼 크림(KREAM)이나 리뷰 솔루션 크리마, 전자책 단말기 크레마, 캄보디아 직물과는 무관한 독립 매거진입니다. 돈과 AI를 ‘먼저 읽는다(Curate · Read · Ahead)’는 뜻을 담았어요.</p>
-    </div>
-
-    <script type="application/ld+json" set:html={JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'FAQPage',
-      mainEntity: [
-        { '@type': 'Question', name: '크라마(Crama)는 어떤 서비스인가요?', acceptedAnswer: { '@type': 'Answer', text: '크라마는 주식·재테크와 AI 트렌드를 남보다 먼저, 쉽게, 오디오로 읽어주는 인사이트 매거진입니다. 매일 원본 분석과 가이드를 발행합니다.' } },
-        { '@type': 'Question', name: '크라마는 크림(KREAM)·크레마·크리마와 같은 서비스인가요?', acceptedAnswer: { '@type': 'Answer', text: '아닙니다. 크라마(Crama)는 크림(KREAM), 크레마, 크리마, 캄보디아 직물과 무관한 독립된 머니·AI 인사이트 매거진입니다.' } },
-        { '@type': 'Question', name: '크라마는 무료인가요?', acceptedAnswer: { '@type': 'Answer', text: '네. 크라마의 글과 오디오 브리핑은 무료로 읽고 들을 수 있습니다.' } },
-        { '@type': 'Question', name: '크라미는 무엇인가요?', acceptedAnswer: { '@type': 'Answer', text: '크라미는 크라마의 미어캣 마스코트입니다. 사이트 곳곳에서 어려운 정보를 쉽게 안내합니다.' } },
-      ],
-    })} />
-
-    <!-- 팔지 않는다 (신뢰 포지셔닝) -->
-    <section class="mf-nosell">
-      <div class="mf-nosell__no">
-        <span class="mf-tag">저희가 안 파는 것</span>
-        <ul>
-          <li>리딩방</li>
-          <li>종목 추천 · 매수 신호</li>
-          <li>비밀 강의 · 유료 시그널</li>
-        </ul>
-      </div>
-      <div class="mf-nosell__yes">
-        <span class="mf-tag mf-tag--accent">저희가 하는 것</span>
-        <p>그래서 저희는 딱히 팔 게 없어요. 종목을 찍어주거나 강의를 권하는 대신, 직접 리서치해서 글을 처음부터 새로 쓰고 어려운 건 풀어서 전해드립니다. 광고나 제휴 링크가 들어갈 땐 숨기지 않고 그렇다고 표시해 둬요. 저희가 바라는 건 하나예요 — <strong>여러분이 스스로 더 잘 판단하도록 곁에서 거드는 것</strong>.</p>
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>무엇이 있나요</h2></div></div>
+      <div class="pt-fields">
+        {groups.map((g) => (
+          <a class="pt-field" href={groupHref(g)} style={`--c:${g.color}`}>
+            <img src={`/img/portal/g-${g.slug}.webp`} alt="" loading="lazy" width="96" height="96" />
+            <span><b>{g.name}</b><span>{g.desc}</span></span>
+          </a>
+        ))}
       </div>
     </section>
 
-    <!-- 두 개의 흐름 -->
-    <section class="mf-currents">
-      <h2 class="mf-h2">우리는 두 흐름만 깊게 읽어요</h2>
-      <div class="mf-currents__grid">
-        <div class="mf-current">
-          <span class="mf-current__k">01</span>
-          <strong>돈</strong>
-          <p>주식·재테크·지원금. <span>자산을 키우는 흐름이에요.</span></p>
-        </div>
-        <div class="mf-current">
-          <span class="mf-current__k">02</span>
-          <strong>AI</strong>
-          <p>모델·도구·자동화. <span>일하는 방식을 바꾸는 흐름이에요.</span></p>
-        </div>
-      </div>
-      <p class="mf-currents__note">지금 세상을 가장 빠르게 바꾸는 건 이 둘이에요. 그래서 넓게 퍼지지 않고, 이 둘만 끝까지 깊게 다뤄요.</p>
-    </section>
+    <section class="pt-sec pt-prose">
+      <h2>데이터는 어디서 오나요</h2>
+      <ul>
+        <li><b>세금·4대보험·연금·건강검진</b>: 소득세법, 국민연금법 등 관련 법령과 국세청·국민건강보험공단·국민연금공단·보건복지부가 공개한 요율과 기준을 사용합니다. 페이지마다 기준 연도와 가정을 적어 둡니다.</li>
+        <li><b>복지 서비스·청년 정책</b>: 공공데이터포털과 온통청년 등 정부 공공 API에서 받아 매일 갱신합니다.</li>
+        <li><b>예·적금·대출 금리</b>: 금융감독원 금융상품통합비교공시(금융상품 한눈에) 자료를 사용합니다.</li>
+        <li><b>인물 정보</b>: 위키데이터에 공개된 생년월일·직업만 다루고, 사진은 위키미디어 코먼스에서 자유 이용이 허락된 것만 저작자·라이선스와 함께 사용합니다.</li>
+        <li><b>운세·타로·궁합·미니게임</b>: 재미로 즐기는 콘텐츠입니다. 결과를 사실처럼 단정하지 않으며 페이지에 그렇게 표시합니다.</li>
+      </ul>
 
-    <!-- 이름의 뜻 -->
-    <section class="mf-name">
-      <h2 class="mf-h2">왜 ‘크라마’냐면요</h2>
-      <p class="mf-name__lead">이름이 곧 저희가 하는 일이에요. <strong>CRAMA</strong> 다섯 글자에 그 약속을 담았어요.</p>
-      <ol class="mf-name__grid">
-        <li><span class="mf-name__l">C</span><strong>Curate</strong><em>소음에서 흐름만 추려요</em></li>
-        <li><span class="mf-name__l">R</span><strong>Read</strong><em>트렌드를 읽어요</em></li>
-        <li><span class="mf-name__l">A</span><strong>Ahead</strong><em>뉴스가 되기 전에, 먼저</em></li>
-        <li><span class="mf-name__l">M</span><strong>Money</strong><em>자산을 키우는 흐름</em></li>
-        <li><span class="mf-name__l">A</span><strong>AI</strong><em>일을 바꾸는 흐름</em></li>
-      </ol>
-      <p class="mf-name__sum">— 돈과 AI를, <strong>추려서 · 먼저</strong> 읽어드린다는 뜻이에요.</p>
-    </section>
+      <h2>운영 원칙</h2>
+      <ul>
+        <li><b>가입 없이</b> 씁니다. 계산기에 넣은 값은 서버로 보내지 않고 이용 중인 기기에서만 계산합니다.</li>
+        <li><b>기준을 밝힙니다.</b> 계산식과 기준 연도, 결과가 달라질 수 있는 조건을 결과 아래에 적습니다.</li>
+        <li><b>광고는 광고라고 표시합니다.</b> 광고나 제휴 링크, 협찬받은 리뷰는 본문과 구분해 표시합니다.</li>
+        <li><b>틀린 내용은 고칩니다.</b> 잘못된 정보나 삭제를 원하는 인물 정보는 <a href="/contact/">문의</a>로 알려 주시면 확인 후 수정합니다.</li>
+      </ul>
 
-    <!-- 어떻게 읽어주나 -->
-    <section class="mf-pillars">
-      <h2 class="mf-h2">어떻게 읽어드리나요</h2>
-      <div class="mf-pillars__grid">
-        <div class="mf-pillar"><strong>원본 분석</strong><p>베끼지 않아요. 직접 리서치해 새로 씁니다.</p></div>
-        <div class="mf-pillar"><strong>쉬운 번역</strong><p>전문용어는 일상어로. 누구나 이해하도록.</p></div>
-        <div class="mf-pillar"><strong>오디오로 읽어줌</strong><p>말 그대로 읽어드려요. 이동하며·일하며 듣기.</p></div>
-      </div>
-    </section>
+      <h2>자주 묻는 질문</h2>
+      {faq.map((f) => <p><b>{f.q}</b><br />{f.a}</p>)}
 
-    <!-- 서비스 -->
-    <section class="mf-services">
-      <h2 class="mf-h2">글 너머의 서비스</h2>
-      <p style="color:var(--muted);margin-bottom:1.5rem;">읽는 것에서 그치지 않아요. 직접 써먹을 수 있는 도구를 만들었어요.</p>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;">
-        <a href="/benefits/" style="padding:1.5rem;border:1px solid var(--line);border-radius:14px;text-decoration:none;color:var(--ink);background:var(--paper-2);transition:border-color .12s;">
-          <span style="display:block;margin-bottom:.6rem;"><DuoIcon name="benefits" class="svc-ico--lg" /></span>
-          <strong style="font-size:1rem;">내 혜택 찾기</strong>
-          <p style="font-size:.85rem;color:var(--muted);margin:.3rem 0 0;line-height:1.5;">나이·소득·상황만 입력하면 나에게 해당되는 지원금·대출·공제를 찾아줘요.</p>
-        </a>
-        <a href="/checkup/" style="padding:1.5rem;border:1px solid var(--line);border-radius:14px;text-decoration:none;color:var(--ink);background:var(--paper-2);transition:border-color .12s;">
-          <span style="display:block;margin-bottom:.6rem;"><DuoIcon name="checkup" class="svc-ico--lg" /></span>
-          <strong style="font-size:1rem;">재무 건강 체크업</strong>
-          <p style="font-size:.85rem;color:var(--muted);margin:.3rem 0 0;line-height:1.5;">저축률·비상금·부채·보장·투자를 100점 만점으로 종합 진단해요.</p>
-        </a>
-        <a href="/policy-calendar/" style="padding:1.5rem;border:1px solid var(--line);border-radius:14px;text-decoration:none;color:var(--ink);background:var(--paper-2);transition:border-color .12s;">
-          <span style="display:block;margin-bottom:.6rem;"><DuoIcon name="calendar" class="svc-ico--lg" /></span>
-          <strong style="font-size:1rem;">정책 캘린더</strong>
-          <p style="font-size:.85rem;color:var(--muted);margin:.3rem 0 0;line-height:1.5;">지원금 신청·세금 납부·절세 마감일을 월별로 한눈에.</p>
-        </a>
-      </div>
+      <h2>운영·문의</h2>
+      <p>크라마는 개인이 기획·개발·운영하는 독립 서비스입니다. 오류 제보, 기능 제안, 광고·제휴 문의는 <a href="/contact/">문의하기</a> 또는 <a href="mailto:gmlthd94@gmail.com">gmlthd94@gmail.com</a>으로 보내 주세요.</p>
+      <p class="pp-note">※ 이 사이트의 계산 결과와 콘텐츠는 정보 제공을 위한 참고 자료이며, 세무·법률·의료·투자 판단을 대신하지 않습니다. 중요한 결정은 해당 기관이나 전문가에게 확인하세요.</p>
     </section>
-
-    <!-- CTA -->
-    <section class="mf-cta">
-      <p class="mf-cta__line">먼저 읽는 사람, 오늘부터 함께해요.</p>
-      <div class="mf-cta__btns">
-        <a class="mf-btn" href="/">최신 글 읽기 →</a>
-        <a class="mf-btn mf-btn--ghost" href="/guides/">가이드 둘러보기</a>
-      </div>
-      <div class="mf-cta__pod"><PodcastLinks /></div>
-    </section>
-
-    <!-- 실무 정보(About) -->
-    <div class="prose measure mf-about">
-      <h2>운영 정보</h2>
-      <p><strong>Crama(크라마)</strong>는 주식·재테크와 AI 트렌드, 부업·지원금까지 — ‘부’를 키우는 데 필요한 정보를 깊이 있게 다루는 독립 매거진이에요. 크라마 편집팀이 직접 기획·운영합니다.</p>
-      <p>모든 글은 자체 리서치를 거쳐 <strong>원본으로 작성</strong>하며, 다른 매체의 글·이미지를 그대로 옮기지 않아요. 콘텐츠 제휴·광고·제보 등 문의는 <a href="/contact/">문의하기</a> 또는 <a href="mailto:gmlthd94@gmail.com">gmlthd94@gmail.com</a>으로 보내 주세요.</p>
-      <p style="color:var(--muted);font-size:0.92rem;">※ 본 사이트의 모든 콘텐츠는 정보 제공을 목적으로 하며, 특정 종목·상품의 매매를 권유하지 않습니다. 투자 등 최종 의사결정과 그 책임은 이용자 본인에게 있습니다.</p>
-    </div>
   </div>
 </BaseLayout>
-
-<style>
-  /* 히어로 — 풀블리드 다크 */
-  .mf-hero {
-    background: #17151f; color: #f4f1ea;
-    margin: 0; padding: clamp(3.5rem, 9vw, 6.5rem) 1.3rem clamp(3rem, 7vw, 5rem);
-    border-bottom: 3px solid var(--accent);
-  }
-  .mf-hero__in { max-width: var(--measure); margin: 0 auto; }
-  .mf-eyebrow { font-size: 0.78rem; letter-spacing: 0.32em; color: var(--accent); font-weight: 700; }
-  .mf-hero h1 {
-    font-family: var(--font-serif); font-weight: 600; line-height: 1.04;
-    font-size: clamp(2.6rem, 9vw, 4.6rem); margin: 1rem 0 0; color: #fff; letter-spacing: -0.01em;
-  }
-  .mf-lead { font-size: clamp(1.05rem, 3.4vw, 1.35rem); color: #d8d3ca; margin: 1.4rem 0 0; line-height: 1.6; }
-  .mf-lead em { color: #f4c9b8; font-style: italic; }
-
-  .mf-body { padding-top: clamp(2.5rem, 6vw, 4rem); }
-
-  /* 테제 */
-  .mf-thesis {
-    max-width: var(--measure); margin: 0 auto clamp(2.2rem, 5vw, 3.2rem);
-    font-family: var(--font-serif); font-size: clamp(1.6rem, 5vw, 2.4rem); line-height: 1.3;
-    color: var(--ink); text-align: center; font-weight: 500;
-  }
-  .mf-thesis strong { color: var(--accent); font-weight: 700; }
-
-  .mf-h2 { font-family: var(--font-serif); font-size: clamp(1.5rem, 4vw, 2rem); text-align: center; margin: 0 0 1.6rem; color: var(--ink); }
-
-  /* 팔지 않는다 */
-  .mf-nosell {
-    max-width: var(--measure); margin: clamp(2.5rem, 6vw, 4rem) auto; display: grid; gap: 1rem;
-    grid-template-columns: 1fr 1.3fr;
-  }
-  .mf-nosell__no, .mf-nosell__yes { border: 1px solid var(--line); border-radius: 14px; padding: 1.4rem 1.5rem; }
-  .mf-nosell__no { background: var(--paper-2); }
-  .mf-nosell__yes { background: var(--paper); border-color: color-mix(in srgb, var(--accent) 35%, var(--line)); }
-  .mf-tag { display: inline-block; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.04em; color: var(--muted); margin-bottom: 0.8rem; text-transform: uppercase; }
-  .mf-tag--accent { color: var(--accent); }
-  .mf-nosell__no ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.55rem; }
-  .mf-nosell__no li { color: var(--muted); font-size: 1rem; padding-left: 1.6rem; position: relative; text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--accent) 60%, transparent); }
-  .mf-nosell__no li::before { content: '✕'; position: absolute; left: 0; color: var(--accent); font-weight: 700; text-decoration: none; }
-  .mf-nosell__yes p { margin: 0; font-size: 1.02rem; line-height: 1.7; color: var(--ink-soft); }
-  .mf-nosell__yes strong { color: var(--ink); }
-
-  /* 두 흐름 */
-  .mf-currents { max-width: var(--measure); margin: clamp(2.8rem, 7vw, 4.5rem) auto; }
-  .mf-currents__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-  .mf-current { border: 1px solid var(--line); border-radius: 14px; padding: 1.6rem 1.5rem; background: var(--paper); }
-  .mf-current__k { font-family: var(--font-serif); font-size: 0.9rem; color: var(--accent); font-weight: 700; }
-  .mf-current strong { display: block; font-family: var(--font-serif); font-size: 2rem; color: var(--ink); margin: 0.3rem 0 0.5rem; }
-  .mf-current p { margin: 0; color: var(--ink-soft); font-size: 0.96rem; line-height: 1.6; }
-  .mf-current p span { display: block; color: var(--muted); font-size: 0.88rem; margin-top: 0.2rem; }
-  .mf-currents__note { text-align: center; color: var(--muted); font-size: 0.95rem; margin: 1.4rem auto 0; max-width: 34rem; line-height: 1.65; }
-
-  /* 이름의 뜻 */
-  .mf-name { max-width: var(--measure); margin: clamp(2.8rem, 7vw, 4.5rem) auto; }
-  .mf-name__lead { text-align: center; color: var(--ink-soft); max-width: 36rem; margin: 0 auto 1.8rem; line-height: 1.65; }
-  .mf-name__lead strong { color: var(--accent); font-weight: 800; letter-spacing: 0.06em; }
-  .mf-name__grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.7rem; counter-reset: none; }
-  .mf-name__grid li { border: 1px solid var(--line); border-radius: 14px; padding: 1.3rem 0.7rem; background: var(--paper); text-align: center; }
-  .mf-name__l { display: block; font-family: var(--font-serif); font-size: 2.2rem; font-weight: 700; color: var(--accent); line-height: 1; }
-  .mf-name__grid strong { display: block; font-size: 0.98rem; color: var(--ink); margin: 0.55rem 0 0.3rem; }
-  .mf-name__grid em { font-style: normal; font-size: 0.78rem; color: var(--muted); line-height: 1.45; display: block; }
-  .mf-name__sum { text-align: center; font-family: var(--font-serif); font-size: clamp(1.15rem, 3vw, 1.5rem); color: var(--ink); margin: 1.8rem auto 0; }
-  .mf-name__sum strong { color: var(--accent); font-weight: 700; }
-
-  /* 필러 */
-  .mf-pillars { max-width: var(--measure); margin: clamp(2.8rem, 7vw, 4.5rem) auto; }
-  .mf-pillars__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-  .mf-pillar { text-align: center; padding: 1.4rem 1rem; border-top: 2px solid var(--accent); background: var(--paper-2); border-radius: 0 0 12px 12px; }
-  .mf-pillar strong { display: block; font-family: var(--font-serif); font-size: 1.2rem; color: var(--ink); margin-bottom: 0.45rem; }
-  .mf-pillar p { margin: 0; color: var(--muted); font-size: 0.9rem; line-height: 1.55; }
-
-  /* CTA */
-  .mf-cta { max-width: var(--measure); margin: clamp(3rem, 7vw, 4.5rem) auto; text-align: center; }
-  .mf-cta__line { font-family: var(--font-serif); font-size: clamp(1.4rem, 4vw, 1.9rem); color: var(--ink); margin: 0 0 1.3rem; }
-  .mf-cta__btns { display: flex; gap: 0.7rem; justify-content: center; flex-wrap: wrap; }
-  .mf-btn { display: inline-flex; align-items: center; background: var(--ink); color: var(--paper); padding: 0.7rem 1.5rem; border-radius: 999px; font-weight: 700; font-size: 0.95rem; text-decoration: none; transition: transform .12s ease, background .15s ease; }
-  .mf-btn:hover { transform: translateY(-2px); background: var(--accent); }
-  .mf-btn--ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
-  .mf-btn--ghost:hover { background: var(--paper-2); color: var(--ink); border-color: var(--accent); }
-  .mf-cta__pod { margin-top: 1.8rem; display: flex; justify-content: center; }
-
-  .mf-about { margin-top: clamp(3rem, 8vw, 5rem); padding-top: 2rem; border-top: 1px solid var(--line); }
-
-  @media (max-width: 640px) {
-    .mf-nosell, .mf-currents__grid, .mf-pillars__grid { grid-template-columns: 1fr; }
-    .mf-pillar { border-top: none; border-left: 2px solid var(--accent); border-radius: 0 12px 12px 0; text-align: left; }
-    /* 약자 C·R·A·M·A 가 위→아래 순서로 읽히도록 한 줄씩(글자 왼쪽 정렬) */
-    .mf-name__grid { grid-template-columns: 1fr; gap: 0.5rem; }
-    .mf-name__grid li { display: grid; grid-template-columns: 2.2rem 1fr; align-items: center; column-gap: 0.9rem; text-align: left; padding: 0.85rem 1.1rem; }
-    .mf-name__l { grid-row: span 2; font-size: 1.9rem; }
-    .mf-name__grid strong { margin: 0; }
-  }
-</style>

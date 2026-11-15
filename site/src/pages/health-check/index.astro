@@ -21,6 +21,11 @@ for (let y = 2006; y >= 1947; y--) years.push(y);
         </a>
       ))}
     </div>
+    <div class="hcx-more">
+      <a href="/health-check/cancer/">암검진 대상 조회 →</a>
+      <a href="/born/">출생연도별 나이·띠 →</a>
+      <a href="/health/bmi/">BMI 계산기 →</a>
+    </div>
     <p class="hcx-note">※ 지역가입자·피부양자·직장 사무직 기준(2년 주기). 비사무직 직장가입자는 매년 대상이에요.</p>
   </div>
   <style>
@@ -32,6 +37,9 @@ for (let y = 2006; y >= 1947; y--) years.push(y);
     .hcx-y-item.is-on { border-color: #22c55e; background: color-mix(in srgb, #22c55e 10%, var(--paper)); }
     .hcx-y-item.is-on small { color: #16a34a; }
     .hcx-y-item:hover { border-color: var(--accent); }
+    .hcx-more { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.2rem; }
+    .hcx-more a { font-size: 0.9rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--line); border-radius: 999px; }
+    .hcx-more a:hover { border-color: var(--accent); }
     .hcx-note { font-size: 0.8rem; color: var(--muted); margin: 1rem 0 0; }
   </style>
 </BaseLayout>

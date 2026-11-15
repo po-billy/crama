@@ -1,5 +1,5 @@
 ---
-import { SITE, MEMBER_UI } from '../consts';
+import { SITE } from '../consts';
 import SubscribeBox from './SubscribeBox.astro';
 import PodcastLinks from './PodcastLinks.astro';
 const year = new Date().getFullYear();
@@ -37,40 +37,33 @@ const { variant = 'full' } = Astro.props;
     <!-- 링크 컬럼 -->
     <nav class="foot-cols" aria-label="푸터 메뉴">
       <div class="foot-col">
-        <h3>콘텐츠</h3>
-        <a href="/column/">칼럼</a>
-        <a href="/category/money/">주식·재테크</a>
-        <a href="/category/ai/">AI 트렌드</a>
-        <a href="/category/income/">부업·지원금</a>
-      </div>
-      <div class="foot-col">
-        <h3>도구·학습</h3>
-        <a href="/guides/">완벽 가이드</a>
-        <a href="/tools/">금융 계산기</a>
-        <a href="/glossary/">용어사전</a>
-        <a href="/quiz/money-character/">머니 캐릭터 테스트</a>
-      </div>
-      {MEMBER_UI ? (
-      <div class="foot-col">
-        <h3>크라미</h3>
-        <a href="/me/">크라미 시작하기</a>
-        <a href="/vote/">빼꼼 투표</a>
-        <a href="/shorts/">오늘의 쇼츠</a>
-        <a href="/membership/">멤버십</a>
-      </div>
-      ) : (
-      <div class="foot-col">
         <h3>생활 조회</h3>
         <a href="/health-check/">건강검진 대상 조회</a>
         <a href="/salary/">연봉 실수령액</a>
+        <a href="/salary/monthly/">월급 실수령액</a>
         <a href="/benefits/">내 혜택 찾기</a>
-        <a href="/shorts/">오늘의 쇼츠</a>
+        <a href="/hub/">전체 계산기·조회</a>
       </div>
-      )}
       <div class="foot-col">
-        <h3>회사</h3>
+        <h3>인물·나이</h3>
+        <a href="/people/">인물 찾아보기</a>
+        <a href="/born/">출생연도별 나이표</a>
+        <a href="/age/">만 나이 계산기</a>
+        <a href="/dday/">D-day 계산기</a>
+      </div>
+      <div class="foot-col">
+        <h3>게임·운세</h3>
+        <a href="/fortune/">오늘의 운세</a>
+        <a href="/tarot/">타로 보기</a>
+        <a href="/name-match/">이름 궁합</a>
+        <a href="/games/sudoku/">스도쿠</a>
+        <a href="/hub/games/">미니게임 전체</a>
+      </div>
+      <div class="foot-col">
+        <h3>안내</h3>
+        <a href="/hub/guide/">가이드</a>
         <a href="/about/">소개</a>
-        <a href="/contact/">문의·제휴</a>
+        <a href="/contact/">광고 문의</a>
         <a href="/install/">앱 설치</a>
         <a href="/rss.xml">RSS</a>
       </div>

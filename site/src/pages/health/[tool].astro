@@ -1,0 +1,142 @@
+---
+// 건강 계산기 6종 — 한 틀에서 설정만 바꿔 만든다. 계산식은 널리 쓰이는 공개 공식이며 의학적 진단이 아니다.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import '../../styles/portal.css';
+
+import { TOOLS } from '../../data/health-tools';
+
+export function getStaticPaths() { return TOOLS.map((t) => ({ params: { tool: t.slug }, props: { slug: t.slug } })); }
+const { slug } = Astro.props as { slug: string };
+const t = TOOLS.find((x) => x.slug === slug)!;
+const others = TOOLS.filter((x) => x.slug !== slug);
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: t.faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title={t.title} description={t.desc} jsonLd={jsonLd}>
+  <div class="pt pt-narrow" style="--c:#ef4444">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/health/">건강검진·건강</a> › {t.name}</nav>
+    <header class="pt-hubhero">
+      <img src="/img/portal/g-health.webp" alt="" width="200" height="200" />
+      <div><h1>{t.name}</h1><p>{t.lead}</p></div>
+    </header>
+
+    <section class="pt-sec">
+      <div class="tl-card" id="ht-form" data-tool={t.slug}>
+        <div class="tl-row">
+          {t.fields.map((f) => (
+            <label class="tl-field" data-field={f.id}>{f.label}{f.unit ? ` (${f.unit})` : ''}
+              {f.type === 'select'
+                ? <select id={`ht-${f.id}`}>{f.options!.map(([v, l]) => <option value={v}>{l}</option>)}</select>
+                : <input id={`ht-${f.id}`} type={f.type} inputmode={f.type === 'number' ? 'decimal' : undefined} placeholder={f.placeholder} value={f.value} min={f.type === 'number' ? '0' : undefined} step={f.type === 'number' ? 'any' : undefined} />}
+            </label>
+          ))}
+          <button type="button" class="tl-btn" id="ht-go">계산하기</button>
+        </div>
+      </div>
+      <div class="tl-result" id="ht-result" hidden aria-live="polite">
+        <div class="tl-result__label" id="ht-label"></div>
+        <div class="tl-result__big" id="ht-big"></div>
+        <div class="tl-result__sub" id="ht-sub"></div>
+      </div>
+      <div class="tl-wrap" id="ht-wrap" hidden style="margin-top:0.8rem"><table class="tl-table"><tbody id="ht-body"></tbody></table></div>
+      <p class="pp-note">※ {t.notes} 이 계산기는 참고용이며 의학적 진단이나 처방을 대신하지 않습니다.</p>
+    </section>
+
+    <div class="pt-ad"><AdSlot slot="health-mid" /></div>
+
+    <section class="pt-sec pt-prose">
+      <h2>자주 묻는 질문</h2>
+      {t.faq.map((f) => <p><b>{f.q}</b><br />{f.a}</p>)}
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>다른 건강 계산기</h2></div></div>
+      <div class="pt-chips">
+        {others.map((o) => <a class="pt-chip" href={`/health/${o.slug}/`}>{o.name}</a>)}
+        <a class="pt-chip" href="/health-check/">건강검진 대상 조회</a>
+      </div>
+    </section>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const v = (id) => { const el = $('ht-' + id); return el ? Number(el.value) : NaN; };
+      const sv = (id) => { const el = $('ht-' + id); return el ? el.value : ''; };
+      const tool = $('ht-form').dataset.tool;
+      const r1 = (x) => Math.round(x * 10) / 10;
+      const fmt = (n) => Math.round(n).toLocaleString('ko-KR');
+      const show = (label, big, sub, rows) => {
+        $('ht-label').textContent = label; $('ht-big').textContent = big; $('ht-sub').textContent = sub || '';
+        $('ht-result').hidden = false;
+        const body = $('ht-body'); body.textContent = '';
+        (rows || []).forEach((r) => { const tr = document.createElement('tr'); r.forEach((c, i) => { const td = document.createElement('td'); td.textContent = c; if (r.on && i) td.className = 'is-on'; tr.appendChild(td); }); body.appendChild(tr); });
+        $('ht-wrap').hidden = !(rows && rows.length);
+        try { if (window.gtag) window.gtag('event', 'tool_use', { tool: 'health-' + tool }); } catch (e) {}
+      };
+      const need = (ids) => { for (const id of ids) { if (!(v(id) > 0)) { $('ht-' + id).focus(); return false; } } return true; };
+      // 체지방률: 엉덩이둘레는 여성만
+      const hipField = document.querySelector('[data-field="hip"]');
+      const syncHip = () => { if (hipField) hipField.hidden = sv('sex') !== 'f'; };
+      if (hipField) { $('ht-sex').addEventListener('change', syncHip); syncHip(); }
+      // 카페인: 몸무게는 청소년만
+      const wField = tool === 'caffeine' ? document.querySelector('[data-field="w"]') : null;
+      const syncW = () => { if (wField) wField.hidden = sv('who') !== 'teen'; };
+      if (wField) { $('ht-who').addEventListener('change', syncW); syncW(); }
+
+      const CALC = {
+        bmi() {
+          if (!need(['h', 'w'])) return;
+          const h = v('h') / 100, bmi = v('w') / (h * h);
+          const st = bmi < 18.5 ? '저체중' : bmi < 23 ? '정상' : bmi < 25 ? '비만 전단계(과체중)' : bmi < 30 ? '1단계 비만' : bmi < 35 ? '2단계 비만' : '3단계 비만';
+          const lo = 18.5 * h * h, hi = 22.9 * h * h;
+          show('체질량지수(BMI)', r1(bmi).toFixed(1), st + ' · 이 키의 정상 체중은 ' + r1(lo) + '~' + r1(hi) + 'kg',
+            [['저체중', '18.5 미만'], ['정상', '18.5 ~ 22.9'], ['비만 전단계', '23 ~ 24.9'], ['1단계 비만', '25 ~ 29.9'], ['2단계 비만', '30 ~ 34.9'], ['3단계 비만', '35 이상']].map((r) => Object.assign(r, { on: st.indexOf(r[0]) === 0 })));
+        },
+        bmr() {
+          if (!need(['age', 'h', 'w'])) return;
+          const bmr = 10 * v('w') + 6.25 * v('h') - 5 * v('age') + (sv('sex') === 'm' ? 5 : -161), tdee = bmr * v('act');
+          show('기초대사량', fmt(bmr) + ' kcal', '하루 필요 칼로리는 약 ' + fmt(tdee) + ' kcal',
+            [['체중 유지', fmt(tdee) + ' kcal'], ['천천히 감량(-300)', fmt(tdee - 300) + ' kcal'], ['감량(-500)', fmt(Math.max(tdee - 500, bmr)) + ' kcal'], ['증량(+300)', fmt(tdee + 300) + ' kcal']]);
+        },
+        'body-fat'() {
+          const f = sv('sex') === 'f';
+          if (!need(f ? ['h', 'neck', 'waist', 'hip'] : ['h', 'neck', 'waist'])) return;
+          const L = Math.log10, h = v('h'), n = v('neck'), w = v('waist'), hip = v('hip');
+          const d = f ? w + hip - n : w - n;
+          if (!(d > 0)) { show('입력값을 확인해 주세요', '-', '허리둘레가 목둘레보다 커야 계산할 수 있어요'); return; }
+          const bf = f ? 495 / (1.29579 - 0.35004 * L(d) + 0.221 * L(h)) - 450 : 495 / (1.0324 - 0.19077 * L(d) + 0.15456 * L(h)) - 450;
+          const lim = f ? [18, 28, 33] : [10, 20, 25];
+          const st = bf < lim[0] ? '낮은 편' : bf <= lim[1] ? '적정' : bf <= lim[2] ? '다소 높음' : '높음';
+          show('추정 체지방률', r1(bf).toFixed(1) + '%', st + ' (' + (f ? '여성' : '남성') + ' 적정 범위 ' + lim[0] + '~' + lim[1] + '%)');
+        },
+        water() {
+          if (!need(['w'])) return;
+          const lo = v('w') * 30 + v('act'), hi = v('w') * 33 + v('act');
+          show('하루 권장 수분량', r1(lo / 1000).toFixed(1) + ' ~ ' + r1(hi / 1000).toFixed(1) + ' L', '200mL 컵으로 약 ' + Math.round(lo / 200) + '~' + Math.round(hi / 200) + '잔',
+            [['아침~점심', fmt(hi * 0.4) + ' mL'], ['점심~저녁', fmt(hi * 0.4) + ' mL'], ['저녁 이후', fmt(hi * 0.2) + ' mL']]);
+        },
+        sleep() {
+          const tm = sv('time'); if (!tm) { $('ht-time').focus(); return; }
+          const p = tm.split(':').map(Number), base = p[0] * 60 + p[1], wake = sv('mode') === 'wake';
+          const hhmm = (m) => { m = ((m % 1440) + 1440) % 1440; const h = Math.floor(m / 60), mm = m % 60; return (h < 12 ? '오전 ' : '오후 ') + (h % 12 === 0 ? 12 : h % 12) + ':' + String(mm).padStart(2, '0'); };
+          const rows = [6, 5, 4, 3].map((c) => { const t = wake ? base - c * 90 - 15 : base + c * 90 + 15; const r = [c + '주기 (' + (c * 1.5) + '시간)', hhmm(t)]; r.on = c === 5; return r; });
+          const best = wake ? base - 5 * 90 - 15 : base + 5 * 90 + 15;
+          show(wake ? '이때 잠자리에 드세요' : '이때 일어나면 개운해요', hhmm(best), '5주기(7시간 30분) 기준 · 잠드는 시간 15분 포함', rows);
+        },
+        caffeine() {
+          const who = sv('who');
+          if (who === 'teen' && !need(['w'])) return;
+          const total = (v('ame') || 0) * 150 + (v('mix') || 0) * 50 + (v('ene') || 0) * 62.5 + (v('cola') || 0) * 23;
+          const limit = who === 'adult' ? 400 : who === 'preg' ? 300 : v('w') * 2.5;
+          const hrs = v('hrs') || 0, left = total * Math.pow(0.5, hrs / 5);
+          const pct = Math.round((total / limit) * 100);
+          show('오늘 마신 카페인', fmt(total) + ' mg', '하루 권고량 ' + fmt(limit) + 'mg의 ' + pct + '%' + (pct > 100 ? ' — 권고량을 넘었어요' : ''),
+            [['지금 몸에 남은 양(추정)', fmt(left) + ' mg'], ['5시간 뒤', fmt(left / 2) + ' mg'], ['10시간 뒤', fmt(left / 4) + ' mg'], ['권고량까지 남은 양', fmt(Math.max(0, limit - total)) + ' mg']]);
+        },
+      };
+      $('ht-go').addEventListener('click', () => CALC[tool]());
+      $('ht-form').addEventListener('keydown', (e) => { if (e.key === 'Enter') CALC[tool](); });
+    })();
+  </script>
+</BaseLayout>

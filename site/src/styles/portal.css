@@ -161,3 +161,5 @@
 .pt-prose h2 { font-size: 1.15rem; font-weight: 800; margin: 1.6rem 0 0.5rem; color: var(--ink); }
 .pt-prose ul { padding-left: 1.1rem; margin: 0.4rem 0; }
 .pt-prose li { margin: 0.25rem 0; }
+/* hidden 속성이 flex/grid 에 눌리지 않게 */
+.tl-field[hidden], .pp-facts[hidden], .pp-links[hidden], .tl-wrap[hidden], .tl-card[hidden], .pt-sec[hidden] { display: none; }

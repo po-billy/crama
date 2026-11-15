@@ -1,20 +1,20 @@
 /**
- * 연봉 실수령액 계산 — 2026년 상반기 요율 기준(1인 가구·본인 공제만·비과세 없음).
+ * 연봉 실수령액 계산 — 2026년 요율 기준(국민연금 상·하한은 2026년 7월 고시분)(1인 가구·본인 공제만·비과세 없음).
  * 간이세액표가 아닌 종합 근사 계산이라 실제 원천징수와 ±수만 원 차이가 날 수 있다(페이지에 고지).
  *
  * 요율 출처:
- *  - 국민연금 4.5%(근로자), 기준소득월액 상한 637만·하한 40만
- *  - 건강보험 3.545%(근로자), 장기요양 = 건보료의 12.95%
+ *  - 국민연금 4.75%(근로자, 2026년 보험료율 9.5%), 기준소득월액 상한 659만·하한 41만(2026.7~2027.6)
+ *  - 건강보험 3.595%(근로자, 2026년 7.19%), 장기요양 = 건보료의 13.14%(소득 대비 0.9448%)
  *  - 고용보험 0.9%(근로자)
  *  - 소득세: 근로소득공제 → 인적·보험료 공제 → 기본세율(6~45%) → 근로소득세액공제, 지방소득세 10%
  */
 
-const NP_RATE = 0.045;
-const NP_CAP_MONTH = 6_370_000; // 기준소득월액 상한
-const NP_FLOOR_MONTH = 400_000;
-const HI_RATE = 0.03545;
-const LTC_RATE = 0.1295; // 건보료 대비
-const EI_RATE = 0.009;
+export const NP_RATE = 0.0475;
+export const NP_CAP_MONTH = 6_590_000; // 기준소득월액 상한
+export const NP_FLOOR_MONTH = 410_000;
+export const HI_RATE = 0.03595;
+export const LTC_RATE = 0.1314; // 건보료 대비
+export const EI_RATE = 0.009;
 
 // 근로소득공제(연, 원)
 function earnedIncomeDeduction(gross: number): number {
@@ -51,6 +51,9 @@ function earnedTaxCredit(calcTax: number, gross: number): number {
   return Math.min(credit, cap);
 }
 
+// 10원 미만 절사(부동소수점 오차로 27,000이 26,990이 되는 것을 막기 위해 아주 작은 값을 더한다)
+const cut10 = (x: number) => Math.floor((x + 1e-6) / 10) * 10;
+
 export interface SalaryBreakdown {
   annual: number;        // 연봉(원)
   monthlyGross: number;  // 월 급여(세전)
@@ -70,10 +73,10 @@ export function computeSalary(annual: number): SalaryBreakdown {
   const monthlyGross = annual / 12;
 
   const npBase = Math.min(Math.max(monthlyGross, NP_FLOOR_MONTH), NP_CAP_MONTH);
-  const np = Math.floor((npBase * NP_RATE) / 10) * 10;
-  const hi = Math.floor((monthlyGross * HI_RATE) / 10) * 10;
-  const ltc = Math.floor((hi * LTC_RATE) / 10) * 10;
-  const ei = Math.floor((monthlyGross * EI_RATE) / 10) * 10;
+  const np = cut10(npBase * NP_RATE);
+  const hi = cut10(monthlyGross * HI_RATE);
+  const ltc = cut10(hi * LTC_RATE);
+  const ei = cut10(monthlyGross * EI_RATE);
 
   // 연간 소득세: 근로소득공제 → 인적(본인 150만)·보험료(연금+건보+장기요양+고용) 공제 → 세율 → 세액공제
   const eid = earnedIncomeDeduction(annual);
@@ -82,8 +85,8 @@ export function computeSalary(annual: number): SalaryBreakdown {
   const calc = basicTax(taxBase);
   const credit = earnedTaxCredit(calc, annual);
   const annualIncomeTax = Math.max(0, calc - credit);
-  const incomeTax = Math.floor(annualIncomeTax / 12 / 10) * 10;
-  const localTax = Math.floor((incomeTax * 0.1) / 10) * 10;
+  const incomeTax = cut10(annualIncomeTax / 12);
+  const localTax = cut10(incomeTax * 0.1);
 
   const totalDeduct = np + hi + ltc + ei + incomeTax + localTax;
   const monthlyNet = Math.round(monthlyGross - totalDeduct);
@@ -105,6 +108,14 @@ export function salaryAmounts(): number[] {
   return list;
 }
 
-export const RATE_BASIS = '2026년 상반기 4대보험 요율·소득세법 기준';
+export const RATE_BASIS = '2026년 4대보험 요율(국민연금 4.75%·건강보험 3.595%)·소득세법 기준';
 export const fmt = (n: number) => n.toLocaleString('ko-KR');
 export const fmtMan = (won: number) => Math.round(won / 10_000).toLocaleString('ko-KR'); // 원→만원
+
+// 월급 기준 페이지 생성 대상(만원): 150~600 10만 단위 + 650~1,000 50만 단위
+export function monthlyAmounts(): number[] {
+  const list: number[] = [];
+  for (let m = 150; m <= 600; m += 10) list.push(m);
+  for (let m = 650; m <= 1000; m += 50) list.push(m);
+  return list;
+}

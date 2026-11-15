@@ -1,0 +1,66 @@
+---
+// 월급 실수령액 — 금액 입력 + 월급별 표.
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import AdSlot from '../../../components/AdSlot.astro';
+import { computeSalary, monthlyAmounts, RATE_BASIS, fmt } from '../../../lib/salary';
+import '../../../styles/portal.css';
+const list = monthlyAmounts().map((m) => ({ m, s: computeSalary(m * 10_000 * 12) }));
+const amounts = monthlyAmounts();
+---
+<BaseLayout title="월급 실수령액 계산 — 세전 월급별 세후 금액 표 (2026)" description={`세전 월급 150만~1,000만원의 세후 실수령액을 한 표로. 4대보험과 소득세를 뺀 금액을 바로 확인하세요. ${RATE_BASIS}.`}>
+  <div class="pt pt-narrow" style="--c:#10b981">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/pay/">월급·세금</a> › 월급 실수령액</nav>
+    <header class="pt-hubhero">
+      <img src="/img/portal/c-salary.webp" alt="" width="200" height="200" />
+      <div><h1>월급 실수령액</h1><p>세전 월급을 넣으면 세후 금액을 알려드려요</p></div>
+    </header>
+
+    <section class="pt-sec">
+      <div class="tl-card">
+        <div class="tl-row">
+          <label class="tl-field">세전 월급(만원)<input id="sm-in" type="number" inputmode="numeric" min="100" max="1500" step="10" placeholder="예: 300" /></label>
+          <button type="button" class="tl-btn" id="sm-go">실수령 보기</button>
+        </div>
+        <div class="tl-quick" id="sm-quick">{[200, 250, 300, 350, 400, 500].map((m) => <button type="button" data-m={m}>{m}만원</button>)}</div>
+      </div>
+    </section>
+
+    <section class="pt-sec">
+      <div class="tl-wrap">
+        <table class="tl-table">
+          <thead><tr><th>세전 월급</th><th>4대보험</th><th>세금</th><th>실수령액</th></tr></thead>
+          <tbody>
+            {list.map(({ m, s }) => (
+              <tr>
+                <td><a href={`/salary/monthly/${m}/`}>{fmt(m)}만원</a></td>
+                <td>{fmt(s.np + s.hi + s.ltc + s.ei)}원</td>
+                <td>{fmt(s.incomeTax + s.localTax)}원</td>
+                <td class="is-on">{fmt(s.monthlyNet)}원</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="pp-note">※ {RATE_BASIS}. 부양가족 본인 1명, 비과세 수당 없음 기준의 근사 계산입니다.</p>
+    </section>
+
+    <div class="pt-ad"><AdSlot slot="salary-monthly-index" /></div>
+
+    <section class="pt-sec pp-links">
+      <a class="pp-link" href="/salary/"><span><b>연봉 실수령액</b><span>연봉 기준으로 보기</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+      <a class="pp-link" href="/insurance/"><span><b>4대보험 계산기</b><span>보험료와 회사 부담분</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+    </section>
+  </div>
+  <script is:inline define:vars={{ amounts }}>
+    (() => {
+      const go = (v) => {
+        const n = Number(v); if (!n) { document.getElementById('sm-in').focus(); return; }
+        const near = amounts.reduce((a, b) => (Math.abs(b - n) < Math.abs(a - n) ? b : a));
+        location.href = '/salary/monthly/' + near + '/';
+      };
+      document.getElementById('sm-go').addEventListener('click', () => go(document.getElementById('sm-in').value));
+      document.getElementById('sm-in').addEventListener('keydown', (e) => { if (e.key === 'Enter') go(e.target.value); });
+      document.getElementById('sm-quick').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) go(b.dataset.m); });
+    })();
+  </script>
+</BaseLayout>

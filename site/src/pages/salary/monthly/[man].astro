@@ -1,0 +1,86 @@
+---
+// 월급별 실수령액 — "월급 300 실수령액"처럼 월급 숫자로 찾는 검색어용. 계산은 연봉 페이지와 같은 lib/salary 를 쓴다.
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import AdSlot from '../../../components/AdSlot.astro';
+import { computeSalary, monthlyAmounts, salaryAmounts, RATE_BASIS, fmt } from '../../../lib/salary';
+import '../../../styles/portal.css';
+
+export function getStaticPaths() { return monthlyAmounts().map((m) => ({ params: { man: String(m) }, props: { man: m } })); }
+const { man } = Astro.props as { man: number };
+const s = computeSalary(man * 10_000 * 12);
+const ins = s.np + s.hi + s.ltc + s.ei, tax = s.incomeTax + s.localTax;
+const pct = (v: number) => Math.round((v / s.monthlyGross) * 1000) / 10;
+const all = monthlyAmounts();
+const i = all.indexOf(man);
+const near = [all[i - 2], all[i - 1], all[i + 1], all[i + 2]].filter(Boolean);
+const annualMan = man * 12;
+const nearestAnnual = salaryAmounts().reduce((a, b) => (Math.abs(b - annualMan) < Math.abs(a - annualMan) ? b : a));
+const netMan = Math.round(s.monthlyNet / 10_000);
+const title = `월급 ${fmt(man)}만원 실수령액 — 세후 약 ${fmt(netMan)}만원 (2026)`;
+const description = `세전 월급 ${fmt(man)}만원이면 4대보험 ${fmt(ins)}원, 소득세·지방세 ${fmt(tax)}원을 빼고 한 달에 약 ${fmt(s.monthlyNet)}원을 받습니다. ${RATE_BASIS}.`;
+const rows = [
+  ['국민연금 (4.75%)', s.np], ['건강보험 (3.595%)', s.hi], ['장기요양보험', s.ltc], ['고용보험 (0.9%)', s.ei], ['소득세', s.incomeTax], ['지방소득세', s.localTax],
+] as [string, number][];
+const faq = [
+  { q: `월급 ${fmt(man)}만원의 실수령액은 얼마인가요?`, a: `세전 ${fmt(man)}만원 기준 4대보험 ${fmt(ins)}원과 세금 ${fmt(tax)}원을 뺀 약 ${fmt(s.monthlyNet)}원입니다(부양가족 본인 1명, 비과세 없음 가정).` },
+  { q: `월급 ${fmt(man)}만원은 연봉으로 얼마인가요?`, a: `12개월 기준 연봉 ${fmt(annualMan)}만원입니다. 상여금·성과급이 따로 있으면 연봉은 더 커집니다.` },
+  { q: '실제 월급명세서와 금액이 다른 이유는 무엇인가요?', a: '식대 등 비과세 수당, 부양가족 수, 회사가 적용하는 간이세액표 비율(80·100·120%)에 따라 소득세가 달라집니다. 이 표는 본인 1명·비과세 없음 기준의 근사값입니다.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+  <div class="pt pt-narrow" style="--c:#10b981">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/pay/">월급·세금</a> › <a href="/salary/monthly/">월급 실수령액</a> › {fmt(man)}만원</nav>
+    <h1 style="font-size:1.7rem;font-weight:800;letter-spacing:-0.02em;margin:0 0 0.9rem">월급 {fmt(man)}만원 실수령액</h1>
+
+    <div class="tl-result">
+      <div class="tl-result__label">세후 한 달에 받는 돈</div>
+      <div class="tl-result__big">{fmt(s.monthlyNet)}원</div>
+      <div class="tl-result__sub">세전 {fmt(man)}만원에서 {fmt(s.totalDeduct)}원({s.effectiveRate}%)이 빠져요</div>
+    </div>
+
+    <section class="pt-sec">
+      <div class="tl-wrap">
+        <table class="tl-table">
+          <thead><tr><th>항목</th><th>월 금액</th><th>비율</th></tr></thead>
+          <tbody>
+            <tr><td><b>세전 월급</b></td><td><b>{fmt(s.monthlyGross)}원</b></td><td>100%</td></tr>
+            {rows.map(([l, v]) => <tr><td>{l}</td><td>-{fmt(v)}원</td><td>{pct(v)}%</td></tr>)}
+            <tr><td><b>공제 합계</b></td><td><b>-{fmt(s.totalDeduct)}원</b></td><td>{s.effectiveRate}%</td></tr>
+            <tr><td class="is-on">실수령액</td><td class="is-on">{fmt(s.monthlyNet)}원</td><td class="is-on">{Math.round((100 - s.effectiveRate) * 10) / 10}%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="pp-note">※ {RATE_BASIS}. 부양가족 본인 1명, 비과세 수당 없음 기준의 근사 계산이라 실제 급여명세서와 수천~수만 원 차이가 날 수 있습니다. 국민연금은 기준소득월액 상한 659만원까지만 부과됩니다.</p>
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>연 단위로 보면</h2></div></div>
+      <div class="pp-facts">
+        <div><span>연봉(세전)</span><b>{fmt(annualMan)}만원</b></div>
+        <div><span>연 실수령</span><b>{fmt(Math.round(s.annualNet / 10_000))}만원</b></div>
+        <div><span>연 4대보험+세금</span><b>{fmt(Math.round((s.totalDeduct * 12) / 10_000))}만원</b></div>
+      </div>
+    </section>
+
+    <div class="pt-ad"><AdSlot slot="salary-monthly-mid" /></div>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>다른 월급 실수령액</h2></div><a class="pt-more" href="/salary/monthly/">전체 표 →</a></div>
+      <div class="pt-chips">
+        {near.map((m) => <a class="pt-chip" href={`/salary/monthly/${m}/`}>월급 {fmt(m)}만원</a>)}
+        <a class="pt-chip" href={`/salary/${nearestAnnual}/`}>연봉 {fmt(nearestAnnual)}만원</a>
+      </div>
+    </section>
+
+    <section class="pt-sec pt-prose">
+      <h2>자주 묻는 질문</h2>
+      {faq.map((f) => <p><b>{f.q}</b><br />{f.a}</p>)}
+    </section>
+
+    <section class="pt-sec pp-links">
+      <a class="pp-link" href="/insurance/"><span><b>4대보험 계산기</b><span>내 월급에서 빠지는 보험료와 회사 부담분</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+      <a class="pp-link" href="/severance/"><span><b>퇴직금 계산</b><span>월급·근속연수별 예상 퇴직금</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+    </section>
+  </div>
+</BaseLayout>

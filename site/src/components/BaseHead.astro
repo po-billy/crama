@@ -1,5 +1,5 @@
 ---
-import { SITE } from '../consts';
+import { SITE, MEMBER_UI, MEMBER_PATHS } from '../consts';
 import '../styles/global.css';
 import '../styles/components.css';
 
@@ -24,6 +24,8 @@ const {
 } = Astro.props;
 
 const canonical = new URL(Astro.url.pathname, Astro.site ?? SITE.url).href;
+// 회원 UI 가 꺼져 있으면 회원 전용 경로는 색인 제외
+const robotsNoindex = noindex || (!MEMBER_UI && MEMBER_PATHS.test(Astro.url.pathname));
 const ogImage = new URL(image, Astro.site ?? SITE.url).href;
 const fullTitle = title === SITE.title ? title : `${title} · ${SITE.name}`;
 
@@ -108,7 +110,7 @@ const siteJsonLd = {
 <meta name="generator" content={Astro.generator} />
 
 <!-- 색인/리치결과: 큰 이미지 미리보기(Google Discover) + 스니펫·동영상 제한 해제 -->
-<meta name="robots" content={noindex ? 'noindex, follow' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'} />
+<meta name="robots" content={robotsNoindex ? 'noindex, follow' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'} />
 
 <!-- 사이트 소유 확인 -->
 <meta name="naver-site-verification" content="c69b0220b12e6057b3e2906976c33f3a2ea703e4" />

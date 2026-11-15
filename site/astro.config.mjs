@@ -27,6 +27,9 @@ function buildLastmodMap() {
   }
   return map;
 }
+// 회원 UI 스위치(src/consts.ts 의 MEMBER_UI·MEMBER_PATHS 와 같은 값으로 유지) — 꺼져 있으면 회원 전용 경로를 사이트맵에서 뺀다
+const MEMBER_UI = false;
+const MEMBER_PATHS = /^\/(login|me|wardrobe|worms|calendar|gacha|ranking|play|challenge|vote|ai-report|saved|membership)(\/|$)/;
 const lastmodBySlug = buildLastmodMap();
 const buildDate = new Date().toISOString().slice(0, 10); // 동적/목록 페이지 기본 수정일(빌드일)
 
@@ -37,7 +40,11 @@ export default defineConfig({
     mdx(),
     sitemap({
       // 검색 결과/오류 등 색인 가치 없는 유틸 페이지는 사이트맵에서 제외
-      filter: (page) => !/\/(search|404)\/?$/.test(new URL(page).pathname),
+      filter: (page) => {
+        const p = new URL(page).pathname;
+        if (!MEMBER_UI && MEMBER_PATHS.test(p)) return false;
+        return !/\/(search|404)\/?$/.test(p);
+      },
       // 페이지 유형별 lastmod·changefreq·priority 차등(검색엔진 우선순위 신호)
       serialize(item) {
         const p = new URL(item.url).pathname;

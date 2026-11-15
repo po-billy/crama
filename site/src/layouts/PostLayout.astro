@@ -16,7 +16,7 @@ import AuthorBox from '../components/AuthorBox.astro';
 import ContentRail from '../components/ContentRail.astro';
 import DuoIcon from '../components/DuoIcon.astro';
 import SubscribeBox from '../components/SubscribeBox.astro';
-import { SITE, CATEGORIES, type CategorySlug } from '../consts';
+import { SITE, CATEGORIES, MEMBER_UI, type CategorySlug } from '../consts';
 import { bylineLabel, resolveAuthorName, getPersona, REAL_AUTHOR } from '../data/personas';
 
 import RelatedTools from '../components/RelatedTools.astro';
@@ -229,6 +229,7 @@ const jsonLd = {
       <AdSlot slot="article-bottom" />
     )}
 
+    {MEMBER_UI && (
     <aside id="signup-cta" class="signup-cta measure" hidden>
       <img src="/img/generated/meerkat-baby-wave.webp" alt="크라미" />
       <div class="signup-cta__body">
@@ -237,6 +238,8 @@ const jsonLd = {
         <a class="signup-cta__btn" href="/login/">크라미 시작하기 →</a>
       </div>
     </aside>
+
+    )}
 
     <div class="measure" style="margin-top:2rem;">
       <SubscribeBox />

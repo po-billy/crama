@@ -387,6 +387,7 @@ const faqLd = {
       // ── 결과 대시보드 ──
       // 로그인 여부 확인
       function isLoggedIn() {
+        if (!window.__CRAMA_MEMBER_UI) return true; // 회원 UI 꺼짐 — 잠금 없이 전체 결과 공개
         try { return Object.keys(localStorage).some(function (k) { return k.includes('-auth-token'); }); } catch (e) { return false; }
       }
       var FREE_LIMIT = 3; // 비회원에게 보여줄 카드 수
@@ -876,7 +877,7 @@ const faqLd = {
             // 이전(익명) 조건 ≠ 내 정보 — 갱신 칩 노출
             var chip = document.createElement('div');
             chip.className = 'bf-cprefresh';
-            chip.innerHTML = '<span>마이페이지의 <b>내 정보</b>와 조건이 달라요</span><button type="button">내 정보로 다시 찾기</button>';
+            chip.innerHTML = '<span>저장된 <b>내 정보</b>와 조건이 달라요</span><button type="button">내 정보로 다시 찾기</button>';
             var host = document.getElementById('bf-result');
             host.insertBefore(chip, host.firstChild);
             chip.querySelector('button').addEventListener('click', function () {

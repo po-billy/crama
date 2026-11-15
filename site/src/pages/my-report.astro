@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { computeSalary, salaryAmounts } from '../lib/salary';
 import { G_ICONS } from '../lib/game-icons';
+import { MEMBER_UI } from '../consts';
 
 // 연봉→[월실수령, 월공제(보험), 월세금] 슬림 테이블(빌드타임) — 클라이언트에서 최근접 보간
 const SALARY_TABLE = salaryAmounts().map((man) => {
@@ -28,7 +29,7 @@ const RANK_ANCHORS = [[113769, 0.1], [21673, 1], [10057, 10], [7624, 20], [5482,
       <span class="mr-empty__emoji" set:html={G_ICONS.chartUp.replace('width="18" height="18"', 'width="40" height="40"')} />
       <b>30초만 등록하면 리포트가 완성돼요</b>
       <p>연봉 하나만 넣어도 실수령액과 세금이 나오고, 가구·차·집을 더하면 리포트가 점점 완전해집니다.</p>
-      <a class="mr-empty__cta" href="/me/">내 정보 등록하러 가기 →</a>
+      <a class="mr-empty__cta" href={MEMBER_UI ? '/me/' : '/salary/'}>{MEMBER_UI ? '내 정보 등록하러 가기 →' : '연봉 실수령액부터 계산하기 →'}</a>
     </div>
 
     <div id="mr-body" hidden>
@@ -64,11 +65,14 @@ const RANK_ANCHORS = [[113769, 0.1], [21673, 1], [10057, 10], [7624, 20], [5482,
       </section>
 
       <!-- ④.5 AI 정밀 진단 크로스 -->
+      {MEMBER_UI && (
       <a class="mr-ai" href="/ai-report/">
         <span class="mr-ai__ic" set:html={G_ICONS.sparkle.replace('width="18" height="18"', 'width="26" height="26"')} />
         <span class="mr-ai__t"><b>AI 정밀 재무 진단</b><span>이 숫자들이 무슨 의미인지 — 등급·리스크·이번 주 할 일로 해석해드려요</span></span>
         <em>진단 받기 →</em>
       </a>
+
+      )}
 
       <!-- ⑤ 공유 -->
       <div class="mr-share">
@@ -216,17 +220,17 @@ const RANK_ANCHORS = [[113769, 0.1], [21673, 1], [10057, 10], [7624, 20], [5482,
 
       // ── ④ 미등록 넛지 ──
       const missing = [];
-      if (!has.salary) missing.push([gi('coin', 14) + ' 연봉', '실수령액·소득세가 계산돼요']);
-      if (!has.hh) missing.push([gi('users', 14) + ' 가구', '중위소득 위치 — 혜택 구간 판정']);
-      if (!has.car) missing.push([gi('car', 14) + ' 차량', '자동차세가 리포트에 합산돼요']);
-      if (!has.home) missing.push([gi('house', 14) + ' 집(공시가)', '재산세가 리포트에 합산돼요']);
-      if (!has.basic) missing.push([gi('pin', 14) + ' 나이·지역', '놓친 혜택 개수가 나와요']);
+      if (!has.salary) missing.push([gi('coin', 14) + ' 연봉', '실수령액·소득세가 계산돼요', '/salary/']);
+      if (!has.hh) missing.push([gi('users', 14) + ' 가구', '중위소득 위치 — 혜택 구간 판정', '/median-income/']);
+      if (!has.car) missing.push([gi('car', 14) + ' 차량', '자동차세가 리포트에 합산돼요', '/car-tax/']);
+      if (!has.home) missing.push([gi('house', 14) + ' 집(공시가)', '재산세가 리포트에 합산돼요', '/property-tax/']);
+      if (!has.basic) missing.push([gi('pin', 14) + ' 나이·지역', '놓친 혜택 개수가 나와요', '/']);
       if (missing.length) {
         $('mr-missing').hidden = false;
         const host = $('mr-missing-list');
-        for (const [t, d] of missing) {
+        for (const [t, d, h] of missing) {
           const a = document.createElement('a');
-          a.href = '/me/';
+          a.href = window.__CRAMA_MEMBER_UI ? '/me/' : h; // 회원 UI 꺼짐 — 해당 계산기에서 '내 정보로 저장'
           a.innerHTML = '<b>' + t + '</b><span>' + d + '</span><em>+ 추가</em>';
           host.appendChild(a);
         }

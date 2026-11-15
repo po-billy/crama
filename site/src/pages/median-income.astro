@@ -163,7 +163,7 @@ const jsonLd = {
           const patch = {};
           const hh = Number($('mi-hh').value); if (hh) patch.household = hh;
           const pay = Number($('mi-pay').value); if (pay) patch.hhIncome = pay;
-          if (P.set(patch)) { btn.textContent = '저장됐어요 — /me에서 관리'; setTimeout(sync, 2500); }
+          if (P.set(patch)) { btn.textContent = '저장됐어요 — 내 돈 리포트에 반영돼요'; setTimeout(sync, 2500); }
         });
       }
     })();

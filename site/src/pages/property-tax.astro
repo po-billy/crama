@@ -106,18 +106,18 @@ const jsonLd = {
     </section>
 
     <section class="pt-sec">
-      <h2>납부일 놓치지 않게 알림 받기</h2>
+      <h2>납부일 놓치지 않게 저장하기</h2>
       <ul class="pt-alerts">
         <li data-id="proptax-july-2026" data-name="재산세 7월분 납부" data-deadline="2026-07-31">
           <div><b>7월분 납부 마감</b><span>7/16 ~ 7/31 · 늦으면 3% 가산 · 위택스</span></div>
-          <button type="button" class="pt-alert-save" aria-pressed="false"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> 알림</button>
+          <button type="button" class="pt-alert-save" aria-pressed="false"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> 저장</button>
         </li>
         <li data-id="proptax-sep-2026" data-name="재산세 9월분 납부" data-deadline="2026-09-30">
           <div><b>9월분 납부 마감</b><span>9/16 ~ 9/30 · 본세 20만원 초과 시 2회차</span></div>
-          <button type="button" class="pt-alert-save" aria-pressed="false"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> 알림</button>
+          <button type="button" class="pt-alert-save" aria-pressed="false"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> 저장</button>
         </li>
       </ul>
-      <p class="pt-note">알림을 켜두면 마감 3일 전·1일 전에 푸시로 알려드려요(로그인 필요).</p>
+      <p class="pt-note">저장해 두면 내 관심함과 홈 화면에서 마감 D-day를 확인할 수 있어요.</p>
     </section>
 
     <div class="pt-cross">
@@ -186,7 +186,7 @@ const jsonLd = {
         btn.addEventListener('click', () => {
           const man = Number($('pt-price').value);
           if (!man) return;
-          if (P.set({ home: { price: man, oneHome: $('pt-one').checked } })) { btn.textContent = '저장됐어요 — /me에서 관리'; setTimeout(sync, 2500); }
+          if (P.set({ home: { price: man, oneHome: $('pt-one').checked } })) { btn.textContent = '저장됐어요 — 내 돈 리포트에 반영돼요'; setTimeout(sync, 2500); }
         });
       }
 

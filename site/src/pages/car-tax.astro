@@ -15,7 +15,7 @@ const fmt = (n: number) => Math.round(n).toLocaleString('ko-KR');
 ---
 <BaseLayout
   title="자동차세 계산기 2026 — 배기량·차령별, 연납 할인까지"
-  description="배기량과 연식만 넣으면 자동차세(지방교육세 포함)와 차령 경감, 2026년 연납 할인(3%)까지 계산. 12월 2기분·1월 연납 알림도 받아보세요."
+  description="배기량과 연식만 넣으면 자동차세(지방교육세 포함)와 차령 경감, 2026년 연납 할인(3%)까지 계산. 12월 2기분·1월 연납 일정도 관심함에 저장해 두세요."
 >
   <div class="wrap ct">
     <header class="page-hero">
@@ -65,11 +65,11 @@ const fmt = (n: number) => Math.round(n).toLocaleString('ko-KR');
       <ul class="ct-alerts">
         <li data-id="cartax-2nd" data-name="자동차세 2기분 납부" data-deadline="2026-12-31">
           <div><b>12월 2기분 납부</b><span>12/16 ~ 12/31 · 늦으면 3% 가산</span></div>
-          <button type="button" class="ct-save" aria-pressed="false"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> 알림</button>
+          <button type="button" class="ct-save" aria-pressed="false"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> 저장</button>
         </li>
         <li data-id="cartax-annual-2027" data-name="자동차세 연납 신청(1월)" data-deadline="2027-01-31">
           <div><b>2027년 1월 연납 신청</b><span>1월에 한 번에 내면 할인 — 위택스/앱에서 신청</span></div>
-          <button type="button" class="ct-save" aria-pressed="false"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> 알림</button>
+          <button type="button" class="ct-save" aria-pressed="false"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> 저장</button>
         </li>
       </ul>
     </section>
@@ -140,7 +140,7 @@ const fmt = (n: number) => Math.round(n).toLocaleString('ko-KR');
         }
         $('ct-reg').addEventListener('click', () => {
           const car = { cc: Number($('ct-cc').value) || undefined, year: Number($('ct-yr').value) || undefined, ev: $('ct-isev').checked || undefined };
-          if (P.set({ car })) { $('ct-reg').textContent = '저장됐어요 — /me에서 관리'; setTimeout(regSync, 2500); }
+          if (P.set({ car })) { $('ct-reg').textContent = '저장됐어요 — 내 돈 리포트에 반영돼요'; setTimeout(regSync, 2500); }
         });
         document.addEventListener('crama:profile-sync', regSync);
       }

@@ -1,4 +1,5 @@
 ---
+import { MEMBER_UI } from '../consts';
 // 모바일 하단 탭바 (앱형 내비) — 모바일에서만 노출, 데스크톱 숨김.
 // 활성 탭은 SSR 경로 기준 + SPA 소프트내비 시 스크립트로 갱신.
 const path = Astro.url.pathname;
@@ -7,7 +8,9 @@ const tabs = [
   { href: '/briefing/', label: '브리핑', m: (p) => p.indexOf('/briefing') === 0, icon: '<rect x="4" y="4" width="16" height="16" rx="1.6"/><path d="M8 9h8M8 13h8M8 17h5"/>' },
   { href: '/benefits/', label: '혜택', m: (p) => p.indexOf('/benefits') === 0, icon: '<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 14h1.5"/>' },
   { href: '/policy-calendar/', label: '캘린더', m: (p) => p.indexOf('/policy-calendar') === 0, icon: '<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/>' },
-  { href: '/me/', label: '마이', m: (p) => p.indexOf('/me') === 0, icon: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6 8-6s8 2 8 6"/>' },
+  MEMBER_UI
+    ? { href: '/me/', label: '마이', m: (p) => p.indexOf('/me') === 0, icon: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6 8-6s8 2 8 6"/>' }
+    : { href: '/saved-picks/', label: '관심함', m: (p) => p.indexOf('/saved-picks') === 0, icon: '<path d="M12 20.5l-7.3-7.3a4.9 4.9 0 0 1 6.9-6.9l.4.4.4-.4a4.9 4.9 0 0 1 6.9 6.9z"/>' },
 ];
 ---
 <nav class="bottom-nav" aria-label="주요 메뉴">

@@ -27,6 +27,15 @@ supabase/             DB 스키마 SQL (saved_items, push_subscriptions 등)
 - pSEO 계산표: `/salary/[amount]` `/wage/[hourly]` `/interest/[amount]` `/severance/[pay]` `/rates` `/loans`
 - 리텐션: `/saved-picks`(내 관심함, 로그인 전용) — 하트 저장은 `window.CramaSaved`(BaseLayout 정의)
 
+## 회원 UI 스위치 (`MEMBER_UI`, 현재 꺼짐)
+
+애드센스 심사 대응으로 회원 기능을 **삭제하지 않고 숨겼다**. `site/src/consts.ts`의 `MEMBER_UI = false`.
+
+- 꺼짐: 로그인·마이·밀웜·옷장·뽑기·랭킹·투표·예측게임·챌린지·AI 진단으로 가는 진입점(헤더·하단탭·푸터·NAV·홈·글 상세)과 로그인 잠금(혜택·체크업 결과)을 숨긴다. 해당 페이지는 URL 직접 접근만 되고 `noindex` + 사이트맵 제외(`MEMBER_PATHS`).
+- 꺼짐일 때 `CramaSaved`·`CramaProfile`은 계정 없이 localStorage에만 저장(로그인된 기존 회원은 서버 동기화 유지). 마감 푸시는 계정이 있어야 발송되므로 문구는 '알림'이 아니라 '관심함 저장·D-day'로 쓴다.
+- 켜려면 `consts.ts`와 `astro.config.mjs`의 `MEMBER_UI`를 둘 다 `true`로. 클라이언트 스크립트는 `window.__CRAMA_MEMBER_UI`로 읽는다.
+- 새 UI를 만들 때 회원 기능 링크는 반드시 이 스위치로 감쌀 것.
+
 ## 반드시 지킬 규칙
 
 1. **비밀키 커밋 금지**: `automation/.env`, `supabase/.env`, `openapi.md`(미추적 유지), 루트의 PNG들, `new-app/`, `screenshot/` — 절대 add하지 말 것. 커밋은 명시적 파일 지정으로만.

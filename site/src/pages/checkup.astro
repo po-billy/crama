@@ -319,8 +319,8 @@ const faqLd = {
         }).join('');
 
         // 개선 팁 — 로그인 여부에 따라 게이트
-        var ckLoggedIn = false;
-        try { ckLoggedIn = Object.keys(localStorage).some(function (k) { return k.includes('-auth-token'); }); } catch (e) {}
+        var ckLoggedIn = !window.__CRAMA_MEMBER_UI; // 회원 UI 꺼짐 — 잠금 없이 전체 공개
+        try { ckLoggedIn = ckLoggedIn || Object.keys(localStorage).some(function (k) { return k.includes('-auth-token'); }); } catch (e) {}
 
         if (r.tips.length > 0) {
           if (ckLoggedIn) {

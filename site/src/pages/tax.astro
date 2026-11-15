@@ -35,19 +35,19 @@ const jsonLd = {
 ---
 <BaseLayout
   title="세금 캘린더 2026 — 자동차세·재산세·종소세·부가세 납부 일정 한눈에"
-  description="올해 내야 할 세금 일정을 한 페이지에. 자동차세 연납(1월)·종소세(5월)·재산세(7·9월)·종부세(12월)까지 마감 알림으로 챙기고, 계산기로 금액을 미리 확인하세요."
+  description="올해 내야 할 세금 일정을 한 페이지에. 자동차세 연납(1월)·종소세(5월)·재산세(7·9월)·종부세(12월)까지 마감 D-day로 챙기고, 계산기로 금액을 미리 확인하세요."
   jsonLd={jsonLd}
 >
   <div class="tx wrap">
     <header class="page-hero">
       <span class="eyebrow">Tax Calendar</span>
       <h1>세금 캘린더 <span class="tx-y">2026</span></h1>
-      <p>올해 내야 할 세금, <b>한 페이지에서 알림까지.</b> 하트를 누르면 마감 3일 전·1일 전에 알려드려요.</p>
+      <p>올해 내야 할 세금, <b>한 페이지에서 D-day까지.</b> 하트를 누르면 내 관심함에 저장돼 마감일을 놓치지 않아요.</p>
     </header>
 
     <button type="button" class="tx-all" id="tx-all" hidden>
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
-      <b>남은 세금 일정 전부 알림 받기</b><span id="tx-all-sub">한 번에 등록 — 마감 3일 전·1일 전 푸시</span>
+      <b>남은 세금 일정 전부 저장하기</b><span id="tx-all-sub">한 번에 관심함에 저장 — D-day로 확인</span>
     </button>
 
     <ul class="tx-list">
@@ -58,7 +58,7 @@ const jsonLd = {
             <div class="tx-head"><a href={e.href}>{e.name}</a><i class="tx-tag">{e.tag}</i><em class="tx-dday"></em></div>
             <span class="tx-desc">{e.desc}</span>
           </div>
-          <button type="button" class="tx-save" aria-pressed="false" aria-label="마감 알림 저장">
+          <button type="button" class="tx-save" aria-pressed="false" aria-label="관심함 저장">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
           </button>
         </li>
@@ -80,7 +80,7 @@ const jsonLd = {
       { q: '재산세는 언제 내나요?', a: '주택분 재산세는 7월(16~31일)과 9월(16~30일)에 절반씩 나눠 냅니다. 본세가 20만원 이하면 7월에 한 번에 냅니다. 기한을 넘기면 3% 가산금이 붙습니다.' },
       { q: '자동차세 연납 할인은 얼마나 되나요?', a: '1월에 1년치를 한 번에 내면 연세액의 약 2.7%(2026년, 공제율 3%를 남은 일수 비례 적용)를 할인받습니다. 1월 16~31일에 위택스나 지자체 앱에서 신청할 수 있습니다.' },
       { q: '월급쟁이도 종합소득세 신고를 해야 하나요?', a: '근로소득만 있으면 연말정산으로 끝나지만, 부업·프리랜서 수입·임대소득 등 다른 소득이 있으면 다음 해 5월에 종합소득세 신고를 해야 합니다.' },
-      { q: '세금 납부 알림은 어떻게 받나요?', a: '각 일정의 하트(알림) 버튼을 누르면 마감 3일 전과 1일 전에 푸시 알림을 보내드립니다. 상단의 “남은 세금 일정 전부 알림 받기”를 누르면 올해 남은 일정이 한 번에 등록됩니다(무료 로그인 필요).' },
+      { q: '세금 납부 일정은 어떻게 챙기나요?', a: '각 일정의 하트 버튼을 누르면 내 관심함에 저장되고, 관심함과 홈 화면에서 마감 D-day를 확인할 수 있습니다. 상단의 “남은 세금 일정 전부 저장하기”를 누르면 올해 남은 일정이 한 번에 저장됩니다. 가입 없이 이 기기에 저장됩니다.' },
     ]} />
 
     <div class="tx-cross">
@@ -119,7 +119,7 @@ const jsonLd = {
         const n = pending().length;
         allBtn.hidden = n === 0;
         const sub = document.getElementById('tx-all-sub');
-        if (n) sub.textContent = n + '건 한 번에 등록 — 마감 3일 전·1일 전 푸시';
+        if (n) sub.textContent = n + '건 한 번에 관심함에 저장 — D-day로 확인';
       }
       if (S && allBtn) {
         syncAll();

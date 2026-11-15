@@ -72,9 +72,18 @@ export const GUIDE_EXTRA = [
 // Web Push 공개키(VAPID) — 클라이언트 구독용. 공개키라 커밋 안전(비밀키는 automation/.env)
 export const VAPID_PUBLIC_KEY = 'BJXQcoA8xVdqQn6E5v_RqFZWZ6CokyEyaYQ_s3KnaYyIZg4GFRntAozu6LrGoB9Jp4Tfd17Zo4tDMNnHGH-WljQ';
 
+// ── 회원 UI 스위치 ──
+// false: 로그인·마이·밀웜·옷장·뽑기·랭킹·투표·예측게임·AI 진단으로 가는 진입점과 로그인 잠금을 모두 숨긴다.
+//        (코드·페이지는 그대로 남아 있고 URL 직접 접근만 가능, noindex + 사이트맵 제외)
+//        관심함·내 정보는 계정 없이 이 기기(localStorage)에 저장된다.
+// true : 예전처럼 회원 기능 전체 노출. astro.config.mjs 의 MEMBER_UI 도 함께 바꿀 것.
+export const MEMBER_UI = false;
+// 회원 전용(숨김 대상) 경로 — BaseHead noindex · 사이트맵 제외에 사용
+export const MEMBER_PATHS = /^\/(login|me|wardrobe|worms|calendar|gacha|ranking|play|challenge|vote|ai-report|saved|membership)(\/|$)/;
+
 // 헤더 내비게이션
-export type NavItem = { label: string; href: string; icon?: string; children?: NavItem[] };
-export const NAV: NavItem[] = [
+export type NavItem = { label: string; href: string; icon?: string; member?: boolean; children?: NavItem[] };
+const NAV_ALL: NavItem[] = [
   { label: 'Today 브리핑', href: '/briefing/' },
   { label: '돈·AI·부업', href: '/category/money/', children: [
     { label: '주식·재테크', href: '/category/money/', icon: 'money' },
@@ -84,7 +93,7 @@ export const NAV: NavItem[] = [
   { label: '혜택·정책', href: '/benefits/', children: [
     { label: '내 혜택 찾기', href: '/benefits/', icon: 'benefits' },
     { label: '내 돈 리포트', href: '/my-report/', icon: 'money' },
-    { label: 'AI 재무 진단', href: '/ai-report/', icon: 'ai' },
+    { label: 'AI 재무 진단', href: '/ai-report/', icon: 'ai', member: true },
     { label: '청년 정책', href: '/youth/', icon: 'youth' },
     { label: '복지 서비스', href: '/welfare/', icon: 'welfare' },
     { label: '중위소득 계산', href: '/median-income/', icon: 'calc' },
@@ -110,20 +119,24 @@ export const NAV: NavItem[] = [
     { label: '금융 계산기 23종', href: '/tools/', icon: 'calc' },
   ]},
   { label: '쇼츠·칼럼', href: '/shorts/', children: [
-    { label: '오르까 내리까', href: '/play/', icon: 'quiz' },
-    { label: '밀웜 뽑기', href: '/gacha/', icon: 'vote' },
-    { label: '무지출 챌린지', href: '/challenge/', icon: 'checkup' },
-    { label: '랭킹', href: '/ranking/', icon: 'income' },
+    { label: '오르까 내리까', href: '/play/', icon: 'quiz', member: true },
+    { label: '밀웜 뽑기', href: '/gacha/', icon: 'vote', member: true },
+    { label: '무지출 챌린지', href: '/challenge/', icon: 'checkup', member: true },
+    { label: '랭킹', href: '/ranking/', icon: 'income', member: true },
     { label: '쇼츠', href: '/shorts/', icon: 'shorts' },
     { label: '칼럼', href: '/column/', icon: 'column' },
     { label: '용어 사전', href: '/glossary/', icon: 'glossary' },
     { label: '가이드', href: '/guides/', icon: 'guide' },
     { label: '퀴즈', href: '/quiz/', icon: 'quiz' },
-    { label: '빼꼼 투표', href: '/vote/', icon: 'vote' },
+    { label: '빼꼼 투표', href: '/vote/', icon: 'vote', member: true },
     { label: '앱 설치', href: '/install/', icon: 'start' },
     { label: '소개', href: '/about/', icon: 'start' },
   ]},
 ];
+// member 표시 항목은 MEMBER_UI 가 꺼져 있으면 메뉴에서 제외
+export const NAV: NavItem[] = MEMBER_UI
+  ? NAV_ALL
+  : NAV_ALL.map((g) => (g.children ? { ...g, children: g.children.filter((c) => !c.member) } : g));
 
 // 상단 공지/추천 배너 — 내용만 바꾸면 됨. key를 바꾸면 닫았던 사용자에게 다시 표시.
 export const NOTICE = {

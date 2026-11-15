@@ -1,12 +1,12 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
-<BaseLayout title="내 관심 — 저장한 정책·복지" description="저장한 청년 정책·복지 서비스·혜택을 한곳에서 관리하세요. 로그인 없이 이 기기에 저장됩니다.">
+<BaseLayout title="내 관심 — 저장한 정책·복지" description="저장한 청년 정책·복지 서비스·혜택을 한곳에서 관리하세요. 가입 없이 이 기기에 저장됩니다.">
   <div class="wrap">
     <header class="page-hero">
       <span class="eyebrow">My Picks</span>
       <h1>내 관심</h1>
-      <p>저장한 청년 정책·복지 서비스·혜택을 한곳에. 계정에 저장되어 <b>어느 기기에서나</b> 볼 수 있어요.</p>
+      <p>하트로 저장한 청년 정책·복지 서비스·혜택·일정을 한곳에. 가입 없이 <b>이 기기에 저장</b>돼요.</p>
     </header>
 
     <div id="sp-body"><p class="sp-loading">불러오는 중…</p></div>
@@ -19,6 +19,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       if (!body || !S) return;
       const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
       const TYPES = [
+        { key: 'dday', label: '일정·마감', href: '/tax/', color: '#f59e0b' },
         { key: 'youth', label: '청년 정책', href: '/youth/', color: '#06b6d4' },
         { key: 'welfare', label: '복지 서비스', href: '/welfare/', color: '#ec4899' },
         { key: 'benefit', label: '내 혜택', href: '/benefits/', color: '#10b981' },
@@ -64,7 +65,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           html += '<section class="sp-group"><div class="sp-group__head"><h2 style="--c:' + t.color + '">' + t.label + ' <span>' + items.length + '</span></h2><a href="' + t.href + '">전체 보기 →</a></div><div class="sp-list">';
           html += items.map((it) =>
             '<div class="sp-item" data-type="' + t.key + '" data-id="' + esc(it.id) + '">' +
-            '<a class="sp-item__main" href="' + esc(it.url || t.href) + '"' + (it.url ? ' target="_blank" rel="noopener"' : '') + '>' +
+            '<a class="sp-item__main" href="' + esc(it.url || t.href) + '"' + (it.url && it.url.charAt(0) !== '/' ? ' target="_blank" rel="noopener"' : '') + '>' +
             (it.sub ? '<span class="sp-item__sub" style="--c:' + t.color + '">' + esc(it.sub) + '</span>' : '') +
             '<strong>' + esc(it.name) + '</strong></a>' +
             ddayBadge(it) +

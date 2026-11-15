@@ -142,7 +142,7 @@ const DAYS = [
           const patch = {};
           const age = Number($('ub-age').value); if (age) patch.age = age;
           const pay = Number($('ub-pay').value); if (pay) patch.salary = pay * 12;
-          if (P.set(patch)) { btn.textContent = '저장됐어요 — /me에서 관리'; setTimeout(sync, 2500); }
+          if (P.set(patch)) { btn.textContent = '저장됐어요 — 내 돈 리포트에 반영돼요'; setTimeout(sync, 2500); }
         });
       }
     })();

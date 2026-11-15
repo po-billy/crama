@@ -1,7 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import AppLayout from '../layouts/AppLayout.astro';
-import { CATEGORIES } from '../consts';
+import { CATEGORIES, MEMBER_UI } from '../consts';
 
 // 최신 글을 세로 스와이프 '쇼츠' 피드로 — 카드 한 장 = 한 화면.
 const posts = (await getCollection('blog'))
@@ -41,10 +41,12 @@ const estMin = (p) => Math.max(1, Math.round((p.body || '').length / 600));
 
             <!-- 우측 액션 레일 (우리 기능: 저장·듣기·공유) -->
             <div class="short__rail">
+              {MEMBER_UI && (
               <button class="srail__btn" type="button" data-bm={p.id} aria-label="저장">
                 <span class="srail__ic"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12v16l-6-4-6 4z"/></svg></span>
                 <span class="srail__lbl">저장</span>
               </button>
+              )}
               {p.data.audio && (
                 <button class="srail__btn srail__btn--listen" type="button" data-listen aria-label="본문 듣기">
                   <span class="srail__ic">

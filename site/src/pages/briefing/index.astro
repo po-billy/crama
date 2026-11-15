@@ -7,7 +7,7 @@ import DuoIcon from '../../components/DuoIcon.astro';
 import StreakChip from '../../components/StreakChip.astro';
 import PlayChip from '../../components/PlayChip.astro';
 import ratesData from '../../data/rates.json';
-import { CATEGORIES, type CategorySlug, VAPID_PUBLIC_KEY } from '../../consts';
+import { CATEGORIES, type CategorySlug, VAPID_PUBLIC_KEY, MEMBER_UI } from '../../consts';
 
 // 오늘의 숫자 — 12개월 최고금리(rates.json 일일 갱신)
 function bestRate(list: any[]) {
@@ -45,8 +45,8 @@ const todayAudio = today ? !!today.data.audio : false;
       </div>
     </header>
 
-    <StreakChip />
-    <PlayChip />
+    {MEMBER_UI && <StreakChip />}
+    {MEMBER_UI && <PlayChip />}
 
     {numDep && numSav && (
       <a class="brief-nums" href="/rates/">

@@ -1,5 +1,5 @@
 ---
-import { SITE } from '../consts';
+import { SITE, MEMBER_UI } from '../consts';
 import SubscribeBox from './SubscribeBox.astro';
 import PodcastLinks from './PodcastLinks.astro';
 const year = new Date().getFullYear();
@@ -50,6 +50,7 @@ const { variant = 'full' } = Astro.props;
         <a href="/glossary/">용어사전</a>
         <a href="/quiz/money-character/">머니 캐릭터 테스트</a>
       </div>
+      {MEMBER_UI ? (
       <div class="foot-col">
         <h3>크라미</h3>
         <a href="/me/">크라미 시작하기</a>
@@ -57,6 +58,15 @@ const { variant = 'full' } = Astro.props;
         <a href="/shorts/">오늘의 쇼츠</a>
         <a href="/membership/">멤버십</a>
       </div>
+      ) : (
+      <div class="foot-col">
+        <h3>생활 조회</h3>
+        <a href="/health-check/">건강검진 대상 조회</a>
+        <a href="/salary/">연봉 실수령액</a>
+        <a href="/benefits/">내 혜택 찾기</a>
+        <a href="/shorts/">오늘의 쇼츠</a>
+      </div>
+      )}
       <div class="foot-col">
         <h3>회사</h3>
         <a href="/about/">소개</a>

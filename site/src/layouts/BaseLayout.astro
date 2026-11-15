@@ -7,7 +7,7 @@ import BackToTop from '../components/BackToTop.astro';
 import CookieConsent from '../components/CookieConsent.astro';
 import CalcEnhance from '../components/CalcEnhance.astro';
 import { ClientRouter } from 'astro:transitions';
-import { VAPID_PUBLIC_KEY } from '../consts';
+import { VAPID_PUBLIC_KEY, MEMBER_UI } from '../consts';
 
 interface Props {
   title: string;
@@ -23,6 +23,8 @@ const { spa, footer = 'full', ...props } = Astro.props;
 // 통합 관심 저장(CramaSaved) 서버 동기화용 — 익명 키만 사용(공개 가능)
 const SAVED_SU = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
 const SAVED_AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
+// 회원 UI 가 꺼져 있으면 로그인 유도 없이 이 기기(localStorage)에만 저장한다(로그인된 기존 회원은 계속 서버 동기화)
+const LOCAL_ONLY = !MEMBER_UI;
 ---
 <!doctype html>
 <html lang="ko">
@@ -31,7 +33,9 @@ const SAVED_AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
     {spa && <ClientRouter />}
   </head>
   <body data-footer={footer}>
-    <script is:inline define:vars={{ SAVED_SU, SAVED_AK }}>
+    <script is:inline define:vars={{ SAVED_SU, SAVED_AK, LOCAL_ONLY }}>
+      // 페이지 스크립트용 전역 스위치(consts.MEMBER_UI) — 로그인 잠금·유도 노출 여부
+      window.__CRAMA_MEMBER_UI = !LOCAL_ONLY;
       // 통합 관심 저장 스토어 — 청년·복지·혜택 공용. 로그인 전용(비로그인 토글 시 로그인 유도),
       // 저장은 Supabase saved_items(RLS: 본인 행만) + localStorage 캐시(동기 API 유지·기기 간은 서버가 원본).
       // 페이지 스크립트보다 먼저 정의되어야 함.
@@ -69,7 +73,7 @@ const SAVED_AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
           fetch(SU + '/rest/v1/saved_items?item_type=eq.' + encodeURIComponent(type) + '&item_id=eq.' + encodeURIComponent(id), { method: 'DELETE', headers: hdrs() }).catch(function () {});
         }
         var api = {
-          authed: !!tok,
+          authed: !!tok || LOCAL_ONLY,
           promptLogin: function () {
             if (confirm('관심 저장은 로그인하고 쓸 수 있어요.\n저장한 항목은 어느 기기에서나 보이고, 곧 마감 알림도 받게 돼요.\n\n무료 로그인하러 갈까요? (30초)')) {
               try { localStorage.setItem('crama:login-return', location.pathname + location.search); } catch (e) {}
@@ -78,7 +82,7 @@ const SAVED_AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
           },
           has: function (type, id) { return idx(get(), type, id) !== -1; },
           toggle: function (rec) {
-            if (!tok) { api.promptLogin(); return false; }
+            if (!tok && !LOCAL_ONLY) { api.promptLogin(); return false; }
             var a = get(); var i = idx(a, rec.type, rec.id);
             if (i === -1) {
               a.unshift(rec); put(a); pushRow(rec);
@@ -87,7 +91,7 @@ const SAVED_AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
             }
             a.splice(i, 1); put(a); dropRow(rec.type, rec.id); return false;
           },
-          add: function (rec) { if (!tok) return; var a = get(); if (idx(a, rec.type, rec.id) === -1) { a.unshift(rec); put(a); pushRow(rec); } },
+          add: function (rec) { if (!tok && !LOCAL_ONLY) return; var a = get(); if (idx(a, rec.type, rec.id) === -1) { a.unshift(rec); put(a); pushRow(rec); } },
           remove: function (type, id) { var a = get(); var i = idx(a, type, id); if (i !== -1) { a.splice(i, 1); put(a); } dropRow(type, id); },
           list: function (type) { var a = get(); return type ? a.filter(function (x) { return x.type === type; }) : a; },
           count: function (type) { return this.list(type).length; }
@@ -106,7 +110,7 @@ const SAVED_AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
               document.dispatchEvent(new CustomEvent('crama:saved-sync'));
             }).catch(function () {});
         } else {
-          put([]); // 로그인 전용 전환 — 비로그인 캐시는 비움(재로그인 시 서버에서 복원)
+          if (!LOCAL_ONLY) put([]); // 로그인 전용 전환 — 비로그인 캐시는 비움(재로그인 시 서버에서 복원)
         }
         return api;
       })();
@@ -133,13 +137,13 @@ const SAVED_AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
         function putCache(o) { try { localStorage.setItem(K, JSON.stringify(o)); } catch (e) {} }
         function hdrs(extra) { var h = { 'Content-Type': 'application/json', apikey: AK, Authorization: 'Bearer ' + tok }; if (extra) for (var k in extra) h[k] = extra[k]; return h; }
         var api = {
-          authed: !!tok,
+          authed: !!tok || LOCAL_ONLY,
           get: function () { return cache(); },
           set: function (patch) {
-            if (!tok) { if (window.CramaSaved) window.CramaSaved.promptLogin(); return false; }
+            if (!tok && !LOCAL_ONLY) { if (window.CramaSaved) window.CramaSaved.promptLogin(); return false; }
             var merged = Object.assign({}, cache(), patch);
             putCache(merged);
-            fetch(SU + '/rest/v1/user_profile', {
+            if (tok && SU) fetch(SU + '/rest/v1/user_profile', {
               method: 'POST',
               headers: hdrs({ Prefer: 'resolution=merge-duplicates' }),
               body: JSON.stringify({ data: merged, updated_at: new Date().toISOString() }),
@@ -156,7 +160,7 @@ const SAVED_AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
               if (rows && rows[0] && rows[0].data) { putCache(rows[0].data); document.dispatchEvent(new CustomEvent('crama:profile-sync')); }
             }).catch(function () {});
         } else {
-          putCache({});
+          if (!LOCAL_ONLY) putCache({});
         }
         return api;
       })();
@@ -184,7 +188,7 @@ const SAVED_AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
       <button type="button" id="push-nudge-on">알림 켜기</button>
       <button type="button" id="push-nudge-x" aria-label="닫기">×</button>
     </div>
-    <script is:inline define:vars={{ NUDGE_VAPID: VAPID_PUBLIC_KEY, NUDGE_SU: SAVED_SU, NUDGE_AK: SAVED_AK }}>
+    <script is:inline define:vars={{ NUDGE_VAPID: VAPID_PUBLIC_KEY, NUDGE_SU: SAVED_SU, NUDGE_AK: SAVED_AK, NUDGE_OFF: LOCAL_ONLY }}>
       (() => {
         if (window.__pushNudge) return; window.__pushNudge = true;
         var box = document.getElementById('push-nudge');
@@ -192,7 +196,7 @@ const SAVED_AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
         var K = 'crama:push-nudge-snooze';
         function snoozed() { try { return Number(localStorage.getItem(K) || 0) > Date.now(); } catch (e) { return false; } }
         function show() {
-          if (Notification.permission === 'granted' || snoozed()) return;
+          if (NUDGE_OFF || Notification.permission === 'granted' || snoozed()) return;
           if (box.hidden) { try { if (window.gtag) window.gtag('event', 'push_nudge', { action: 'shown' }); } catch (e) {} }
           box.hidden = false;
         }

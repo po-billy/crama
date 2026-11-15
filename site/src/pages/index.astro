@@ -4,7 +4,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import PostCard from '../components/PostCard.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import AdSlot from '../components/AdSlot.astro';
-import { SITE, CATEGORIES, PILLARS, GUIDE_EXTRA } from '../consts';
+import { SITE, CATEGORIES, PILLARS, GUIDE_EXTRA, MEMBER_UI } from '../consts';
 import AudioPicks from '../components/AudioPicks.astro';
 import Curations from '../components/Curations.astro';
 import DuoIcon from '../components/DuoIcon.astro';
@@ -58,21 +58,23 @@ const slides = [
 
 // 배너 하단 원형 퀵메뉴 — 둘러보기(서비스·계정·구독·콘텐츠·테스트). 코어 서비스는 상단 home-cta로 승격
 const circles = [
-  { label: '오르까 내리까', href: '/play/', name: 'quiz', badge: 'NEW' },
+  { label: '오르까 내리까', href: '/play/', name: 'quiz', badge: 'NEW', member: true },
+  { label: '건강검진 조회', href: '/health-check/', name: 'checkup' },
+  { label: '연봉 실수령액', href: '/salary/', name: 'income' },
   { label: '청년 정책', href: '/youth/', name: 'youth' },
   { label: '복지 서비스', href: '/welfare/', name: 'welfare', badge: 'NEW' },
   { label: '내 관심', href: '/saved-picks/', name: 'saved' },
   { label: '브리핑', href: '/briefing/', name: 'brief' },
-  { label: '크라미', href: '/me/', name: 'start' },
+  { label: '크라미', href: '/me/', name: 'start', member: true },
   { label: '오늘의 쇼츠', href: '/shorts/', name: 'shorts' },
   { label: '머니 캐릭터', href: '/quiz/money-character/', name: 'quiz' },
-  { label: '빼꼼 투표', href: '/vote/', name: 'vote', badge: 'HOT' },
+  { label: '빼꼼 투표', href: '/vote/', name: 'vote', badge: 'HOT', member: true },
   { label: '투자 성향 진단', href: '/quiz/investor-type/', name: 'diagnose' },
   { label: '칼럼', href: '/column/', name: 'column' },
   { label: '가이드', href: '/guides/', name: 'guide' },
   { label: '계산기', href: '/tools/', name: 'calc' },
   { label: '용어집', href: '/glossary/', name: 'glossary' },
-];
+].filter((c: any) => MEMBER_UI || !c.member) as { label: string; href: string; name: string; badge?: string }[];
 
 // 홈 '최신' 8칸 — 발행 파이프라인이 한 카테고리를 몰아 쓰는 시기가 있어(2026-08 초 8칸 중 5칸이 부업)
 // 최신순만 쓰면 같은 주제가 줄줄이 걸린다. 날짜 순서는 유지하되 같은 카테고리가 연속되지 않도록
@@ -265,12 +267,20 @@ const bestSav = bestRate((ratesData as any).savings);
         <span class="cta-card__sub">조건만 입력하면, 내가 받을 수 있는 지원금·복지를 한 번에 찾아드려요. 무료예요.</span>
         <span class="cta-card__cta">3분 만에 확인하기 →</span>
       </a>
+      {MEMBER_UI ? (
       <a class="cta-card" href="/ai-report/">
         <DuoIcon name="ai" class="cta-card__ic" />
         <span class="cta-card__badge cta-card__badge--new">NEW</span>
         <b>AI 재무 진단</b>
         <span class="cta-card__sub">등급·리스크·할 일까지 AI 리포트</span>
       </a>
+      ) : (
+      <a class="cta-card" href="/health-check/">
+        <DuoIcon name="checkup" class="cta-card__ic" />
+        <b>건강검진 대상 조회</b>
+        <span class="cta-card__sub">출생연도만 누르면 올해 대상인지 바로 확인</span>
+      </a>
+      )}
       <a class="cta-card" href="/checkup/">
         <DuoIcon name="checkup" class="cta-card__ic" />
         <b>재무 체크업</b>

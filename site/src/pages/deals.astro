@@ -15,9 +15,9 @@ const endLabel = (s: string) => `${Number(s.slice(5, 7))}월 ${Number(s.slice(8,
 const updated = (data as any).generatedAt as string;
 ---
 <BaseLayout title="놓치면 후회할 핫딜 — 쿠팡 기획전·특가 모음" description="쿠팡에서 지금 진행 중인 기획전과 할인 행사를 분야별로 모았습니다. 종료일이 임박한 순서로 정리하고, 끝난 행사는 자동으로 빠집니다.">
-  <div class="pt">
+  <div class="pt dl-page">
     <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › 핫딜</nav>
-    <header class="pt-hubhero" style="--c:#f97316">
+    <header class="pt-hubhero dl-hero" style="--c:#f97316">
       <img src="/img/portal/c-deadline.webp" alt="" width="200" height="200" />
       <div><h1>놓치면 후회할, 핫딜!</h1><p>쿠팡에서 지금 진행 중인 기획전과 많이 찾는 상품</p></div>
     </header>
@@ -25,13 +25,13 @@ const updated = (data as any).generatedAt as string;
     {COUPANG_ON ? (
       <>
         <p class="dl-notice">{COUPANG_NOTICE}</p>
-        <section class="pt-sec">
+        <section class="pt-sec dl-sec dl-sec--picks">
           <div class="pt-sec__head"><div><h2>많이 찾는 상품</h2><p>누르면 쿠팡 검색 결과로 이동해요</p></div></div>
           <div class="pt-chips" id="dl-picks">
             {COUPANG_LINKS.map((l) => <a class="pt-chip" href={l.href} target="_blank" rel="sponsored nofollow noopener" title={l.desc}>{l.label}</a>)}
           </div>
         </section>
-        <section class="pt-sec">
+        <section class="pt-sec dl-sec">
           <div class="pt-sec__head"><div><h2>진행 중인 기획전</h2><p>끝나는 날이 가까운 순서</p></div></div>
           <div class="tl-quick" id="dl-cats" style="margin:0 0 1rem">
             <button type="button" data-c="" class="is-on">전체 <small id="dl-total"></small></button>
@@ -77,6 +77,26 @@ const updated = (data as any).generatedAt as string;
     .dl-body b { font-size: 0.95rem; font-weight: 800; line-height: 1.35; }
     .dl-body small { font-size: 0.78rem; color: var(--muted); }
     .dl-body small.dl-end { color: #e11d48; font-weight: 700; }
+    /* 기획전 카드를 먼저, '많이 찾는 상품'은 그 아래로 */
+    .dl-page { display: flex; flex-direction: column; }
+    .dl-page > .dl-sec--picks { order: 5; margin-top: 2rem; }
+    .dl-page > .dl-sec:not(.dl-sec--picks) { margin-top: 1.3rem; }
+    /* 모바일: 첫 화면에 기획전 카드(그림)가 보이도록 위쪽을 한 줄씩으로 줄인다 */
+    @media (max-width: 699px) {
+      .dl-hero { padding: 0.85rem 1rem; margin-top: 0.4rem; }
+      .dl-hero img { display: none; }
+      .dl-hero h1 { font-size: 1.3rem; margin: 0; }
+      .dl-hero p { display: none; }
+      .dl-notice { margin-top: 0.6rem; padding: 0.5rem 0.75rem; font-size: 0.74rem; }
+      .dl-sec { margin-top: 1rem; }
+      .dl-sec .pt-sec__head { margin-bottom: 0.5rem; }
+      .dl-sec .pt-sec__head h2 { font-size: 1.05rem; }
+      .dl-sec .pt-sec__head p { display: none; }
+      #dl-picks, #dl-cats { display: flex; flex-wrap: nowrap; overflow-x: auto; margin-inline: -1rem; padding-inline: 1rem; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+      #dl-picks::-webkit-scrollbar, #dl-cats::-webkit-scrollbar { display: none; }
+      #dl-picks > *, #dl-cats > * { flex: none; white-space: nowrap; }
+      #dl-cats { margin-bottom: 0.7rem !important; }
+    }
   </style>
 
   <script is:inline>

@@ -42,6 +42,7 @@ supabase/             DB 스키마 SQL (saved_items, push_subscriptions 등)
 - 도구 묶음은 설정 파일 + 동적 라우트 한 쌍: `data/pick-tools.ts`↔`pick/[tool].astro`, `data/calc-tools.ts`↔`calc/[tool].astro`, `data/convert-tools.ts`, `data/health-tools.ts`. 도구를 추가하면 `menu.ts`에 `href`도 넣을 것.
 - 인물 수집 스크립트는 한국어 위키백과 최근 60일 조회수 순으로 800명을 뽑도록 바뀌었지만, 위키백과 요청 제한(429)에 걸려 **아직 한 번도 끝까지 돌지 못했다**(people.json은 예전 기준 400명). 받은 조회수는 임시 폴더에 저장돼 다시 실행하면 이어받는다. 성공해서 `views`가 들어오면 `src/legacy/PeopleRank.astro`를 `src/pages/people/rank.astro`로 옮기고 메뉴의 '인기 인물 순위'에 `href`를 넣을 것.
 - `/lunar/`의 음력 표는 빌드할 때 Node의 `Intl`(dangi 달력)로 만든다(1930~2050). `/minimum-wage/`의 `WAGES` 배열은 매년 8월 다음 해 금액이 고시되면 한 줄 추가하고, `wage/[hourly].astro`의 최저시급 값도 1월에 바꿀 것.
+- **이어서 볼 콘텐츠(오른쪽 영역)**: `components/SideRail.astro`를 BaseLayout이 자동으로 붙인다(PC는 본문 오른쪽, 모바일은 본문 아래에 일부만). 붙일 주소는 `data/rail.ts`의 `RAIL_RE`, 목록(많이 찾는 조회·심심풀이·새로 나왔어요)도 같은 파일. 새 페이지를 만들면 `NEW_ITEMS` 맨 위에 추가하고, 새 구역이면 `RAIL_RE`에도 넣을 것. 최근 본 페이지는 `crama:recent-pages`(localStorage).
 - 계산기 공통 틀은 portal.css의 `tl-*`(입력 카드·결과·표), 인물은 `pp-*`. `[hidden]`이 flex/grid에 눌리지 않도록 portal.css 끝의 규칙에 클래스를 추가할 것.
 - 동적 라우트에서 `getStaticPaths`는 같은 파일 프런트매터의 `const`를 못 읽는다 → 설정은 `src/data/*.ts`로 빼서 import.
 - **보류(조건 충족 시 진행)**: 공휴일·영업일 계산기(`automation/sync-holidays.mjs` 준비됨 — 공공데이터포털에서 '특일 정보' 활용신청 필요), 취득세·청약 가점·국민연금 예상 수령액·군인 월급·술 깨는 시간·예방접종(기준 검증 필요), 인물 근황 AI 요약(광고 승인 후), 쿠폰·핫딜(쿠팡 파트너스 API), 조회 순위 자동 집계(홈의 '많이 찾는 조회'는 수동 목록).

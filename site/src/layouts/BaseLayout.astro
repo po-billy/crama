@@ -8,6 +8,8 @@ import CookieConsent from '../components/CookieConsent.astro';
 import CalcEnhance from '../components/CalcEnhance.astro';
 import { ClientRouter } from 'astro:transitions';
 import { VAPID_PUBLIC_KEY, MEMBER_UI } from '../consts';
+import SideRail from '../components/SideRail.astro';
+import { RAIL_RE } from '../data/rail';
 
 interface Props {
   title: string;
@@ -20,6 +22,8 @@ interface Props {
   footer?: 'full' | 'slim' | 'none'; // 앱/코어서비스는 slim(법적 링크만)·none 으로 마케팅 푸터 축소·제거
 }
 const { spa, footer = 'full', ...props } = Astro.props;
+// 조회·계산기·게임·운세 화면에는 오른쪽(모바일은 아래)에 '이어서 볼 콘텐츠'를 붙인다
+const showRail = RAIL_RE.test(Astro.url.pathname);
 // 통합 관심 저장(CramaSaved) 서버 동기화용 — 익명 키만 사용(공개 가능)
 const SAVED_SU = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
 const SAVED_AK = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
@@ -320,8 +324,9 @@ const LOCAL_ONLY = !MEMBER_UI;
     )}
     <a href="#main" class="skip-link">본문으로 건너뛰기</a>
     <Header />
-    <main id="main">
-      <slot />
+    <main id="main" class={showRail ? 'has-rail' : undefined}>
+      {showRail ? <div class="rail-main"><slot /></div> : <slot />}
+      {showRail && <SideRail />}
     </main>
     {footer === 'full' && <Footer />}
     {footer === 'slim' && <Footer variant="slim" />}

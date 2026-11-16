@@ -1,4 +1,5 @@
 ---
+import { POPULAR as popular } from '../data/rail';
 // 포털형 홈 — 오늘의 발견 → 출생연도 바로가기 → 전체 분야 → 가이드. 오른쪽(PC)에는 많이 찾는 조회·최근 본 글.
 // 메뉴·분야는 src/data/menu.ts 에서 읽는다. (이전 홈은 src/legacy/HomeLegacy.astro 에 보관)
 import { getCollection } from 'astro:content';
@@ -61,20 +62,6 @@ const games = [
 
 // 출생연도 바로가기 — 실제 조회가 많은 순서(GA 기준)로 앞에 배치
 const hotYears = [1984, 1976, 1986, 1988, 1972, 1978, 1994, 1998, 1980, 1974, 1982, 1996];
-
-// 실제 조회가 많은 페이지 순서(GA 최근 4주 기준으로 정리) — 조회수 집계를 붙이기 전까지 수동 관리
-const popular = [
-  { name: '건강검진 대상 조회', href: '/health-check/' },
-  { name: '연봉 실수령액', href: '/salary/' },
-  { name: '복지 서비스 찾기', href: '/welfare/' },
-  { name: '내 혜택 찾기', href: '/benefits/' },
-  { name: '시급 → 월급 환산', href: '/wage/' },
-  { name: '퇴직금 계산', href: '/severance/' },
-  { name: '예·적금 금리 비교', href: '/rates/' },
-  { name: '실업급여 계산', href: '/unemployment/' },
-  { name: '세금 캘린더', href: '/tax/' },
-  { name: '전역일 계산기', href: '/discharge/' },
-];
 
 // 생활 조회 분야를 먼저, 운세·테스트와 가이드는 뒤에
 const ready = allGroups().filter((g) => readyCount(g) > 0);

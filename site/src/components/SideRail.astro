@@ -4,11 +4,13 @@
 import AdSlot from './AdSlot.astro';
 import { POPULAR, FUN, NEW_ITEMS, related, rotate } from '../data/rail';
 import { groupHref } from '../data/menu';
+import { partnerFor, COUPANG_NOTICE } from '../data/partners';
 import '../styles/portal.css';
 
 const path = Astro.url.pathname;
 const rel = related(path);
 const fun = rotate(FUN, path, 4);
+const partners = partnerFor(path);
 const news = NEW_ITEMS.filter((x) => !path.startsWith(x.href)).slice(0, 6);
 ---
 <aside class="rail" aria-label="이어서 볼 콘텐츠">
@@ -33,6 +35,14 @@ const news = NEW_ITEMS.filter((x) => !path.startsWith(x.href)).slice(0, 6);
     <div class="pt-box">
       <div class="rail-head"><h3>이런 페이지도 있어요</h3><a href={groupHref(rel.group)}>{rel.group.name} →</a></div>
       <ul class="rail-links">{rel.items.map((it) => <li><a href={it.href}><b>{it.name}</b>{it.desc && <small>{it.desc}</small>}</a></li>)}</ul>
+    </div>
+  )}
+
+  {partners.length > 0 && (
+    <div class="pt-box rail-partner">
+      <h3>함께 보면 좋은 상품</h3>
+      <ul class="rail-links">{partners.map((p) => <li><a href={p.href} target="_blank" rel="sponsored nofollow noopener"><b>{p.label}</b><small>{p.desc}</small></a></li>)}</ul>
+      <p class="rail-notice">{COUPANG_NOTICE}</p>
     </div>
   )}
 
@@ -65,6 +75,7 @@ const news = NEW_ITEMS.filter((x) => !path.startsWith(x.href)).slice(0, 6);
   .rail-links a { display: block; padding: 0.5rem 0; border-top: 1px solid var(--line); color: var(--ink); text-decoration: none; }
   .rail-links li:first-child a { border-top: 0; }
   .rail-links b { display: block; font-size: 0.92rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rail-notice { margin: 0.4rem 0 0.5rem; font-size: 0.72rem; line-height: 1.5; color: var(--muted); }
   .rail-links small { display: block; font-size: 0.76rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .rail-links a:hover b { color: var(--accent); }
   @media (min-width: 1180px) {

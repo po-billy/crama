@@ -43,6 +43,7 @@ supabase/             DB 스키마 SQL (saved_items, push_subscriptions 등)
 - 인물 수집 스크립트는 한국어 위키백과 최근 60일 조회수 순으로 800명을 뽑도록 바뀌었지만, 위키백과 요청 제한(429)에 걸려 **아직 한 번도 끝까지 돌지 못했다**(people.json은 예전 기준 400명). 받은 조회수는 임시 폴더에 저장돼 다시 실행하면 이어받는다. 성공해서 `views`가 들어오면 `src/legacy/PeopleRank.astro`를 `src/pages/people/rank.astro`로 옮기고 메뉴의 '인기 인물 순위'에 `href`를 넣을 것.
 - `/lunar/`의 음력 표는 빌드할 때 Node의 `Intl`(dangi 달력)로 만든다(1930~2050). `/minimum-wage/`의 `WAGES` 배열은 매년 8월 다음 해 금액이 고시되면 한 줄 추가하고, `wage/[hourly].astro`의 최저시급 값도 1월에 바꿀 것.
 - **이어서 볼 콘텐츠(오른쪽 영역)**: `components/SideRail.astro`를 BaseLayout이 자동으로 붙인다(PC는 본문 오른쪽, 모바일은 본문 아래에 일부만). 붙일 주소는 `data/rail.ts`의 `RAIL_RE`, 목록(많이 찾는 조회·심심풀이·새로 나왔어요)도 같은 파일. 새 페이지를 만들면 `NEW_ITEMS` 맨 위에 추가하고, 새 구역이면 `RAIL_RE`에도 넣을 것. 최근 본 페이지는 `crama:recent-pages`(localStorage).
+- **쿠팡 파트너스 링크**는 `data/partners.ts`에 모아 두고 `COUPANG_ON`(현재 false)으로 켠다. 애드센스 승인 전에는 켜지 말 것. 켜면 SideRail에 고지 문구와 함께 나온다. 링크는 파트너스에서 변환한 `link.coupang.com` 주소만 넣고, 고지 문구(`COUPANG_NOTICE`)는 수정·삭제 금지. API는 최종 승인(누적 판매액 기준) 전이라 사용 불가.
 - 계산기 공통 틀은 portal.css의 `tl-*`(입력 카드·결과·표), 인물은 `pp-*`. `[hidden]`이 flex/grid에 눌리지 않도록 portal.css 끝의 규칙에 클래스를 추가할 것.
 - 동적 라우트에서 `getStaticPaths`는 같은 파일 프런트매터의 `const`를 못 읽는다 → 설정은 `src/data/*.ts`로 빼서 import.
 - 공휴일은 `node automation/sync-holidays.mjs`(한국천문연구원 특일 정보, `DATA_GO_KR_KEY`)가 올해·내년분을 `site/src/data/holidays.json`에 받는다. `/holidays/`와 `/business-days/`가 `lib/holidays.ts`로 읽는다. 임시공휴일이 지정되거나 해가 바뀌면 다시 실행할 것(아직 크론에는 없음).

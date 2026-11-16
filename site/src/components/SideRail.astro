@@ -40,8 +40,8 @@ const news = NEW_ITEMS.filter((x) => !path.startsWith(x.href)).slice(0, 6);
 
   {partners.length > 0 && (
     <div class="pt-box rail-partner">
-      <h3>함께 보면 좋은 상품</h3>
-      <ul class="rail-links">{partners.map((p) => <li><a href={p.href} target="_blank" rel="sponsored nofollow noopener"><b>{p.label}</b><small>{p.desc}</small></a></li>)}</ul>
+      <div class="rail-head"><h3>함께 보면 좋은 상품</h3><a href="/deals/">기획전 →</a></div>
+      <ul class="rail-links">{partners.map((p) => <li><a href={p.href} target="_blank" rel="sponsored nofollow noopener" data-partner={p.label}><b>{p.label}</b><small>{p.desc}</small></a></li>)}</ul>
       <p class="rail-notice">{COUPANG_NOTICE}</p>
     </div>
   )}
@@ -103,6 +103,7 @@ const news = NEW_ITEMS.filter((x) => !path.startsWith(x.href)).slice(0, 6);
       });
       box.hidden = false;
     }
+    document.querySelectorAll('[data-partner]').forEach((a) => a.addEventListener('click', () => { try { if (window.gtag) window.gtag('event', 'partner_click', { place: 'rail', item: a.dataset.partner, page: here }); } catch (e) {} }));
     const title = (document.title || '').split(/ [—|·] /)[0].trim().slice(0, 40);
     if (title) { try { localStorage.setItem(KEY, JSON.stringify([{ p: here, t: title }].concat(others).slice(0, 8))); } catch (e) {} }
   })();

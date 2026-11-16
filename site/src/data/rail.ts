@@ -36,6 +36,7 @@ export const FUN = [
 
 // 새로 나왔어요 — 새 페이지를 만들면 맨 위에 추가(위에서 6개만 노출)
 export const NEW_ITEMS = [
+  { name: '쿠팡 기획전 모음', href: '/deals/', desc: '지금 진행 중인 할인·특가' },
   { name: '공휴일·황금연휴', href: '/holidays/', desc: '올해·내년 쉬는 날과 연휴' },
   { name: '영업일 계산기', href: '/business-days/', desc: '주말·공휴일 뺀 날짜 계산' },
   { name: '사다리 타기', href: '/pick/ladder/', desc: '점심 내기·벌칙 정하기' },

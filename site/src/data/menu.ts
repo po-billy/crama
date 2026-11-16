@@ -219,6 +219,7 @@ export const MENU: MenuTab[] = [
         items: [
           { name: '연봉별 실수령액 표', href: '/salary/' },
           { name: '연도별 최저임금', href: '/minimum-wage/', desc: '2010년부터 시급·월급·인상률' }, { name: '대한민국 인구 통계' }, { name: '띠 총정리', href: '/people/zodiac/rat/' }, { name: '별자리 총정리', href: '/people/star/aries/' },
+          { name: '쿠팡 기획전 모음', href: '/deals/', desc: '지금 진행 중인 할인·특가' },
           { name: '용어 사전', href: '/glossary/', desc: '금융·AI 용어를 쉽게' },
         ],
       },

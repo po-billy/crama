@@ -1,0 +1,662 @@
+{
+ "generatedAt": "2026-11-16",
+ "events": [
+  {
+   "id": 4678,
+   "cat": "가전디지털",
+   "title": "Insta360",
+   "end": null,
+   "created": "2026-11-13",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/11/13/35d710b966ee00b001a5ecb838763731.png",
+   "link": "https://link.coupang.com/a/iIvZC7UmCi"
+  },
+  {
+   "id": 4677,
+   "cat": "로켓프레시",
+   "title": "유기농 & 친환경",
+   "end": "2026-11-16",
+   "created": "2026-11-12",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/11/12/0437c82f83180091019b5d950db21aaa.png",
+   "link": "https://link.coupang.com/a/iIvZMGidhc"
+  },
+  {
+   "id": 4676,
+   "cat": "가전디지털",
+   "title": "난방가전 SALE",
+   "end": "2026-12-06",
+   "created": "2026-11-12",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/11/12/d537f82f341800ea019b48950db14806.png",
+   "link": "https://link.coupang.com/a/iIvZTRWruu"
+  },
+  {
+   "id": 4675,
+   "cat": "도서/문구",
+   "title": "수능 준비물 & 선물포장",
+   "end": "2026-11-18",
+   "created": "2026-11-12",
+   "image": "https://static.coupangcdn.com/image/affiliate/event/promotion/2026/11/12/8c37582f4418008d019b41950db0297f.png",
+   "link": "https://link.coupang.com/a/iIvZ3RbL3s"
+  },
+  {
+   "id": 4668,
+   "cat": "로켓프레시",
+   "title": "김치 대전",
+   "end": "2026-12-13",
+   "created": "2026-11-10",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/11/10/b7912d95e54100020151f4dbd828b4af.png",
+   "link": "https://link.coupang.com/a/iIv0cD1pU4"
+  },
+  {
+   "id": 4664,
+   "cat": "가전디지털",
+   "title": "나르왈",
+   "end": "2026-11-29",
+   "created": "2026-11-09",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/11/09/5a915995644100f9015101db851fd675.jpg",
+   "link": "https://link.coupang.com/a/iIv0k707Km"
+  },
+  {
+   "id": 4663,
+   "cat": "가전디지털",
+   "title": "엑스리얼",
+   "end": "2026-11-29",
+   "created": "2026-11-09",
+   "image": "https://static.coupangcdn.com/image/affiliate/event/promotion/2026/11/09/3491a795f14100040151f3db841e8829.jpg",
+   "link": "https://link.coupang.com/a/iIv0sDxg4a"
+  },
+  {
+   "id": 4657,
+   "cat": "로켓패션",
+   "title": "WINTER SHOES",
+   "end": "2026-11-22",
+   "created": "2026-11-09",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/11/09/f5915f953f41002901517cdb8413faa5.png",
+   "link": "https://link.coupang.com/a/iIv0AbbOmW"
+  },
+  {
+   "id": 4656,
+   "cat": "로켓패션",
+   "title": "OUTERWEAR",
+   "end": "2026-11-22",
+   "created": "2026-11-09",
+   "image": "https://static.coupangcdn.com/image/affiliate/event/promotion/2026/11/09/5191a5958b410036015172db84125daf.png",
+   "link": "https://link.coupang.com/a/iIv0KytJJs"
+  },
+  {
+   "id": 4655,
+   "cat": "로켓패션",
+   "title": "NEW ARRIVAL",
+   "end": "2026-11-22",
+   "created": "2026-11-09",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/11/09/f891d895f1410097015167db8411bb26.png",
+   "link": "https://link.coupang.com/a/iIv0SO2p1E"
+  },
+  {
+   "id": 4653,
+   "cat": "생활용품",
+   "title": "Black 생필품 위크",
+   "end": "2026-11-22",
+   "created": "2026-11-09",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/11/09/38918595ed41005401514ddb840f225c.png",
+   "link": "https://link.coupang.com/a/iIv01Ns5Aq"
+  },
+  {
+   "id": 4652,
+   "cat": "식품",
+   "title": "SWEET SHOP",
+   "end": "2026-11-18",
+   "created": "2026-11-09",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/11/09/27915c95a8410090015138db840e544f.png",
+   "link": "https://link.coupang.com/a/iIv1a7Iwbl"
+  },
+  {
+   "id": 4650,
+   "cat": "가전디지털",
+   "title": "가전 굿세일",
+   "end": "2026-11-29",
+   "created": "2026-11-05",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/11/05/70d1e9c83c91009801292455957dc4e6.png",
+   "link": "https://link.coupang.com/a/iIv2VMg8WG"
+  },
+  {
+   "id": 4649,
+   "cat": "완구/취미",
+   "title": "토이 페어",
+   "end": "2026-11-17",
+   "created": "2026-11-05",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/11/05/99d1b7c82891005d01291b55957c4586.png",
+   "link": "https://link.coupang.com/a/iIv26eXrMq"
+  },
+  {
+   "id": 4647,
+   "cat": "도서/문구",
+   "title": "화제의 신간도서",
+   "end": "2026-11-29",
+   "created": "2026-11-04",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/11/04/3385179869be00ae014805fd01bca66c.png",
+   "link": "https://link.coupang.com/a/iIv3gof89s"
+  },
+  {
+   "id": 4638,
+   "cat": "주방용품",
+   "title": "김장하는 날 주방용품",
+   "end": "2026-11-29",
+   "created": "2026-11-03",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/11/03/0f7db03413c100f101588f22c6be4dca.png",
+   "link": "https://link.coupang.com/a/iIv3olEvEO"
+  },
+  {
+   "id": 4620,
+   "cat": "가전디지털",
+   "title": "Galaxy A18 런칭",
+   "end": "2026-11-29",
+   "created": "2026-10-30",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/10/30/7fb6176a6e61006d01543cc503bfaf5e.jpg",
+   "link": "https://link.coupang.com/a/iIv3xR3apg"
+  },
+  {
+   "id": 4614,
+   "cat": "가전디지털",
+   "title": "Galaxy Buds On",
+   "end": "2026-11-29",
+   "created": "2026-10-27",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/10/27/fea344fbb69d00fb01e88c6a29b81211.jpg",
+   "link": "https://link.coupang.com/a/iIv3EkAaJ2"
+  },
+  {
+   "id": 4597,
+   "cat": "가전디지털",
+   "title": "포켓베드",
+   "end": "2026-11-29",
+   "created": "2026-10-22",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/10/22/412bafe3e26800c80156df2794cc0946.png",
+   "link": "https://link.coupang.com/a/iIv3On9m4y"
+  },
+  {
+   "id": 4490,
+   "cat": "가전디지털",
+   "title": "iPhone 18 PRO",
+   "end": null,
+   "created": "2026-09-21",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/09/21/c614205ff3bc00b401c33d1ee0698f59.png",
+   "link": "https://link.coupang.com/a/iIv3VeIo2K"
+  },
+  {
+   "id": 4465,
+   "cat": "가전디지털",
+   "title": "신상특가",
+   "end": null,
+   "created": "2026-09-11",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/09/11/9eb0791797d700b801e0e04716135771.png",
+   "link": "https://link.coupang.com/a/iIv35o9uV2"
+  },
+  {
+   "id": 4414,
+   "cat": "Coupang Only",
+   "title": "EARLY FALL SALE",
+   "end": null,
+   "created": "2026-08-28",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/08/28/77bcb351c9510052012f14f056b42811.png",
+   "link": "https://link.coupang.com/a/iIv4dLgjV6"
+  },
+  {
+   "id": 4380,
+   "cat": "로켓패션",
+   "title": "C.스니커즈",
+   "end": null,
+   "created": "2026-08-19",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/08/19/edd51175e0bc00b0017f3f4b457c6f26.png",
+   "link": "https://link.coupang.com/a/iIv4lGW5E4"
+  },
+  {
+   "id": 4367,
+   "cat": "가전디지털",
+   "title": "인텔 노트북 기획전",
+   "end": "2026-12-30",
+   "created": "2026-08-14",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/08/14/031f257e91b600b5013c37324348e740.jpg",
+   "link": "https://link.coupang.com/a/iIv4ubtZ80"
+  },
+  {
+   "id": 4305,
+   "cat": "로켓프레시",
+   "title": "1초 만에 한상차림",
+   "end": null,
+   "created": "2026-07-23",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/07/23/d1bfeb4f69f70002012ad5a3354db01b.png",
+   "link": "https://link.coupang.com/a/iIv4AR9qxM"
+  },
+  {
+   "id": 4253,
+   "cat": "로켓프레시",
+   "title": "치즈, 취향을 만나다",
+   "end": null,
+   "created": "2026-07-06",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/07/06/5a5088d4979600440151864c2711630d.png",
+   "link": "https://link.coupang.com/a/iIv4LkfaWi"
+  },
+  {
+   "id": 4082,
+   "cat": "로켓프레시",
+   "title": "맛있는 수산물과 함께 홈파티!",
+   "end": null,
+   "created": "2026-05-13",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/05/13/77988dc344c700ff0125b5f20a902e8a.png",
+   "link": "https://link.coupang.com/a/iIv4S2X4jB"
+  },
+  {
+   "id": 3983,
+   "cat": "기획전",
+   "title": "브랜드 패션 신규 발매",
+   "end": null,
+   "created": "2026-04-06",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/04/06/b7ed1e7d940a004d0104b5232400a59e.jpg",
+   "link": "https://link.coupang.com/a/iIv42tO9wi"
+  },
+  {
+   "id": 3978,
+   "cat": "가전디지털",
+   "title": "Windows 인기 노트북 기획전",
+   "end": "2026-12-30",
+   "created": "2026-04-02",
+   "image": "https://static.coupangcdn.com/image/affiliate/event/promotion/2026/04/02/84d0b5e1b4ae007201289f1567ecef62.jpg",
+   "link": "https://link.coupang.com/a/iIv5cjxwUS"
+  },
+  {
+   "id": 3920,
+   "cat": "로켓프레시",
+   "title": "유기농&친환경",
+   "end": null,
+   "created": "2026-03-12",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/03/12/62313a4cac4f00870140d760871cf57b.png",
+   "link": "https://link.coupang.com/a/iIv5kXscuG"
+  },
+  {
+   "id": 3902,
+   "cat": "R.LUX",
+   "title": "럭셔리 패션 SALE",
+   "end": null,
+   "created": "2026-03-05",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/03/05/d97be034244800090145913013a24282.png",
+   "link": "https://link.coupang.com/a/iIv5rFa8No"
+  },
+  {
+   "id": 3854,
+   "cat": "쿠팡트래블",
+   "title": "롯데 브랜드관",
+   "end": null,
+   "created": "2026-02-24",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/02/24/2cbd8f712d190024015fd378215d29ad.png",
+   "link": "https://link.coupang.com/a/iIv5zXEHxQ"
+  },
+  {
+   "id": 3780,
+   "cat": "쿠팡트래블",
+   "title": "쿠팡 파트너스 여행 카테고리 OPEN!",
+   "end": null,
+   "created": "2026-01-29",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/01/29/04abb5c3139300c2012ce6030241562f.png",
+   "link": "https://link.coupang.com/a/iIv5IJKdsi"
+  },
+  {
+   "id": 3773,
+   "cat": "로켓프레시",
+   "title": "내 손 안에 홈 카페",
+   "end": null,
+   "created": "2026-01-28",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/01/28/98aa5a962f48006b01ce8f9a85b2b5ff.png",
+   "link": "https://link.coupang.com/a/iIv5SfDcnQ"
+  },
+  {
+   "id": 3760,
+   "cat": "쿠팡트래블",
+   "title": "오늘의 티켓 특가",
+   "end": null,
+   "created": "2026-01-23",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/01/23/0a1f2c620143005901fa54396484bb83.png",
+   "link": "https://link.coupang.com/a/iIv5ZtQOzs"
+  },
+  {
+   "id": 3759,
+   "cat": "쿠팡트래블",
+   "title": "오늘의 숙박 특가",
+   "end": null,
+   "created": "2026-01-23",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/01/23/591f52627543004801fa4e3964835229.png",
+   "link": "https://link.coupang.com/a/iIv588VC56"
+  },
+  {
+   "id": 3738,
+   "cat": "로켓프레시",
+   "title": "제철식탁",
+   "end": null,
+   "created": "2026-01-16",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/01/16/878d659b8b4800fe016c58183470fa64.png",
+   "link": "https://link.coupang.com/a/iIv6gzY4Xc"
+  },
+  {
+   "id": 3735,
+   "cat": "로켓프레시",
+   "title": "프리미엄 프레시",
+   "end": null,
+   "created": "2026-01-15",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/01/15/e2876960255100f0015a47c5043da2c8.png",
+   "link": "https://link.coupang.com/a/iIv6o1YA4i"
+  },
+  {
+   "id": 3732,
+   "cat": "기획전",
+   "title": "이달의 신상",
+   "end": null,
+   "created": "2026-01-15",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/01/15/1d8773601e510072015acec5033a444d.png",
+   "link": "https://link.coupang.com/a/iIv6xdqu1k"
+  },
+  {
+   "id": 3650,
+   "cat": "로켓프레시",
+   "title": "Fresh 미식회",
+   "end": null,
+   "created": "2025-12-12",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2025/12/12/b9b7acad3587008e0189f281824d73ca.png",
+   "link": "https://link.coupang.com/a/iIv6Ffqkqi"
+  },
+  {
+   "id": 3567,
+   "cat": "로켓프레시",
+   "title": "1일 1특가",
+   "end": null,
+   "created": "2025-11-14",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2025/11/14/721ef6151fb800ea01d66ed0fbb6e6ed.png",
+   "link": "https://link.coupang.com/a/iIv6MWxvrg"
+  },
+  {
+   "id": 3546,
+   "cat": "쿠팡트래블",
+   "title": "이달의 신상호텔",
+   "end": null,
+   "created": "2025-11-06",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2025/11/06/fad415c748e700ab0184c7af4a17fb26.png",
+   "link": "https://link.coupang.com/a/iIv6XkBlzE"
+  },
+  {
+   "id": 3503,
+   "cat": "쿠팡트래블",
+   "title": "WOW 프로모션",
+   "end": null,
+   "created": "2025-10-23",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2025/10/23/f9ad55d1f9100047013a30e140b7df2f.png",
+   "link": "https://link.coupang.com/a/iIv66QMVq0"
+  },
+  {
+   "id": 3494,
+   "cat": "로켓프레시",
+   "title": "인기상품 총집합! BEST",
+   "end": null,
+   "created": "2025-10-21",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2025/10/21/a5d84c2a0c17000701b7743b147c5350.png",
+   "link": "https://link.coupang.com/a/iIv7eWk8tg"
+  },
+  {
+   "id": 3493,
+   "cat": "로켓프레시",
+   "title": "올해는 건강 챙기세요!",
+   "end": null,
+   "created": "2025-10-21",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2025/10/21/3bd8742aa917004201b74e3b147b92a8.png",
+   "link": "https://link.coupang.com/a/iIv7nP6OHc"
+  },
+  {
+   "id": 3492,
+   "cat": "로켓프레시",
+   "title": "오늘 메뉴 추천!",
+   "end": null,
+   "created": "2025-10-21",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2025/10/21/3ed8e82ab51700e701b7443b147afec1.png",
+   "link": "https://link.coupang.com/a/iIv7yjhraK"
+  },
+  {
+   "id": 3488,
+   "cat": "가전디지털",
+   "title": "POWERBEATS FIT 출시",
+   "end": null,
+   "created": "2025-10-20",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2025/10/20/4155b759987100f101afe3eebd196f2f.png",
+   "link": "https://link.coupang.com/a/iIv7IowR6y"
+  },
+  {
+   "id": 3329,
+   "cat": "로켓패션",
+   "title": "5늘 9매각",
+   "end": null,
+   "created": "2025-09-02",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2025/09/02/3d5a7ae54154008001077f2ddbbb97ec.png",
+   "link": "https://link.coupang.com/a/iIv7SLaIAC"
+  },
+  {
+   "id": 3243,
+   "cat": "가전디지털",
+   "title": "로봇청소기 셀렉트샵",
+   "end": null,
+   "created": "2025-08-04",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2025/08/04/7fbb1b424c71003901a02a7c09d8c77c.png",
+   "link": "https://link.coupang.com/a/iIv71nsF0m"
+  },
+  {
+   "id": 2990,
+   "cat": "로켓패션",
+   "title": "C.에비뉴",
+   "end": null,
+   "created": "2025-05-09",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2025/09/04/5962b43590a5001a01e76fab2c953a27.png",
+   "link": "https://link.coupang.com/a/iIv8aga0Y0"
+  },
+  {
+   "id": 2947,
+   "cat": "로켓패션",
+   "title": "C.STREET",
+   "end": null,
+   "created": "2025-04-25",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2025/09/04/6062f4355fa5009201e774ab2c96bb40.png",
+   "link": "https://link.coupang.com/a/iIv8kGd21Q"
+  },
+  {
+   "id": 2872,
+   "cat": "로켓프레시",
+   "title": "고기역전",
+   "end": null,
+   "created": "2025-04-04",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/05/26/55919058ce8c00c40132324605323e00.png",
+   "link": "https://link.coupang.com/a/iIv8vsinXU"
+  },
+  {
+   "id": 2861,
+   "cat": "기획전",
+   "title": "골드박스",
+   "end": null,
+   "created": "2025-04-02",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2025/04/02/8b9fe570d2770053012c3c186f0a4205.png",
+   "link": "https://link.coupang.com/a/iIv8CuqEOy"
+  },
+  {
+   "id": 2821,
+   "cat": "도서/문구",
+   "title": "집순이의 취미생활",
+   "end": null,
+   "created": "2025-03-20",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2025/03/20/54b426168109000f01b377b8dfc5c2dc.png",
+   "link": "https://link.coupang.com/a/iIv8KgVdu0"
+  },
+  {
+   "id": 2803,
+   "cat": "가전디지털",
+   "title": "AI가전 모음전",
+   "end": null,
+   "created": "2025-03-14",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2025/03/17/6b10aac631da006a01f61f5917b59714.png",
+   "link": "https://link.coupang.com/a/iIv8RJBnwa"
+  },
+  {
+   "id": 2776,
+   "cat": "도서/문구",
+   "title": "유아&어린이 전집",
+   "end": null,
+   "created": "2025-03-06",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2025/03/06/b1cd7edf2b3c00a101c339c40e3982f6.png",
+   "link": "https://link.coupang.com/a/iIv8ZSTTGu"
+  },
+  {
+   "id": 2746,
+   "cat": "반려동물용품",
+   "title": "관상어/소동물 용품",
+   "end": null,
+   "created": "2025-02-25",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2025/02/25/b53843ca0a7e008d01e7952438196d08.png",
+   "link": "https://link.coupang.com/a/iIv86HyCmy"
+  },
+  {
+   "id": 2339,
+   "cat": "도서/문구",
+   "title": "책 한잔",
+   "end": null,
+   "created": "2024-10-18",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2024/10/18/dc65f80f69d0001e01d299213f6045e2.png",
+   "link": "https://link.coupang.com/a/iIv9d21oSi"
+  },
+  {
+   "id": 2276,
+   "cat": "홈인테리어",
+   "title": "로켓설치 가구/리빙 특가 상품",
+   "end": null,
+   "created": "2024-09-27",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2024/09/27/1578b25ca54100dc01fcbc101842b57f.png",
+   "link": "https://link.coupang.com/a/iIv9nwJtbo"
+  },
+  {
+   "id": 2274,
+   "cat": "쿠팡트래블",
+   "title": "매일 만나는 여행 특가",
+   "end": null,
+   "created": "2024-09-26",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2024/09/26/7d037e063ffb008b01cd790b677a5a99.png",
+   "link": "https://link.coupang.com/a/iIv9wcuVB6"
+  },
+  {
+   "id": 2224,
+   "cat": "로켓패션",
+   "title": "반품 마켓",
+   "end": null,
+   "created": "2024-09-13",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2024/09/13/34b27b151b8d00940142c0db1ac20fa3.png",
+   "link": "https://link.coupang.com/a/iIv9FobRFA"
+  },
+  {
+   "id": 2222,
+   "cat": "로켓패션",
+   "title": "키즈 셀렉트",
+   "end": null,
+   "created": "2024-09-12",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2026/09/07/93d99cf98adf0072015909e9050d0c10.png",
+   "link": "https://link.coupang.com/a/iIv9MQFja0"
+  },
+  {
+   "id": 2215,
+   "cat": "로켓패션",
+   "title": "프리미엄 키즈 선물하기",
+   "end": null,
+   "created": "2024-09-11",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2024/09/11/909d8010641d006301d4c34e38cec4c3.jpg",
+   "link": "https://link.coupang.com/a/iIv9WVsW6u"
+  },
+  {
+   "id": 2166,
+   "cat": "가전디지털",
+   "title": "가성비 게이밍 모니터",
+   "end": null,
+   "created": "2024-08-29",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2024/08/29/98593658311d00e201fbdb68ae41c32d.png",
+   "link": "https://link.coupang.com/a/iIv93pQKia"
+  },
+  {
+   "id": 2143,
+   "cat": "가전디지털",
+   "title": "갤럭시 버즈",
+   "end": null,
+   "created": "2024-08-22",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2024/08/22/806155050edb001d014a656a5567144b.png",
+   "link": "https://link.coupang.com/a/iIwabfN0YC"
+  },
+  {
+   "id": 2120,
+   "cat": "가전디지털",
+   "title": "프리미엄 게이밍 노트북",
+   "end": null,
+   "created": "2024-08-16",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2024/08/16/38d26db2183900570115eeeeed21248c.png",
+   "link": "https://link.coupang.com/a/iIwakQgVX2"
+  },
+  {
+   "id": 2119,
+   "cat": "가전디지털",
+   "title": "게이밍 노트북",
+   "end": null,
+   "created": "2024-08-16",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2024/08/16/7cd22fb2b43900fa0115e7eeed2060c4.png",
+   "link": "https://link.coupang.com/a/iIwatH8tyu"
+  },
+  {
+   "id": 2017,
+   "cat": "홈인테리어",
+   "title": "공간별 인테리어 추천",
+   "end": null,
+   "created": "2024-07-19",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2024/07/19/b78b41126c9c00b601ecf7dae8982694.png",
+   "link": "https://link.coupang.com/a/iIwaAhUEdo"
+  },
+  {
+   "id": 1842,
+   "cat": "로켓프레시",
+   "title": "가격역전",
+   "end": null,
+   "created": "2024-06-04",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2024/06/04/932fb093deac002c018724482a895096.png",
+   "link": "https://link.coupang.com/a/iIwaIbF6Qu"
+  },
+  {
+   "id": 1689,
+   "cat": "로켓프레시",
+   "title": "식단관리",
+   "end": null,
+   "created": "2024-04-17",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2024/04/17/e21b573cf348009101be36bbcb20f1b9.png",
+   "link": "https://link.coupang.com/a/iIwaQ7tvCm"
+  },
+  {
+   "id": 1673,
+   "cat": "로켓프레시",
+   "title": "마트 기획전",
+   "end": null,
+   "created": "2024-04-15",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2024/04/15/2c63edc8a63f00d0010c101fa0423b80.png",
+   "link": "https://link.coupang.com/a/iIwaYdKmaa"
+  },
+  {
+   "id": 1053,
+   "cat": "기획전",
+   "title": "[모바일 전용] 쿠팡라이브 럭키박스",
+   "end": null,
+   "created": "2023-09-01",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2023/09/01/f0003e0140df006401877927d9e0b077.png",
+   "link": "https://link.coupang.com/a/iIwa77IIvI"
+  },
+  {
+   "id": 744,
+   "cat": "기획전",
+   "title": "기분 좋은 선물! E쿠폰/기프티콘",
+   "end": null,
+   "created": "2023-03-08",
+   "image": "https://image7.coupangcdn.com/image/affiliate/event/promotion/2023/03/08/e70176f0ff68008c01208274f7442b9c.png",
+   "link": "https://link.coupang.com/a/iIwbgBpPpc"
+  }
+ ]
+}

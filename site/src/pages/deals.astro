@@ -1,0 +1,97 @@
+---
+// 쿠팡 기획전 모음 — 파트너스 '이벤트/프로모션 목록'에서 받은 기획전 카드. 종료일이 지난 카드는 화면에서 자동으로 숨긴다.
+// COUPANG_ON 이 꺼져 있으면 목록 없이 안내만 보여 주고 검색에서 제외한다.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import data from '../data/coupang-events.json';
+import { COUPANG_ON, COUPANG_NOTICE, COUPANG_GOLDBOX } from '../data/partners';
+import '../styles/portal.css';
+
+type Ev = { id: number; cat: string; title: string; end: string | null; created: string; image: string; link: string };
+const all = (COUPANG_ON ? (data as any).events : []) as Ev[];
+// 끝나는 날이 정해진 것(임박한 순) → 상시 기획전(최근 등록 순)
+const events = [...all.filter((e) => e.end).sort((a, b) => a.end!.localeCompare(b.end!)), ...all.filter((e) => !e.end).sort((a, b) => b.created.localeCompare(a.created))];
+const cats = [...new Set(events.map((e) => e.cat))].map((c) => ({ c, n: events.filter((e) => e.cat === c).length })).sort((a, b) => b.n - a.n);
+const endLabel = (s: string) => `${Number(s.slice(5, 7))}월 ${Number(s.slice(8, 10))}일까지`;
+const updated = (data as any).generatedAt as string;
+---
+<BaseLayout title="쿠팡 기획전 모음 — 지금 진행 중인 할인·특가 한눈에" description="쿠팡에서 지금 진행 중인 기획전과 할인 행사를 분야별로 모았습니다. 종료일이 임박한 순서로 정리하고, 끝난 행사는 자동으로 빠집니다.">
+  <div class="pt">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › 쿠팡 기획전 모음</nav>
+    <header class="pt-hubhero" style="--c:#f97316">
+      <img src="/img/portal/c-deadline.webp" alt="" width="200" height="200" />
+      <div><h1>쿠팡 기획전 모음</h1><p>지금 진행 중인 할인·특가를 분야별로</p></div>
+    </header>
+
+    {COUPANG_ON ? (
+      <>
+        <p class="dl-notice">{COUPANG_NOTICE}</p>
+        <section class="pt-sec">
+          <div class="tl-quick" id="dl-cats" style="margin:0 0 1rem">
+            <button type="button" data-c="" class="is-on">전체 <small id="dl-total"></small></button>
+            {cats.map((x) => <button type="button" data-c={x.c}>{x.c}</button>)}
+          </div>
+          <div class="dl-grid" id="dl-grid">
+            <a class="dl-card dl-card--gold" href={COUPANG_GOLDBOX.href} target="_blank" rel="sponsored nofollow noopener" data-c="">
+              <span class="dl-gold"><b>골드박스</b><span>매일 바뀌는 오늘의 특가</span></span>
+              <span class="dl-body"><span class="dl-cat">매일 특가</span><b>쿠팡 골드박스 바로가기</b><small>상시 진행</small></span>
+            </a>
+            {events.map((e) => (
+              <a class="dl-card" href={e.link} target="_blank" rel="sponsored nofollow noopener" data-c={e.cat} data-end={e.end || ''}>
+                <img src={e.image} alt={`${e.cat} ${e.title} 기획전`} loading="lazy" width="400" height="400" referrerpolicy="no-referrer" />
+                <span class="dl-body"><span class="dl-cat">{e.cat}</span><b>{e.title}</b><small class={e.end ? 'dl-end' : ''}>{e.end ? endLabel(e.end) : '상시 진행'}</small></span>
+              </a>
+            ))}
+          </div>
+          <p class="pp-note" id="dl-empty" hidden>이 분야에는 지금 진행 중인 기획전이 없어요.</p>
+          <p class="pp-note">※ {updated} 기준 목록입니다. 행사 내용·기간·가격은 쿠팡 사정에 따라 예고 없이 바뀌거나 일찍 끝날 수 있으니, 정확한 조건은 쿠팡 화면에서 확인하세요. 종료일이 지난 행사는 자동으로 목록에서 빠집니다.</p>
+        </section>
+      </>
+    ) : (
+      <section class="pt-sec"><p class="pp-note">기획전 목록을 준비하고 있어요.</p></section>
+    )}
+  </div>
+
+  <style is:global>
+    .tl-quick button.is-on { border-color: var(--accent); background: var(--accent); color: #fff; }
+    .tl-quick button small { opacity: 0.8; font-weight: 700; }
+    .dl-notice { margin: 0.9rem 0 0; padding: 0.7rem 0.9rem; border-radius: 12px; background: var(--paper-2); font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+    .dl-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
+    @media (min-width: 700px) { .dl-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (min-width: 1000px) { .dl-grid { grid-template-columns: repeat(4, 1fr); gap: 1rem; } }
+    .dl-card { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--paper); color: var(--ink); text-decoration: none; }
+    .dl-card[hidden] { display: none; }
+    .dl-card:hover { border-color: var(--accent); }
+    .dl-card img { display: block; width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; background: var(--paper-2); }
+    .dl-gold { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.3rem; background: linear-gradient(135deg, #fbbf24, #f97316); color: #fff; text-align: center; padding: 1rem; }
+    .dl-gold b { font-size: 1.7rem; font-weight: 800; letter-spacing: -0.02em; }
+    .dl-gold span { font-size: 0.85rem; font-weight: 700; }
+    .dl-body { display: flex; flex-direction: column; gap: 0.15rem; padding: 0.7rem 0.8rem 0.8rem; }
+    .dl-cat { font-size: 0.72rem; font-weight: 800; color: var(--accent); }
+    .dl-body b { font-size: 0.95rem; font-weight: 800; line-height: 1.35; }
+    .dl-body small { font-size: 0.78rem; color: var(--muted); }
+    .dl-body small.dl-end { color: #e11d48; font-weight: 700; }
+  </style>
+
+  <script is:inline>
+    (() => {
+      const grid = document.getElementById('dl-grid'); if (!grid) return;
+      const now = new Date(), pad = (n) => String(n).padStart(2, '0');
+      const today = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate());
+      const cards = [...grid.querySelectorAll('.dl-card')];
+      // 종료일이 지난 기획전은 지운다(목록을 갱신하지 못해도 끝난 행사가 남지 않게)
+      cards.forEach((c) => { if (c.dataset.end && c.dataset.end < today) c.remove(); });
+      const live = [...grid.querySelectorAll('.dl-card')];
+      const tabs = document.getElementById('dl-cats');
+      document.getElementById('dl-total').textContent = String(live.length);
+      // 진행 중인 것이 하나도 없는 분야 버튼은 숨긴다
+      tabs.querySelectorAll('button[data-c]').forEach((b) => { if (b.dataset.c && !live.some((c) => c.dataset.c === b.dataset.c)) b.remove(); });
+      tabs.addEventListener('click', (e) => {
+        const b = e.target.closest('button'); if (!b) return; const cat = b.dataset.c; let n = 0;
+        tabs.querySelectorAll('button').forEach((x) => x.classList.toggle('is-on', x === b));
+        live.forEach((c) => { const show = !cat || c.dataset.c === cat; c.hidden = !show; if (show) n++; });
+        document.getElementById('dl-empty').hidden = n > 0;
+      });
+      grid.addEventListener('click', (e) => { const a = e.target.closest('a'); if (a) { try { if (window.gtag) window.gtag('event', 'partner_click', { place: 'deals', item: (a.querySelector('.dl-body b') || {}).textContent || '' }); } catch (err) {} } });
+    })();
+  </script>
+</BaseLayout>

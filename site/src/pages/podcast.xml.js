@@ -3,7 +3,7 @@
 import { getCollection } from 'astro:content';
 import { SITE } from '../consts';
 
-const OWNER_EMAIL = 'gmlthd94@gmail.com';
+const OWNER_EMAIL = 'ceo@yourteam.kr';
 const COVER = `${SITE.url}/podcast-cover.jpg`; // 1400~3000px 정사각 JPG/PNG 필요(애플 제출 요건)
 
 const esc = (s) =>

@@ -21,7 +21,7 @@ const thumb = (h?: string) => (h && /-hero\.webp$/.test(h) ? h.replace(/-hero\.w
 const posts = slug === 'guide'
   ? (await getCollection('blog')).filter((p) => !p.data.draft).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()).slice(0, 12)
   : [];
-const title = slug === 'guide' ? '가이드 — 직접 해보고 정리한 글' : `${g.name} — 계산기·조회 ${ready.length}종`;
+const title = slug === 'guide' ? '읽을거리 — 직접 해보고 정리한 글' : `${g.name} — 계산기·조회 ${ready.length}종`;
 const description = `${g.desc}. ${ready.slice(0, 5).map((i) => i.name).join(', ')}${ready.length > 5 ? ' 등' : ''}을 한곳에서.`;
 ---
 <BaseLayout title={title} description={description}>

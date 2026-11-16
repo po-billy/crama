@@ -1,5 +1,6 @@
 ---
-import { POPULAR as popular } from '../data/rail';
+import { POPULAR as popular, POPULAR_FUN, HOT_GAMES, NEW_ITEMS } from '../data/rail';
+import { HOLIDAY_YEARS, holidaysOf } from '../lib/holidays';
 // 포털형 홈 — 오늘의 발견 → 출생연도 바로가기 → 전체 분야 → 가이드. 오른쪽(PC)에는 많이 찾는 조회·최근 본 글.
 // 메뉴·분야는 src/data/menu.ts 에서 읽는다. (이전 홈은 src/legacy/HomeLegacy.astro 에 보관)
 import { getCollection } from 'astro:content';
@@ -34,6 +35,8 @@ const bestSav = bestRate((ratesData as any).savings);
 const deadlines = (policyEvents as any[]).map((e) => ({ m: e.month, d: e.day, t: e.title }));
 
 const evenYear = THIS_YEAR % 2 === 0;
+// 다음 공휴일 D-day 계산용
+const holidays = HOLIDAY_YEARS.flatMap((y) => holidaysOf(y).map((h) => [h.date, h.name]));
 const cards = [
   { href: '/health-check/', img: 'c-checkup', tag: '건강검진', color: '#16a34a', title: `올해 건강검진 대상은 ${evenYear ? '짝수' : '홀수'}년생`, desc: '출생연도만 누르면 바로 확인' },
   bestDep && { href: '/rates/', img: 'c-rates', tag: '예금·대출', color: '#0ea5e9', title: `오늘의 최고금리 예금 연 ${bestDep.rate}%`, desc: bestSav ? `적금은 연 ${bestSav.rate}% · 전체 비교` : '은행별 금리 비교' },
@@ -45,7 +48,7 @@ const cards = [
   { href: '/tarot/', img: 'c-tarot', tag: '운세', color: '#8b5cf6', title: '타로 보기', desc: '카드 한 장 뽑아 보기' },
   { href: '/name-match/', img: 'c-name-match', tag: '테스트', color: '#ec4899', title: '이름 궁합', desc: '두 사람의 이름만 넣으면 끝' },
   { href: '/quiz/money-character/', img: 'c-quiz-money', tag: '테스트', color: '#8b5cf6', title: '머니 캐릭터 테스트', desc: '10가지 질문으로 보는 내 돈 성향' },
-  { href: '/briefing/', img: 'c-briefing', tag: '가이드', color: '#10b981', title: 'Today 브리핑', desc: '오늘 챙길 것만 3분에' },
+  { href: '/briefing/', img: 'c-briefing', tag: '읽을거리', color: '#10b981', title: 'Today 브리핑', desc: '오늘 챙길 것만 3분에' },
   latest[0] && { href: `/blog/${latest[0].id}/`, src: thumb(latest[0].data.heroImage), tag: '새 글', color: '#6c5ce7', title: latest[0].data.title, desc: CATEGORIES[latest[0].data.category].name },
 ].filter(Boolean) as { href: string; img?: string; src?: string; tag: string; color: string; title: string; desc: string; id?: string }[];
 
@@ -136,7 +139,7 @@ const fields = [...ready.filter((g) => g.tab.slug === 'life'), ...ready.filter((
         <div class="pt-ad"><AdSlot slot="home-mid" /></div>
 
         <section class="pt-sec">
-          <div class="pt-sec__head"><div><h2>가이드</h2><p>새로 올라온 글</p></div><a class="pt-more" href="/hub/guide/">더보기 →</a></div>
+          <div class="pt-sec__head"><div><h2>읽을거리</h2><p>새로 올라온 글</p></div><a class="pt-more" href="/hub/guide/">더보기 →</a></div>
           <div class="pt-cards">
             {latest.map((p) => (
               <a class="pt-card" href={`/blog/${p.id}/`}>
@@ -151,12 +154,37 @@ const fields = [...ready.filter((g) => g.tab.slug === 'life'), ...ready.filter((
         </section>
       </div>
 
-      <aside class="pt-side">
+      <aside class="pt-side hm-side">
+        <a class="hm-next" href="/holidays/" id="hm-next" hidden>
+          <span>다음 공휴일</span><b id="hm-next-d"></b><small id="hm-next-n"></small>
+        </a>
         <div class="pt-box">
-          <h3>많이 찾는 조회</h3>
+          <div class="rail-head"><h3>많이 찾는 조회</h3><a href="/hub/">전체 →</a></div>
           <ol class="pt-rank">
-            {popular.map((p) => <li><a href={p.href}>{p.name}</a></li>)}
+            {popular.slice(0, 7).map((p) => <li><a href={p.href}>{p.name}</a></li>)}
           </ol>
+        </div>
+        <div class="pt-box">
+          <div class="rail-head"><h3>많이 찾는 운세·테스트</h3><a href="/hub/fun/">전체 →</a></div>
+          <ol class="pt-rank">
+            {POPULAR_FUN.map((p) => <li><a href={p.href}>{p.name}</a></li>)}
+          </ol>
+        </div>
+        <div class="pt-box">
+          <div class="rail-head"><h3>지금 핫한 게임</h3><a href="/hub/games/">전체 →</a></div>
+          <ul class="pt-list">
+            {HOT_GAMES.map((g) => (
+              <li><a href={g.href}><img src={`/img/portal/${g.img}.webp`} alt="" loading="lazy" width="96" height="96" /><span><b>{g.name}</b><small>{g.desc}</small></span></a></li>
+            ))}
+          </ul>
+        </div>
+        <div class="pt-box">
+          <h3>새로 나왔어요</h3>
+          <ul class="rail-links">{NEW_ITEMS.slice(0, 5).map((it) => <li><a href={it.href}><b>{it.name}</b><small>{it.desc}</small></a></li>)}</ul>
+        </div>
+        <div class="pt-box" id="home-pages" hidden>
+          <h3>최근 본 페이지</h3>
+          <ul class="rail-links" id="home-pages-list"></ul>
         </div>
         <div class="pt-box" id="home-recent" hidden>
           <h3>최근 본 글</h3>
@@ -167,7 +195,7 @@ const fields = [...ready.filter((g) => g.tab.slug === 'life'), ...ready.filter((
     </div>
   </div>
 
-  <script is:inline define:vars={{ deadlines }}>
+  <script is:inline define:vars={{ deadlines, holidays }}>
     (() => {
       // 오늘 날짜 + 가장 가까운 신청·마감(D-day)
       var now = new Date();
@@ -186,6 +214,29 @@ const fields = [...ready.filter((g) => g.tab.slug === 'life'), ...ready.filter((
         var dl = document.getElementById('home-deadline');
         if (dl) { dl.textContent = ''; var b2 = document.createElement('b'); b2.textContent = best.n === 0 ? 'D-Day' : 'D-' + best.n; dl.appendChild(b2); dl.appendChild(document.createTextNode(' · ' + t)); }
       }
+      // 다음 공휴일
+      try {
+        var pad = function (n) { return String(n).padStart(2, '0'); };
+        var ymd = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate());
+        var nh = holidays.filter(function (h) { return h[0] >= ymd; })[0];
+        if (nh) {
+          var hd = new Date(Number(nh[0].slice(0, 4)), Number(nh[0].slice(5, 7)) - 1, Number(nh[0].slice(8, 10)));
+          var gap = Math.round((hd - today) / 864e5);
+          document.getElementById('hm-next-d').textContent = gap === 0 ? '오늘' : 'D-' + gap;
+          document.getElementById('hm-next-n').textContent = nh[1] + ' · ' + (hd.getMonth() + 1) + '월 ' + hd.getDate() + '일(' + days[hd.getDay()] + ')';
+          document.getElementById('hm-next').hidden = false;
+        }
+      } catch (e) {}
+      // 최근 본 페이지(조회·계산기·게임)
+      try {
+        var rp = JSON.parse(localStorage.getItem('crama:recent-pages') || '[]');
+        var pul = document.getElementById('home-pages-list');
+        if (Array.isArray(rp)) rp.slice(0, 5).forEach(function (x) {
+          if (!x || !x.p || !x.t || x.p.charAt(0) !== '/') return;
+          var li = document.createElement('li'); var a = document.createElement('a'); a.href = x.p; var b3 = document.createElement('b'); b3.textContent = x.t; a.appendChild(b3); li.appendChild(a); pul.appendChild(li);
+        });
+        if (pul.children.length) document.getElementById('home-pages').hidden = false;
+      } catch (e) {}
       // 최근 본 글(이 기기에 저장된 기록)
       try {
         var r = JSON.parse(localStorage.getItem('crama:recent') || '[]');

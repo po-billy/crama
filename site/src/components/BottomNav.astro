@@ -5,7 +5,7 @@ const path = Astro.url.pathname;
 const tabs = [
   { href: '/', label: '홈', m: (p) => p === '/', icon: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/>' },
   { href: '/hub/', label: '조회', m: (p) => p.indexOf('/hub') === 0 && p.indexOf('/hub/guide') !== 0, icon: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>' },
-  { href: '/hub/guide/', label: '가이드', m: (p) => p.indexOf('/hub/guide') === 0 || p.indexOf('/blog') === 0 || p.indexOf('/briefing') === 0, icon: '<rect x="4" y="4" width="16" height="16" rx="1.6"/><path d="M8 9h8M8 13h8M8 17h5"/>' },
+  { href: '/hub/guide/', label: '읽을거리', m: (p) => p.indexOf('/hub/guide') === 0 || p.indexOf('/blog') === 0 || p.indexOf('/briefing') === 0, icon: '<rect x="4" y="4" width="16" height="16" rx="1.6"/><path d="M8 9h8M8 13h8M8 17h5"/>' },
   { href: '/saved-picks/', label: '관심함', m: (p) => p.indexOf('/saved-picks') === 0, icon: '<path d="M12 20.5l-7.3-7.3a4.9 4.9 0 0 1 6.9-6.9l.4.4.4-.4a4.9 4.9 0 0 1 6.9 6.9z"/>' },
 ];
 ---

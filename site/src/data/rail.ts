@@ -15,6 +15,24 @@ export const POPULAR = [
   { name: '전역일 계산기', href: '/discharge/' },
 ];
 
+// 홈 오른쪽 '많이 찾는 운세·테스트' — 아직 조회수 집계가 없어 수동으로 정한 순서
+export const POPULAR_FUN = [
+  { name: '오늘의 운세', href: '/fortune/' },
+  { name: '타로 보기', href: '/tarot/' },
+  { name: '이름 궁합', href: '/name-match/' },
+  { name: '띠궁합', href: '/zodiac-match/' },
+  { name: '로또 번호 생성기', href: '/lotto/' },
+  { name: '머니 캐릭터 테스트', href: '/quiz/money-character/' },
+];
+// 홈 오른쪽 '지금 핫한 게임' — 수동으로 정한 순서
+export const HOT_GAMES = [
+  { name: '사다리 타기', href: '/pick/ladder/', img: 'c-ladder', desc: '점심 내기·벌칙 정하기' },
+  { name: '오목', href: '/games/omok/', img: 'c-omok', desc: '컴퓨터와 한 판' },
+  { name: '오늘의 스도쿠', href: '/games/sudoku/', img: 'c-sudoku', desc: '매일 바뀌는 퍼즐' },
+  { name: '카드 짝 맞추기', href: '/games/memory/', img: 'c-memory', desc: '같은 그림 찾기' },
+  { name: '돌림판 돌리기', href: '/pick/wheel/', img: 'c-wheel', desc: '항목 적고 돌리면 끝' },
+];
+
 // 심심풀이 — 그림이 있는 게임·운세·테스트·뽑기
 export const FUN = [
   { name: '오늘의 운세', href: '/fortune/', img: 'c-fortune' },

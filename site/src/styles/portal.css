@@ -164,3 +164,23 @@
 /* hidden 속성이 flex/grid 에 눌리지 않게 */
 .tl-field[hidden], .pp-facts[hidden], .pp-links[hidden], .tl-wrap[hidden], .tl-card[hidden], .pt-sec[hidden] { display: none; }
 .tl-quick[hidden], .tr-deck[hidden] { display: none; }
+
+/* ── 오른쪽 목록 공용(홈 사이드바·SideRail) ── */
+.rail-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.5rem; }
+.rail-head h3 { margin: 0; }
+.rail-head a { font-size: 0.8rem; font-weight: 700; color: var(--muted); text-decoration: none; white-space: nowrap; }
+.rail-head a:hover { color: var(--accent); }
+.rail-links { list-style: none; margin: 0; padding: 0; }
+.rail-links a { display: block; padding: 0.5rem 0; border-top: 1px solid var(--line); color: var(--ink); text-decoration: none; }
+.rail-links li:first-child a { border-top: 0; }
+.rail-links b { display: block; font-size: 0.92rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rail-links small { display: block; font-size: 0.76rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rail-links a:hover b { color: var(--accent); }
+/* 홈 사이드바: 상자가 많아 화면보다 길어지므로 붙박이로 두지 않는다 */
+@media (min-width: 1024px) { .hm-side { position: static; } }
+.hm-next { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0.15rem 0.6rem; padding: 0.9rem 1rem; margin-bottom: 1rem; border-radius: 16px; background: linear-gradient(135deg, #6c5ce7, #8b7bff); color: #fff; text-decoration: none; }
+.hm-next[hidden] { display: none; }
+.hm-next span { font-size: 0.82rem; font-weight: 700; opacity: 0.9; }
+.hm-next b { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; margin-left: auto; }
+.hm-next small { flex-basis: 100%; font-size: 0.86rem; font-weight: 600; opacity: 0.95; }
+.hm-next:hover { color: #fff; filter: brightness(1.06); }

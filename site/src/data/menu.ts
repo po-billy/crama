@@ -226,10 +226,10 @@ export const MENU: MenuTab[] = [
     ],
   },
   {
-    slug: 'guide', name: '가이드', href: '/hub/guide/', color: '#10b981',
+    slug: 'guide', name: '읽을거리', href: '/hub/guide/', color: '#10b981',
     groups: [
       {
-        slug: 'guide', name: '가이드', icon: 'book', color: '#10b981',
+        slug: 'guide', name: '읽을거리', icon: 'book', color: '#10b981',
         desc: '직접 해보고 정리한 글',
         items: [
           { name: 'Today 브리핑', href: '/briefing/', desc: '오늘 챙길 것만 3분에' },

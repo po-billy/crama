@@ -38,10 +38,13 @@ supabase/             DB 스키마 SQL (saved_items, push_subscriptions 등)
 - 방문자 수에 비례해 API 비용이 나가는 기능은 광고 승인 전까지 만들지 않는다. 운세·타로·궁합 문장은 `data/fun.ts`에 미리 써 둔 것을 날짜·입력값으로 고르는 방식(실시간 AI 금지).
 - 실존 인물은 공개된 사실 정보(생년월일·대표 직업 1개)만, 사진은 위키미디어 코먼스의 자유 이용 허락분만(저작자·라이선스 표기). 고인·미성년 제외. 갱신은 `node automation/sync-people.mjs`(무료, 키 불필요).
 - **세금·보험 요율은 `site/src/lib/salary.ts`가 원본**(2026년: 국민연금 4.75%, 건강보험 3.595%, 장기요양 13.14%, 고용 0.9%, 연금 기준소득월액 41만~659만). 매년 1월(요율)과 7월(연금 상·하한)에 확인해 고칠 것. 연봉·월급·4대보험 계산기가 모두 이 값을 쓴다.
-- 새로 만든 구역: `/people/`(목록·상세·띠·별자리) `/born/`(출생연도 모아보기 — 건강검진 유입을 다른 콘텐츠로 잇는 다리) `/age/` `/dday/` `/salary/monthly/` `/insurance/` `/freelance-tax/` `/realty-fee/` `/health/[tool]/` `/health-check/cancer/` `/convert/[tool]/` `/fortune/` `/tarot/` `/name-match/` `/zodiac-match/` `/lotto/` `/lunch/` `/games/*`.
+- 새로 만든 구역: `/people/`(목록·상세·띠·별자리) `/born/`(출생연도 모아보기 — 건강검진 유입을 다른 콘텐츠로 잇는 다리) `/age/` `/dday/` `/salary/monthly/` `/insurance/` `/freelance-tax/` `/realty-fee/` `/health/[tool]/` `/health-check/cancer/` `/convert/[tool]/` `/fortune/` `/tarot/` `/name-match/` `/zodiac-match/` `/lotto/` `/lunch/` `/games/*`(스도쿠·지뢰·벽돌·숫자 야구·퀴즈·오목·카드 짝·숫자 순서·반응속도) `/pick/[tool]/`(사다리·돌림판·주사위·랜덤 숫자·제비뽑기) `/calc/[tool]/`(퍼센트·할인·더치페이·학점·날짜·비밀번호·카드 할부·자동차 할부) `/lunar/` `/minimum-wage/`.
+- 도구 묶음은 설정 파일 + 동적 라우트 한 쌍: `data/pick-tools.ts`↔`pick/[tool].astro`, `data/calc-tools.ts`↔`calc/[tool].astro`, `data/convert-tools.ts`, `data/health-tools.ts`. 도구를 추가하면 `menu.ts`에 `href`도 넣을 것.
+- 인물 수집 스크립트는 한국어 위키백과 최근 60일 조회수 순으로 800명을 뽑도록 바뀌었지만, 위키백과 요청 제한(429)에 걸려 **아직 한 번도 끝까지 돌지 못했다**(people.json은 예전 기준 400명). 받은 조회수는 임시 폴더에 저장돼 다시 실행하면 이어받는다. 성공해서 `views`가 들어오면 `src/legacy/PeopleRank.astro`를 `src/pages/people/rank.astro`로 옮기고 메뉴의 '인기 인물 순위'에 `href`를 넣을 것.
+- `/lunar/`의 음력 표는 빌드할 때 Node의 `Intl`(dangi 달력)로 만든다(1930~2050). `/minimum-wage/`의 `WAGES` 배열은 매년 8월 다음 해 금액이 고시되면 한 줄 추가하고, `wage/[hourly].astro`의 최저시급 값도 1월에 바꿀 것.
 - 계산기 공통 틀은 portal.css의 `tl-*`(입력 카드·결과·표), 인물은 `pp-*`. `[hidden]`이 flex/grid에 눌리지 않도록 portal.css 끝의 규칙에 클래스를 추가할 것.
 - 동적 라우트에서 `getStaticPaths`는 같은 파일 프런트매터의 `const`를 못 읽는다 → 설정은 `src/data/*.ts`로 빼서 import.
-- **보류(조건 충족 시 진행)**: 공휴일·영업일 계산기(`automation/sync-holidays.mjs` 준비됨 — 공공데이터포털에서 '특일 정보' 활용신청 필요), 취득세·청약 가점·국민연금 예상 수령액·군인 월급(기준 검증 필요), 인물 근황 AI 요약(광고 승인 후), 쿠폰·핫딜(쿠팡 파트너스 API), 조회 순위 자동 집계(홈의 '많이 찾는 조회'는 수동 목록).
+- **보류(조건 충족 시 진행)**: 공휴일·영업일 계산기(`automation/sync-holidays.mjs` 준비됨 — 공공데이터포털에서 '특일 정보' 활용신청 필요), 취득세·청약 가점·국민연금 예상 수령액·군인 월급·술 깨는 시간·예방접종(기준 검증 필요), 인물 근황 AI 요약(광고 승인 후), 쿠폰·핫딜(쿠팡 파트너스 API), 조회 순위 자동 집계(홈의 '많이 찾는 조회'는 수동 목록).
 
 ## 회원 UI 스위치 (`MEMBER_UI`, 현재 꺼짐)
 

@@ -1,0 +1,392 @@
+---
+// 일상 계산기 8종 — 퍼센트, 할인, 더치페이, 학점, 날짜, 비밀번호, 카드 할부, 자동차 할부. 모두 기기 안에서만 계산.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import { CALC_TOOLS } from '../../data/calc-tools';
+import '../../styles/portal.css';
+
+export function getStaticPaths() { return CALC_TOOLS.map((t) => ({ params: { tool: t.slug }, props: { slug: t.slug } })); }
+const { slug } = Astro.props as { slug: string };
+const t = CALC_TOOLS.find((x) => x.slug === slug)!;
+const others = CALC_TOOLS.filter((x) => x.slug !== slug);
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: t.faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+const months = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 18, 24, 36];
+---
+<BaseLayout title={t.title} description={t.desc} jsonLd={jsonLd}>
+  <div class="pt pt-narrow">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href={`/hub/${t.group}/`}>{t.groupName}</a> › {t.name}</nav>
+    <header class="pt-hubhero">
+      <img src={`/img/portal/${t.cover}.webp`} alt="" width="200" height="200" />
+      <div><h1>{t.name}</h1><p>{t.lead}</p></div>
+    </header>
+
+    <section class="pt-sec" id="cc-root" data-tool={slug}>
+      {slug === 'percent' && (
+        <div class="cc-stack">
+          <div class="tl-card">
+            <b class="cc-h">전체 값의 몇 %는 얼마?</b>
+            <div class="tl-row"><label class="tl-field">전체 값<input id="p1-a" type="number" inputmode="decimal" step="any" placeholder="예: 50000" /></label><label class="tl-field">비율(%)<input id="p1-b" type="number" inputmode="decimal" step="any" placeholder="예: 15" /></label></div>
+            <p class="cc-out" id="p1-out">값을 넣으면 바로 계산돼요</p>
+          </div>
+          <div class="tl-card">
+            <b class="cc-h">일부 값은 전체의 몇 %?</b>
+            <div class="tl-row"><label class="tl-field">일부 값<input id="p2-a" type="number" inputmode="decimal" step="any" placeholder="예: 30" /></label><label class="tl-field">전체 값<input id="p2-b" type="number" inputmode="decimal" step="any" placeholder="예: 120" /></label></div>
+            <p class="cc-out" id="p2-out">값을 넣으면 바로 계산돼요</p>
+          </div>
+          <div class="tl-card">
+            <b class="cc-h">몇 % 늘었나, 줄었나? (증감률)</b>
+            <div class="tl-row"><label class="tl-field">처음 값<input id="p3-a" type="number" inputmode="decimal" step="any" placeholder="예: 2500000" /></label><label class="tl-field">나중 값<input id="p3-b" type="number" inputmode="decimal" step="any" placeholder="예: 2700000" /></label></div>
+            <p class="cc-out" id="p3-out">값을 넣으면 바로 계산돼요</p>
+          </div>
+          <div class="tl-card">
+            <b class="cc-h">값에서 몇 % 더하거나 빼면?</b>
+            <div class="tl-row"><label class="tl-field">값<input id="p4-a" type="number" inputmode="decimal" step="any" placeholder="예: 80000" /></label><label class="tl-field">비율(%)<input id="p4-b" type="number" inputmode="decimal" step="any" placeholder="예: 10" /></label></div>
+            <p class="cc-out" id="p4-out">값을 넣으면 바로 계산돼요</p>
+          </div>
+        </div>
+      )}
+      {slug === 'discount' && (
+        <div class="cc-stack">
+          <div class="tl-card">
+            <b class="cc-h">할인가 계산</b>
+            <div class="tl-row">
+              <label class="tl-field">정가(원)<input id="ds-price" type="number" inputmode="numeric" placeholder="예: 59000" /></label>
+              <label class="tl-field">할인율(%)<input id="ds-rate" type="number" inputmode="decimal" step="any" placeholder="예: 30" /></label>
+              <label class="tl-field">추가 할인(%) · 선택<input id="ds-extra" type="number" inputmode="decimal" step="any" placeholder="예: 10" /></label>
+            </div>
+            <div class="tl-quick" id="ds-quick">{[10, 20, 30, 40, 50, 70].map((r) => <button type="button" data-r={r}>{r}%</button>)}</div>
+          </div>
+          <div class="tl-result" id="ds-result" hidden aria-live="polite"><div class="tl-result__label">할인가</div><div class="tl-result__big" id="ds-big"></div><div class="tl-result__sub" id="ds-sub"></div></div>
+          <div class="tl-card">
+            <b class="cc-h">할인율 계산</b>
+            <div class="tl-row"><label class="tl-field">정가(원)<input id="dr-price" type="number" inputmode="numeric" placeholder="예: 50000" /></label><label class="tl-field">판매가(원)<input id="dr-sale" type="number" inputmode="numeric" placeholder="예: 35000" /></label></div>
+            <p class="cc-out" id="dr-out">값을 넣으면 바로 계산돼요</p>
+          </div>
+        </div>
+      )}
+      {slug === 'dutch-pay' && (
+        <>
+          <div class="tl-card">
+            <div class="tl-row">
+              <label class="tl-field">총 금액(원)<input id="dp-total" type="number" inputmode="numeric" placeholder="예: 187000" /></label>
+              <label class="tl-field">인원(명)<input id="dp-n" type="number" inputmode="numeric" min="2" value="4" /></label>
+            </div>
+            <div class="tl-row" style="margin-top:0.7rem">
+              <label class="tl-field">금액 단위<select id="dp-unit"><option value="1">1원까지</option><option value="10">10원 단위</option><option value="100" selected>100원 단위</option><option value="1000">1,000원 단위</option></select></label>
+              <label class="tl-field">맞추는 방식<select id="dp-mode"><option value="floor">내림 (모자란 금액은 총무가)</option><option value="ceil">올림 (남는 금액은 총무에게)</option></select></label>
+            </div>
+            <div class="tl-row" style="margin-top:0.7rem">
+              <label class="tl-field">따로 계산할 금액(원) · 선택<input id="dp-extra" type="number" inputmode="numeric" placeholder="예: 술값 48000" /></label>
+              <label class="tl-field">그 금액을 나눌 인원(명)<input id="dp-m" type="number" inputmode="numeric" min="1" placeholder="예: 2" /></label>
+            </div>
+            <p id="dp-err" class="cc-err" hidden></p>
+          </div>
+          <div class="tl-result" id="dp-result" hidden aria-live="polite"><div class="tl-result__label" id="dp-label">1인당</div><div class="tl-result__big" id="dp-big"></div><div class="tl-result__sub" id="dp-sub"></div></div>
+          <div class="tl-wrap" id="dp-wrap" hidden style="margin-top:0.9rem"><table class="tl-table"><tbody id="dp-body"></tbody></table></div>
+        </>
+      )}
+      {slug === 'gpa' && (
+        <>
+          <div class="tl-quick" id="gp-scale" style="margin:0 0 0.8rem"><button type="button" data-s="45" class="is-on">4.5 만점</button><button type="button" data-s="43">4.3 만점</button></div>
+          <div class="tl-card">
+            <div class="gp-rows" id="gp-rows"></div>
+            <div class="tl-quick"><button type="button" id="gp-add">+ 과목 추가</button><button type="button" id="gp-reset">모두 지우기</button></div>
+          </div>
+          <div class="tl-result" id="gp-result" aria-live="polite"><div class="tl-result__label">평점 평균</div><div class="tl-result__big" id="gp-big">-</div><div class="tl-result__sub" id="gp-sub">과목의 학점 수와 성적을 골라 주세요</div></div>
+        </>
+      )}
+      {slug === 'date-add' && (
+        <>
+          <div class="tl-card">
+            <div class="tl-row">
+              <label class="tl-field">기준일<input id="da-base" type="date" /></label>
+              <label class="tl-field">숫자<input id="da-n" type="number" inputmode="numeric" min="0" value="100" /></label>
+              <label class="tl-field">단위<select id="da-unit"><option value="d">일</option><option value="w">주</option><option value="m">개월</option><option value="y">년</option></select></label>
+              <label class="tl-field">방향<select id="da-dir"><option value="1">후</option><option value="-1">전</option></select></label>
+            </div>
+            <div class="cc-opts"><label><input type="checkbox" id="da-incl" /> 기준일을 1일로 세기 (기념일 방식)</label></div>
+          </div>
+          <div class="tl-result" id="da-result" aria-live="polite"><div class="tl-result__label" id="da-label"></div><div class="tl-result__big" id="da-big" style="font-size:2.1rem"></div><div class="tl-result__sub" id="da-sub"></div></div>
+          <div class="tl-wrap" style="margin-top:0.9rem"><table class="tl-table"><thead><tr><th>기준일로부터</th><th>날짜</th><th>요일</th></tr></thead><tbody id="da-body"></tbody></table></div>
+        </>
+      )}
+      {slug === 'password' && (
+        <>
+          <div class="tl-card">
+            <div class="tl-row">
+              <label class="tl-field">길이: <span id="pw-len-v">16</span>자<input id="pw-len" type="range" min="8" max="40" value="16" style="padding:0" /></label>
+            </div>
+            <div class="cc-opts">
+              <label><input type="checkbox" id="pw-up" checked /> 영문 대문자</label>
+              <label><input type="checkbox" id="pw-lo" checked /> 영문 소문자</label>
+              <label><input type="checkbox" id="pw-di" checked /> 숫자</label>
+              <label><input type="checkbox" id="pw-sy" checked /> 특수문자</label>
+              <label><input type="checkbox" id="pw-amb" /> 헷갈리는 문자 제외 (0 O 1 l I)</label>
+            </div>
+            <button type="button" class="tl-btn" id="pw-go" style="width:100%;margin-top:0.9rem">새로 만들기</button>
+          </div>
+          <div class="pw-list" id="pw-out" aria-live="polite"></div>
+          <p id="pw-msg" class="pp-note" style="margin-top:0.6rem">비밀번호를 누르면 복사돼요.</p>
+        </>
+      )}
+      {slug === 'card-installment' && (
+        <>
+          <div class="tl-card">
+            <div class="tl-row">
+              <label class="tl-field">결제 금액(원)<input id="ci-amt" type="number" inputmode="numeric" placeholder="예: 1200000" /></label>
+              <label class="tl-field">할부 개월<select id="ci-m">{months.map((m) => <option value={m} selected={m === 6}>{m}개월</option>)}</select></label>
+              <label class="tl-field">수수료율(연 %)<input id="ci-rate" type="number" inputmode="decimal" step="any" value="15" /></label>
+            </div>
+            <div class="tl-quick" id="ci-quick"><button type="button" data-r="0">무이자</button><button type="button" data-r="10">연 10%</button><button type="button" data-r="15">연 15%</button><button type="button" data-r="19.9">연 19.9%</button></div>
+          </div>
+          <div class="tl-result" id="ci-result" hidden aria-live="polite"><div class="tl-result__label">총 할부 수수료</div><div class="tl-result__big" id="ci-big"></div><div class="tl-result__sub" id="ci-sub"></div></div>
+          <div class="tl-wrap" id="ci-wrap" hidden style="margin-top:0.9rem"><table class="tl-table"><thead><tr><th>회차</th><th>원금</th><th>수수료</th><th>낼 금액</th></tr></thead><tbody id="ci-body"></tbody></table></div>
+        </>
+      )}
+      {slug === 'car-loan' && (
+        <>
+          <div class="tl-card">
+            <div class="tl-row">
+              <label class="tl-field">차량 가격(만원)<input id="cl-price" type="number" inputmode="numeric" placeholder="예: 3500" /></label>
+              <label class="tl-field">선수금(만원)<input id="cl-down" type="number" inputmode="numeric" placeholder="예: 1000" /></label>
+            </div>
+            <div class="tl-quick" id="cl-quick"><button type="button" data-p="0">선수금 없음</button><button type="button" data-p="10">10%</button><button type="button" data-p="20">20%</button><button type="button" data-p="30">30%</button><button type="button" data-p="50">50%</button></div>
+            <div class="tl-row" style="margin-top:0.7rem">
+              <label class="tl-field">금리(연 %)<input id="cl-rate" type="number" inputmode="decimal" step="any" value="5.5" /></label>
+              <label class="tl-field">할부 기간<select id="cl-m">{[12, 24, 36, 48, 60, 72, 84].map((m) => <option value={m} selected={m === 60}>{m}개월 ({m / 12}년)</option>)}</select></label>
+            </div>
+          </div>
+          <div class="tl-result" id="cl-result" hidden aria-live="polite"><div class="tl-result__label">월 납입금</div><div class="tl-result__big" id="cl-big"></div><div class="tl-result__sub" id="cl-sub"></div></div>
+          <div class="tl-wrap" id="cl-wrap" hidden style="margin-top:0.9rem"><table class="tl-table"><thead><tr><th>기간</th><th>월 납입금</th><th>총 이자</th></tr></thead><tbody id="cl-body"></tbody></table></div>
+        </>
+      )}
+      <p class="pp-note">※ {t.notes}</p>
+    </section>
+
+    <div class="pt-ad"><AdSlot slot="calc-mid" /></div>
+
+    <section class="pt-sec pt-prose">
+      <h2>자주 묻는 질문</h2>
+      {t.faq.map((f) => <p><b>{f.q}</b><br />{f.a}</p>)}
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>다른 계산기</h2></div></div>
+      <div class="pt-chips">{others.map((o) => <a class="pt-chip" href={`/calc/${o.slug}/`}>{o.name}</a>)}<a class="pt-chip" href="/dday/">D-day 계산기</a><a class="pt-chip" href="/convert/unit/">단위 변환</a></div>
+    </section>
+  </div>
+
+  <style is:global>
+    .tl-quick button.is-on { border-color: var(--accent); background: var(--accent); color: #fff; }
+    .cc-stack { display: grid; gap: 0.9rem; }
+    .cc-stack .tl-result { margin-top: 0; }
+    .cc-h { display: block; font-size: 1rem; font-weight: 800; margin-bottom: 0.7rem; }
+    .cc-out { margin: 0.8rem 0 0; padding: 0.8rem 1rem; border-radius: 12px; background: color-mix(in srgb, var(--accent) 7%, var(--paper)); font-size: 0.98rem; font-weight: 700; color: var(--ink-soft); }
+    .cc-out b { font-size: 1.25rem; font-weight: 800; color: var(--accent); }
+    .cc-opts { display: flex; flex-wrap: wrap; gap: 0.6rem 1.1rem; margin-top: 0.8rem; font-size: 0.9rem; font-weight: 700; color: var(--ink-soft); }
+    .cc-opts label { display: flex; align-items: center; gap: 0.35rem; cursor: pointer; }
+    .cc-err { margin: 0.7rem 0 0; font-size: 0.85rem; color: #e11d48; }
+    .cc-err[hidden] { display: none; }
+    .gp-rows { display: grid; gap: 0.45rem; }
+    .gp-row { display: grid; grid-template-columns: minmax(0, 1fr) 5.2rem 5.6rem 2.2rem; gap: 0.35rem; align-items: center; }
+    .gp-row input, .gp-row select { height: 2.7rem; padding: 0 0.6rem; border: 1px solid var(--line); border-radius: 10px; background: var(--paper-2); font: inherit; font-size: 0.95rem; font-weight: 700; color: var(--ink); width: 100%; min-width: 0; }
+    .gp-row input:focus, .gp-row select:focus { outline: none; border-color: var(--accent); }
+    .gp-row button { height: 2.2rem; border: 0; border-radius: 8px; background: none; color: var(--muted); font-size: 1.1rem; cursor: pointer; }
+    .gp-row button:hover { color: #e11d48; }
+    .pw-list { display: grid; gap: 0.5rem; margin-top: 1rem; }
+    .pw-list button { display: block; width: 100%; padding: 0.85rem 1rem; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 1.02rem; font-weight: 700; color: var(--ink); text-align: left; word-break: break-all; cursor: pointer; }
+    .pw-list button:hover { border-color: var(--accent); }
+    .tl-table td.cc-l { text-align: left; }
+    .tl-table td.cc-r { text-align: right; font-variant-numeric: tabular-nums; }
+  </style>
+
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const tool = $('cc-root').dataset.tool;
+      let sent = false;
+      const used = () => { if (sent) return; sent = true; try { if (window.gtag) window.gtag('event', 'tool_use', { tool: 'calc-' + tool }); } catch (e) {} };
+      const num = (id) => { const v = $(id).value; return v === '' ? NaN : Number(v); };
+      const won = (x) => Math.round(x).toLocaleString('ko-KR') + '원';
+      const nice = (x) => (Math.round(x * 100) / 100).toLocaleString('ko-KR', { maximumFractionDigits: 2 });
+      // 결과 문장을 안전하게 조립: 문자열은 그대로, [값]은 굵게
+      const say = (el, parts) => { el.textContent = ''; parts.forEach((p) => { if (Array.isArray(p)) { const b = document.createElement('b'); b.textContent = p[0]; el.appendChild(b); } else el.appendChild(document.createTextNode(p)); }); };
+      const row = (body, cells, cls) => { const tr = document.createElement('tr'); cells.forEach((c, i) => { const td = document.createElement('td'); td.textContent = c; if (cls && cls[i]) td.className = cls[i]; tr.appendChild(td); }); body.appendChild(tr); };
+
+      if (tool === 'percent') {
+        const bind = (ids, fn) => ids.forEach((id) => $(id).addEventListener('input', () => { fn(); used(); }));
+        bind(['p1-a', 'p1-b'], () => { const a = num('p1-a'), b = num('p1-b'); if (isNaN(a) || isNaN(b)) return; say($('p1-out'), [nice(a) + '의 ' + nice(b) + '%는 ', [nice(a * b / 100)], '입니다']); });
+        bind(['p2-a', 'p2-b'], () => { const a = num('p2-a'), b = num('p2-b'); if (isNaN(a) || isNaN(b)) return; if (b === 0) { $('p2-out').textContent = '전체 값은 0이 될 수 없어요'; return; } say($('p2-out'), [nice(a) + '은(는) ' + nice(b) + '의 ', [nice(a / b * 100) + '%'], '입니다']); });
+        bind(['p3-a', 'p3-b'], () => { const a = num('p3-a'), b = num('p3-b'); if (isNaN(a) || isNaN(b)) return; if (a === 0) { $('p3-out').textContent = '처음 값이 0이면 증감률을 계산할 수 없어요'; return; } const r = (b - a) / Math.abs(a) * 100; say($('p3-out'), [[nice(Math.abs(r)) + '% ' + (r > 0 ? '증가' : r < 0 ? '감소' : '변화 없음')], ' (차이 ' + (b - a > 0 ? '+' : '') + nice(b - a) + ')']); });
+        bind(['p4-a', 'p4-b'], () => { const a = num('p4-a'), b = num('p4-b'); if (isNaN(a) || isNaN(b)) return; say($('p4-out'), [nice(b) + '% 더하면 ', [nice(a * (1 + b / 100))], ' · 빼면 ', [nice(a * (1 - b / 100))]]); });
+      }
+
+      if (tool === 'discount') {
+        const calc = () => {
+          const p = num('ds-price'), r = num('ds-rate'), e = num('ds-extra');
+          if (isNaN(p) || isNaN(r) || p <= 0 || r < 0 || r > 100) { $('ds-result').hidden = true; return; }
+          const ex = isNaN(e) ? 0 : Math.min(100, Math.max(0, e));
+          const sale = p * (1 - r / 100) * (1 - ex / 100), total = (1 - sale / p) * 100;
+          $('ds-big').textContent = won(sale);
+          $('ds-sub').textContent = won(p - sale) + ' 할인' + (ex ? ' · 실제 할인율 ' + nice(total) + '%' : '');
+          $('ds-result').hidden = false; used();
+        };
+        ['ds-price', 'ds-rate', 'ds-extra'].forEach((id) => $(id).addEventListener('input', calc));
+        $('ds-quick').addEventListener('click', (ev) => { const b = ev.target.closest('button'); if (!b) return; $('ds-rate').value = b.dataset.r; calc(); });
+        const calc2 = () => { const p = num('dr-price'), s = num('dr-sale'); if (isNaN(p) || isNaN(s) || p <= 0) return; const r = (p - s) / p * 100; say($('dr-out'), r >= 0 ? [[nice(r) + '% 할인'], ' (' + won(p - s) + ' 싸게)'] : ['정가보다 ', [nice(-r) + '% 비싸요']]); used(); };
+        ['dr-price', 'dr-sale'].forEach((id) => $(id).addEventListener('input', calc2));
+      }
+
+      if (tool === 'dutch-pay') {
+        const err = (m) => { $('dp-err').textContent = m; $('dp-err').hidden = !m; if (m) { $('dp-result').hidden = true; $('dp-wrap').hidden = true; } };
+        const calc = () => {
+          const total = num('dp-total'), n = Math.round(num('dp-n')), unit = Number($('dp-unit').value), up = $('dp-mode').value === 'ceil';
+          let extra = num('dp-extra'), m = Math.round(num('dp-m'));
+          if (isNaN(total) || total <= 0) { err(''); $('dp-result').hidden = true; $('dp-wrap').hidden = true; return; }
+          if (!(n >= 2)) return err('인원은 2명 이상으로 적어 주세요.');
+          if (isNaN(extra) || extra <= 0) { extra = 0; m = 0; }
+          if (extra > 0) { if (extra >= total) return err('따로 계산할 금액은 총 금액보다 작아야 해요.'); if (!(m >= 1 && m < n)) return err('따로 계산할 인원은 1명 이상, 전체 인원(' + n + '명)보다 적어야 해요.'); }
+          err('');
+          const fit = (x) => (up ? Math.ceil(x / unit) : Math.floor(x / unit)) * unit;
+          const base = fit((total - extra) / n), plus = extra > 0 ? fit((total - extra) / n + extra / m) : base;
+          const collected = base * (n - m) + plus * m, diff = total - collected;
+          $('dp-label').textContent = extra > 0 ? '함께 먹은 것만 나눈 1인당' : '1인당';
+          $('dp-big').textContent = won(base);
+          $('dp-sub').textContent = diff === 0 ? '딱 떨어져요' : diff > 0 ? '모자라는 ' + won(diff) + '은 총무가 더 내요' : '걷으면 ' + won(-diff) + '이 남아요';
+          const body = $('dp-body'); body.textContent = '';
+          if (extra > 0) { row(body, ['따로 계산 안 한 ' + (n - m) + '명', '1인당 ' + won(base)], ['cc-l', 'cc-r']); row(body, ['따로 계산한 ' + m + '명', '1인당 ' + won(plus)], ['cc-l', 'cc-r']); }
+          row(body, ['걷는 금액 합계', won(collected)], ['cc-l', 'cc-r']); row(body, ['총 금액', won(total)], ['cc-l', 'cc-r']);
+          $('dp-result').hidden = false; $('dp-wrap').hidden = false; used();
+        };
+        ['dp-total', 'dp-n', 'dp-extra', 'dp-m'].forEach((id) => $(id).addEventListener('input', calc));
+        ['dp-unit', 'dp-mode'].forEach((id) => $(id).addEventListener('change', calc));
+      }
+
+      if (tool === 'gpa') {
+        const SCALE = {
+          45: [['A+', 4.5], ['A0', 4.0], ['B+', 3.5], ['B0', 3.0], ['C+', 2.5], ['C0', 2.0], ['D+', 1.5], ['D0', 1.0], ['F', 0], ['P', null], ['NP', null]],
+          43: [['A+', 4.3], ['A0', 4.0], ['A-', 3.7], ['B+', 3.3], ['B0', 3.0], ['B-', 2.7], ['C+', 2.3], ['C0', 2.0], ['C-', 1.7], ['D+', 1.3], ['D0', 1.0], ['D-', 0.7], ['F', 0], ['P', null], ['NP', null]],
+        };
+        let scale = 45;
+        const rows = $('gp-rows');
+        const fillGrades = (sel, keep) => { sel.textContent = ''; const o0 = document.createElement('option'); o0.value = ''; o0.textContent = '성적'; sel.appendChild(o0); SCALE[scale].forEach((g) => { const o = document.createElement('option'); o.value = g[0]; o.textContent = g[0]; sel.appendChild(o); }); if (keep && SCALE[scale].some((g) => g[0] === keep)) sel.value = keep; };
+        const calc = () => {
+          let pts = 0, cr = 0, all = 0;
+          rows.querySelectorAll('.gp-row').forEach((r) => {
+            const c = Number(r.querySelector('.gp-c').value), g = r.querySelector('.gp-g').value; if (!g || !(c > 0)) return;
+            const v = SCALE[scale].find((x) => x[0] === g)[1];
+            if (v === null) { if (g === 'P') all += c; return; }
+            pts += c * v; cr += c; if (g !== 'F') all += c;
+          });
+          if (!cr) { $('gp-big').textContent = '-'; $('gp-sub').textContent = all ? '평점에 반영되는 과목이 없어요 (P/NP만 입력됨)' : '과목의 학점 수와 성적을 골라 주세요'; return; }
+          const max = scale === 45 ? '4.5' : '4.3';
+          $('gp-big').textContent = (Math.round(pts / cr * 100) / 100).toFixed(2) + ' / ' + max;
+          $('gp-sub').textContent = '평점 반영 ' + cr + '학점 · 취득 ' + all + '학점'; used();
+        };
+        const add = () => {
+          const r = document.createElement('div'); r.className = 'gp-row';
+          const nm = document.createElement('input'); nm.type = 'text'; nm.placeholder = '과목명(선택)'; nm.maxLength = 20; nm.setAttribute('aria-label', '과목명');
+          const c = document.createElement('select'); c.className = 'gp-c'; c.setAttribute('aria-label', '학점 수'); [1, 2, 3, 4, 5, 6].forEach((k) => { const o = document.createElement('option'); o.value = k; o.textContent = k + '학점'; if (k === 3) o.selected = true; c.appendChild(o); });
+          const g = document.createElement('select'); g.className = 'gp-g'; g.setAttribute('aria-label', '성적'); fillGrades(g);
+          const x = document.createElement('button'); x.type = 'button'; x.textContent = '×'; x.setAttribute('aria-label', '이 과목 지우기'); x.addEventListener('click', () => { r.remove(); calc(); });
+          c.addEventListener('change', calc); g.addEventListener('change', calc);
+          r.appendChild(nm); r.appendChild(c); r.appendChild(g); r.appendChild(x); rows.appendChild(r);
+        };
+        $('gp-add').addEventListener('click', add);
+        $('gp-reset').addEventListener('click', () => { rows.textContent = ''; for (let i = 0; i < 6; i++) add(); calc(); });
+        $('gp-scale').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; scale = Number(b.dataset.s); $('gp-scale').querySelectorAll('button').forEach((x) => x.classList.toggle('is-on', x === b)); rows.querySelectorAll('.gp-g').forEach((s) => fillGrades(s, s.value)); calc(); });
+        for (let i = 0; i < 6; i++) add();
+      }
+
+      if (tool === 'date-add') {
+        const DOW = ['일', '월', '화', '수', '목', '금', '토'];
+        const pad = (n) => String(n).padStart(2, '0');
+        const parse = (s) => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s); return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : null; };
+        const fmt = (d) => d.getFullYear() + '년 ' + (d.getMonth() + 1) + '월 ' + d.getDate() + '일';
+        const addDays = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+        // 같은 날짜로 옮기되 그 달에 없는 날이면 말일로
+        const addMonths = (d, n) => { const y = d.getFullYear(), m = d.getMonth() + n, last = new Date(y, m + 1, 0).getDate(); return new Date(y, m, Math.min(d.getDate(), last)); };
+        const today = new Date(); $('da-base').value = today.getFullYear() + '-' + pad(today.getMonth() + 1) + '-' + pad(today.getDate());
+        const calc = () => {
+          const base = parse($('da-base').value), n = Math.round(num('da-n')), unit = $('da-unit').value, dir = Number($('da-dir').value), incl = $('da-incl').checked;
+          $('da-incl').disabled = unit !== 'd' || dir !== 1;
+          const body = $('da-body'); body.textContent = '';
+          if (!base || isNaN(n) || n < 0 || n > 100000) { $('da-big').textContent = '-'; $('da-label').textContent = '기준일과 숫자를 확인해 주세요'; $('da-sub').textContent = ''; return; }
+          const off = incl && unit === 'd' && dir === 1 ? n - 1 : n;
+          const out = unit === 'd' ? addDays(base, dir * off) : unit === 'w' ? addDays(base, dir * n * 7) : unit === 'm' ? addMonths(base, dir * n) : addMonths(base, dir * n * 12);
+          const name = { d: '일', w: '주', m: '개월', y: '년' }[unit];
+          $('da-label').textContent = fmt(base) + (incl && unit === 'd' && dir === 1 ? '부터 ' + n + '일째 되는 날' : '의 ' + n + name + (dir === 1 ? ' 후' : ' 전'));
+          $('da-big').textContent = fmt(out) + ' (' + DOW[out.getDay()] + ')';
+          const gap = Math.round((out - new Date(today.getFullYear(), today.getMonth(), today.getDate())) / 86400000);
+          $('da-sub').textContent = gap === 0 ? '오늘이에요' : gap > 0 ? '오늘부터 ' + gap.toLocaleString('ko-KR') + '일 남았어요' : '오늘부터 ' + (-gap).toLocaleString('ko-KR') + '일 지났어요';
+          const k = incl ? 1 : 0;
+          [['100일', addDays(base, 100 - k)], ['200일', addDays(base, 200 - k)], ['300일', addDays(base, 300 - k)], ['1년', addMonths(base, 12)], ['500일', addDays(base, 500 - k)], ['1000일', addDays(base, 1000 - k)], ['10년', addMonths(base, 120)]]
+            .forEach((r) => row(body, [r[0] + (incl && /일$/.test(r[0]) ? '째' : ' 후'), fmt(r[1]), DOW[r[1].getDay()] + '요일']));
+        };
+        ['da-base', 'da-n'].forEach((id) => $(id).addEventListener('input', () => { calc(); used(); }));
+        ['da-unit', 'da-dir', 'da-incl'].forEach((id) => $(id).addEventListener('change', () => { calc(); used(); }));
+        calc();
+      }
+
+      if (tool === 'password') {
+        const SETS = { up: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', lo: 'abcdefghijklmnopqrstuvwxyz', di: '0123456789', sy: '!@#$%^&*()-_=+[]{};:,.?' };
+        // 편향 없는 난수(거부 표본 추출)
+        const pick = (n) => { const lim = Math.floor(4294967296 / n) * n, buf = new Uint32Array(1); do { crypto.getRandomValues(buf); } while (buf[0] >= lim); return buf[0] % n; };
+        const make = () => {
+          const len = Number($('pw-len').value), amb = $('pw-amb').checked;
+          const sets = ['up', 'lo', 'di', 'sy'].filter((k) => $('pw-' + k).checked).map((k) => (amb ? SETS[k].replace(/[0O1lI]/g, '') : SETS[k]));
+          const out = $('pw-out'); out.textContent = '';
+          if (!sets.length) { $('pw-msg').textContent = '문자 종류를 하나 이상 골라 주세요.'; return; }
+          const all = sets.join('');
+          for (let i = 0; i < 5; i++) {
+            // 고른 종류가 적어도 하나씩 들어가게 한 뒤 섞는다
+            const ch = sets.map((s) => s[pick(s.length)]); while (ch.length < len) ch.push(all[pick(all.length)]);
+            for (let k = ch.length - 1; k > 0; k--) { const j = pick(k + 1); const x = ch[k]; ch[k] = ch[j]; ch[j] = x; }
+            const pw = ch.join(''), b = document.createElement('button'); b.type = 'button'; b.textContent = pw;
+            b.addEventListener('click', async () => { try { await navigator.clipboard.writeText(pw); $('pw-msg').textContent = '복사됐어요. 붙여 넣은 뒤에는 이 창을 닫아 주세요.'; } catch (e) { $('pw-msg').textContent = '복사가 막혀 있어요. 길게 눌러 직접 복사해 주세요.'; } });
+            out.appendChild(b);
+          }
+          $('pw-msg').textContent = '비밀번호를 누르면 복사돼요.';
+        };
+        $('pw-len').addEventListener('input', () => { $('pw-len-v').textContent = $('pw-len').value; make(); });
+        ['pw-up', 'pw-lo', 'pw-di', 'pw-sy', 'pw-amb'].forEach((id) => $(id).addEventListener('change', make));
+        $('pw-go').addEventListener('click', () => { make(); used(); });
+        make();
+      }
+
+      if (tool === 'card-installment') {
+        const calc = () => {
+          const amt = num('ci-amt'), m = Number($('ci-m').value), rate = num('ci-rate');
+          if (isNaN(amt) || amt <= 0 || isNaN(rate) || rate < 0 || rate > 30) { $('ci-result').hidden = true; $('ci-wrap').hidden = true; return; }
+          const body = $('ci-body'); body.textContent = '';
+          const per = Math.floor(amt / m); let left = amt, fee = 0;
+          for (let i = 1; i <= m; i++) {
+            const prin = i === m ? left : per, f = Math.floor(left * rate / 100 / 12);
+            fee += f; row(body, [i + '회', won(prin), won(f), won(prin + f)], ['', 'cc-r', 'cc-r', 'cc-r']); left -= prin;
+          }
+          $('ci-big').textContent = won(fee);
+          $('ci-sub').textContent = rate === 0 ? '무이자 · 매달 약 ' + won(per) : '총 ' + won(amt + fee) + ' 납부 · 결제 금액의 ' + nice(fee / amt * 100) + '%';
+          $('ci-result').hidden = false; $('ci-wrap').hidden = false; used();
+        };
+        ['ci-amt', 'ci-rate'].forEach((id) => $(id).addEventListener('input', calc)); $('ci-m').addEventListener('change', calc);
+        $('ci-quick').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; $('ci-rate').value = b.dataset.r; calc(); });
+      }
+
+      if (tool === 'car-loan') {
+        const pay = (P, ratePct, n) => { const r = ratePct / 100 / 12; return r === 0 ? P / n : P * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1); };
+        const calc = () => {
+          const price = num('cl-price'), rate = num('cl-rate'), n = Number($('cl-m').value); let down = num('cl-down'); if (isNaN(down)) down = 0;
+          if (isNaN(price) || price <= 0 || isNaN(rate) || rate < 0 || rate > 30 || down < 0 || down >= price) { $('cl-result').hidden = true; $('cl-wrap').hidden = true; return; }
+          const P = (price - down) * 10000, mon = pay(P, rate, n);
+          $('cl-big').textContent = won(mon);
+          $('cl-sub').textContent = '할부 원금 ' + won(P) + ' · 총 이자 ' + won(mon * n - P);
+          const body = $('cl-body'); body.textContent = '';
+          [24, 36, 48, 60, 72].forEach((k) => { const v = pay(P, rate, k); row(body, [k + '개월', won(v), won(v * k - P)], [k === n ? 'is-on' : '', 'cc-r', 'cc-r']); });
+          $('cl-result').hidden = false; $('cl-wrap').hidden = false; used();
+        };
+        ['cl-price', 'cl-down', 'cl-rate'].forEach((id) => $(id).addEventListener('input', calc)); $('cl-m').addEventListener('change', calc);
+        $('cl-quick').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; const price = num('cl-price'); if (isNaN(price)) return; $('cl-down').value = Math.round(price * Number(b.dataset.p) / 100); calc(); });
+      }
+    })();
+  </script>
+</BaseLayout>

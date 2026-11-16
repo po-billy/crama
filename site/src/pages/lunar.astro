@@ -1,0 +1,163 @@
+---
+// 음력·양력 변환 — 빌드할 때 한국 음력(단기력) 월 시작일 표를 만들어 페이지에 넣고, 변환은 기기 안에서만 한다.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AdSlot from '../components/AdSlot.astro';
+import '../styles/portal.css';
+
+const FROM = 1930, TO = 2050;
+const fmt = new Intl.DateTimeFormat('ko-KR-u-ca-dangi', { timeZone: 'Asia/Seoul', year: 'numeric', month: 'numeric', day: 'numeric' });
+// [1970-01-01 부터의 날수, 음력 연, 음력 월, 윤달 여부(0/1)] — 음력 1일인 날만 모은다
+const STARTS: number[][] = [];
+const DAY = 86400000;
+const t0 = Date.UTC(FROM - 1, 10, 1, 3);
+const t1 = Date.UTC(TO + 1, 2, 1, 3);
+for (let t = t0; t <= t1; t += DAY) {
+  const parts = fmt.formatToParts(new Date(t));
+  const get = (k: string) => parts.find((p) => p.type === k)?.value || '';
+  if (get('day') !== '1') continue;
+  const mon = get('month');
+  STARTS.push([Math.floor(t / DAY), Number(get('relatedYear')), Number(mon.replace(/[^0-9]/g, '')), /윤/.test(mon) ? 1 : 0]);
+}
+if (STARTS.length < 1400) throw new Error('음력 표 생성 실패: ' + STARTS.length);
+const toSolar = (ly: number, lm: number, ld: number) => { const s = STARTS.find((x) => x[1] === ly && x[2] === lm && !x[3]); return s ? new Date((s[0] + ld - 1) * DAY) : null; };
+const DOW = ['일', '월', '화', '수', '목', '금', '토'];
+const show = (d: Date | null) => (d ? `${d.getUTCMonth() + 1}월 ${d.getUTCDate()}일 (${DOW[d.getUTCDay()]})` : '-');
+const thisYear = new Date().getFullYear();
+const YEARS = [thisYear, thisYear + 1, thisYear + 2];
+const DAYS = [
+  { name: '설날', m: 1, d: 1 }, { name: '정월 대보름', m: 1, d: 15 }, { name: '부처님 오신 날', m: 4, d: 8 },
+  { name: '단오', m: 5, d: 5 }, { name: '칠석', m: 7, d: 7 }, { name: '추석', m: 8, d: 15 },
+];
+const faq = [
+  { q: '음력 생일은 매년 양력 날짜가 달라지나요?', a: '네. 음력은 달의 움직임을 기준으로 해서 한 해가 양력보다 약 11일 짧고, 2~3년에 한 번 윤달을 넣어 맞춥니다. 그래서 같은 음력 날짜라도 양력으로는 해마다 최대 한 달 가까이 달라집니다.' },
+  { q: '윤달에 태어났으면 생일을 어떻게 챙기나요?', a: '같은 윤달은 수십 년에 한 번 돌아오기 때문에, 보통 윤달이 아닌 같은 달(평달)의 같은 날을 생일로 챙깁니다. 예를 들어 음력 윤4월 10일생이면 매년 음력 4월 10일을 생일로 봅니다.' },
+  { q: '음력 30일생인데 올해는 그 달이 29일까지밖에 없어요.', a: '음력 한 달은 29일 또는 30일이라 해마다 30일이 없는 경우가 있습니다. 이럴 때는 보통 그 달의 마지막 날(29일)을 생일로 챙깁니다.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title="음력 양력 변환기 — 음력 생일을 양력으로, 양력을 음력으로" description="양력 날짜를 음력으로, 음력 날짜를 양력으로 바로 바꿔 드립니다. 올해 음력 생일이 양력으로 며칠인지, 설날·추석 날짜까지 한 번에 확인하세요." jsonLd={jsonLd}>
+  <div class="pt pt-narrow" style="--c:#3b82f6">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/date/">나이·날짜</a> › 음력·양력 변환</nav>
+    <header class="pt-hubhero">
+      <img src="/img/portal/g-date.webp" alt="" width="200" height="200" />
+      <div><h1>음력·양력 변환</h1><p>음력 생일, 올해는 양력으로 며칠일까</p></div>
+    </header>
+
+    <section class="pt-sec">
+      <div class="tl-quick" id="ln-mode" style="margin:0 0 0.8rem"><button type="button" data-m="s2l" class="is-on">양력 → 음력</button><button type="button" data-m="l2s">음력 → 양력</button><button type="button" data-m="bday">음력 생일 찾기</button></div>
+      <div class="tl-card" id="ln-s2l">
+        <div class="tl-row"><label class="tl-field">양력 날짜<input id="ln-solar" type="date" min={`${FROM}-01-01`} max={`${TO}-12-31`} /></label></div>
+      </div>
+      <div class="tl-card" id="ln-l2s" hidden>
+        <div class="tl-row">
+          <label class="tl-field">음력 연도<input id="ln-y" type="number" inputmode="numeric" min={FROM} max={TO} value={thisYear} /></label>
+          <label class="tl-field">월<select id="ln-m">{Array.from({ length: 12 }, (_, i) => <option value={i + 1}>{i + 1}월</option>)}</select></label>
+          <label class="tl-field">일<select id="ln-d">{Array.from({ length: 30 }, (_, i) => <option value={i + 1}>{i + 1}일</option>)}</select></label>
+        </div>
+        <div class="ln-opts"><label><input type="checkbox" id="ln-leap" /> 윤달</label></div>
+      </div>
+      <div class="tl-card" id="ln-bday" hidden>
+        <div class="tl-row">
+          <label class="tl-field">음력 생일 · 월<select id="lb-m">{Array.from({ length: 12 }, (_, i) => <option value={i + 1}>{i + 1}월</option>)}</select></label>
+          <label class="tl-field">일<select id="lb-d">{Array.from({ length: 30 }, (_, i) => <option value={i + 1}>{i + 1}일</option>)}</select></label>
+        </div>
+      </div>
+      <div class="tl-result" id="ln-result" aria-live="polite"><div class="tl-result__label" id="ln-label"></div><div class="tl-result__big" id="ln-big" style="font-size:2.1rem"></div><div class="tl-result__sub" id="ln-sub"></div></div>
+      <div class="tl-wrap" id="ln-wrap" hidden style="margin-top:0.9rem"><table class="tl-table"><thead><tr><th>연도</th><th>양력 날짜</th><th>요일</th></tr></thead><tbody id="ln-body"></tbody></table></div>
+      <p class="pp-note">※ {FROM}~{TO}년 범위에서 한국 표준시 기준 음력(윤달 포함)으로 변환합니다. 음력 날짜는 한국천문연구원이 발표하는 월력요항이 공식 기준이며, 드물게 하루 차이가 날 수 있으니 제사·택일처럼 중요한 날은 한국천문연구원 음양력 변환으로 한 번 더 확인하세요.</p>
+    </section>
+
+    <div class="pt-ad"><AdSlot slot="lunar-mid" /></div>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>음력으로 정해지는 날</h2><p>올해부터 3년치 양력 날짜</p></div></div>
+      <div class="tl-wrap">
+        <table class="tl-table">
+          <thead><tr><th>날</th><th>음력</th>{YEARS.map((y) => <th>{y}년</th>)}</tr></thead>
+          <tbody>
+            {DAYS.map((x) => <tr><td><b>{x.name}</b></td><td>{x.m}월 {x.d}일</td>{YEARS.map((y) => <td>{show(toSolar(y, x.m, x.d))}</td>)}</tr>)}
+          </tbody>
+        </table>
+      </div>
+      <p class="pp-note">※ 위 표는 음력 날짜를 양력으로 옮긴 것입니다. 대체공휴일 등 실제 쉬는 날은 정부 발표를 확인하세요.</p>
+    </section>
+
+    <section class="pt-sec pt-prose">
+      <h2>자주 묻는 질문</h2>
+      {faq.map((f) => <p><b>{f.q}</b><br />{f.a}</p>)}
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>함께 쓰면 좋은 도구</h2></div></div>
+      <div class="pt-chips"><a class="pt-chip" href="/age/">만 나이 계산기</a><a class="pt-chip" href="/dday/">D-day 계산기</a><a class="pt-chip" href="/calc/date-add/">날짜 계산기</a><a class="pt-chip" href="/born/">출생연도별 나이표</a><a class="pt-chip" href="/fortune/">오늘의 운세</a></div>
+    </section>
+  </div>
+
+  <style is:global>
+    .tl-quick button.is-on { border-color: var(--accent); background: var(--accent); color: #fff; }
+    .ln-opts { margin-top: 0.8rem; font-size: 0.9rem; font-weight: 700; color: var(--ink-soft); }
+    .ln-opts label { display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; }
+  </style>
+
+  <script is:inline define:vars={{ STARTS, FROM, TO }}>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const DAY = 86400000, DOW = ['일', '월', '화', '수', '목', '금', '토'];
+      const pad = (n) => String(n).padStart(2, '0');
+      const dn = (y, m, d) => Math.floor(Date.UTC(y, m - 1, d) / DAY);
+      const fromDn = (n) => new Date(n * DAY);
+      const solarText = (n) => { const d = fromDn(n); return d.getUTCFullYear() + '년 ' + (d.getUTCMonth() + 1) + '월 ' + d.getUTCDate() + '일 (' + DOW[d.getUTCDay()] + ')'; };
+      const monthLen = (i) => (i + 1 < STARTS.length ? STARTS[i + 1][0] - STARTS[i][0] : 30);
+      const findMonth = (ly, lm, leap) => STARTS.findIndex((x) => x[1] === ly && x[2] === lm && x[3] === (leap ? 1 : 0));
+      let sent = false; const used = () => { if (sent) return; sent = true; try { if (window.gtag) window.gtag('event', 'tool_use', { tool: 'lunar' }); } catch (e) {} };
+      const out = (label, big, sub) => { $('ln-label').textContent = label; $('ln-big').textContent = big; $('ln-sub').textContent = sub || ''; };
+      let mode = 's2l';
+
+      function s2l() {
+        $('ln-wrap').hidden = true;
+        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec($('ln-solar').value);
+        if (!m) return out('양력 날짜를 골라 주세요', '-', '');
+        const n = dn(Number(m[1]), Number(m[2]), Number(m[3]));
+        let i = -1; for (let k = 0; k < STARTS.length; k++) { if (STARTS[k][0] <= n) i = k; else break; }
+        if (i < 0 || i >= STARTS.length - 1 || Number(m[1]) < FROM || Number(m[1]) > TO) return out(FROM + '~' + TO + '년 사이 날짜만 변환할 수 있어요', '-', '');
+        const s = STARTS[i];
+        out('양력 ' + solarText(n), '음력 ' + s[1] + '년 ' + (s[3] ? '윤' : '') + s[2] + '월 ' + (n - s[0] + 1) + '일', s[3] ? '윤달이에요' : '이 달은 ' + monthLen(i) + '일까지 있어요');
+      }
+      function l2s() {
+        $('ln-wrap').hidden = true;
+        const y = Math.round(Number($('ln-y').value)), mo = Number($('ln-m').value), d = Number($('ln-d').value), leap = $('ln-leap').checked;
+        if (!(y >= FROM && y <= TO)) return out(FROM + '~' + TO + '년 사이만 변환할 수 있어요', '-', '');
+        const i = findMonth(y, mo, leap);
+        if (i < 0) return out('음력 ' + y + '년에는 윤' + mo + '월이 없어요', '-', '윤달 체크를 풀고 다시 확인해 주세요');
+        if (d > monthLen(i)) return out('음력 ' + y + '년 ' + (leap ? '윤' : '') + mo + '월은 ' + monthLen(i) + '일까지 있어요', '-', '');
+        out('음력 ' + y + '년 ' + (leap ? '윤' : '') + mo + '월 ' + d + '일', '양력 ' + solarText(STARTS[i][0] + d - 1), '');
+      }
+      function bday() {
+        const mo = Number($('lb-m').value), d = Number($('lb-d').value), y0 = new Date().getFullYear(), body = $('ln-body'); body.textContent = '';
+        let first = null, note = '';
+        for (let y = y0; y <= Math.min(TO, y0 + 9); y++) {
+          const i = findMonth(y, mo, false); if (i < 0) continue;
+          const dd = Math.min(d, monthLen(i)), n = STARTS[i][0] + dd - 1, dt = fromDn(n);
+          if (y === y0) { first = n; if (dd !== d) note = '올해 음력 ' + mo + '월은 ' + monthLen(i) + '일까지라 말일로 계산했어요'; }
+          const tr = document.createElement('tr');
+          [dt.getUTCFullYear() + '년' + (dt.getUTCFullYear() !== y ? ' (음력 ' + y + '년)' : ''), (dt.getUTCMonth() + 1) + '월 ' + dt.getUTCDate() + '일' + (dd !== d ? ' *' : ''), DOW[dt.getUTCDay()] + '요일'].forEach((c, k) => { const td = document.createElement('td'); td.textContent = c; if (k === 1) td.style.fontWeight = '800'; tr.appendChild(td); });
+          body.appendChild(tr);
+        }
+        $('ln-wrap').hidden = false;
+        if (first === null) return out('계산할 수 없어요', '-', '');
+        const t = new Date(), gap = first - dn(t.getFullYear(), t.getMonth() + 1, t.getDate());
+        out('음력 ' + mo + '월 ' + d + '일 · 올해는', '양력 ' + solarText(first).replace(/^\d+년 /, ''), note || (gap === 0 ? '오늘이에요 🎂' : gap > 0 ? gap + '일 남았어요' : '올해는 ' + (-gap) + '일 전에 지났어요'));
+      }
+      const run = () => (mode === 's2l' ? s2l() : mode === 'l2s' ? l2s() : bday());
+      $('ln-mode').addEventListener('click', (e) => {
+        const b = e.target.closest('button'); if (!b) return; mode = b.dataset.m;
+        $('ln-mode').querySelectorAll('button').forEach((x) => x.classList.toggle('is-on', x === b));
+        ['s2l', 'l2s', 'bday'].forEach((k) => { $('ln-' + k).hidden = k !== mode; }); run();
+      });
+      ['ln-solar', 'ln-y'].forEach((id) => $(id).addEventListener('input', () => { run(); used(); }));
+      ['ln-m', 'ln-d', 'ln-leap', 'lb-m', 'lb-d'].forEach((id) => $(id).addEventListener('change', () => { run(); used(); }));
+      const t = new Date(); $('ln-solar').value = t.getFullYear() + '-' + pad(t.getMonth() + 1) + '-' + pad(t.getDate());
+      run();
+    })();
+  </script>
+</BaseLayout>

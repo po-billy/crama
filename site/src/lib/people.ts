@@ -3,7 +3,7 @@
 import data from '../data/people.json';
 
 export type Person = {
-  id: string; slug: string; name: string; en: string; birth: string; job: string; jobs: string[]; links: number;
+  id: string; slug: string; name: string; en: string; birth: string; job: string; jobs: string[]; links: number; views?: number;
   img?: string; credit?: { artist: string; license: string; url: string };
 };
 export const PEOPLE = (data as any).people as Person[];

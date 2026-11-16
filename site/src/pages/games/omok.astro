@@ -1,0 +1,145 @@
+---
+// 오목 — 컴퓨터와 두는 15×15 오목. 다섯 개를 먼저 잇는 쪽이 이긴다(금수 없는 자유 규칙).
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import '../../styles/portal.css';
+---
+<BaseLayout title="오목 게임 — 컴퓨터와 두는 온라인 오목" description="컴퓨터와 한 판 두는 오목. 가로·세로·대각선으로 돌 다섯 개를 먼저 이으면 승리. 설치·가입 없이 무료로 바로 즐기세요.">
+  <div class="pt pt-narrow" style="--c:#f59e0b">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/games/">게임</a> › 오목</nav>
+    <div class="gm-head">
+      <h1>오목</h1>
+      <span class="pt-card__tag" id="om-turn">내 차례 (흑)</span>
+      <span class="gm-timer" id="om-score">0승 0패</span>
+    </div>
+    <div class="tl-quick" style="margin:0 0 0.8rem"><button type="button" id="om-new">새 게임 · 내가 먼저</button><button type="button" id="om-new2">새 게임 · 컴퓨터 먼저</button><button type="button" id="om-undo">한 수 무르기</button></div>
+
+    <div class="om-wrap"><div class="om-board" id="om-board" role="grid" aria-label="오목판"></div></div>
+    <p class="gm-msg" id="om-msg" aria-live="polite"></p>
+
+    <div class="pt-ad"><AdSlot slot="game-omok" /></div>
+
+    <section class="pt-sec pt-prose">
+      <h2>하는 법</h2>
+      <ul>
+        <li>빈 자리를 눌러 돌을 놓습니다. 기본은 내가 흑(먼저), 컴퓨터가 백입니다.</li>
+        <li>가로·세로·대각선 어느 방향이든 <b>돌 다섯 개</b>를 먼저 이으면 이깁니다.</li>
+        <li>이 판은 3-3 금지 같은 금수가 없는 자유 규칙이고, 여섯 개 이상 이어도 승리로 봅니다.</li>
+      </ul>
+      <h2>이기는 요령</h2>
+      <p>양쪽이 모두 열린 돌 세 개(열린 3)는 상대가 막지 않으면 다음 수에 막을 수 없는 열린 4가 됩니다. 그래서 열린 3 두 개를 한 번에 만드는 수가 가장 강합니다. 반대로 상대의 열린 3은 바로 막아야 합니다.</p>
+    </section>
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>다른 게임</h2></div></div>
+      <div class="pt-chips"><a class="pt-chip" href="/games/sudoku/">스도쿠</a><a class="pt-chip" href="/games/mines/">지뢰 찾기</a><a class="pt-chip" href="/games/memory/">카드 짝 맞추기</a><a class="pt-chip" href="/games/number-baseball/">숫자 야구</a><a class="pt-chip" href="/games/reaction/">반응속도 테스트</a></div>
+    </section>
+  </div>
+
+  <style is:global>
+    .gm-head { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.8rem; }
+    .gm-head h1 { margin: 0; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; }
+    .gm-timer { margin-left: auto; font-size: 1.05rem; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+    .gm-msg { text-align: center; font-weight: 800; color: var(--accent); min-height: 1.6rem; margin: 0.8rem 0; }
+    .om-wrap { max-width: 30rem; margin: 0 auto; padding: 0.5rem; border-radius: 14px; background: #e8c27a; box-shadow: inset 0 0 0 2px #c79a4b; }
+    .om-board { display: grid; grid-template-columns: repeat(15, 1fr); }
+    .om-cell { position: relative; aspect-ratio: 1; border: 0; padding: 0; background: none; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+    /* 격자선: 칸 가운데를 지나는 가로·세로선 */
+    .om-cell::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #6b4a1b; }
+    .om-cell::after { content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 1px; background: #6b4a1b; }
+    .om-cell[data-c='0']::before { left: 50%; } .om-cell[data-c='14']::before { right: 50%; }
+    .om-cell[data-r='0']::after { top: 50%; } .om-cell[data-r='14']::after { bottom: 50%; }
+    .om-cell i { position: absolute; inset: 7%; border-radius: 50%; z-index: 1; display: none; }
+    .om-cell.is-b i { display: block; background: radial-gradient(circle at 35% 30%, #555, #0b0b0b); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5); }
+    .om-cell.is-w i { display: block; background: radial-gradient(circle at 35% 30%, #fff, #d9d9d9); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.45); }
+    .om-cell.is-last i { outline: 2px solid #ef4444; outline-offset: -1px; }
+    .om-cell.is-win i { outline: 3px solid #22c55e; outline-offset: -1px; }
+    .om-cell.is-dot:not(.is-b):not(.is-w) i { display: block; inset: 40%; background: #6b4a1b; }
+  </style>
+
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const N = 15, DIRS = [[0, 1], [1, 0], [1, 1], [1, -1]], KEY = 'crama:game:omok';
+      let grid, cells = [], hist = [], over = false, busy = false, me = 1, ai = 2;
+      const score = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{"w":0,"l":0}'); } catch (e) { return { w: 0, l: 0 }; } };
+      const showScore = () => { const s = score(); $('om-score').textContent = s.w + '승 ' + s.l + '패'; };
+      const inb = (r, c) => r >= 0 && r < N && c >= 0 && c < N;
+
+      const board = $('om-board');
+      for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'om-cell'; b.dataset.r = r; b.dataset.c = c; b.setAttribute('aria-label', (r + 1) + '행 ' + (c + 1) + '열');
+        if ((r === 3 || r === 7 || r === 11) && (c === 3 || c === 7 || c === 11)) b.classList.add('is-dot');
+        b.appendChild(document.createElement('i')); b.addEventListener('click', () => play(r, c)); board.appendChild(b); cells.push(b);
+      }
+      const cell = (r, c) => cells[r * N + c];
+
+      // (r,c)에 who 가 놓였다고 볼 때 한 방향으로 이어진 개수와 양 끝이 열렸는지
+      function line(r, c, dr, dc, who) {
+        let n = 1, open = 0, a = 1, b = 1;
+        while (inb(r + dr * a, c + dc * a) && grid[r + dr * a][c + dc * a] === who) { n++; a++; }
+        if (inb(r + dr * a, c + dc * a) && grid[r + dr * a][c + dc * a] === 0) open++;
+        while (inb(r - dr * b, c - dc * b) && grid[r - dr * b][c - dc * b] === who) { n++; b++; }
+        if (inb(r - dr * b, c - dc * b) && grid[r - dr * b][c - dc * b] === 0) open++;
+        return { n: n, open: open, a: a, b: b };
+      }
+      const worth = (n, open) => (n >= 5 ? 1000000 : open === 0 ? 0 : n === 4 ? (open === 2 ? 100000 : 9000) : n === 3 ? (open === 2 ? 8000 : 500) : n === 2 ? (open === 2 ? 300 : 40) : open === 2 ? 12 : 3);
+      const value = (r, c, who) => DIRS.reduce((s, d) => { const l = line(r, c, d[0], d[1], who); return s + worth(l.n, l.open); }, 0);
+      function winLine(r, c, who) {
+        for (const d of DIRS) { const l = line(r, c, d[0], d[1], who); if (l.n >= 5) { const out = []; for (let k = -(l.b - 1); k <= l.a - 1; k++) out.push([r + d[0] * k, c + d[1] * k]); return out; } }
+        return null;
+      }
+      function think() {
+        if (!hist.length) return [7, 7];
+        let best = -1, picks = [];
+        for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+          if (grid[r][c]) continue;
+          // 돌 근처(2칸 이내)만 후보로
+          let near = false;
+          for (let dr = -2; dr <= 2 && !near; dr++) for (let dc = -2; dc <= 2; dc++) if (inb(r + dr, c + dc) && grid[r + dr][c + dc]) { near = true; break; }
+          if (!near) continue;
+          const atk = value(r, c, ai), def = value(r, c, me);
+          const v = atk >= 1000000 ? 1e9 : def >= 1000000 ? 1e8 : atk * 1.15 + def + (7 - Math.max(Math.abs(r - 7), Math.abs(c - 7))) * 0.5;
+          if (v > best) { best = v; picks = [[r, c]]; } else if (v === best) picks.push([r, c]);
+        }
+        return picks.length ? picks[Math.floor(Math.random() * picks.length)] : null;
+      }
+      function put(r, c, who) {
+        grid[r][c] = who; hist.push([r, c, who]);
+        cells.forEach((x) => x.classList.remove('is-last'));
+        const el = cell(r, c); el.classList.add(who === (me === 1 ? me : ai) ? 'is-b' : 'is-w', 'is-last');
+        const w = winLine(r, c, who);
+        if (w) { over = true; w.forEach((p) => cell(p[0], p[1]).classList.add('is-win')); finish(who === me); return true; }
+        if (hist.length === N * N) { over = true; $('om-msg').textContent = '무승부예요'; $('om-turn').textContent = '끝'; return true; }
+        return false;
+      }
+      function finish(win) {
+        const s = score(); if (win) s.w++; else s.l++; try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} showScore();
+        $('om-msg').textContent = win ? '이겼어요! 🎉 (' + hist.length + '수)' : '컴퓨터가 이겼어요. 한 판 더?'; $('om-turn').textContent = '끝';
+        try { if (window.gtag) window.gtag('event', 'game_clear', { game: 'omok', result: win ? 'win' : 'lose' }); } catch (e) {}
+      }
+      function aiMove() { const m = think(); if (m) put(m[0], m[1], ai); busy = false; if (!over) $('om-turn').textContent = '내 차례 (' + (me === 1 ? '흑' : '백') + ')'; }
+      function play(r, c) {
+        if (over || busy || grid[r][c]) return;
+        $('om-msg').textContent = '';
+        if (put(r, c, me)) return;
+        busy = true; $('om-turn').textContent = '컴퓨터 생각 중…'; setTimeout(aiMove, 280);
+      }
+      function start(first) {
+        grid = Array.from({ length: N }, () => Array(N).fill(0)); hist = []; over = false; busy = false;
+        // 1 = 흑(선), 2 = 백
+        me = first ? 1 : 2; ai = first ? 2 : 1;
+        cells.forEach((x) => x.classList.remove('is-b', 'is-w', 'is-last', 'is-win'));
+        $('om-msg').textContent = ''; $('om-turn').textContent = '내 차례 (' + (me === 1 ? '흑' : '백') + ')';
+        if (!first) { busy = true; $('om-turn').textContent = '컴퓨터 생각 중…'; setTimeout(aiMove, 280); }
+      }
+      $('om-new').addEventListener('click', () => start(true));
+      $('om-new2').addEventListener('click', () => start(false));
+      $('om-undo').addEventListener('click', () => {
+        if (busy || over || hist.length < 2 || hist[hist.length - 1][2] !== ai) return;
+        for (let k = 0; k < 2; k++) { const h = hist.pop(); grid[h[0]][h[1]] = 0; cell(h[0], h[1]).classList.remove('is-b', 'is-w', 'is-last'); }
+        const last = hist[hist.length - 1]; if (last) cell(last[0], last[1]).classList.add('is-last');
+      });
+      showScore(); start(true);
+    })();
+  </script>
+</BaseLayout>

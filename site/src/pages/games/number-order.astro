@@ -1,0 +1,82 @@
+---
+// 숫자 순서대로 누르기 — 흩어진 숫자를 1부터 차례로 누르는 집중력 게임(슐테 표 방식).
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import '../../styles/portal.css';
+---
+<BaseLayout title="숫자 순서대로 누르기 — 1부터 25까지 집중력 게임" description="흩어진 숫자를 1부터 순서대로 최대한 빨리 누르는 집중력 게임. 9칸·16칸·25칸 난이도와 내 최고 기록을 확인하세요. 설치 없이 무료.">
+  <div class="pt pt-narrow" style="--c:#f59e0b">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/games/">게임</a> › 숫자 순서대로 누르기</nav>
+    <div class="gm-head">
+      <h1>숫자 순서대로 누르기</h1>
+      <span class="pt-card__tag" id="no-next">다음: 1</span>
+      <span class="gm-timer" id="no-time">0.00초</span>
+    </div>
+    <div class="tl-quick" style="margin:0 0 0.8rem"><button type="button" data-n="3">새 게임 · 1~9</button><button type="button" data-n="4">새 게임 · 1~16</button><button type="button" data-n="5">새 게임 · 1~25</button></div>
+
+    <div class="no-board" id="no-board"></div>
+    <p class="gm-msg" id="no-msg" aria-live="polite"></p>
+
+    <div class="pt-ad"><AdSlot slot="game-number-order" /></div>
+
+    <section class="pt-sec pt-prose">
+      <h2>하는 법</h2>
+      <ul>
+        <li>1을 누르는 순간 시간이 흐르기 시작합니다. 1부터 마지막 숫자까지 순서대로 누르세요.</li>
+        <li>틀린 숫자를 누르면 칸이 잠깐 붉게 표시되고 시간은 계속 흐릅니다.</li>
+        <li>눈을 판 가운데에 두고 주변 숫자를 한꺼번에 보려고 하면 기록이 빨라집니다.</li>
+      </ul>
+    </section>
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>다른 게임</h2></div></div>
+      <div class="pt-chips"><a class="pt-chip" href="/games/reaction/">반응속도 테스트</a><a class="pt-chip" href="/games/memory/">카드 짝 맞추기</a><a class="pt-chip" href="/games/omok/">오목</a><a class="pt-chip" href="/games/sudoku/">스도쿠</a><a class="pt-chip" href="/games/number-baseball/">숫자 야구</a></div>
+    </section>
+  </div>
+
+  <style is:global>
+    .gm-head { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.8rem; }
+    .gm-head h1 { margin: 0; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; }
+    .gm-timer { margin-left: auto; font-size: 1.05rem; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+    .gm-msg { text-align: center; font-weight: 800; color: var(--accent); min-height: 1.6rem; margin: 0.8rem 0; }
+    .no-board { display: grid; grid-template-columns: repeat(var(--cols, 5), 1fr); gap: 0.4rem; max-width: 24rem; margin: 0 auto; }
+    .no-cell { aspect-ratio: 1; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); font: inherit; font-size: clamp(1.1rem, 5.5vw, 1.6rem); font-weight: 800; color: var(--ink); cursor: pointer; padding: 0; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+    .no-cell.is-done { background: var(--paper-2); color: var(--line); border-color: transparent; cursor: default; }
+    .no-cell.is-bad { background: #fee2e2; border-color: #ef4444; }
+  </style>
+
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const KEY = 'crama:game:number-order';
+      let size = 5, next = 1, t0 = 0, raf = 0, done = false;
+      const best = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { return {}; } };
+      const loop = () => { $('no-time').textContent = ((performance.now() - t0) / 1000).toFixed(2) + '초'; raf = requestAnimationFrame(loop); };
+      function start(n) {
+        size = n; next = 1; t0 = 0; done = false; cancelAnimationFrame(raf);
+        const total = n * n, nums = Array.from({ length: total }, (_, i) => i + 1);
+        for (let i = total - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const x = nums[i]; nums[i] = nums[j]; nums[j] = x; }
+        const board = $('no-board'); board.textContent = ''; board.style.setProperty('--cols', n);
+        nums.forEach((v) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'no-cell'; b.textContent = v; b.addEventListener('pointerdown', (e) => { e.preventDefault(); hit(b, v); }); b.addEventListener('click', (e) => { if (e.detail === 0) hit(b, v); }); board.appendChild(b); });
+        $('no-next').textContent = '다음: 1'; $('no-time').textContent = '0.00초';
+        const b = best()[total]; $('no-msg').textContent = b ? '내 최고 기록: ' + b.toFixed(2) + '초' : '1을 누르면 시작해요';
+      }
+      function hit(b, v) {
+        if (done || b.classList.contains('is-done')) return;
+        if (v !== next) { b.classList.add('is-bad'); setTimeout(() => b.classList.remove('is-bad'), 250); return; }
+        if (v === 1) { t0 = performance.now(); loop(); $('no-msg').textContent = ''; }
+        b.classList.add('is-done'); next++;
+        const total = size * size;
+        if (next > total) {
+          done = true; cancelAnimationFrame(raf);
+          const t = Math.round((performance.now() - t0) / 10) / 100; $('no-time').textContent = t.toFixed(2) + '초'; $('no-next').textContent = '완료';
+          const all = best(), prev = all[total], better = !prev || t < prev;
+          if (better) { all[total] = t; try { localStorage.setItem(KEY, JSON.stringify(all)); } catch (e) {} }
+          $('no-msg').textContent = t.toFixed(2) + '초!' + (better && prev ? ' 최고 기록 경신 🎉' : better ? ' 🎉' : ' (최고 ' + prev.toFixed(2) + '초)');
+          try { if (window.gtag) window.gtag('event', 'game_clear', { game: 'number-order', level: total, seconds: t }); } catch (e) {}
+        } else $('no-next').textContent = '다음: ' + next;
+      }
+      document.querySelectorAll('[data-n]').forEach((b) => b.addEventListener('click', () => start(Number(b.dataset.n))));
+      start(5);
+    })();
+  </script>
+</BaseLayout>

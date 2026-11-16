@@ -53,6 +53,10 @@ const games = [
   { href: '/games/mines/', img: 'c-minesweeper', title: '지뢰 찾기' },
   { href: '/games/bricks/', img: 'c-breakout', title: '벽돌깨기' },
   { href: '/games/quiz/', img: 'c-quiz', title: '상식 퀴즈' },
+  { href: '/games/omok/', img: 'c-omok', title: '오목' },
+  { href: '/games/memory/', img: 'c-memory', title: '카드 짝 맞추기' },
+  { href: '/pick/ladder/', img: 'c-ladder', title: '사다리 타기' },
+  { href: '/pick/wheel/', img: 'c-wheel', title: '돌림판 돌리기' },
 ];
 
 // 출생연도 바로가기 — 실제 조회가 많은 순서(GA 기준)로 앞에 배치
@@ -114,7 +118,7 @@ const fields = [...ready.filter((g) => g.tab.slug === 'life'), ...ready.filter((
         </section>
 
         <section class="pt-sec">
-          <div class="pt-sec__head"><div><h2>오늘의 게임</h2><p>설치 없이 바로 한 판</p></div><a class="pt-more" href="/hub/games/">전체 →</a></div>
+          <div class="pt-sec__head"><div><h2>게임·뽑기</h2><p>설치 없이 바로 한 판, 내기는 사다리로</p></div><a class="pt-more" href="/hub/games/">전체 →</a></div>
           <div class="pt-cards pt-cards--4">
             {games.map((c) => (
               <a class="pt-card" href={c.href} style="--c:#f59e0b">

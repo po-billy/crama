@@ -10,6 +10,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import os from 'node:os';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SITE = path.join(ROOT, 'site');
@@ -17,8 +18,8 @@ const OUT = path.join(SITE, 'src/data/people.json');
 const IMG_DIR = path.join(SITE, 'public/img/people');
 const sharp = createRequire(path.join(SITE, 'package.json'))('sharp');
 const UA = 'people-data-sync/1.0 (static site build script)';
-const LIMIT = Number(process.env.PEOPLE_LIMIT || 400);
-const MIN_LINKS = Number(process.env.PEOPLE_MIN_LINKS || 9);
+const LIMIT = Number(process.env.PEOPLE_LIMIT || 800);
+const MIN_LINKS = Number(process.env.PEOPLE_MIN_LINKS || 6);
 const THIS_YEAR = new Date().getFullYear();
 
 // 직업 라벨(한국어) → 화면 표기. 앞에 있을수록 우선.
@@ -59,7 +60,7 @@ for (const r of rows) {
   let e = map.get(id);
   if (!e) map.set(id, (e = { id, births: new Set(), jobs: new Set(), precOk: true }));
   // 표기 이름은 한국어 위키백과 문서 제목(괄호 구분어 제외)을 우선 — 라벨은 '제니 김'처럼 어색한 경우가 있다
-  e.name = r.title.value.replace(/s*(.*)$/, '') || r.koName?.value;
+  e.name = r.title.value.replace(/\s*\(.*\)$/, '') || r.koName?.value;
   e.title = r.title.value;
   e.en = e.en || r.enName?.value || '';
   e.links = Number(r.links.value);
@@ -93,7 +94,54 @@ for (const e of map.values()) {
   if (!/^[가-힣A-Za-z0-9 .·\-]{1,20}$/.test(e.name)) { drop.이름이상++; continue; }
   list.push({ id: e.id, name: e.name.replace(/\s*\(.*\)$/, ''), en: e.en, birth, job: hits.join('·'), jobs: hits, sport, links: e.links, file: e.img || '', title: e.title });
 }
-list.sort((a, b) => b.links - a.links || a.name.localeCompare(b.name, 'ko'));
+// 순위 기준: 한국어 위키백과 최근 60일 조회수(사람이 본 횟수). 언어판 수만으로 뽑으면 해외 인지도가 높은 인물만 남고
+// 국내에서 많이 찾는 인물(예능인 등)이 빠진다. 위키백과 API(prop=pageviews)는 무료·키 불필요이고 한 번에 50명씩 묻는다.
+// 요청이 잦으면 429(요청 과다)로 한동안 막히므로 천천히 보내고, 막히면 기다렸다가 이어서 한다.
+{
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const byTitle = new Map(list.map((p) => [p.title, p]));
+  const ask = async (params) => {
+    const url = 'https://ko.wikipedia.org/w/api.php?' + new URLSearchParams({ action: 'query', format: 'json', formatversion: '2', prop: 'pageviews', pvipdays: '60', ...params });
+    for (let t = 0; t < 40; t++) {
+      let res;
+      try { res = await fetch(url, { headers: { 'User-Agent': UA } }); } catch (e) { console.log('   네트워크 오류 — 다시 시도'); await sleep(30000); continue; }
+      if (res.status === 429 || res.status >= 500) { if (t % 5 === 0) console.log('   요청 제한(' + res.status + ') — 기다리는 중…'); await sleep(90000); continue; }
+      if (!res.ok) throw new Error('조회수 API ' + res.status);
+      return res.json();
+    }
+    throw new Error('조회수 API가 계속 막혀 있음 — 한 시간쯤 뒤에 다시 실행하세요');
+  };
+  // 받은 조회수는 임시 폴더에 저장해 두고(3일간 유효) 중간에 끊겨도 다음 실행에서 이어받는다
+  const CACHE = path.join(os.tmpdir(), 'people-views-cache.json');
+  let cache = {};
+  try { const c = JSON.parse(fs.readFileSync(CACHE, 'utf8')); if (Date.now() - c.at < 3 * 86400000) cache = c.views || {}; } catch (e) {}
+  for (const p of list) if (p.title in cache) p.views = cache[p.title];
+  const titles = [...byTitle.keys()].filter((t) => !(t in cache));
+  console.log('조회수 확인', list.length, '명 중 새로 받을', titles.length, '명…');
+  for (let i = 0; i < titles.length; i += 50) {
+    const chunk = titles.slice(i, i + 50), sum = new Map();
+    let cont = {};
+    for (let guard = 0; guard < 20; guard++) {
+      const j = await ask({ titles: chunk.join('|'), ...cont });
+      const back = new Map((j.query?.normalized || []).map((n) => [n.to, n.from]));
+      for (const pg of j.query?.pages || []) {
+        const key = back.get(pg.title) || pg.title;
+        const v = Object.values(pg.pageviews || {}).reduce((n, x) => n + (x || 0), 0);
+        sum.set(key, (sum.get(key) || 0) + v);
+      }
+      if (!j.continue) break;
+      cont = j.continue; await sleep(700);
+    }
+    for (const t of chunk) { byTitle.get(t).views = sum.get(t) || 0; cache[t] = byTitle.get(t).views; }
+    fs.writeFileSync(CACHE, JSON.stringify({ at: Date.now(), views: cache }));
+    if ((i / 50) % 10 === 0) console.log('  ', Math.min(i + 50, titles.length), '/', titles.length);
+    await sleep(1200);
+  }
+  const zero = list.filter((p) => !p.views).length;
+  if (zero > list.length / 3) throw new Error('조회수를 받지 못한 인물이 너무 많음: ' + zero);
+  console.log('조회수 확인 끝 | 0회', zero, '명');
+}
+list.sort((a, b) => b.views - a.views || b.links - a.links || a.name.localeCompare(b.name, 'ko'));
 // 위키백과 언어판 수 기준이라 축구 선수가 과하게 많아진다 → 운동선수는 전체의 1/4 까지만
 { const cap = Math.floor(LIMIT / 4); let sports = 0; list = list.filter((p) => (p.sport ? ++sports <= cap : true)).slice(0, LIMIT); list.forEach((p) => delete p.sport); }
 console.log('후보', map.size, '명 →', list.length, '명 선정 | 제외', JSON.stringify(drop));

@@ -14,7 +14,7 @@ const fmt = (n: number) => Math.round(n).toLocaleString('ko-KR');
     <header class="page-hero">
       <span class="eyebrow">Wage</span>
       <h1>시급 → 월급 환산표 <span class="wgx-y">2026</span></h1>
-      <p><b>2026 최저시급 {fmt(MIN_WAGE)}원</b> 기준, 주휴수당 포함 월급과 연봉 환산을 확인하세요. (주 40시간 · 월 209시간)</p>
+      <p><b>2026 최저시급 {fmt(MIN_WAGE)}원</b> 기준, 주휴수당 포함 월급과 연봉 환산을 확인하세요. (주 40시간 · 월 209시간) 2027년 최저시급은 10,700원입니다 — <a href="/minimum-wage/">연도별 최저임금 표</a></p>
     </header>
 
     <table class="wgx-table">
@@ -22,7 +22,7 @@ const fmt = (n: number) => Math.round(n).toLocaleString('ko-KR');
       <tbody>
         {list.map((w) => (
           <tr class={w === MIN_WAGE ? 'is-min' : ''}>
-            <th><a href={`/wage/${w}/`}>{fmt(w)}원{w === MIN_WAGE ? ' (최저)' : ''}</a></th>
+            <th><a href={`/wage/${w}/`}>{fmt(w)}원{w === MIN_WAGE ? ' (최저)' : w === 10700 ? ' (2027 최저)' : ''}</a></th>
             <td>{fmt(w * 209)}원</td>
             <td>{fmt(w * 209 * 12)}원</td>
             <td><a href={`/wage/${w}/`}>상세 →</a></td>

@@ -1,0 +1,82 @@
+---
+// [보류] people.json 에 views(조회수)가 들어온 뒤 src/pages/people/rank.astro 로 옮기고 menu.ts 의 '인기 인물 순위'에 href 를 넣을 것.
+// 인기 인물 순위 — 한국어 위키백과 최근 3개월 조회수 순(people.json 이 이미 그 순서로 정렬돼 있다).
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { PEOPLE, PEOPLE_UPDATED, parts, yearAge, initial, personZodiac } from '../lib/people';
+import type { Person } from '../lib/people';
+import '../styles/portal.css';
+
+const ranked = PEOPLE.filter((p) => ((p as any).views ?? 1) > 0);
+const top = ranked.slice(0, 100);
+const isSport = (p: Person) => /선수|프로게이머/.test(p.job);
+const GROUPS = [
+  { id: 'singer', name: '가수', list: ranked.filter((p) => p.job === '가수').slice(0, 30) },
+  { id: 'actor', name: '배우', list: ranked.filter((p) => p.job === '배우').slice(0, 30) },
+  { id: 'tv', name: '방송인·코미디언', list: ranked.filter((p) => /방송인|코미디언/.test(p.job)).slice(0, 30) },
+  { id: 'sport', name: '운동선수', list: ranked.filter(isSport).slice(0, 30) },
+].filter((g) => g.list.length >= 5);
+---
+<BaseLayout title={`인기 인물 순위 TOP 100 — 요즘 많이 찾는 가수·배우·운동선수`} description="요즘 사람들이 많이 찾아본 인물 순위. 한국어 위키백과 최근 3개월 조회수를 기준으로 가수·배우·방송인·운동선수별 순위와 나이·띠를 정리했습니다.">
+  <div class="pt pt-narrow" style="--c:#ec4899">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/people/">인물</a> › 인기 순위</nav>
+    <header class="pt-hubhero">
+      <img src="/img/portal/g-people.webp" alt="" width="200" height="200" />
+      <div><h1>인기 인물 순위</h1><p>요즘 많이 찾아본 인물 TOP 100</p></div>
+    </header>
+
+    <section class="pt-sec">
+      <div class="tl-quick" id="rk-tabs" style="margin:0 0 0.9rem"><button type="button" data-g="all" class="is-on">전체</button>{GROUPS.map((g) => <button type="button" data-g={g.id}>{g.name}</button>)}</div>
+      {[{ id: 'all', name: '전체', list: top }, ...GROUPS].map((g, gi) => (
+        <ol class="rk-list" data-list={g.id} hidden={gi !== 0}>
+          {g.list.map((p, i) => (
+            <li>
+              <a href={`/people/${p.slug}/`}>
+                <span class={`rk-no${i < 3 ? ' is-top' : ''}`}>{i + 1}</span>
+                {p.img
+                  ? <img class="pp-ava" src={p.img} alt="" loading="lazy" width="96" height="96" />
+                  : <span class="pp-ava pp-ava--txt" aria-hidden="true">{initial(p.name)}</span>}
+                <span class="rk-txt"><b>{p.name}</b><small>{p.job} · {parts(p.birth).y}년생 · 만 {yearAge(parts(p.birth).y) - 1}~{yearAge(parts(p.birth).y)}세 · {personZodiac(p).name}</small></span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      ))}
+      <p class="pp-note">※ 순위는 한국어 위키백과 문서의 최근 3개월 조회수(사람이 본 횟수) 순서이며 {PEOPLE_UPDATED} 기준입니다. 인기나 평가를 뜻하는 지표가 아니라 "얼마나 많이 찾아봤는가"를 보여 주는 참고 자료입니다. 이 사이트에 등록된 인물 {PEOPLE.length}명 안에서만 매긴 순위입니다.</p>
+    </section>
+
+    <div class="pt-ad"><AdSlot slot="people-rank-mid" /></div>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>다르게 찾아보기</h2></div></div>
+      <div class="pt-chips"><a class="pt-chip" href="/people/">이름으로 검색</a><a class="pt-chip" href="/people/#pp-month-sec">이달의 생일</a><a class="pt-chip" href="/people/#by-year">출생연도별</a><a class="pt-chip" href="/people/#by-zodiac">띠별</a><a class="pt-chip" href="/people/#by-star">별자리별</a></div>
+    </section>
+  </div>
+
+  <style is:global>
+    .tl-quick button.is-on { border-color: var(--accent); background: var(--accent); color: #fff; }
+    .rk-list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); overflow: hidden; }
+    .rk-list[hidden] { display: none; }
+    .rk-list li + li { border-top: 1px solid var(--line); }
+    .rk-list a { display: flex; align-items: center; gap: 0.8rem; padding: 0.6rem 0.9rem; color: var(--ink); text-decoration: none; }
+    .rk-list a:hover b { color: var(--accent); }
+    .rk-no { flex: none; width: 2rem; text-align: center; font-size: 1.05rem; font-weight: 800; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .rk-no.is-top { color: var(--accent); font-size: 1.25rem; }
+    .rk-list .pp-ava { width: 3rem; height: 3rem; margin: 0; flex: none; }
+    .rk-list .pp-ava--txt { font-size: 1.1rem; }
+    .rk-txt { min-width: 0; display: flex; flex-direction: column; }
+    .rk-txt b { font-size: 1rem; font-weight: 800; }
+    .rk-txt small { font-size: 0.8rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  </style>
+
+  <script is:inline>
+    (() => {
+      const tabs = document.getElementById('rk-tabs');
+      tabs.addEventListener('click', (e) => {
+        const b = e.target.closest('button'); if (!b) return;
+        tabs.querySelectorAll('button').forEach((x) => x.classList.toggle('is-on', x === b));
+        document.querySelectorAll('.rk-list').forEach((l) => { l.hidden = l.dataset.list !== b.dataset.g; });
+      });
+    })();
+  </script>
+</BaseLayout>

@@ -62,7 +62,7 @@ export default defineConfig({
         // 목록·허브(블로그/카테고리/태그/칼럼/가이드/퀴즈): 새 글마다 갱신
         if (/^\/(blog|category|tag|column|guides|quiz)(\/|$)/.test(p)) return set('weekly', 0.6, buildDate);
         // 포털의 조회·계산기·인물·게임·운세 — 핵심 유입 페이지라 우선순위를 높게
-        if (/^\/(hub|people|born|age|dday|fortune|tarot|name-match|zodiac-match|lotto|lunch|games|health|health-check|convert|salary|wage|severance|insurance|freelance-tax|realty-fee)(\/|$)/.test(p)) return set('weekly', 0.7, buildDate);
+        if (/^\/(hub|people|born|age|dday|fortune|tarot|name-match|zodiac-match|lotto|lunch|games|health|health-check|convert|salary|wage|severance|insurance|freelance-tax|realty-fee|pick|calc|lunar|minimum-wage)(\/|$)/.test(p)) return set('weekly', 0.7, buildDate);
         // 계산기 도구 페이지
         if (/^\/tools(\/|$)/.test(p)) return set('monthly', 0.5, buildDate);
         // 용어집

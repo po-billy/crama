@@ -1,0 +1,361 @@
+---
+// 뽑기·랜덤 도구 5종 — 사다리 타기, 돌림판, 주사위·동전, 랜덤 숫자, 제비뽑기. 모두 기기 안에서만 동작(서버 전송 없음).
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import { PICK_TOOLS } from '../../data/pick-tools';
+import '../../styles/portal.css';
+
+export function getStaticPaths() { return PICK_TOOLS.map((t) => ({ params: { tool: t.slug }, props: { slug: t.slug } })); }
+const { slug } = Astro.props as { slug: string };
+const t = PICK_TOOLS.find((x) => x.slug === slug)!;
+const others = PICK_TOOLS.filter((x) => x.slug !== slug);
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: t.faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title={t.title} description={t.desc} jsonLd={jsonLd}>
+  <div class="pt pt-narrow" style="--c:#f59e0b">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/pick/">뽑기·랜덤</a> › {t.name}</nav>
+    <header class="pt-hubhero">
+      <img src="/img/portal/g-pick.webp" alt="" width="200" height="200" />
+      <div><h1>{t.name}</h1><p>{t.lead}</p></div>
+    </header>
+
+    <section class="pt-sec" id="pk-root" data-tool={slug}>
+      {slug === 'ladder' && (
+        <>
+          <div class="tl-card">
+            <div class="tl-row">
+              <label class="tl-field">인원수<select id="ld-n">{[2, 3, 4, 5, 6, 7, 8].map((n) => <option value={n} selected={n === 4}>{n}명</option>)}</select></label>
+              <button type="button" class="tl-btn" id="ld-make">사다리 만들기</button>
+            </div>
+            <div class="tl-quick"><button type="button" data-preset="one">당첨 1명</button><button type="button" data-preset="lose">꽝 1명</button><button type="button" data-preset="order">순서 정하기</button></div>
+          </div>
+          <div class="ld-box">
+            <div class="ld-grid" id="ld-names"></div>
+            <div class="ld-grid" id="ld-starts"></div>
+            <svg id="ld-svg" class="ld-svg" preserveAspectRatio="none" aria-label="사다리"></svg>
+            <div class="ld-grid" id="ld-results"></div>
+          </div>
+          <p class="gm-msg" id="ld-msg" aria-live="polite">이름 아래 ▼ 버튼을 누르면 길이 그려져요.</p>
+          <div class="tl-quick" style="justify-content:center;margin-top:0"><button type="button" id="ld-all">전체 결과 보기</button></div>
+          <div class="tl-wrap" id="ld-wrap" hidden style="margin-top:0.9rem"><table class="tl-table"><thead><tr><th>이름</th><th>결과</th></tr></thead><tbody id="ld-body"></tbody></table></div>
+        </>
+      )}
+      {slug === 'wheel' && (
+        <>
+          <div class="wh-stage">
+            <div class="wh-pin" aria-hidden="true"></div>
+            <canvas id="wh-cv" width="640" height="640" aria-label="돌림판"></canvas>
+          </div>
+          <p class="gm-msg" id="wh-msg" aria-live="polite"></p>
+          <div style="text-align:center"><button type="button" class="tl-btn" id="wh-go" style="border-radius:999px;min-width:9rem">돌리기</button></div>
+          <div class="tl-quick" style="justify-content:center;margin:0.6rem 0 1rem;min-height:2.2rem"><button type="button" id="wh-drop" hidden>뽑힌 항목 빼기</button></div>
+          <textarea id="wh-in" class="cv-area" style="min-height:11rem" aria-label="돌림판 항목(한 줄에 하나)">짜장면
+짬뽕
+김치찌개
+돈가스
+국밥
+샐러드</textarea>
+          <div class="tl-quick"><button type="button" data-preset="lunch">점심 메뉴</button><button type="button" data-preset="yn">할까 말까</button><button type="button" data-preset="num">1~6번</button></div>
+        </>
+      )}
+      {slug === 'dice' && (
+        <>
+          <div class="tl-card">
+            <div class="tl-row">
+              <label class="tl-field">주사위 개수<select id="dc-n">{[1, 2, 3, 4, 5, 6].map((n) => <option value={n} selected={n === 2}>{n}개</option>)}</select></label>
+              <button type="button" class="tl-btn" id="dc-go">굴리기</button>
+            </div>
+          </div>
+          <div class="dc-out" id="dc-out" aria-live="polite"></div>
+          <p class="gm-msg" id="dc-msg"></p>
+          <div class="tl-card" style="margin-top:1.2rem">
+            <div class="tl-row" style="align-items:center">
+              <div class="cn-coin" id="cn-coin" aria-live="polite">?</div>
+              <div style="flex:1;min-width:9rem">
+                <b style="display:block;font-size:1.05rem">동전 던지기</b>
+                <span id="cn-stat" style="font-size:0.88rem;color:var(--muted)">앞 0번 · 뒤 0번</span>
+              </div>
+              <button type="button" class="tl-btn" id="cn-go">던지기</button>
+            </div>
+          </div>
+        </>
+      )}
+      {slug === 'number' && (
+        <>
+          <div class="tl-card">
+            <div class="tl-row">
+              <label class="tl-field">최솟값<input id="rn-min" type="number" inputmode="numeric" value="1" /></label>
+              <label class="tl-field">최댓값<input id="rn-max" type="number" inputmode="numeric" value="45" /></label>
+              <label class="tl-field">개수<input id="rn-cnt" type="number" inputmode="numeric" min="1" max="200" value="1" /></label>
+              <button type="button" class="tl-btn" id="rn-go">뽑기</button>
+            </div>
+            <div class="pk-opts"><label><input type="checkbox" id="rn-uniq" checked /> 중복 없이</label><label><input type="checkbox" id="rn-sort" /> 작은 수부터 정렬</label></div>
+            <p id="rn-err" class="pk-err" hidden></p>
+          </div>
+          <div class="tl-result" id="rn-result" hidden aria-live="polite"><div class="tl-result__label">뽑힌 숫자</div><div class="tl-result__big" id="rn-big"></div></div>
+          <div class="pt-chips" id="rn-out" style="margin-top:1rem"></div>
+        </>
+      )}
+      {slug === 'draw' && (
+        <>
+          <textarea id="dw-in" class="cv-area" placeholder="이름을 한 줄에 하나씩 적어 주세요&#10;예: 민준&#10;서연&#10;도윤" aria-label="이름 목록"></textarea>
+          <p id="dw-count" class="pp-note" style="margin-top:0.4rem">0명</p>
+          <div class="tl-card" style="margin-top:0.6rem">
+            <div class="tl-row">
+              <label class="tl-field">당첨 인원<input id="dw-win" type="number" inputmode="numeric" min="1" value="1" /></label>
+              <button type="button" class="tl-btn" id="dw-go">당첨자 뽑기</button>
+            </div>
+            <div class="tl-row" style="margin-top:0.7rem">
+              <label class="tl-field">조 수<input id="dw-team" type="number" inputmode="numeric" min="2" value="2" /></label>
+              <button type="button" class="tl-btn" id="dw-split" style="background:var(--ink)">조 나누기</button>
+            </div>
+            <p id="dw-err" class="pk-err" hidden></p>
+          </div>
+          <div class="tl-result" id="dw-result" hidden aria-live="polite"><div class="tl-result__label" id="dw-label">당첨</div><div class="tl-result__big" id="dw-big" style="font-size:1.8rem"></div></div>
+          <div class="tl-wrap" id="dw-wrap" hidden style="margin-top:0.9rem"><table class="tl-table"><tbody id="dw-body"></tbody></table></div>
+        </>
+      )}
+    </section>
+
+    <div class="pt-ad"><AdSlot slot="pick-mid" /></div>
+
+    <section class="pt-sec pt-prose">
+      <h2>사용 방법</h2>
+      <ul>{t.how.map((h) => <li>{h}</li>)}</ul>
+      <h2>자주 묻는 질문</h2>
+      {t.faq.map((f) => <p><b>{f.q}</b><br />{f.a}</p>)}
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>다른 뽑기 도구</h2></div></div>
+      <div class="pt-chips">{others.map((o) => <a class="pt-chip" href={`/pick/${o.slug}/`}>{o.name}</a>)}<a class="pt-chip" href="/lotto/">로또 번호 생성기</a><a class="pt-chip" href="/lunch/">점심 메뉴 추천</a></div>
+    </section>
+  </div>
+
+  <style is:global>
+    .gm-msg { text-align: center; font-weight: 800; color: var(--accent); min-height: 1.6rem; margin: 0.8rem 0; }
+    .cv-area { width: 100%; min-height: 12rem; padding: 1rem; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); font: inherit; font-size: 1rem; line-height: 1.7; color: var(--ink); resize: vertical; }
+    .cv-area:focus { outline: none; border-color: var(--accent); }
+    .pk-opts { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 0.8rem; font-size: 0.9rem; font-weight: 700; color: var(--ink-soft); }
+    .pk-opts label { display: flex; align-items: center; gap: 0.35rem; cursor: pointer; }
+    .pk-err { margin: 0.7rem 0 0; font-size: 0.85rem; color: #e11d48; }
+    .pk-err[hidden] { display: none; }
+    #rn-out .pt-chip { font-size: 1.05rem; font-weight: 800; }
+
+    .ld-box { margin-top: 1rem; border: 1px solid var(--line); border-radius: 18px; background: var(--paper); padding: 0.9rem 0.5rem; }
+    .ld-grid { display: grid; grid-template-columns: repeat(var(--n, 4), 1fr); gap: 0.3rem; }
+    .ld-grid input { width: 100%; min-width: 0; height: 2.4rem; padding: 0 0.2rem; border: 1px solid var(--line); border-radius: 10px; background: var(--paper-2); font: inherit; font-size: 0.9rem; font-weight: 700; color: var(--ink); text-align: center; }
+    .ld-grid input:focus { outline: none; border-color: var(--accent); }
+    .ld-grid input.is-hit { border-color: var(--hit, var(--accent)); box-shadow: 0 0 0 2px var(--hit, var(--accent)); }
+    #ld-starts { margin-top: 0.3rem; }
+    #ld-starts button { justify-self: center; width: 2.1rem; height: 2.1rem; border: 0; border-radius: 50%; background: var(--b, var(--accent)); color: #fff; font-size: 0.8rem; cursor: pointer; }
+    #ld-starts button:hover { filter: brightness(1.1); }
+    .ld-svg { display: block; width: 100%; height: 20rem; margin: 0.2rem 0; }
+    .ld-svg line { stroke: var(--line-strong, #c9c9d6); stroke-width: 3; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+    .ld-svg polyline { fill: none; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+
+    .wh-stage { position: relative; width: min(100%, 22rem); margin: 0 auto; }
+    .wh-stage canvas { display: block; width: 100%; height: auto; }
+    .wh-pin { position: absolute; left: 50%; top: -0.4rem; transform: translateX(-50%); width: 0; height: 0; border-left: 0.8rem solid transparent; border-right: 0.8rem solid transparent; border-top: 1.5rem solid var(--ink); z-index: 1; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.25)); }
+    #wh-drop[hidden] { display: none; }
+
+    .dc-out { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.8rem; margin-top: 1.2rem; min-height: 5rem; }
+    .dc-die { width: 4.6rem; height: 4.6rem; border-radius: 16px; background: var(--paper); border: 2px solid var(--line); box-shadow: 0 3px 0 var(--line); display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); padding: 0.6rem; }
+    .dc-die i { align-self: center; justify-self: center; width: 0.78rem; height: 0.78rem; border-radius: 50%; background: transparent; }
+    .dc-die i.on { background: var(--ink); }
+    .dc-die.is-roll { animation: dc-roll 0.35s ease; }
+    @keyframes dc-roll { 0% { transform: rotate(-25deg) scale(0.8); } 60% { transform: rotate(12deg) scale(1.06); } 100% { transform: none; } }
+    .cn-coin { flex: none; width: 4.6rem; height: 4.6rem; border-radius: 50%; display: grid; place-items: center; font-size: 1.5rem; font-weight: 800; color: #7a5200; background: radial-gradient(circle at 35% 30%, #ffe89a, #f5b82e); border: 3px solid #d99a1c; }
+    .cn-coin.is-flip { animation: cn-flip 0.5s ease; }
+    @keyframes cn-flip { 0% { transform: rotateX(0); } 100% { transform: rotateX(720deg); } }
+    @media (prefers-reduced-motion: reduce) { .dc-die.is-roll, .cn-coin.is-flip { animation: none; } }
+  </style>
+
+  <script is:inline>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const tool = $('pk-root').dataset.tool;
+      const used = (name, extra) => { try { if (window.gtag) window.gtag('event', 'tool_use', Object.assign({ tool: 'pick-' + name }, extra || {})); } catch (e) {} };
+      const rnd = (n) => Math.floor(Math.random() * n);
+      const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); const x = a[i]; a[i] = a[j]; a[j] = x; } return a; };
+      const COLORS = ['#6c5ce7', '#f59e0b', '#10b981', '#ef4444', '#0ea5e9', '#ec4899', '#84cc16', '#f97316', '#14b8a6', '#a855f7', '#eab308', '#64748b'];
+      const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      if (tool === 'ladder') {
+        const NS = 'http://www.w3.org/2000/svg', H = 360, TOP = 14, BOT = 346, LEVELS = 12;
+        let n = 4, rungs = [], names = [], results = [];
+        const xOf = (c) => c * 100 + 50, yOf = (l) => TOP + 18 + l * ((BOT - TOP - 36) / (LEVELS - 1));
+        const el = (tag, attrs) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
+        function defaults(preset) {
+          names = Array.from({ length: n }, (_, i) => (names[i] && preset === undefined ? names[i] : names[i] || '참가자' + (i + 1)));
+          if (preset === 'one') { results = Array(n).fill('꽝'); results[rnd(n)] = '당첨'; }
+          else if (preset === 'lose') { results = Array(n).fill('통과'); results[rnd(n)] = '꽝'; }
+          else if (preset === 'order') results = shuffle(Array.from({ length: n }, (_, i) => i + 1 + '번'));
+          else results = Array.from({ length: n }, (_, i) => results[i] || (i === 0 ? '당첨' : '꽝'));
+        }
+        function build() {
+          // 가로줄: 같은 높이에서 이웃한 칸끼리는 붙지 않게, 칸마다 최소 2개
+          rungs = Array.from({ length: LEVELS }, () => Array(n - 1).fill(false));
+          for (let l = 0; l < LEVELS; l++) for (let c = 0; c < n - 1; c++) if (!(c > 0 && rungs[l][c - 1]) && Math.random() < 0.42) rungs[l][c] = true;
+          for (let c = 0; c < n - 1; c++) {
+            let guard = 0;
+            while (rungs.filter((r) => r[c]).length < 2 && guard++ < 60) { const l = rnd(LEVELS); if (!rungs[l][c] && !(c > 0 && rungs[l][c - 1]) && !(c < n - 2 && rungs[l][c + 1])) rungs[l][c] = true; }
+          }
+          render();
+        }
+        function render() {
+          ['ld-names', 'ld-starts', 'ld-results'].forEach((id) => { $(id).style.setProperty('--n', n); $(id).textContent = ''; });
+          for (let i = 0; i < n; i++) {
+            const a = document.createElement('input'); a.type = 'text'; a.maxLength = 8; a.value = names[i]; a.setAttribute('aria-label', (i + 1) + '번 이름'); a.addEventListener('input', () => { names[i] = a.value; }); $('ld-names').appendChild(a);
+            const b = document.createElement('button'); b.type = 'button'; b.textContent = '▼'; b.style.setProperty('--b', COLORS[i]); b.setAttribute('aria-label', (i + 1) + '번 출발'); b.addEventListener('click', () => run(i)); $('ld-starts').appendChild(b);
+            const r = document.createElement('input'); r.type = 'text'; r.maxLength = 8; r.value = results[i]; r.setAttribute('aria-label', (i + 1) + '번 결과'); r.addEventListener('input', () => { results[i] = r.value; }); $('ld-results').appendChild(r);
+          }
+          const svg = $('ld-svg'); svg.textContent = ''; svg.setAttribute('viewBox', '0 0 ' + n * 100 + ' ' + H);
+          for (let c = 0; c < n; c++) svg.appendChild(el('line', { x1: xOf(c), y1: TOP, x2: xOf(c), y2: BOT }));
+          for (let l = 0; l < LEVELS; l++) for (let c = 0; c < n - 1; c++) if (rungs[l][c]) svg.appendChild(el('line', { x1: xOf(c), y1: yOf(l), x2: xOf(c + 1), y2: yOf(l) }));
+          $('ld-wrap').hidden = true; $('ld-msg').textContent = '이름 아래 ▼ 버튼을 누르면 길이 그려져요.';
+        }
+        function trace(start) {
+          let c = start; const pts = [[xOf(c), TOP]];
+          for (let l = 0; l < LEVELS; l++) {
+            if (c < n - 1 && rungs[l][c]) { pts.push([xOf(c), yOf(l)]); c++; pts.push([xOf(c), yOf(l)]); }
+            else if (c > 0 && rungs[l][c - 1]) { pts.push([xOf(c), yOf(l)]); c--; pts.push([xOf(c), yOf(l)]); }
+          }
+          pts.push([xOf(c), BOT]); return { end: c, pts: pts };
+        }
+        function run(i) {
+          const svg = $('ld-svg'), t = trace(i);
+          svg.querySelectorAll('polyline').forEach((p) => p.remove());
+          const p = el('polyline', { points: t.pts.map((q) => q.join(',')).join(' '), stroke: COLORS[i], pathLength: 1 });
+          if (!reduce) { p.style.strokeDasharray = '1'; p.style.strokeDashoffset = '1'; p.style.transition = 'stroke-dashoffset 1.6s ease-in-out'; }
+          svg.appendChild(p); if (!reduce) { p.getBoundingClientRect(); p.style.strokeDashoffset = '0'; }
+          const cells = $('ld-results').querySelectorAll('input'); cells.forEach((c) => c.classList.remove('is-hit'));
+          const show = () => { cells[t.end].style.setProperty('--hit', COLORS[i]); cells[t.end].classList.add('is-hit'); $('ld-msg').textContent = (names[i] || (i + 1) + '번') + ' → ' + (results[t.end] || (t.end + 1) + '번'); };
+          $('ld-msg').textContent = ''; if (reduce) show(); else setTimeout(show, 1650);
+          used('ladder');
+        }
+        $('ld-make').addEventListener('click', () => { n = Number($('ld-n').value); names = names.slice(0, n); results = results.slice(0, n); defaults(); build(); used('ladder', { step: 'make' }); });
+        $('ld-n').addEventListener('change', () => { n = Number($('ld-n').value); names = names.slice(0, n); results = results.slice(0, n); defaults(); build(); });
+        document.querySelectorAll('[data-preset]').forEach((b) => b.addEventListener('click', () => { defaults(b.dataset.preset); build(); }));
+        $('ld-all').addEventListener('click', () => {
+          const body = $('ld-body'); body.textContent = '';
+          for (let i = 0; i < n; i++) { const t = trace(i), tr = document.createElement('tr'); [names[i] || (i + 1) + '번', results[t.end] || (t.end + 1) + '번'].forEach((c, k) => { const td = document.createElement('td'); td.textContent = c; if (k) td.style.fontWeight = '800'; tr.appendChild(td); }); body.appendChild(tr); }
+          $('ld-wrap').hidden = false; used('ladder', { step: 'all' });
+        });
+        defaults(); build();
+      }
+
+      if (tool === 'wheel') {
+        const cv = $('wh-cv'), ctx = cv.getContext('2d'), R = 320;
+        const PRESET = { lunch: ['짜장면', '짬뽕', '김치찌개', '돈가스', '국밥', '샐러드', '햄버거', '초밥'], yn: ['한다', '안 한다'], num: ['1번', '2번', '3번', '4번', '5번', '6번'] };
+        let items = [], angle = 0, spinning = false, last = -1;
+        const read = () => { items = $('wh-in').value.split(/\r\n|\r|\n/).map((s) => s.trim()).filter(Boolean).slice(0, 12); };
+        function draw() {
+          ctx.clearRect(0, 0, 640, 640);
+          const n = items.length;
+          if (n < 2) { ctx.fillStyle = '#e5e7eb'; ctx.beginPath(); ctx.arc(R, R, R - 6, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#6b7280'; ctx.font = '700 30px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('항목을 2개 이상 적어 주세요', R, R + 10); return; }
+          const seg = (Math.PI * 2) / n;
+          for (let i = 0; i < n; i++) {
+            const a0 = angle + i * seg - Math.PI / 2;
+            ctx.beginPath(); ctx.moveTo(R, R); ctx.arc(R, R, R - 6, a0, a0 + seg); ctx.closePath();
+            ctx.fillStyle = COLORS[i % COLORS.length]; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 4; ctx.stroke();
+            ctx.save(); ctx.translate(R, R); ctx.rotate(a0 + seg / 2); ctx.fillStyle = '#fff'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+            const label = items[i].length > 9 ? items[i].slice(0, 8) + '…' : items[i];
+            ctx.font = '800 ' + (n > 8 ? 26 : 32) + 'px "Pretendard", "Malgun Gothic", sans-serif'; ctx.fillText(label, R - 30, 0); ctx.restore();
+          }
+          ctx.beginPath(); ctx.arc(R, R, 34, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill();
+        }
+        // 위쪽 화살표가 가리키는 칸
+        const current = () => { const n = items.length, seg = (Math.PI * 2) / n; const a = ((-angle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2); return Math.floor(a / seg) % n; };
+        function spin() {
+          read(); if (spinning || items.length < 2) { draw(); return; }
+          spinning = true; $('wh-msg').textContent = ''; $('wh-drop').hidden = true;
+          const from = angle, to = angle + Math.PI * 2 * (5 + Math.random() * 3) + Math.random() * Math.PI * 2, dur = reduce ? 1 : 4200, t0 = performance.now();
+          const step = (now) => {
+            const p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 4);
+            angle = from + (to - from) * e; draw();
+            if (p < 1) requestAnimationFrame(step);
+            else { spinning = false; angle = angle % (Math.PI * 2); last = current(); $('wh-msg').textContent = '🎉 ' + items[last]; $('wh-drop').hidden = items.length <= 2; used('wheel', { items: items.length }); }
+          };
+          requestAnimationFrame(step);
+        }
+        $('wh-go').addEventListener('click', spin);
+        $('wh-in').addEventListener('input', () => { if (!spinning) { read(); draw(); $('wh-drop').hidden = true; } });
+        $('wh-drop').addEventListener('click', () => { if (last < 0 || spinning) return; items.splice(last, 1); $('wh-in').value = items.join('\n'); last = -1; $('wh-drop').hidden = true; $('wh-msg').textContent = ''; draw(); });
+        document.querySelectorAll('[data-preset]').forEach((b) => b.addEventListener('click', () => { if (spinning) return; $('wh-in').value = PRESET[b.dataset.preset].join('\n'); read(); draw(); $('wh-msg').textContent = ''; $('wh-drop').hidden = true; }));
+        read(); draw();
+      }
+
+      if (tool === 'dice') {
+        const DOTS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+        const roll = () => {
+          const n = Number($('dc-n').value), out = $('dc-out'); out.textContent = ''; let sum = 0; const vals = [];
+          for (let k = 0; k < n; k++) {
+            const v = rnd(6) + 1; sum += v; vals.push(v);
+            const d = document.createElement('div'); d.className = 'dc-die is-roll'; d.setAttribute('role', 'img'); d.setAttribute('aria-label', '주사위 ' + v);
+            for (let i = 0; i < 9; i++) { const dot = document.createElement('i'); if (DOTS[v].indexOf(i) !== -1) dot.className = 'on'; d.appendChild(dot); }
+            out.appendChild(d);
+          }
+          $('dc-msg').textContent = n === 1 ? vals[0] + ' 나왔어요' : vals.join(' + ') + ' = ' + sum;
+          used('dice', { n: n });
+        };
+        $('dc-go').addEventListener('click', roll);
+        let head = 0, tail = 0;
+        $('cn-go').addEventListener('click', () => {
+          const coin = $('cn-coin'), h = Math.random() < 0.5; if (h) head++; else tail++;
+          coin.classList.remove('is-flip'); void coin.offsetWidth; coin.classList.add('is-flip');
+          coin.textContent = h ? '앞' : '뒤'; $('cn-stat').textContent = '앞 ' + head + '번 · 뒤 ' + tail + '번';
+          used('coin');
+        });
+        roll();
+      }
+
+      if (tool === 'number') {
+        const err = (m) => { $('rn-err').textContent = m; $('rn-err').hidden = !m; };
+        const run = () => {
+          const lo = Math.round(Number($('rn-min').value)), hi = Math.round(Number($('rn-max').value)), cnt = Math.round(Number($('rn-cnt').value)), uniq = $('rn-uniq').checked;
+          if (!isFinite(lo) || !isFinite(hi) || $('rn-min').value === '' || $('rn-max').value === '') return err('최솟값과 최댓값을 숫자로 적어 주세요.');
+          if (lo > hi) return err('최솟값이 최댓값보다 클 수 없어요.');
+          if (!(cnt >= 1 && cnt <= 200)) return err('개수는 1~200 사이로 적어 주세요.');
+          const span = hi - lo + 1;
+          if (uniq && cnt > span) return err('중복 없이 뽑으려면 개수가 범위(' + span.toLocaleString('ko-KR') + '개)보다 클 수 없어요.');
+          err('');
+          let out = [];
+          if (uniq) { if (span <= 20000) out = shuffle(Array.from({ length: span }, (_, i) => lo + i)).slice(0, cnt); else { const s = new Set(); while (s.size < cnt) s.add(lo + rnd(span)); out = [...s]; } }
+          else for (let i = 0; i < cnt; i++) out.push(lo + rnd(span));
+          if ($('rn-sort').checked) out.sort((a, b) => a - b);
+          const box = $('rn-out'); box.textContent = '';
+          if (cnt === 1) { $('rn-big').textContent = out[0].toLocaleString('ko-KR'); $('rn-result').hidden = false; }
+          else { $('rn-result').hidden = true; out.forEach((v) => { const s = document.createElement('span'); s.className = 'pt-chip'; s.textContent = v.toLocaleString('ko-KR'); box.appendChild(s); }); }
+          used('number', { count: cnt });
+        };
+        $('rn-go').addEventListener('click', run);
+      }
+
+      if (tool === 'draw') {
+        const names = () => $('dw-in').value.split(/[\r\n,]+/).map((s) => s.trim()).filter(Boolean);
+        const err = (m) => { $('dw-err').textContent = m; $('dw-err').hidden = !m; };
+        $('dw-in').addEventListener('input', () => { $('dw-count').textContent = names().length + '명'; });
+        $('dw-go').addEventListener('click', () => {
+          const list = names(), k = Math.round(Number($('dw-win').value));
+          if (list.length < 2) return err('이름을 2명 이상 적어 주세요.');
+          if (!(k >= 1 && k < list.length)) return err('당첨 인원은 1명 이상, 전체 인원(' + list.length + '명)보다 적어야 해요.');
+          err(''); const win = shuffle(list.slice()).slice(0, k);
+          $('dw-label').textContent = '당첨 ' + k + '명'; $('dw-big').textContent = win.join(', '); $('dw-result').hidden = false; $('dw-wrap').hidden = true;
+          used('draw', { mode: 'win' });
+        });
+        $('dw-split').addEventListener('click', () => {
+          const list = names(), g = Math.round(Number($('dw-team').value));
+          if (list.length < 2) return err('이름을 2명 이상 적어 주세요.');
+          if (!(g >= 2 && g <= list.length)) return err('조 수는 2개 이상, 전체 인원(' + list.length + '명) 이하여야 해요.');
+          err(''); const mix = shuffle(list.slice()), teams = Array.from({ length: g }, () => []);
+          mix.forEach((nm, i) => teams[i % g].push(nm));
+          const body = $('dw-body'); body.textContent = '';
+          teams.forEach((tm, i) => { const tr = document.createElement('tr'); [(i + 1) + '조 (' + tm.length + '명)', tm.join(', ')].forEach((c, k2) => { const td = document.createElement('td'); td.textContent = c; if (!k2) { td.style.fontWeight = '800'; td.style.whiteSpace = 'nowrap'; } else td.style.textAlign = 'left'; tr.appendChild(td); }); body.appendChild(tr); });
+          $('dw-result').hidden = true; $('dw-wrap').hidden = false;
+          used('draw', { mode: 'team' });
+        });
+      }
+    })();
+  </script>
+</BaseLayout>

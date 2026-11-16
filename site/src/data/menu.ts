@@ -125,9 +125,9 @@ export const MENU: MenuTab[] = [
           { name: 'D-day 계산기', href: '/dday/', desc: '남은 날·기념일 계산' },
           { name: '날짜 계산기', href: '/calc/date-add/', desc: '며칠 후·몇 개월 후 날짜와 요일' },
           { name: '음력·양력 변환', href: '/lunar/', desc: '음력 생일을 양력으로' },
-          { name: '영업일 계산기' },
+          { name: '영업일 계산기', href: '/business-days/', desc: '주말·공휴일 뺀 날짜 계산' },
           { name: '전역일 계산기', href: '/discharge/', desc: '입대일로 전역일·D-day 계산' },
-          { name: '공휴일·황금연휴' },
+          { name: '공휴일·황금연휴', href: '/holidays/', desc: '올해·내년 쉬는 날과 연휴' },
         ],
       },
       {

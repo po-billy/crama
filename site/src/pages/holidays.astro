@@ -1,0 +1,143 @@
+---
+// 공휴일·황금연휴 — 올해와 내년 공휴일, 3일 이상 연휴, 연차 하루로 만드는 징검다리 연휴.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { HOLIDAY_YEARS, HOLIDAYS_UPDATED, DOW, holidaysOf, longWeekends, bridges, dow, md } from '../lib/holidays';
+import '../styles/portal.css';
+
+const YEARS = HOLIDAY_YEARS.map((y) => {
+  const list = holidaysOf(y);
+  const weekday = list.filter((h) => dow(h.date) !== 0 && dow(h.date) !== 6).length;
+  return { y, list, weekday, long: longWeekends(y), bridge: bridges(y) };
+});
+const first = YEARS[0], last = YEARS[YEARS.length - 1];
+// 다음 공휴일 D-day 계산용(클라이언트)
+const flat = YEARS.flatMap((x) => x.list.map((h) => [h.date, h.name]));
+const range = (a: string, b: string) => (a === b ? `${md(a)}(${DOW[dow(a)]})` : `${md(a)}(${DOW[dow(a)]}) ~ ${md(b)}(${DOW[dow(b)]})`);
+const best = (x: (typeof YEARS)[number]) => x.long.slice().sort((a, b) => b.days - a.days)[0];
+const faq = [
+  ...YEARS.map((x) => ({ q: `${x.y}년 공휴일은 모두 며칠인가요?`, a: `${x.y}년 공휴일은 대체공휴일을 포함해 ${x.list.length}일이고, 그중 평일(월~금)에 쉬는 날은 ${x.weekday}일입니다.${best(x) ? ` 가장 긴 연휴는 ${best(x).names.join('·')} 연휴로 ${range(best(x).from, best(x).to)} ${best(x).days}일입니다.` : ''}` })),
+  { q: '대체공휴일은 어떤 날에 생기나요?', a: '공휴일이 토요일·일요일이나 다른 공휴일과 겹치면 그다음 첫 번째 평일을 대체공휴일로 쉽니다. 적용 대상 공휴일은 「관공서의 공휴일에 관한 규정」으로 정해져 있고, 이 페이지는 정부가 공포한 날짜만 표시합니다.' },
+  { q: '임시공휴일도 여기에 나오나요?', a: '임시공휴일은 국무회의 의결을 거쳐 관보에 공포된 뒤에 반영됩니다. 지정이 논의 중인 날은 표시하지 않습니다.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title={`${first.y}·${last.y}년 공휴일과 황금연휴 — 대체공휴일·징검다리 연휴 정리`} description={`${first.y}년 공휴일 ${first.list.length}일, ${last.y}년 공휴일 ${last.list.length}일. 대체공휴일을 포함한 전체 날짜와 3일 이상 이어지는 연휴, 연차 하루로 만드는 징검다리 연휴를 한눈에 정리했습니다.`} jsonLd={jsonLd}>
+  <div class="pt pt-narrow" style="--c:#3b82f6">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/date/">나이·날짜</a> › 공휴일·황금연휴</nav>
+    <header class="pt-hubhero">
+      <img src="/img/portal/g-date.webp" alt="" width="200" height="200" />
+      <div><h1>공휴일·황금연휴</h1><p>{first.y}·{last.y}년 쉬는 날과 연차 쓰기 좋은 날</p></div>
+    </header>
+
+    <section class="pt-sec">
+      <div class="tl-result" style="margin-top:0" aria-live="polite">
+        <div class="tl-result__label" id="hd-label">다음 공휴일</div>
+        <div class="tl-result__big" id="hd-big" style="font-size:2.1rem">-</div>
+        <div class="tl-result__sub" id="hd-sub"></div>
+      </div>
+      <div class="tl-quick" id="hd-tabs">{YEARS.map((x, i) => <button type="button" data-y={x.y} class={i === 0 ? 'is-on' : ''}>{x.y}년</button>)}</div>
+    </section>
+
+    {YEARS.map((x, i) => (
+      <div class="hd-year" data-year={x.y} hidden={i !== 0}>
+        <section class="pt-sec">
+          <div class="pt-sec__head"><div><h2>{x.y}년 공휴일</h2><p>모두 {x.list.length}일 · 평일에 쉬는 날 {x.weekday}일</p></div></div>
+          <div class="tl-wrap">
+            <table class="tl-table hd-table">
+              <thead><tr><th>날짜</th><th>요일</th><th>공휴일</th></tr></thead>
+              <tbody>
+                {x.list.map((h) => (
+                  <tr data-date={h.date}>
+                    <td><b>{md(h.date)}</b></td>
+                    <td class={dow(h.date) === 0 ? 'hd-sun' : dow(h.date) === 6 ? 'hd-sat' : ''}>{DOW[dow(h.date)]}</td>
+                    <td class="hd-name">{h.name}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="pt-sec">
+          <div class="pt-sec__head"><div><h2>{x.y}년 연휴</h2><p>주말을 포함해 3일 이상 이어서 쉬는 날</p></div></div>
+          <div class="hd-cards">
+            {x.long.map((l) => (
+              <div class="hd-card">
+                <b class="hd-days">{l.days}일</b>
+                <span><b>{l.names.join('·')}</b><small>{range(l.from, l.to)}</small></span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {x.bridge.length > 0 && (
+          <section class="pt-sec">
+            <div class="pt-sec__head"><div><h2>연차 하루로 만드는 연휴</h2><p>앞뒤가 모두 쉬는 날인 징검다리 평일</p></div></div>
+            <div class="hd-cards">
+              {x.bridge.map((b) => (
+                <div class="hd-card hd-card--bridge">
+                  <b class="hd-days">{b.days}일</b>
+                  <span><b>{md(b.leave)}({DOW[dow(b.leave)]})에 연차</b><small>{b.names.join('·')} · {range(b.from, b.to)}</small></span>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
+    ))}
+
+    <p class="pp-note">※ 한국천문연구원 특일 정보(공공데이터포털) 기준, {HOLIDAYS_UPDATED} 확인. 대체공휴일과 임시공휴일은 관보에 공포된 날짜만 반영합니다. 회사·업종에 따라 실제 휴무일은 다를 수 있습니다.</p>
+
+    <div class="pt-ad"><AdSlot slot="holidays-mid" /></div>
+
+    <section class="pt-sec pt-prose">
+      <h2>자주 묻는 질문</h2>
+      {faq.map((f) => <p><b>{f.q}</b><br />{f.a}</p>)}
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>함께 쓰면 좋은 도구</h2></div></div>
+      <div class="pt-chips"><a class="pt-chip" href="/business-days/">영업일 계산기</a><a class="pt-chip" href="/dday/">D-day 계산기</a><a class="pt-chip" href="/calc/date-add/">날짜 계산기</a><a class="pt-chip" href="/lunar/">음력·양력 변환</a><a class="pt-chip" href="/tax/">세금 캘린더</a></div>
+    </section>
+  </div>
+
+  <style is:global>
+    .tl-quick button.is-on { border-color: var(--accent); background: var(--accent); color: #fff; }
+    .hd-year[hidden] { display: none; }
+    .hd-table .hd-name { text-align: left; font-weight: 700; }
+    .hd-sun { color: #e11d48; font-weight: 800; } .hd-sat { color: #2563eb; font-weight: 800; }
+    .hd-table tr.is-past td { opacity: 0.45; }
+    .hd-table tr.is-next td { background: color-mix(in srgb, var(--accent) 9%, var(--paper)); }
+    .hd-cards { display: grid; gap: 0.6rem; }
+    @media (min-width: 620px) { .hd-cards { grid-template-columns: repeat(2, 1fr); } }
+    .hd-card { display: flex; align-items: center; gap: 0.9rem; padding: 0.9rem 1rem; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); }
+    .hd-days { flex: none; min-width: 3.4rem; padding: 0.45rem 0.3rem; border-radius: 12px; text-align: center; font-size: 1.1rem; font-weight: 800; color: #fff; background: var(--accent); }
+    .hd-card--bridge .hd-days { background: #f59e0b; }
+    .hd-card span { min-width: 0; }
+    .hd-card span b { display: block; font-size: 0.98rem; font-weight: 800; }
+    .hd-card small { display: block; font-size: 0.82rem; color: var(--muted); }
+  </style>
+
+  <script is:inline define:vars={{ flat }}>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const DOW = ['일', '월', '화', '수', '목', '금', '토'];
+      const now = new Date(), pad = (n) => String(n).padStart(2, '0');
+      const today = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate());
+      const t = (s) => Date.UTC(Number(s.slice(0, 4)), Number(s.slice(5, 7)) - 1, Number(s.slice(8, 10)));
+      const next = flat.find((h) => h[0] >= today);
+      if (next) {
+        const gap = Math.round((t(next[0]) - t(today)) / 86400000), d = new Date(t(next[0]));
+        $('hd-label').textContent = gap === 0 ? '오늘은 공휴일' : '다음 공휴일까지';
+        $('hd-big').textContent = gap === 0 ? next[1] : 'D-' + gap;
+        $('hd-sub').textContent = next[1] + ' · ' + (d.getUTCMonth() + 1) + '월 ' + d.getUTCDate() + '일 (' + DOW[d.getUTCDay()] + ')';
+      } else { $('hd-big').textContent = '-'; $('hd-sub').textContent = '다음 해 공휴일이 발표되면 추가됩니다'; }
+      document.querySelectorAll('.hd-table tr[data-date]').forEach((tr) => { if (tr.dataset.date < today) tr.classList.add('is-past'); else if (next && tr.dataset.date === next[0]) tr.classList.add('is-next'); });
+      const show = (y) => { document.querySelectorAll('.hd-year').forEach((el) => { el.hidden = el.dataset.year !== String(y); }); $('hd-tabs').querySelectorAll('button').forEach((b) => b.classList.toggle('is-on', b.dataset.y === String(y))); };
+      $('hd-tabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) show(b.dataset.y); });
+      // 올해 공휴일이 모두 지났으면 다음 해를 먼저 보여 준다
+      if (next) show(next[0].slice(0, 4));
+    })();
+  </script>
+</BaseLayout>

@@ -1,0 +1,124 @@
+---
+// 영업일 계산기 — 주말과 공휴일을 뺀 날수 세기, N영업일 뒤 날짜 찾기. 공휴일 데이터가 있는 연도 안에서만 계산한다.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { HOLIDAY_YEARS, HOLIDAYS_UPDATED, holidaysOf } from '../lib/holidays';
+import '../styles/portal.css';
+
+const Y0 = HOLIDAY_YEARS[0], Y1 = HOLIDAY_YEARS[HOLIDAY_YEARS.length - 1];
+const HOL = Object.fromEntries(HOLIDAY_YEARS.flatMap((y) => holidaysOf(y).map((h) => [h.date, h.name])));
+const faq = [
+  { q: '영업일은 어떻게 세나요?', a: '토요일·일요일과 공휴일(대체공휴일 포함)을 뺀 평일만 셉니다. 은행·관공서·택배처럼 "영업일 기준 3일 이내"라고 안내하는 경우에 쓰는 기준입니다.' },
+  { q: '"3영업일 이내"는 신청한 날도 포함하나요?', a: '보통 신청한 다음 영업일을 1일째로 셉니다. 예를 들어 금요일에 신청하고 주말이 끼면 월요일이 1영업일, 수요일이 3영업일입니다. 기관마다 접수 마감 시각에 따라 달라질 수 있으니 안내문을 확인하세요.' },
+  { q: '토요일에 일하는 곳은 어떻게 계산하나요?', a: '"토요일도 영업일로 세기"를 켜면 일요일과 공휴일만 빼고 계산합니다.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title="영업일 계산기 — 주말·공휴일 뺀 날짜 계산" description={`두 날짜 사이의 영업일 수와 N영업일 뒤 날짜를 계산합니다. ${Y0}~${Y1}년 공휴일과 대체공휴일을 반영해 주말과 쉬는 날을 자동으로 뺍니다.`} jsonLd={jsonLd}>
+  <div class="pt pt-narrow" style="--c:#3b82f6">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/date/">나이·날짜</a> › 영업일 계산기</nav>
+    <header class="pt-hubhero">
+      <img src="/img/portal/g-date.webp" alt="" width="200" height="200" />
+      <div><h1>영업일 계산기</h1><p>주말과 공휴일을 빼면 며칠일까</p></div>
+    </header>
+
+    <section class="pt-sec">
+      <div class="tl-quick" id="bd-mode" style="margin:0 0 0.8rem"><button type="button" data-m="add" class="is-on">N영업일 뒤 날짜</button><button type="button" data-m="count">두 날짜 사이 영업일</button></div>
+      <div class="tl-card" id="bd-add">
+        <div class="tl-row">
+          <label class="tl-field">시작일<input id="bd-start" type="date" min={`${Y0}-01-01`} max={`${Y1}-12-31`} /></label>
+          <label class="tl-field">영업일 수<input id="bd-n" type="number" inputmode="numeric" min="1" max="400" value="3" /></label>
+        </div>
+        <div class="tl-quick" id="bd-quick">{[1, 3, 5, 7, 10, 14, 30].map((n) => <button type="button" data-n={n}>{n}영업일</button>)}</div>
+      </div>
+      <div class="tl-card" id="bd-count" hidden>
+        <div class="tl-row">
+          <label class="tl-field">시작일<input id="bd-from" type="date" min={`${Y0}-01-01`} max={`${Y1}-12-31`} /></label>
+          <label class="tl-field">종료일<input id="bd-to" type="date" min={`${Y0}-01-01`} max={`${Y1}-12-31`} /></label>
+        </div>
+        <div class="bd-opts"><label><input type="checkbox" id="bd-incl" /> 시작일도 포함해서 세기</label></div>
+      </div>
+      <div class="bd-opts"><label><input type="checkbox" id="bd-sat" /> 토요일도 영업일로 세기</label></div>
+
+      <div class="tl-result" id="bd-result" aria-live="polite"><div class="tl-result__label" id="bd-label"></div><div class="tl-result__big" id="bd-big" style="font-size:2.1rem">-</div><div class="tl-result__sub" id="bd-sub"></div></div>
+      <div class="tl-wrap" id="bd-wrap" hidden style="margin-top:0.9rem"><table class="tl-table"><thead><tr><th>기간 안의 쉬는 날</th><th>요일</th><th>이름</th></tr></thead><tbody id="bd-body"></tbody></table></div>
+      <p class="pp-note">※ {Y0}~{Y1}년 공휴일(한국천문연구원 특일 정보, {HOLIDAYS_UPDATED} 확인)을 반영합니다. 이 범위를 벗어난 날짜는 계산하지 않습니다. "N영업일 뒤"는 시작일 다음 영업일을 1일째로 셉니다. 근로자의 날 등 기관별로 쉬는 날이 다른 경우가 있으니 중요한 기한은 해당 기관 안내를 확인하세요.</p>
+    </section>
+
+    <div class="pt-ad"><AdSlot slot="business-days-mid" /></div>
+
+    <section class="pt-sec pt-prose">
+      <h2>자주 묻는 질문</h2>
+      {faq.map((f) => <p><b>{f.q}</b><br />{f.a}</p>)}
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>함께 쓰면 좋은 도구</h2></div></div>
+      <div class="pt-chips"><a class="pt-chip" href="/holidays/">공휴일·황금연휴</a><a class="pt-chip" href="/calc/date-add/">날짜 계산기</a><a class="pt-chip" href="/dday/">D-day 계산기</a><a class="pt-chip" href="/severance/">퇴직금</a></div>
+    </section>
+  </div>
+
+  <style is:global>
+    .tl-quick button.is-on { border-color: var(--accent); background: var(--accent); color: #fff; }
+    .bd-opts { margin-top: 0.8rem; font-size: 0.9rem; font-weight: 700; color: var(--ink-soft); }
+    .bd-opts label { display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; }
+  </style>
+
+  <script is:inline define:vars={{ HOL, Y0, Y1 }}>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const DAY = 86400000, DOW = ['일', '월', '화', '수', '목', '금', '토'];
+      const pad = (n) => String(n).padStart(2, '0');
+      const parse = (s) => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s); return m ? Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : NaN; };
+      const str = (t) => new Date(t).toISOString().slice(0, 10);
+      const text = (t) => { const d = new Date(t); return d.getUTCFullYear() + '년 ' + (d.getUTCMonth() + 1) + '월 ' + d.getUTCDate() + '일 (' + DOW[d.getUTCDay()] + ')'; };
+      const MIN = Date.UTC(Y0, 0, 1), MAX = Date.UTC(Y1, 11, 31);
+      const sat = () => $('bd-sat').checked;
+      const isOff = (t) => { const d = new Date(t).getUTCDay(); return d === 0 || (d === 6 && !sat()) || !!HOL[str(t)]; };
+      let mode = 'add', sent = false;
+      const used = () => { if (sent) return; sent = true; try { if (window.gtag) window.gtag('event', 'tool_use', { tool: 'business-days' }); } catch (e) {} };
+      const out = (label, big, sub) => { $('bd-label').textContent = label; $('bd-big').textContent = big; $('bd-sub').textContent = sub || ''; };
+      const listOff = (a, b) => {
+        const body = $('bd-body'); body.textContent = ''; let n = 0;
+        for (let t = a; t <= b; t += DAY) {
+          const name = HOL[str(t)]; if (!name) continue; n++;
+          const d = new Date(t), tr = document.createElement('tr');
+          [(d.getUTCMonth() + 1) + '월 ' + d.getUTCDate() + '일', DOW[d.getUTCDay()], name].forEach((c) => { const td = document.createElement('td'); td.textContent = c; tr.appendChild(td); }); body.appendChild(tr);
+        }
+        $('bd-wrap').hidden = n === 0;
+      };
+      function add() {
+        const s = parse($('bd-start').value), n = Math.round(Number($('bd-n').value));
+        if (isNaN(s) || s < MIN || s > MAX) { $('bd-wrap').hidden = true; return out(Y0 + '~' + Y1 + '년 사이 날짜를 골라 주세요', '-', ''); }
+        if (!(n >= 1 && n <= 400)) { $('bd-wrap').hidden = true; return out('영업일 수는 1~400 사이로 적어 주세요', '-', ''); }
+        let t = s, left = n;
+        while (left > 0) { t += DAY; if (t > MAX) { $('bd-wrap').hidden = true; return out('공휴일 정보가 있는 ' + Y1 + '년을 넘어가요', '-', '영업일 수를 줄여 주세요'); } if (!isOff(t)) left--; }
+        const cal = Math.round((t - s) / DAY);
+        out(text(s) + '부터 ' + n + '영업일 뒤', text(t), '달력으로는 ' + cal + '일 뒤 · 쉬는 날 ' + (cal - n) + '일 제외');
+        listOff(s + DAY, t);
+      }
+      function count() {
+        let a = parse($('bd-from').value), b = parse($('bd-to').value);
+        if (isNaN(a) || isNaN(b) || a < MIN || b < MIN || a > MAX || b > MAX) { $('bd-wrap').hidden = true; return out(Y0 + '~' + Y1 + '년 사이 날짜를 골라 주세요', '-', ''); }
+        if (a > b) { const x = a; a = b; b = x; }
+        const incl = $('bd-incl').checked; let n = 0, offs = 0;
+        for (let t = incl ? a : a + DAY; t <= b; t += DAY) { if (isOff(t)) offs++; else n++; }
+        out(text(a) + ' ~ ' + text(b), n.toLocaleString('ko-KR') + '영업일', '달력으로 ' + (Math.round((b - a) / DAY) + (incl ? 1 : 0)) + '일 · 쉬는 날 ' + offs + '일 제외' + (incl ? ' · 시작일 포함' : ' · 시작일 다음 날부터'));
+        listOff(incl ? a : a + DAY, b);
+      }
+      const run = () => (mode === 'add' ? add() : count());
+      $('bd-mode').addEventListener('click', (e) => {
+        const b = e.target.closest('button'); if (!b) return; mode = b.dataset.m;
+        $('bd-mode').querySelectorAll('button').forEach((x) => x.classList.toggle('is-on', x === b));
+        $('bd-add').hidden = mode !== 'add'; $('bd-count').hidden = mode !== 'count'; run();
+      });
+      ['bd-start', 'bd-n', 'bd-from', 'bd-to'].forEach((id) => $(id).addEventListener('input', () => { run(); used(); }));
+      ['bd-sat', 'bd-incl'].forEach((id) => $(id).addEventListener('change', () => { run(); used(); }));
+      $('bd-quick').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; $('bd-n').value = b.dataset.n; run(); used(); });
+      const now = new Date(), today = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate());
+      $('bd-start').value = today; $('bd-from').value = today;
+      const end = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) + 30 * DAY); $('bd-to').value = str(Math.min(end.getTime(), MAX));
+      run();
+    })();
+  </script>
+</BaseLayout>

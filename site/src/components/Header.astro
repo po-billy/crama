@@ -3,6 +3,7 @@
 // 메뉴 내용은 src/data/menu.ts 하나에서 온다. (이전 헤더는 src/legacy/HeaderLegacy.astro 에 보관)
 import { SITE } from '../consts';
 import { MENU, visibleTabs, allGroups, readyCount, groupHref, ICONS } from '../data/menu';
+import { COUPANG_ON } from '../data/partners';
 
 const path = Astro.url.pathname;
 const tabs = visibleTabs();
@@ -48,6 +49,12 @@ const ico = (name: string) => ICONS[name] ?? ICONS.grid;
       {tabs.map((t) => (
         <a href={t.href} class:list={['ph__tab', { 'is-on': activeTab === t.slug }]} aria-current={activeTab === t.slug ? 'page' : undefined}>{t.name}</a>
       ))}
+      {COUPANG_ON && (
+        <a href="/deals/" class:list={['ph__deal', { 'is-on': Astro.url.pathname.startsWith('/deals') }]}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={ICONS.fire} />
+          <span class="ph__deal-long">놓치면 후회할,&nbsp;</span>핫딜!
+        </a>
+      )}
     </div>
   </nav>
 </header>
@@ -179,6 +186,11 @@ const ico = (name: string) => ICONS[name] ?? ICONS.grid;
   .ph__tabs-in::-webkit-scrollbar { display: none; }
   .ph__tab { flex: none; padding: 0.72rem 0.85rem 0.62rem; font-size: 0.98rem; font-weight: 700; color: var(--muted); text-decoration: none; border-bottom: 3px solid transparent; white-space: nowrap; }
   .ph__tab:hover { color: var(--ink); }
+  .ph__deal { flex: none; margin-left: auto; align-self: center; display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.38rem 0.85rem; margin-block: 0.35rem; border-radius: 999px; background: linear-gradient(135deg, #f97316, #ef4444); color: #fff; font-size: 0.88rem; font-weight: 800; text-decoration: none; white-space: nowrap; }
+  /* 모바일: 탭 줄을 옆으로 밀어도 오른쪽 끝에 붙어 있게 */
+  @media (max-width: 760px) { .ph__deal { position: sticky; right: 0.2rem; z-index: 1; padding-inline: 0.7rem; box-shadow: -0.7rem 0 0.7rem 0.3rem var(--paper); } .ph__deal-long { display: none; } }
+  .ph__deal:hover { color: #fff; filter: brightness(1.07); }
+  .ph__deal.is-on { box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px #f97316; }
   .ph__tab.is-on { color: var(--accent); border-bottom-color: var(--accent); }
   @media (max-width: 720px) {
     .ph__top { padding: 0.55rem 0.9rem; gap: 0.4rem; }

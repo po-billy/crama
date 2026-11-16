@@ -3,7 +3,7 @@
 // COUPANG_ON 이 꺼져 있으면 목록 없이 안내만 보여 주고 검색에서 제외한다.
 import BaseLayout from '../layouts/BaseLayout.astro';
 import data from '../data/coupang-events.json';
-import { COUPANG_ON, COUPANG_NOTICE, COUPANG_GOLDBOX } from '../data/partners';
+import { COUPANG_ON, COUPANG_NOTICE, COUPANG_GOLDBOX, COUPANG_LINKS } from '../data/partners';
 import '../styles/portal.css';
 
 type Ev = { id: number; cat: string; title: string; end: string | null; created: string; image: string; link: string };
@@ -14,18 +14,25 @@ const cats = [...new Set(events.map((e) => e.cat))].map((c) => ({ c, n: events.f
 const endLabel = (s: string) => `${Number(s.slice(5, 7))}월 ${Number(s.slice(8, 10))}일까지`;
 const updated = (data as any).generatedAt as string;
 ---
-<BaseLayout title="쿠팡 기획전 모음 — 지금 진행 중인 할인·특가 한눈에" description="쿠팡에서 지금 진행 중인 기획전과 할인 행사를 분야별로 모았습니다. 종료일이 임박한 순서로 정리하고, 끝난 행사는 자동으로 빠집니다.">
+<BaseLayout title="놓치면 후회할 핫딜 — 쿠팡 기획전·특가 모음" description="쿠팡에서 지금 진행 중인 기획전과 할인 행사를 분야별로 모았습니다. 종료일이 임박한 순서로 정리하고, 끝난 행사는 자동으로 빠집니다.">
   <div class="pt">
-    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › 쿠팡 기획전 모음</nav>
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › 핫딜</nav>
     <header class="pt-hubhero" style="--c:#f97316">
       <img src="/img/portal/c-deadline.webp" alt="" width="200" height="200" />
-      <div><h1>쿠팡 기획전 모음</h1><p>지금 진행 중인 할인·특가를 분야별로</p></div>
+      <div><h1>놓치면 후회할, 핫딜!</h1><p>쿠팡에서 지금 진행 중인 기획전과 많이 찾는 상품</p></div>
     </header>
 
     {COUPANG_ON ? (
       <>
         <p class="dl-notice">{COUPANG_NOTICE}</p>
         <section class="pt-sec">
+          <div class="pt-sec__head"><div><h2>많이 찾는 상품</h2><p>누르면 쿠팡 검색 결과로 이동해요</p></div></div>
+          <div class="pt-chips" id="dl-picks">
+            {COUPANG_LINKS.map((l) => <a class="pt-chip" href={l.href} target="_blank" rel="sponsored nofollow noopener" title={l.desc}>{l.label}</a>)}
+          </div>
+        </section>
+        <section class="pt-sec">
+          <div class="pt-sec__head"><div><h2>진행 중인 기획전</h2><p>끝나는 날이 가까운 순서</p></div></div>
           <div class="tl-quick" id="dl-cats" style="margin:0 0 1rem">
             <button type="button" data-c="" class="is-on">전체 <small id="dl-total"></small></button>
             {cats.map((x) => <button type="button" data-c={x.c}>{x.c}</button>)}
@@ -91,6 +98,7 @@ const updated = (data as any).generatedAt as string;
         live.forEach((c) => { const show = !cat || c.dataset.c === cat; c.hidden = !show; if (show) n++; });
         document.getElementById('dl-empty').hidden = n > 0;
       });
+      var picks = document.getElementById('dl-picks'); if (picks) picks.addEventListener('click', function (e) { var a = e.target.closest('a'); if (a) { try { if (window.gtag) window.gtag('event', 'partner_click', { place: 'deals-pick', item: a.textContent }); } catch (err) {} } });
       grid.addEventListener('click', (e) => { const a = e.target.closest('a'); if (a) { try { if (window.gtag) window.gtag('event', 'partner_click', { place: 'deals', item: (a.querySelector('.dl-body b') || {}).textContent || '' }); } catch (err) {} } });
     })();
   </script>

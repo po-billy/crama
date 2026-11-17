@@ -35,6 +35,8 @@ const description = `${g.desc}. ${ready.slice(0, 5).map((i) => i.name).join(', '
       </div>
     </header>
 
+    {(slug === 'fun' || slug === 'games') && <section class="pt-sec"><div data-cp-today></div></section>}
+
     <section class="pt-sec">
       <div class="pt-tools pt-tools--3">
         {ready.map((it) => (
@@ -61,6 +63,13 @@ const description = `${g.desc}. ${ready.slice(0, 5).map((i) => i.name).join(', '
             </a>
           ))}
         </div>
+      </section>
+    )}
+
+    {slug === 'games' && (
+      <section class="pt-sec">
+        <div class="pt-sec__head"><div><h2>내 기록</h2><p>이 기기에 저장된 게임별 최고 기록</p></div></div>
+        <div data-cp-records></div>
       </section>
     )}
 

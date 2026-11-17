@@ -5,7 +5,7 @@ import AdSlot from '../../components/AdSlot.astro';
 import '../../styles/portal.css';
 ---
 <BaseLayout title="반응속도 테스트 — 내 반응 속도는 몇 ms?" description="화면이 초록색으로 바뀌는 순간 누르세요. 5번 측정한 평균 반응속도(ms)를 알려 드립니다. 설치 없이 무료로 바로 테스트하세요.">
-  <div class="pt pt-narrow" style="--c:#f59e0b">
+  <div class="pt pt-narrow gm" style="--c:#f59e0b">
     <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/games/">게임</a> › 반응속도 테스트</nav>
     <div class="gm-head">
       <h1>반응속도 테스트</h1>
@@ -26,8 +26,20 @@ import '../../styles/portal.css';
       <ul>
         <li>판을 누르면 빨간색으로 바뀝니다. 잠시 뒤 <b>초록색</b>이 되는 순간 최대한 빨리 누르세요.</li>
         <li>초록색이 되기 전에 누르면 그 회차는 다시 합니다.</li>
-        <li>5번 측정한 평균이 내 반응속도입니다.</li>
+        <li>5번 측정한 평균이 내 반응속도입니다. 가장 좋은 평균은 이 기기에 저장되어 시작 전에 보여 드려요.</li>
       </ul>
+      <h2>기록을 줄이는 요령</h2>
+      <p>초록색이 언제 나올지 미리 맞히려 하면 너무 빨리 눌러 회차를 다시 하게 됩니다. 색이 바뀌는 것을 '보고' 누른다는 생각으로, 손가락은 판 위에 가볍게 올려 두세요. 모바일에서는 손가락을 화면에서 살짝 띄운 채 기다리면 누르는 거리가 짧아져 기록이 좋아집니다. 피곤하거나 졸릴 때는 수십 ms씩 느려지니 컨디션을 비교해 보는 용도로도 쓸 수 있어요.</p>
+      <div class="tl-wrap"><table class="tl-table">
+        <thead><tr><th>평균</th><th>평가</th></tr></thead>
+        <tbody>
+          <tr><td>200ms 미만</td><td>아주 빨라요</td></tr>
+          <tr><td>200~249ms</td><td>빠른 편이에요</td></tr>
+          <tr><td>250~299ms</td><td>보통이에요</td></tr>
+          <tr><td>300~379ms</td><td>조금 느린 편이에요</td></tr>
+          <tr><td>380ms 이상</td><td>천천히 한 번 더 해 보세요</td></tr>
+        </tbody>
+      </table></div>
       <h2>결과는 어떻게 보나요</h2>
       <p>화면을 보고 손으로 누르는 단순 반응은 보통 200~300ms(0.2~0.3초) 사이에 나옵니다. 다만 이 수치에는 기기의 화면 표시 지연과 터치·마우스 입력 지연이 함께 들어 있어, 같은 사람이라도 기기에 따라 수십 ms 차이가 납니다. 다른 사람과 비교하기보다 같은 기기에서 내 기록을 비교하는 용도로 쓰세요.</p>
     </section>
@@ -42,7 +54,7 @@ import '../../styles/portal.css';
     .gm-head h1 { margin: 0; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; }
     .gm-timer { margin-left: auto; font-size: 1.05rem; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
     .gm-msg { text-align: center; font-weight: 800; color: var(--accent); min-height: 1.6rem; margin: 0.8rem 0; }
-    .rx-pad { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; min-height: 17rem; border: 0; border-radius: 22px; background: #6c5ce7; color: #fff; font: inherit; cursor: pointer; padding: 1.5rem; user-select: none; -webkit-user-select: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+    .rx-pad { -webkit-touch-callout: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; min-height: 17rem; border: 0; border-radius: 22px; background: #6c5ce7; color: #fff; font: inherit; cursor: pointer; padding: 1.5rem; user-select: none; -webkit-user-select: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     .rx-pad b { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.02em; }
     .rx-pad span { font-size: 1rem; font-weight: 600; opacity: 0.92; }
     .rx-pad[data-s='wait'] { background: #dc2626; }
@@ -54,30 +66,46 @@ import '../../styles/portal.css';
   <script is:inline>
     (() => {
       const $ = (id) => document.getElementById(id);
-      const pad = $('rx-pad'), KEY = 'crama:game:reaction', ROUNDS = 5;
-      let state = 'idle', timer = null, t0 = 0, times = [];
-      const set = (s, big, sub) => { state = s; pad.dataset.s = s; $('rx-big').textContent = big; $('rx-sub').textContent = sub; };
-      const arm = () => { set('wait', '기다리세요…', '초록색이 되면 누르세요'); timer = setTimeout(() => { t0 = performance.now(); set('go', '지금!', '누르세요'); }, 1400 + Math.random() * 3200); };
+      const pad = $('rx-pad'), bigEl = $('rx-big'), subEl = $('rx-sub'), msgEl = $('rx-msg'), KEY = 'crama:game:reaction', ROUNDS = 5;
+      const buzz = (p) => { if (window.CramaPlay) window.CramaPlay.buzz(p); };
+      let state = 'idle', timer = null, t0 = 0, times = [], early = 0, seq = 0;
+      const stored = () => { try { return Number(localStorage.getItem(KEY)) || null; } catch (e) { return null; } };
+      const set = (s, big, sub) => { state = s; pad.dataset.s = s; bigEl.textContent = big; subEl.textContent = sub; };
+      // 화면을 떠난 뒤에는 색을 바꾸지 않는다
+      const arm = () => { set('wait', '기다리세요…', '초록색이 되면 누르세요'); timer = setTimeout(() => { if (!pad.isConnected) return; t0 = performance.now(); set('go', '지금!', '누르세요'); }, 1400 + Math.random() * 3200); };
       const grade = (ms) => (ms < 200 ? '아주 빨라요' : ms < 250 ? '빠른 편이에요' : ms < 300 ? '보통이에요' : ms < 380 ? '조금 느린 편이에요' : '천천히 한 번 더 해 보세요');
       const list = () => { const box = $('rx-list'); box.textContent = ''; times.forEach((ms, i) => { const s = document.createElement('span'); s.className = 'pt-chip'; s.textContent = (i + 1) + '회 ' + ms + 'ms'; box.appendChild(s); }); $('rx-round').textContent = times.length + ' / ' + ROUNDS; };
+      function begin() { seq++; clearTimeout(timer); times = []; early = 0; list(); msgEl.textContent = ''; arm(); }
       function press() {
-        if (state === 'idle' || state === 'done') { times = []; list(); $('rx-msg').textContent = ''; arm(); return; }
-        if (state === 'wait') { clearTimeout(timer); set('early', '너무 빨랐어요', '눌러서 이번 회차 다시 하기'); return; }
+        if (state === 'idle' || state === 'done') { buzz(10); begin(); return; }
+        if (state === 'wait') { clearTimeout(timer); early++; buzz([30, 30, 30]); set('early', '너무 빨랐어요', '눌러서 이번 회차 다시 하기'); return; }
         if (state === 'early' || state === 'result') { arm(); return; }
         if (state === 'go') {
-          const ms = Math.round(performance.now() - t0); times.push(ms); list();
+          const ms = Math.round(performance.now() - t0); times.push(ms); list(); buzz(10);
           if (times.length < ROUNDS) { set('result', ms + 'ms', '눌러서 다음 회차'); return; }
           const avg = Math.round(times.reduce((a, b) => a + b, 0) / times.length);
-          let prev = null; try { prev = Number(localStorage.getItem(KEY)) || null; } catch (e) {}
+          const prev = stored();
           const better = !prev || avg < prev; if (better) { try { localStorage.setItem(KEY, String(avg)); } catch (e) {} }
           set('done', '평균 ' + avg + 'ms', grade(avg) + ' · 눌러서 다시 하기');
-          $('rx-msg').textContent = '가장 빠른 기록 ' + Math.min.apply(null, times) + 'ms' + (prev ? ' · 내 최고 평균 ' + Math.min(prev, avg) + 'ms' + (better ? ' (경신 🎉)' : '') : '');
+          const fast = Math.min.apply(null, times), slow = Math.max.apply(null, times);
+          msgEl.textContent = '가장 빠른 기록 ' + fast + 'ms' + (prev ? ' · 내 최고 평균 ' + Math.min(prev, avg) + 'ms' + (better ? ' (경신 🎉)' : '') : '');
           try { if (window.gtag) window.gtag('event', 'game_clear', { game: 'reaction', ms: avg }); } catch (e) {}
+          // 결과 창은 손을 뗀 뒤에 뜨도록 조금 늦춘다
+          const my = seq, ea = early;
+          setTimeout(() => {
+            if (!window.CramaPlay || !pad.isConnected || my !== seq || state !== 'done') return;
+            window.CramaPlay.finish({
+              game: 'reaction', name: '반응속도 테스트', value: avg, display: avg + 'ms', lower: true,
+              title: '평균 반응속도', sub: grade(avg), rows: [['가장 빠른 회차', fast + 'ms'], ['가장 느린 회차', slow + 'ms'], ['너무 빨리 누름', ea + '번']],
+              shareText: '크라마 반응속도 테스트 평균 ' + avg + 'ms! ' + grade(avg), onRetry: begin,
+            });
+          }, 700);
         }
       }
       // 누르는 순간에 반응하도록 pointerdown 사용(click 은 손을 뗄 때라 수십 ms 늦다). 키보드는 click 으로 처리.
       pad.addEventListener('pointerdown', (e) => { e.preventDefault(); press(); });
       pad.addEventListener('click', (e) => { if (e.detail === 0) press(); });
+      const b0 = stored(); if (b0) msgEl.textContent = '내 최고 평균 ' + b0 + 'ms · 이번에 넘어 보세요';
     })();
   </script>
 </BaseLayout>

@@ -4,10 +4,47 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import AdSlot from '../../components/AdSlot.astro';
 import { QUIZ } from '../../data/quiz';
 import '../../styles/portal.css';
-const cats = [...new Set(QUIZ.map((q) => q.cat))];
+// 이 화면에서 덧붙이는 문제. 시간이 지나도 바뀌지 않는 사실만 싣는다.
+const X = (cat: string, q: string, a: string[], c: number, e: string) => ({ cat, q, a, c, e });
+const EXTRA = [
+  X('과학', '1기압에서 순수한 물이 어는 온도는 섭씨 몇 도일까요?', ['영하 10도', '0도', '4도', '10도'], 1, '섭씨온도는 1기압에서 물이 어는 온도를 0도, 끓는 온도를 100도로 정한 눈금입니다.'),
+  X('과학', '1기압에서 순수한 물이 끓는 온도는 섭씨 몇 도일까요?', ['50도', '80도', '100도', '120도'], 2, '1기압에서 물은 섭씨 100도에 끓습니다. 높은 산처럼 기압이 낮은 곳에서는 더 낮은 온도에서 끓어요.'),
+  X('과학', '태양계에서 태양과 가장 가까운 행성은?', ['수성', '금성', '지구', '화성'], 0, '태양에서 가까운 순서는 수성, 금성, 지구, 화성입니다.'),
+  X('과학', '우리 몸에서 피를 온몸으로 내보내는 기관은?', ['폐', '간', '심장', '위'], 2, '심장은 쉬지 않고 수축하며 피를 온몸으로 내보내는 펌프 역할을 합니다.'),
+  X('과학', '지구가 태양 둘레를 한 바퀴 도는 데 걸리는 시간은 대략?', ['하루', '한 달', '1년', '10년'], 2, '지구는 약 365일, 곧 1년에 걸쳐 태양 둘레를 한 바퀴 돕니다. 이것을 공전이라고 해요.'),
+  X('과학', '어른의 영구치는 사랑니까지 모두 나면 몇 개일까요?', ['20개', '28개', '32개', '36개'], 2, '영구치는 사랑니 4개를 포함해 모두 32개입니다. 어린이의 젖니는 20개예요.'),
+  X('과학', '소금의 주성분은 무엇일까요?', ['염화나트륨', '탄산칼슘', '포도당', '수산화나트륨'], 0, '소금의 주성분은 나트륨과 염소가 결합한 염화나트륨(NaCl)입니다.'),
+  X('한국사', '고구려를 세운 인물은?', ['온조', '박혁거세', '주몽', '왕건'], 2, '고구려는 주몽(동명성왕)이 세웠다고 전해집니다. 온조는 백제, 박혁거세는 신라를 세운 인물이에요.'),
+  X('한국사', '고려를 세운 인물은?', ['왕건', '궁예', '견훤', '이성계'], 0, '왕건은 918년에 고려를 세우고 이후 후삼국을 통일했습니다.'),
+  X('한국사', '3·1 운동이 일어난 해는?', ['1905년', '1910년', '1919년', '1945년'], 2, '1919년 3월 1일, 일제의 식민 지배에 맞서 전국에서 독립 만세 운동이 일어났습니다.'),
+  X('한국사', '6·25 전쟁이 일어난 해는?', ['1945년', '1948년', '1950년', '1953년'], 2, '6·25 전쟁은 1950년 6월 25일에 일어났고, 1953년 7월에 정전 협정이 맺어졌습니다.'),
+  X('한국사', '조선의 도읍이었던 한양은 오늘날의 어느 도시일까요?', ['서울', '개성', '경주', '평양'], 0, '한양은 조선의 도읍으로, 오늘날의 서울입니다. 개성은 고려, 경주는 신라의 도읍이었어요.'),
+  X('지리', '세계에서 가장 넓은 대륙은?', ['아프리카', '아시아', '유럽', '남아메리카'], 1, '아시아는 세계 육지 면적의 약 30%를 차지하는 가장 넓은 대륙입니다.'),
+  X('지리', '세계에서 면적이 가장 넓은 나라는?', ['중국', '미국', '캐나다', '러시아'], 3, '러시아는 유럽과 아시아에 걸쳐 있으며 면적이 세계에서 가장 넓습니다.'),
+  X('지리', '프랑스의 수도는?', ['런던', '로마', '파리', '베를린'], 2, '프랑스의 수도는 파리입니다. 런던은 영국, 로마는 이탈리아, 베를린은 독일의 수도예요.'),
+  X('지리', '호주(오스트레일리아)의 수도는?', ['시드니', '멜버른', '캔버라', '브리즈번'], 2, '호주의 수도는 캔버라입니다. 시드니는 가장 큰 도시지만 수도는 아니에요.'),
+  X('지리', '남한에서 가장 높은 산은?', ['지리산', '설악산', '한라산', '태백산'], 2, '제주도의 한라산은 높이 약 1,947m로 남한에서 가장 높습니다.'),
+  X('지리', '우리나라 영토의 가장 동쪽 끝에 있는 섬은?', ['울릉도', '독도', '마라도', '백령도'], 1, '독도는 우리나라의 가장 동쪽 끝에 있는 섬입니다. 마라도는 남쪽 끝에 있어요.'),
+  X('생활', '1시간은 몇 초일까요?', ['360초', '600초', '3,600초', '6,000초'], 2, '1시간은 60분이고 1분은 60초이므로 60 × 60 = 3,600초입니다.'),
+  X('생활', '1kg은 몇 g일까요?', ['10g', '100g', '1,000g', '10,000g'], 2, '킬로(k)는 1,000배를 뜻하므로 1kg은 1,000g입니다.'),
+  X('생활', '1L는 몇 mL일까요?', ['10mL', '100mL', '500mL', '1,000mL'], 3, '밀리(m)는 1,000분의 1을 뜻하므로 1L는 1,000mL입니다.'),
+  X('생활', '우리나라에서 범죄를 신고할 때 거는 전화번호는?', ['112', '114', '119', '120'], 0, '범죄 신고는 112, 화재·구조·구급 신고는 119입니다.'),
+  X('생활', '연필 한 다스는 몇 자루일까요?', ['6자루', '10자루', '12자루', '24자루'], 2, '다스는 물건 12개를 한 묶음으로 세는 단위입니다.'),
+  X('경제', '물가가 지속적으로 내리는 현상을 무엇이라 할까요?', ['인플레이션', '디플레이션', '스태그플레이션', '리디노미네이션'], 1, '디플레이션은 물가가 지속적으로 내리는 현상으로, 인플레이션의 반대말입니다.'),
+  X('경제', '주식회사가 벌어들인 이익의 일부를 주주에게 나누어 주는 돈은?', ['이자', '배당금', '보험료', '수수료'], 1, '배당금은 회사가 이익의 일부를 주주에게 지분에 따라 나누어 주는 돈입니다.'),
+  X('경제', '한 나라 안에서 일정 기간 새로 생산한 재화와 서비스의 가치를 모두 더한 것은?', ['국내총생산(GDP)', '소비자물가지수(CPI)', '기준금리', '환율'], 0, '국내총생산(GDP)은 한 나라의 경제 규모를 나타내는 대표적인 지표입니다.'),
+  X('경제', '서로 다른 두 나라 돈을 바꿀 때 적용하는 교환 비율은?', ['금리', '환율', '세율', '주가'], 1, '환율은 한 나라의 돈과 다른 나라 돈의 교환 비율입니다.'),
+  X('문화', '농구에서 한 팀이 코트에 내보내는 선수는 몇 명일까요?', ['5명', '6명', '7명', '9명'], 0, '농구는 한 팀 5명이 코트에서 경기합니다.'),
+  X('문화', '6인제 배구에서 한 팀이 코트에 내보내는 선수는 몇 명일까요?', ['5명', '6명', '9명', '11명'], 1, '올림픽 등에서 치르는 일반적인 배구는 한 팀 6명이 코트에 섭니다.'),
+  X('문화', '"별이 빛나는 밤"을 그린 화가는?', ['클로드 모네', '파블로 피카소', '빈센트 반 고흐', '레오나르도 다빈치'], 2, '"별이 빛나는 밤"은 빈센트 반 고흐가 1889년에 그린 작품입니다.'),
+  X('문화', '우리나라 전통 명절인 추석은 음력으로 몇 월 며칠일까요?', ['5월 5일', '7월 7일', '8월 15일', '9월 9일'], 2, '추석은 음력 8월 15일로, 한가위라고도 부릅니다.'),
+  X('문화', '애국가를 작곡한 사람은?', ['홍난파', '안익태', '윤이상', '현제명'], 1, '오늘날 부르는 애국가의 곡은 안익태가 작곡했습니다.'),
+];
+const ALL = [...QUIZ, ...EXTRA];
+const cats = [...new Set(ALL.map((q) => q.cat))];
 ---
-<BaseLayout title="상식 퀴즈 — 10문제로 보는 내 상식 점수" description={`과학·한국사·지리·경제·문화 ${QUIZ.length}문제 중 10문제를 무작위로 풀어 보세요. 문제마다 해설을 바로 확인할 수 있는 무료 상식 퀴즈.`}>
-  <div class="pt pt-narrow" style="--c:#0ea5e9">
+<BaseLayout title="상식 퀴즈 — 10문제로 보는 내 상식 점수" description={`과학·한국사·지리·경제·문화 ${ALL.length}문제 중 10문제를 무작위로 풀어 보세요. 문제마다 해설을 바로 확인할 수 있는 무료 상식 퀴즈.`}>
+  <div class="pt pt-narrow gm" style="--c:#0ea5e9">
     <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/games/">게임</a> › 상식 퀴즈</nav>
     <div class="gm-head">
       <h1>상식 퀴즈</h1>
@@ -16,6 +53,8 @@ const cats = [...new Set(QUIZ.map((q) => q.cat))];
     </div>
     <div class="tl-quick" id="qz-cats" style="margin:0 0 0.8rem"><button type="button" data-cat="" class="is-on">종합</button>{cats.map((c) => <button type="button" data-cat={c}>{c}</button>)}</div>
 
+    <div class="gm-prog" id="qz-prog-bar" role="progressbar" aria-label="푼 문제" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0"><i id="qz-bar"></i></div>
+    <p class="gm-best" id="qz-best"></p>
     <div class="tl-card" id="qz-card">
       <p id="qz-q" style="margin:0 0 1rem;font-size:1.15rem;font-weight:800;line-height:1.45"></p>
       <div class="qz-opts" id="qz-opts"></div>
@@ -31,6 +70,16 @@ const cats = [...new Set(QUIZ.map((q) => q.cat))];
 
     <div class="pt-ad"><AdSlot slot="game-quiz" /></div>
 
+    <section class="pt-sec pt-prose">
+      <h2>하는 법</h2>
+      <ul>
+        <li>전체 {ALL.length}문제 가운데 10문제가 무작위로 나옵니다. 보기 네 개 중 하나를 고르면 정답과 해설을 바로 볼 수 있어요.</li>
+        <li>위쪽 버튼으로 과학·한국사·지리 같은 분야만 골라 풀 수도 있습니다. 문제 수가 적은 분야는 있는 만큼만 나옵니다.</li>
+        <li>보기 순서는 풀 때마다 섞이므로, 번호가 아니라 내용을 기억해 두세요.</li>
+      </ul>
+      <h2>점수는 어떻게 남나요</h2>
+      <p>'종합' 10문제에서 맞힌 개수가 내 최고 점수로 이 기기에 저장됩니다. 분야별 퀴즈는 문제 수가 달라 연습용으로만 집계해요. 틀린 문제는 해설을 읽고 한 판 더 풀어 보세요. 같은 문제가 다시 나왔을 때 맞히는 재미가 있습니다.</p>
+    </section>
     <section class="pt-sec">
       <div class="pt-sec__head"><div><h2>다른 게임</h2></div></div>
       <div class="pt-chips"><a class="pt-chip" href="/games/sudoku/">스도쿠</a><a class="pt-chip" href="/games/mines/">지뢰 찾기</a><a class="pt-chip" href="/games/bricks/">벽돌깨기</a><a class="pt-chip" href="/games/number-baseball/">숫자 야구</a></div>
@@ -42,36 +91,48 @@ const cats = [...new Set(QUIZ.map((q) => q.cat))];
     .gm-head h1 { margin: 0; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; }
     .gm-timer { margin-left: auto; font-size: 1.05rem; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
     .tl-quick button.is-on { border-color: var(--accent); background: var(--accent); color: #fff; }
+    .gm .tl-quick button { min-height: 2.6rem; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+    .gm-prog { height: 6px; margin: 0 0 0.5rem; border-radius: 99px; background: var(--line); overflow: hidden; }
+    .gm-prog i { display: block; width: 0; height: 100%; border-radius: 99px; background: var(--accent); transition: width 0.2s ease; }
+    .gm-best { text-align: right; font-size: 0.85rem; font-weight: 700; color: var(--muted); min-height: 1.3rem; margin: 0 0 0.5rem; }
+    @media (prefers-reduced-motion: reduce) { .gm-prog i { transition: none; } }
     .qz-opts { display: grid; gap: 0.5rem; }
-    .qz-opts button { padding: 0.85rem 1rem; border: 1.5px solid var(--line); border-radius: 12px; background: var(--paper); font: inherit; font-size: 1rem; font-weight: 700; color: var(--ink); text-align: left; cursor: pointer; }
+    .qz-opts button { min-height: 3rem; touch-action: manipulation; -webkit-tap-highlight-color: transparent; padding: 0.85rem 1rem; border: 1.5px solid var(--line); border-radius: 12px; background: var(--paper); font: inherit; font-size: 1rem; font-weight: 700; color: var(--ink); text-align: left; cursor: pointer; }
     .qz-opts button:hover:not(:disabled) { border-color: var(--accent); }
     .qz-opts button.is-right { border-color: #16a34a; background: color-mix(in srgb, #22c55e 14%, var(--paper)); color: #15803d; }
     .qz-opts button.is-wrong { border-color: #e11d48; background: color-mix(in srgb, #f43f5e 12%, var(--paper)); color: #be123c; }
     #qz-card[hidden] { display: none; }
   </style>
 
-  <script is:inline define:vars={{ QUIZ }}>
+  <script is:inline define:vars={{ QUIZ: ALL }}>
     (() => {
       const $ = (id) => document.getElementById(id);
-      let cat = '', set = [], idx = 0, score = 0;
+      const card = $('qz-card');
+      const buzz = (p) => { if (window.CramaPlay) window.CramaPlay.buzz(p); };
+      let cat = '', set = [], idx = 0, score = 0, seq = 0;
+      // 진행 막대와 지금까지 맞힌 개수
+      const prog = (n) => { $('qz-bar').style.width = (n / set.length) * 100 + '%'; $('qz-prog-bar').setAttribute('aria-valuemax', set.length); $('qz-prog-bar').setAttribute('aria-valuenow', n); const b = window.CramaPlay ? window.CramaPlay.best('quiz') : null; $('qz-best').textContent = '맞힌 문제 ' + score + '개' + (b ? ' · 종합 최고 ' + b.d : ''); };
       const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
       function start() {
         const pool = QUIZ.filter((q) => !cat || q.cat === cat);
         // 보기 순서도 매번 섞는다(정답 위치가 한쪽으로 쏠리지 않게)
-        set = shuffle(pool).slice(0, Math.min(10, pool.length)).map((q) => { const order = shuffle([0, 1, 2, 3]); return { q: q.q, e: q.e, a: order.map((k) => q.a[k]), c: order.indexOf(q.c) }; }); idx = 0; score = 0;
+        set = shuffle(pool).slice(0, Math.min(10, pool.length)).map((q) => { const order = shuffle([0, 1, 2, 3]); return { q: q.q, e: q.e, a: order.map((k) => q.a[k]), c: order.indexOf(q.c) }; }); idx = 0; score = 0; seq++;
         $('qz-cat').textContent = cat || '종합'; $('qz-card').hidden = false; $('qz-result').hidden = true; $('qz-end').hidden = true; show();
       }
       function show() {
         const q = set[idx];
         $('qz-prog').textContent = (idx + 1) + ' / ' + set.length; $('qz-q').textContent = q.q;
-        $('qz-exp').hidden = true; $('qz-next').hidden = true;
+        $('qz-exp').hidden = true; $('qz-next').hidden = true; prog(idx);
         const box = $('qz-opts'); box.textContent = '';
         q.a.forEach((t, i) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = (i + 1) + '. ' + t; b.addEventListener('click', () => answer(i)); box.appendChild(b); });
       }
       function answer(i) {
         const q = set[idx], btns = $('qz-opts').querySelectorAll('button');
         btns.forEach((b, k) => { b.disabled = true; if (k === q.c) b.classList.add('is-right'); else if (k === i) b.classList.add('is-wrong'); });
-        if (i === q.c) score++;
+        if (btns[0] && btns[0].dataset.done) return;
+        if (btns[0]) btns[0].dataset.done = '1';
+        if (i === q.c) { score++; buzz(12); } else buzz([30, 40, 30]);
+        prog(idx + 1);
         $('qz-exp').textContent = (i === q.c ? '정답! ' : '아쉬워요. ') + q.e; $('qz-exp').hidden = false;
         $('qz-next').textContent = idx + 1 < set.length ? '다음 문제' : '결과 보기'; $('qz-next').hidden = false;
       }
@@ -83,6 +144,18 @@ const cats = [...new Set(QUIZ.map((q) => q.cat))];
         $('qz-score').textContent = score + ' / ' + set.length; $('qz-prog').textContent = '완료';
         $('qz-comment').textContent = pct === 100 ? '만점! 상식 박사시네요 🎉' : pct >= 80 ? '훌륭해요. 거의 다 맞혔어요' : pct >= 50 ? '절반 이상 맞혔어요. 한 번 더 도전!' : '괜찮아요, 해설을 보며 하나씩 알아 가요';
         try { if (window.gtag) window.gtag('event', 'game_clear', { game: 'quiz', score: score }); } catch (e) {}
+        // 결과 창: 문제 수가 같은 '종합' 10문제만 최고 점수로 올린다
+        const sc = score, total = set.length, name = cat || '종합', main = !cat && total === 10, my = seq, comment = $('qz-comment').textContent;
+        setTimeout(() => {
+          if (!window.CramaPlay || !card.isConnected || my !== seq) return;
+          window.CramaPlay.finish({
+            game: 'quiz', name: '상식 퀴즈', value: main && sc > 0 ? sc : null, display: sc + ' / ' + total, win: sc === total,
+            title: '내 상식 점수', sub: main ? comment : '내 기록에는 종합 10문제만 올라가요',
+            rows: [['분야', name], ['정답률', pct + '%'], ['틀린 문제', (total - sc) + '개']],
+            shareText: '크라마 상식 퀴즈 ' + name + ' ' + total + '문제 중 ' + sc + '개 정답!', onRetry: start,
+          });
+          prog(total);
+        }, 400);
       });
       $('qz-again').addEventListener('click', start);
       $('qz-share').addEventListener('click', async () => {

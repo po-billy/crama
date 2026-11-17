@@ -5,14 +5,14 @@ import AdSlot from '../../components/AdSlot.astro';
 import '../../styles/portal.css';
 ---
 <BaseLayout title="숫자 야구 게임 — 스트라이크·볼로 숫자 맞히기" description="서로 다른 숫자 3개(또는 4개)를 스트라이크와 볼 힌트로 추리해 맞히는 숫자 야구. 설치 없이 무료로 바로 즐기세요.">
-  <div class="pt pt-narrow" style="--c:#10b981">
+  <div class="pt pt-narrow gm" style="--c:#10b981">
     <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/games/">게임</a> › 숫자 야구</nav>
     <div class="gm-head">
       <h1>숫자 야구</h1>
       <span class="pt-card__tag" id="nb-tag">3자리</span>
       <span class="gm-timer" id="nb-count">0번째 시도</span>
     </div>
-    <div class="tl-quick" style="margin:0 0 0.8rem"><button type="button" data-len="3">새 게임 · 3자리</button><button type="button" data-len="4">새 게임 · 4자리</button></div>
+    <div class="tl-quick" style="margin:0 0 0.8rem"><button type="button" data-len="3">새 게임 · 3자리</button><button type="button" data-len="4">새 게임 · 4자리</button><button type="button" id="nb-giveup">정답 보기</button></div>
 
     <div class="tl-card">
       <div class="tl-row">
@@ -22,6 +22,7 @@ import '../../styles/portal.css';
       <p id="nb-err" style="margin:0.7rem 0 0;font-size:0.85rem;color:#e11d48" hidden></p>
     </div>
     <p class="gm-msg" id="nb-msg" aria-live="polite"></p>
+    <p class="gm-best" id="nb-best"></p>
     <div class="tl-wrap" id="nb-wrap" hidden>
       <table class="tl-table"><thead><tr><th>#</th><th>내 숫자</th><th>결과</th></tr></thead><tbody id="nb-body"></tbody></table>
     </div>
@@ -34,7 +35,10 @@ import '../../styles/portal.css';
         <li>컴퓨터가 서로 다른 숫자(0~9)로 이루어진 수를 정합니다.</li>
         <li>숫자와 자리가 모두 맞으면 <b>스트라이크(S)</b>, 숫자는 있지만 자리가 다르면 <b>볼(B)</b>입니다.</li>
         <li>하나도 맞지 않으면 <b>아웃</b>. 모든 자리를 스트라이크로 만들면 성공입니다.</li>
+        <li>도저히 모르겠으면 '정답 보기'를 눌러 답을 확인할 수 있어요. 이 경우 기록에는 남지 않습니다.</li>
       </ul>
+      <h2>적은 횟수로 맞히는 요령</h2>
+      <p>처음 두세 번은 012, 345, 678처럼 겹치지 않는 숫자를 던져 어떤 숫자가 들어 있는지부터 좁히세요. '아웃'은 실망할 결과가 아니라 숫자 세 개를 한꺼번에 지워 주는 가장 좋은 힌트입니다. 들어 있는 숫자를 알아낸 다음에는 한 번에 한 자리씩만 바꿔 가며 스트라이크와 볼이 어떻게 달라지는지 보면 자리를 확정할 수 있어요. 3자리는 보통 6~8번, 4자리는 8~10번 안에 맞히면 잘한 편입니다. 게임 목록의 '내 기록'에는 3자리 판의 시도 횟수가 올라갑니다.</p>
     </section>
     <section class="pt-sec">
       <div class="pt-sec__head"><div><h2>다른 게임</h2></div></div>
@@ -46,39 +50,70 @@ import '../../styles/portal.css';
     .gm-head { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.8rem; }
     .gm-head h1 { margin: 0; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; }
     .gm-timer { margin-left: auto; font-size: 1.05rem; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
-    .gm-msg { text-align: center; font-weight: 800; color: var(--accent); min-height: 1.6rem; margin: 0.8rem 0; }
+    .gm-msg { text-align: center; font-weight: 800; color: var(--accent); min-height: 1.6rem; margin: 0.8rem 0 0; }
+    .gm-best { text-align: center; font-size: 0.85rem; font-weight: 700; color: var(--muted); min-height: 1.3rem; margin: 0.3rem 0 0.8rem; }
+    .gm .tl-quick button, .gm .tl-btn { min-height: 2.6rem; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   </style>
 
   <script is:inline>
     (() => {
       const $ = (id) => document.getElementById(id);
-      let len = 3, answer = '', tries = 0, done = false;
+      const KEY = 'crama:game:number-baseball';
+      const input = $('nb-in'), msgEl = $('nb-msg');
+      const buzz = (p) => { if (window.CramaPlay) window.CramaPlay.buzz(p); };
+      const bests = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; } };
+      let len = 3, answer = '', tries = 0, done = false, t0 = 0, seq = 0;
+      function showBest() { const b = bests()[len]; $('nb-best').textContent = b ? len + '자리 최고 기록 ' + b + '번' : len + '자리 · 아직 기록이 없어요'; }
       function start(n) {
-        len = n; const d = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']; answer = '';
+        len = n; seq++; const d = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']; answer = '';
         while (answer.length < len) answer += d.splice(Math.floor(Math.random() * d.length), 1)[0];
-        tries = 0; done = false;
+        tries = 0; done = false; t0 = 0;
         $('nb-tag').textContent = len + '자리'; $('nb-count').textContent = '0번째 시도'; $('nb-body').textContent = ''; $('nb-wrap').hidden = true;
-        $('nb-msg').textContent = ''; $('nb-in').value = ''; $('nb-in').maxLength = len; $('nb-in').placeholder = len === 3 ? '예: 123' : '예: 1234'; $('nb-err').hidden = true;
+        msgEl.textContent = ''; input.value = ''; input.maxLength = len; input.placeholder = len === 3 ? '예: 123' : '예: 1234'; $('nb-err').hidden = true;
+        showBest();
       }
       function go() {
         if (done) return;
-        const v = $('nb-in').value.trim(), err = $('nb-err');
-        if (!new RegExp('^[0-9]{' + len + '}$').test(v) || new Set(v).size !== len) { err.textContent = '서로 다른 숫자 ' + len + '개를 입력해 주세요.'; err.hidden = false; return; }
-        err.hidden = true; tries++;
+        const v = input.value.trim(), err = $('nb-err');
+        if (!new RegExp('^[0-9]{' + len + '}$').test(v) || new Set(v).size !== len) { err.textContent = '서로 다른 숫자 ' + len + '개를 입력해 주세요.'; err.hidden = false; buzz(25); return; }
+        err.hidden = true; tries++; if (!t0) t0 = Date.now();
         let s = 0, b = 0;
         for (let i = 0; i < len; i++) { if (v[i] === answer[i]) s++; else if (answer.indexOf(v[i]) !== -1) b++; }
         const res = s === len ? '정답!' : (s || b ? (s ? s + 'S ' : '') + (b ? b + 'B' : '') : '아웃');
         const tr = document.createElement('tr');
         [tries, v, res].forEach((c, i) => { const td = document.createElement('td'); td.textContent = c; if (i === 2 && s === len) td.className = 'is-on'; tr.appendChild(td); });
         $('nb-body').insertBefore(tr, $('nb-body').firstChild); $('nb-wrap').hidden = false;
-        $('nb-count').textContent = tries + '번째 시도'; $('nb-in').value = ''; $('nb-in').focus();
-        if (s === len) { done = true; $('nb-msg').textContent = tries + '번 만에 맞혔어요! 🎉'; try { if (window.gtag) window.gtag('event', 'game_clear', { game: 'number-baseball', tries: tries }); } catch (e) {} }
-        else $('nb-msg').textContent = res;
+        $('nb-count').textContent = tries + '번째 시도'; input.value = '';
+        if (s === len) { win(); return; }
+        input.focus(); buzz(10); msgEl.textContent = res;
+      }
+      function win() {
+        done = true; msgEl.textContent = tries + '번 만에 맞혔어요! 🎉';
+        try { if (window.gtag) window.gtag('event', 'game_clear', { game: 'number-baseball', tries: tries }); } catch (e) {}
+        const all = bests(), prev = all[len];
+        if (!prev || tries < prev) { all[len] = tries; try { localStorage.setItem(KEY, JSON.stringify(all)); } catch (e) {} }
+        showBest(); input.blur();
+        // 결과 창: 게임 목록의 '내 기록'에는 대표인 3자리 판만 올린다
+        const n = len, tr = tries, ans = answer, my = seq, sec = Math.max(1, Math.round((Date.now() - t0) / 1000)), top = bests()[n];
+        setTimeout(() => {
+          if (!window.CramaPlay || !input.isConnected || my !== seq) return;
+          const rows = [['정답', ans], ['걸린 시간', sec < 60 ? sec + '초' : Math.floor(sec / 60) + '분 ' + (sec % 60) + '초']];
+          if (n !== 3 && top) rows.push([n + '자리 최고', top + '번']);
+          window.CramaPlay.finish({
+            game: 'number-baseball', name: '숫자 야구', value: n === 3 ? tr : null, display: tr + '번', lower: true, win: true,
+            title: '정답이에요!', sub: n === 3 ? n + '자리 숫자를 ' + tr + '번 만에 맞혔어요' : '내 기록에는 3자리 판만 올라가요',
+            rows: rows, shareText: '크라마 숫자 야구 ' + n + '자리를 ' + tr + '번 만에 맞혔어요!', onRetry: () => { start(n); input.focus(); },
+          });
+        }, 500);
       }
       $('nb-go').addEventListener('click', go);
-      $('nb-in').addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
-      $('nb-in').addEventListener('input', (e) => { e.target.value = e.target.value.replace(/[^0-9]/g, ''); });
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
+      input.addEventListener('input', (e) => { e.target.value = e.target.value.replace(/[^0-9]/g, ''); });
       document.querySelectorAll('[data-len]').forEach((b) => b.addEventListener('click', () => start(Number(b.dataset.len))));
+      $('nb-giveup').addEventListener('click', () => {
+        if (done) return;
+        done = true; msgEl.textContent = '정답은 ' + answer + '이었어요. 새 게임으로 다시 도전해 보세요';
+      });
       start(3);
     })();
   </script>

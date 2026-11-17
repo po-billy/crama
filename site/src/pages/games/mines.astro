@@ -5,7 +5,7 @@ import AdSlot from '../../components/AdSlot.astro';
 import '../../styles/portal.css';
 ---
 <BaseLayout title="지뢰 찾기 무료 게임 — 초급·중급·고급" description="설치 없이 바로 하는 무료 지뢰 찾기. 첫 칸은 항상 안전하고, 모바일에서는 깃발 모드로 편하게 즐길 수 있어요.">
-  <div class="pt pt-narrow" style="--c:#0ea5e9">
+  <div class="pt pt-narrow gm" style="--c:#0ea5e9">
     <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/games/">게임</a> › 지뢰 찾기</nav>
     <div class="gm-head">
       <h1>지뢰 찾기</h1>
@@ -16,8 +16,10 @@ import '../../styles/portal.css';
       <button type="button" data-lv="9,9,10">초급</button><button type="button" data-lv="12,12,24">중급</button><button type="button" data-lv="16,12,36">고급</button>
       <button type="button" id="mn-flag">깃발 모드 끔</button>
     </div>
+    <div class="gm-prog" id="mn-prog" role="progressbar" aria-label="연 칸" aria-valuemin="0" aria-valuemax="71" aria-valuenow="0"><i id="mn-bar"></i></div>
     <div class="mn-wrap"><div class="mn-board" id="mn-board"></div></div>
     <p class="gm-msg" id="mn-msg" aria-live="polite"></p>
+    <p class="gm-best" id="mn-best"></p>
 
     <div class="pt-ad"><AdSlot slot="game-mines" /></div>
 
@@ -26,8 +28,11 @@ import '../../styles/portal.css';
       <ul>
         <li>칸을 누르면 열립니다. 숫자는 그 칸을 둘러싼 8칸에 숨은 지뢰의 개수예요.</li>
         <li>지뢰라고 생각하는 칸에는 깃발을 꽂으세요. PC는 오른쪽 클릭, 모바일은 길게 누르거나 깃발 모드를 켜면 됩니다.</li>
+        <li>이미 열린 숫자 칸을 누르면, 주변에 꽂은 깃발 수가 그 숫자와 같을 때 나머지 칸이 한꺼번에 열립니다. 깃발이 틀렸다면 지뢰가 터지니 조심하세요.</li>
         <li>지뢰가 없는 칸을 모두 열면 성공입니다.</li>
       </ul>
+      <h2>푸는 요령</h2>
+      <p>모서리에 있는 1부터 보세요. 숫자 칸 주변에 닫힌 칸이 숫자만큼만 남아 있으면 그 칸은 모두 지뢰입니다. 반대로 깃발 수가 이미 숫자와 같다면 나머지 닫힌 칸은 안전해요. 초급은 9×9에 지뢰 10개, 중급은 12×12에 24개, 고급은 12×16에 36개이고, 난이도별 최고 기록은 이 기기에 따로 저장됩니다. 게임 목록의 '내 기록'에는 초급 기록이 올라갑니다.</p>
     </section>
     <section class="pt-sec">
       <div class="pt-sec__head"><div><h2>다른 게임</h2></div></div>
@@ -40,29 +45,43 @@ import '../../styles/portal.css';
     .gm-head h1 { margin: 0; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; }
     .gm-timer { margin-left: auto; font-size: 1.1rem; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
     .gm-msg { text-align: center; font-weight: 800; color: var(--accent); min-height: 1.6rem; margin: 0.8rem 0 0; }
+    .gm-best { text-align: center; font-size: 0.85rem; font-weight: 700; color: var(--muted); min-height: 1.3rem; margin: 0.3rem 0 0; }
+    .gm .tl-quick button { min-height: 2.6rem; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+    .gm-prog { max-width: 26rem; height: 6px; margin: 0 auto 0.7rem; border-radius: 99px; background: var(--line); overflow: hidden; }
+    .gm-prog i { display: block; width: 0; height: 100%; border-radius: 99px; background: var(--accent); transition: width 0.2s ease; }
     .tl-quick button.is-on { border-color: var(--accent); background: var(--accent); color: #fff; }
     .mn-wrap { overflow-x: auto; }
     .mn-board { display: grid; gap: 3px; margin: 0 auto; width: fit-content; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
-    .mn-cell { width: 2.15rem; height: 2.15rem; display: grid; place-items: center; border: 0; border-radius: 6px; background: color-mix(in srgb, var(--accent) 22%, var(--paper-2)); font: inherit; font-size: 1rem; font-weight: 800; cursor: pointer; padding: 0; color: var(--ink); -webkit-touch-callout: none; }
+    /* 칸 크기: 화면 너비에 맞추되 1.95rem~2.6rem 사이 */
+    .mn-cell { width: clamp(1.95rem, calc((100vw - 2.6rem) / var(--n, 9) - 3px), 2.6rem); aspect-ratio: 1; display: grid; place-items: center; border: 0; border-radius: 6px; background: color-mix(in srgb, var(--accent) 22%, var(--paper-2)); font: inherit; font-size: 1rem; font-weight: 800; cursor: pointer; padding: 0; color: var(--ink); -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
     .mn-cell:hover { filter: brightness(1.05); }
     .mn-cell.is-open { background: var(--paper-2); cursor: default; }
     .mn-cell.is-boom { background: #f43f5e; }
     .mn-cell.n1 { color: #2563eb; } .mn-cell.n2 { color: #16a34a; } .mn-cell.n3 { color: #dc2626; } .mn-cell.n4 { color: #7c3aed; } .mn-cell.n5 { color: #b45309; } .mn-cell.n6 { color: #0891b2; } .mn-cell.n7 { color: #111827; } .mn-cell.n8 { color: #6b7280; }
-    @media (max-width: 480px) { .mn-cell { width: 1.95rem; height: 1.95rem; } }
+    @media (prefers-reduced-motion: reduce) { .gm-prog i { transition: none; } }
   </style>
 
   <script is:inline>
     (() => {
       const $ = (id) => document.getElementById(id);
-      let R = 9, C = 9, M = 10, mine = [], open = [], flag = [], started = false, over = false, flagMode = false, t0 = 0, timer = null;
-      const board = $('mn-board');
+      const KEY = 'crama:game:mines', MAIN = '9,9,10';
+      let R = 9, C = 9, M = 10, lvKey = MAIN, lvName = '초급', mine = [], open = [], flag = [], started = false, over = false, flagMode = false, t0 = 0, timer = null, seq = 0;
+      const board = $('mn-board'), timerEl = $('mn-timer'), msgEl = $('mn-msg');
+      const buzz = (p) => { if (window.CramaPlay) window.CramaPlay.buzz(p); };
+      const bests = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; } };
+      const fmt = (s) => (s < 60 ? s.toFixed(1) + '초' : Math.floor(s / 60) + '분 ' + Math.floor(s % 60) + '초');
       const around = (i) => { const r = Math.floor(i / C), c = i % C, out = []; for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) { if (!dr && !dc) continue; const rr = r + dr, cc = c + dc; if (rr >= 0 && rr < R && cc >= 0 && cc < C) out.push(rr * C + cc); } return out; };
       const num = (i) => around(i).filter((k) => mine[k]).length;
-      const tick = () => { const s = Math.floor((Date.now() - t0) / 1000); $('mn-timer').textContent = String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
+      const opened = () => open.filter((v, i) => v && !mine[i]).length;
+      // 화면을 떠났으면 시계를 스스로 멈춘다
+      const tick = () => { if (!timerEl.isConnected) { clearInterval(timer); return; } const s = Math.floor((Date.now() - t0) / 1000); timerEl.textContent = String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
+      function showBest() { const b = bests()[lvKey]; $('mn-best').textContent = b ? lvName + ' 최고 기록 ' + fmt(b) : lvName + ' · 지뢰 ' + M + '개 · 아직 기록이 없어요'; }
       function reset() {
-        mine = Array(R * C).fill(false); open = Array(R * C).fill(false); flag = Array(R * C).fill(false); started = false; over = false;
-        clearInterval(timer); $('mn-timer').textContent = '00:00'; $('mn-msg').textContent = '';
-        board.style.gridTemplateColumns = 'repeat(' + C + ', auto)'; draw();
+        seq++; mine = Array(R * C).fill(false); open = Array(R * C).fill(false); flag = Array(R * C).fill(false); started = false; over = false;
+        clearInterval(timer); timerEl.textContent = '00:00'; msgEl.textContent = '';
+        board.style.gridTemplateColumns = 'repeat(' + C + ', auto)'; board.style.setProperty('--n', C);
+        document.querySelectorAll('[data-lv]').forEach((b) => b.classList.toggle('is-on', b.dataset.lv === lvKey));
+        showBest(); draw();
       }
       function place(safe) { // 첫 칸과 그 주변에는 지뢰를 두지 않는다
         const ban = new Set([safe].concat(around(safe))); let n = 0;
@@ -72,17 +91,57 @@ import '../../styles/portal.css';
         const stack = [i];
         while (stack.length) { const k = stack.pop(); if (open[k] || flag[k]) continue; open[k] = true; if (!mine[k] && num(k) === 0) around(k).forEach((x) => { if (!open[x]) stack.push(x); }); }
       }
+      // 한 판이 끝나면 결과 창을 띄운다. 게임 목록의 '내 기록'에는 대표 난이도인 초급만 올린다
+      function report(win, sec) {
+        const my = seq, name = lvName, key = lvKey, safe = R * C - M, got = opened();
+        const top = bests()[key];
+        setTimeout(() => {
+          if (!window.CramaPlay || !board.isConnected || my !== seq) return;
+          const rows = [['난이도', name], ['연 칸', got + ' / ' + safe]];
+          if (!win) rows.push(['버틴 시간', fmt(sec)]);
+          else if (key !== MAIN && top) rows.push([name + ' 최고', fmt(top)]);
+          window.CramaPlay.finish({
+            game: 'mines', name: '지뢰 찾기', value: win && key === MAIN ? sec : null, display: win ? fmt(sec) : null, lower: true, win: win,
+            title: win ? '지뢰를 모두 피했어요!' : '지뢰를 밟았어요',
+            sub: win ? (key === MAIN ? name + ' 판을 깔끔하게 풀었어요' : '내 기록에는 초급 판만 올라가요') : '안전한 칸 ' + safe + '개 가운데 ' + got + '개를 열었어요',
+            rows: rows, shareText: win ? '크라마 지뢰 찾기 ' + name + '을 ' + fmt(sec) + '에 성공!' : '크라마 지뢰 찾기 ' + name + '에 도전했어요', onRetry: reset,
+          });
+        }, win ? 600 : 900);
+      }
+      function lose(i) {
+        over = true; clearInterval(timer); open[i] = true; draw(i); msgEl.textContent = '지뢰를 밟았어요. 다시 도전!'; buzz([40, 60, 80]);
+        report(false, Math.round((Date.now() - t0) / 100) / 10);
+      }
+      function checkWin() {
+        if (opened() !== R * C - M) return;
+        over = true; clearInterval(timer); tick();
+        const sec = Math.round((Date.now() - t0) / 100) / 10, all = bests(), prev = all[lvKey];
+        if (!prev || sec < prev) { all[lvKey] = sec; try { localStorage.setItem(KEY, JSON.stringify(all)); } catch (e) {} }
+        msgEl.textContent = '성공! 기록 ' + fmt(sec) + (prev && sec < prev ? ' — 최고 기록 경신 🎉' : ' 🎉'); showBest();
+        try { if (window.gtag) window.gtag('event', 'game_clear', { game: 'mines' }); } catch (e) {}
+        report(true, sec);
+      }
+      // 열린 숫자 칸: 주변 깃발 수가 숫자와 같으면 나머지 칸을 한꺼번에 연다
+      function chord(i) {
+        const n = num(i); if (!n) return;
+        const ar = around(i); if (ar.filter((k) => flag[k]).length !== n) return;
+        const rest = ar.filter((k) => !open[k] && !flag[k]); if (!rest.length) return;
+        const bad = rest.filter((k) => mine[k]);
+        if (bad.length) { lose(bad[0]); return; }
+        rest.forEach(reveal); buzz(8); checkWin(); draw();
+      }
       function click(i) {
-        if (over || open[i]) return;
+        if (over) return;
+        if (open[i]) return chord(i);
         if (flagMode) return toggle(i);
         if (flag[i]) return;
         if (!started) { started = true; place(i); t0 = Date.now(); timer = setInterval(tick, 1000); }
-        if (mine[i]) { over = true; clearInterval(timer); open[i] = true; draw(i); $('mn-msg').textContent = '지뢰를 밟았어요. 다시 도전!'; return; }
-        reveal(i);
-        if (open.filter(Boolean).length === R * C - M) { over = true; clearInterval(timer); $('mn-msg').textContent = '성공! 기록 ' + $('mn-timer').textContent + ' 🎉'; try { if (window.gtag) window.gtag('event', 'game_clear', { game: 'mines' }); } catch (e) {} }
+        if (mine[i]) { lose(i); return; }
+        reveal(i); buzz(8);
+        checkWin();
         draw();
       }
-      function toggle(i) { if (over || open[i]) return; flag[i] = !flag[i]; draw(); }
+      function toggle(i) { if (over || open[i]) return; flag[i] = !flag[i]; buzz(12); draw(); }
       function draw(boom) {
         board.textContent = '';
         for (let i = 0; i < R * C; i++) {
@@ -101,8 +160,10 @@ import '../../styles/portal.css';
           board.appendChild(b);
         }
         $('mn-left').textContent = '🚩 ' + (M - flag.filter(Boolean).length);
+        const safe = R * C - M, got = opened();
+        $('mn-bar').style.width = (got / safe) * 100 + '%'; $('mn-prog').setAttribute('aria-valuemax', safe); $('mn-prog').setAttribute('aria-valuenow', got);
       }
-      document.querySelectorAll('[data-lv]').forEach((b) => b.addEventListener('click', () => { const p = b.dataset.lv.split(',').map(Number); R = p[0]; C = p[1]; M = p[2]; reset(); }));
+      document.querySelectorAll('[data-lv]').forEach((b) => b.addEventListener('click', () => { const p = b.dataset.lv.split(',').map(Number); R = p[0]; C = p[1]; M = p[2]; lvKey = b.dataset.lv; lvName = b.textContent.trim(); reset(); }));
       $('mn-flag').addEventListener('click', () => { flagMode = !flagMode; $('mn-flag').textContent = flagMode ? '깃발 모드 켬' : '깃발 모드 끔'; $('mn-flag').classList.toggle('is-on', flagMode); });
       reset();
     })();

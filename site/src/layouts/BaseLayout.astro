@@ -9,6 +9,7 @@ import CalcEnhance from '../components/CalcEnhance.astro';
 import { ClientRouter } from 'astro:transitions';
 import { VAPID_PUBLIC_KEY, MEMBER_UI } from '../consts';
 import SideRail from '../components/SideRail.astro';
+import PlayKit from '../components/PlayKit.astro';
 import { RAIL_RE } from '../data/rail';
 
 interface Props {
@@ -324,6 +325,7 @@ const LOCAL_ONLY = !MEMBER_UI;
     )}
     <a href="#main" class="skip-link">본문으로 건너뛰기</a>
     <Header />
+    {showRail && <PlayKit />}
     <main id="main" class={showRail ? 'has-rail' : undefined}>
       {showRail ? <div class="rail-main"><slot /></div> : <slot />}
       {showRail && <SideRail />}

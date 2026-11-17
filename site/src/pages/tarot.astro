@@ -1,56 +1,92 @@
 ---
-// 타로 보기 — 주제를 고르고 카드 한 장을 뽑는다. 풀이는 미리 써 둔 문장(src/data/fun.ts), AI 호출 없음.
+// 타로 보기 — 오늘의 카드(하루 한 장 고정) · 원 카드 · 세 장(과거·현재·미래).
+// 풀이는 미리 써 둔 문장(src/data/fun.ts), AI 호출 없음. 뽑은 기록은 이 기기에만 저장한다.
 import BaseLayout from '../layouts/BaseLayout.astro';
 import AdSlot from '../components/AdSlot.astro';
-import { TAROT } from '../data/fun';
+import { TAROT, TAROT_DAY } from '../data/fun';
 import '../styles/portal.css';
 ---
-<BaseLayout title="무료 타로 보기 — 연애·금전·일 원 카드 타로" description="궁금한 주제를 고르고 카드 한 장을 뽑아 보세요. 메이저 아르카나 22장으로 보는 무료 원 카드 타로. 정방향·역방향 의미와 주제별 풀이를 알려드립니다.">
+<BaseLayout title="무료 타로 보기 — 오늘의 카드·연애·금전·일 세 장 타로" description="매일 바뀌는 오늘의 타로 카드, 궁금한 주제로 뽑는 원 카드, 과거·현재·미래를 보는 세 장 타로를 무료로 볼 수 있습니다. 메이저 아르카나 22장의 정방향·역방향 의미와 주제별 풀이를 알려드립니다.">
   <div class="pt pt-narrow" style="--c:#8b5cf6">
     <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/fun/">운세·테스트</a> › 타로 보기</nav>
     <header class="pt-hubhero">
       <img src="/img/portal/c-tarot.webp" alt="" width="200" height="200" />
-      <div><h1>타로 보기</h1><p>주제를 고르고, 마음이 가는 카드 한 장을 뽑아 보세요</p></div>
+      <div><h1>타로 보기</h1><p>오늘의 카드부터 과거·현재·미래 세 장까지</p></div>
     </header>
 
-    <section class="pt-sec" id="tr-step1">
-      <div class="pt-sec__head"><div><h2>무엇이 궁금한가요?</h2></div></div>
-      <div class="pt-chips" id="tr-topics">
-        <button type="button" class="pt-chip" data-topic="love" style="cursor:pointer;font-family:inherit">💕 연애·관계</button>
-        <button type="button" class="pt-chip" data-topic="money" style="cursor:pointer;font-family:inherit">💰 금전</button>
-        <button type="button" class="pt-chip" data-topic="work" style="cursor:pointer;font-family:inherit">💼 일·진로</button>
+    <div class="tr-seg" id="tr-modes" role="tablist" aria-label="보는 방법">
+      <button type="button" role="tab" data-mode="daily" class="is-on" aria-selected="true">오늘의 카드</button>
+      <button type="button" role="tab" data-mode="one" aria-selected="false">원 카드</button>
+      <button type="button" role="tab" data-mode="three" aria-selected="false">세 장 타로</button>
+    </div>
+
+    <!-- 오늘의 카드 -->
+    <section class="pt-sec tr-pane" id="tr-daily">
+      <div class="tr-stage">
+        <p class="tr-stage__hint" id="tr-daily-hint">카드를 눌러 오늘의 메시지를 확인하세요</p>
+        <button type="button" class="tr-flip tr-flip--lg" id="tr-daily-card" aria-label="오늘의 카드 뒤집기">
+          <span class="tr-flip__in"><span class="tr-flip__back"></span><span class="tr-flip__front"><img alt="" width="280" height="420" /></span></span>
+        </button>
+        <div class="tr-read" id="tr-daily-read" hidden>
+          <span class="pt-card__tag" id="tr-daily-dir"></span>
+          <h2 id="tr-daily-name"></h2>
+          <p class="tr-read__key" id="tr-daily-key"></p>
+          <p class="tr-read__text" id="tr-daily-text"></p>
+          <div class="tl-quick tr-acts"><button type="button" id="tr-daily-share">결과 공유</button><button type="button" data-go="three">세 장 타로 보기</button></div>
+          <p class="tr-read__note">오늘의 카드는 하루에 한 장, 자정에 바뀌어요.</p>
+        </div>
       </div>
     </section>
 
-    <section class="pt-sec" id="tr-step2" hidden>
-      <div class="pt-sec__head"><div><h2>카드를 한 장 고르세요</h2><p>질문을 떠올리며 천천히 골라 보세요</p></div></div>
-      <div class="tr-deck" id="tr-deck"></div>
-    </section>
-
-    <section class="pt-sec" id="tr-step3" hidden>
-      <div class="tr-out">
-        <img id="tr-img" class="tr-card-img" alt="" width="280" height="420" />
-        <div class="tr-out__body">
-          <span class="pt-card__tag" id="tr-dir"></span>
-          <h2 id="tr-name" style="margin:0.4rem 0 0.1rem;font-size:1.6rem;font-weight:800"></h2>
-          <p id="tr-en" style="margin:0 0 0.8rem;color:var(--muted);font-size:0.9rem"></p>
-          <p id="tr-key" style="margin:0 0 0.8rem;font-weight:700"></p>
-          <p id="tr-text" class="pt-prose" style="margin:0"></p>
-          <div class="tl-quick" style="margin-top:1.1rem"><button type="button" id="tr-again">다시 뽑기</button><button type="button" id="tr-share">결과 공유</button></div>
+    <!-- 원 카드 · 세 장 -->
+    <section class="pt-sec tr-pane" id="tr-spread" hidden>
+      <div id="tr-step1">
+        <div class="pt-sec__head"><div><h2>무엇이 궁금한가요?</h2><p id="tr-mode-desc"></p></div></div>
+        <div class="tr-topics" id="tr-topics">
+          <button type="button" data-topic="love"><b>연애·관계</b><span>마음, 인연, 사람 사이</span></button>
+          <button type="button" data-topic="money"><b>금전</b><span>수입, 지출, 재물의 흐름</span></button>
+          <button type="button" data-topic="work"><b>일·진로</b><span>직장, 공부, 앞으로의 방향</span></button>
         </div>
+      </div>
+
+      <div id="tr-step2" hidden>
+        <div class="pt-sec__head"><div><h2 id="tr-pick-title">카드를 고르세요</h2><p>질문을 떠올리며 마음이 가는 카드를 눌러 보세요</p></div></div>
+        <div class="tr-slots" id="tr-slots"></div>
+        <div class="tr-deck" id="tr-deck"></div>
+        <div class="tl-quick tr-acts"><button type="button" id="tr-shuffle">다시 섞기</button><button type="button" id="tr-back">주제 바꾸기</button></div>
+      </div>
+
+      <div id="tr-step3" hidden>
+        <div class="pt-sec__head"><div><h2 id="tr-out-title"></h2></div></div>
+        <div class="tr-results" id="tr-results"></div>
+        <div class="tr-sum" id="tr-sum" hidden><b>한눈에 보기</b><p id="tr-sum-text"></p></div>
+        <div class="tl-quick tr-acts"><button type="button" id="tr-again">다시 뽑기</button><button type="button" id="tr-share">결과 공유</button></div>
       </div>
       <p class="pp-note">※ 재미로 보는 타로입니다. 역방향 카드는 그 카드의 기운이 약해지거나 조심해야 할 면을 뜻합니다. 중요한 결정은 여러 사정을 함께 살펴 내리세요.</p>
     </section>
 
+    <section class="pt-sec" id="tr-hist-sec" hidden>
+      <div class="pt-sec__head"><div><h2>내 타로 기록</h2><p>이 기기에만 저장돼요</p></div><button type="button" class="tr-clear" id="tr-clear">지우기</button></div>
+      <div class="tr-hist" id="tr-hist"></div>
+    </section>
+
     <div class="pt-ad"><AdSlot slot="tarot-mid" /></div>
+
+    <section class="pt-sec"><div data-cp-today></div></section>
 
     <section class="pt-sec">
       <div class="pt-sec__head"><div><h2>메이저 아르카나 22장</h2><p>카드별 핵심 의미</p></div></div>
-      <div class="tl-wrap">
-        <table class="tl-table">
-          <thead><tr><th>카드</th><th>정방향</th><th>역방향</th></tr></thead>
-          <tbody>{TAROT.map((c, i) => <tr><td><b>{i}. {c.name}</b></td><td>{c.up}</td><td>{c.rev}</td></tr>)}</tbody>
-        </table>
+      <div class="tr-all">
+        {TAROT.map((c, i) => (
+          <details class="tr-all__item">
+            <summary><img src={`/img/tarot/${c.slug}.webp`} alt={`${c.name} 카드`} loading="lazy" width="80" height="120" /><span><b>{i}. {c.name}</b><small>{c.en}</small></span></summary>
+            <dl>
+              <dt>정방향</dt><dd>{c.up}</dd>
+              <dt>역방향</dt><dd>{c.rev}</dd>
+              <dt>오늘의 조언</dt><dd>{TAROT_DAY[c.slug]}</dd>
+            </dl>
+          </details>
+        ))}
       </div>
     </section>
 
@@ -61,47 +97,215 @@ import '../styles/portal.css';
   </div>
 
   <style is:global>
-    .tr-deck { display: grid; grid-template-columns: repeat(auto-fill, minmax(3.6rem, 1fr)); gap: 0.5rem; }
-    .tr-deck button { aspect-ratio: 2 / 3; border: 0; padding: 0; border-radius: 8px; overflow: hidden; cursor: pointer; background: #2b2566 url('/img/tarot/back.webp') center / cover; box-shadow: 0 2px 8px rgba(30, 20, 80, 0.25); transition: transform 0.15s; }
+    .tr-seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.25rem; margin-top: 1rem; padding: 0.25rem; border-radius: 999px; background: var(--paper-2); }
+    .tr-seg button { min-height: 2.7rem; border: 0; border-radius: 999px; background: transparent; color: var(--muted); font: inherit; font-size: 0.92rem; font-weight: 800; cursor: pointer; }
+    .tr-seg button.is-on { background: var(--paper); color: var(--ink); box-shadow: 0 1px 4px rgba(20, 15, 50, 0.12); }
+    .tr-pane[hidden], .tr-read[hidden], .tr-sum[hidden] { display: none; }
+    .tr-stage { display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 1.5rem 1.1rem; border-radius: 22px; background: radial-gradient(120% 90% at 50% 0%, #4c1d95 0%, #1e1b4b 70%); color: #fff; text-align: center; }
+    .tr-stage__hint { margin: 0; font-size: 0.95rem; font-weight: 700; opacity: 0.9; }
+
+    /* 뒤집히는 카드 */
+    .tr-flip { display: block; padding: 0; border: 0; background: none; cursor: pointer; perspective: 900px; width: 6.4rem; aspect-ratio: 2 / 3; -webkit-tap-highlight-color: transparent; }
+    .tr-flip--lg { width: min(13rem, 62vw); }
+    .tr-flip__in { position: relative; display: block; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 0.7s cubic-bezier(0.3, 0.7, 0.2, 1); }
+    .tr-flip.is-open .tr-flip__in { transform: rotateY(180deg); }
+    .tr-flip__back, .tr-flip__front { position: absolute; inset: 0; border-radius: 12px; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden; box-shadow: 0 10px 28px rgba(10, 5, 40, 0.45); }
+    .tr-flip__back { background: #2b2566 url('/img/tarot/back.webp') center / cover; }
+    .tr-flip__front { transform: rotateY(180deg); background: var(--paper-2); }
+    .tr-flip__front img { display: block; width: 100%; height: 100%; object-fit: cover; }
+    .tr-flip.is-rev .tr-flip__front img { transform: rotate(180deg); }
+    .tr-flip:not(.is-open):hover .tr-flip__in { transform: translateY(-4px); }
+    .tr-flip:not(.is-open) { animation: tr-breathe 2.4s ease-in-out infinite; }
+    @keyframes tr-breathe { 50% { filter: drop-shadow(0 0 14px rgba(196, 181, 253, 0.75)); } }
+
+    .tr-read h2 { margin: 0.45rem 0 0.2rem; font-size: 1.55rem; font-weight: 800; letter-spacing: -0.02em; }
+    .tr-read__key { margin: 0; font-size: 0.9rem; font-weight: 700; opacity: 0.85; }
+    .tr-read__text { margin: 0.8rem auto 0; max-width: 26rem; font-size: 1.02rem; line-height: 1.7; }
+    .tr-read__note { margin: 0.9rem 0 0; font-size: 0.78rem; opacity: 0.7; }
+    .tr-stage .pt-card__tag { background: rgba(255, 255, 255, 0.18); color: #fff; }
+    .tr-acts { margin-top: 1.1rem; justify-content: center; }
+    .tr-stage .tr-acts button { border-color: rgba(255, 255, 255, 0.35); background: rgba(255, 255, 255, 0.12); color: #fff; }
+
+    .tr-topics { display: grid; gap: 0.55rem; }
+    @media (min-width: 560px) { .tr-topics { grid-template-columns: repeat(3, 1fr); } }
+    .tr-topics button { display: flex; flex-direction: column; gap: 0.15rem; padding: 1rem 1.05rem; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+    .tr-topics button:hover { border-color: var(--accent); }
+    .tr-topics b { font-size: 1.02rem; font-weight: 800; }
+    .tr-topics span { font-size: 0.84rem; color: var(--muted); }
+
+    .tr-slots { display: flex; justify-content: center; gap: 0.6rem; margin-bottom: 1rem; }
+    .tr-slots:empty { display: none; }
+    .tr-slots div { width: 4.6rem; text-align: center; font-size: 0.78rem; font-weight: 800; color: var(--muted); }
+    .tr-slots i { display: block; aspect-ratio: 2 / 3; margin-bottom: 0.3rem; border: 2px dashed var(--line); border-radius: 10px; }
+    .tr-slots .is-set i { border: 0; background: #2b2566 url('/img/tarot/back.webp') center / cover; box-shadow: 0 4px 12px rgba(30, 20, 80, 0.3); }
+    .tr-slots .is-set { color: var(--accent); }
+    .tr-deck { display: grid; grid-template-columns: repeat(auto-fill, minmax(3.3rem, 1fr)); gap: 0.45rem; padding: 1rem; border-radius: 20px; background: radial-gradient(120% 90% at 50% 0%, #4c1d95 0%, #1e1b4b 70%); }
+    .tr-deck button { aspect-ratio: 2 / 3; border: 0; padding: 0; border-radius: 8px; cursor: pointer; background: #2b2566 url('/img/tarot/back.webp') center / cover; box-shadow: 0 2px 8px rgba(10, 5, 40, 0.45); transition: transform 0.18s, opacity 0.25s; animation: tr-deal 0.4s backwards; -webkit-tap-highlight-color: transparent; }
     .tr-deck button:hover { transform: translateY(-6px); }
-    .tr-out { display: flex; gap: 1.4rem; align-items: flex-start; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 18px; padding: 1.2rem; background: var(--paper); }
-    .tr-card-img { width: 11rem; height: auto; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 12px; box-shadow: 0 8px 26px rgba(30, 20, 80, 0.3); transition: transform 0.5s; }
-    .tr-card-img.is-rev { transform: rotate(180deg); }
-    .tr-out__body { flex: 1; min-width: 14rem; }
-    @media (max-width: 560px) { .tr-out { flex-direction: column; align-items: center; text-align: center; } .tr-out__body .tl-quick { justify-content: center; } }
+    .tr-deck button.is-picked { opacity: 0; transform: translateY(-18px) scale(0.9); pointer-events: none; }
+    @keyframes tr-deal { from { opacity: 0; transform: translateY(14px) rotate(-8deg) scale(0.8); } }
+
+    .tr-results { display: grid; gap: 0.8rem; }
+    .tr-results.is-three { grid-template-columns: 1fr; }
+    @media (min-width: 760px) { .tr-results.is-three { grid-template-columns: repeat(3, 1fr); } }
+    .tr-res { display: flex; gap: 1rem; align-items: flex-start; padding: 1.1rem; border: 1px solid var(--line); border-radius: 18px; background: var(--paper); }
+    .tr-res .tr-flip { flex: none; cursor: default; animation: none; }
+    .tr-res__body { min-width: 0; }
+    .tr-res__pos { display: inline-block; padding: 0.18rem 0.6rem; border-radius: 999px; background: color-mix(in srgb, var(--accent) 12%, var(--paper)); color: var(--accent); font-size: 0.76rem; font-weight: 800; }
+    .tr-res__body h3 { margin: 0.35rem 0 0.1rem; font-size: 1.2rem; font-weight: 800; }
+    .tr-res__body small { display: block; color: var(--muted); font-size: 0.82rem; font-weight: 700; }
+    .tr-res__body p { margin: 0.55rem 0 0; font-size: 0.94rem; line-height: 1.65; }
+    @media (min-width: 760px) { .tr-results.is-three .tr-res { flex-direction: column; align-items: center; text-align: center; } }
+    .tr-sum { margin-top: 0.8rem; padding: 1rem 1.1rem; border-radius: 16px; background: color-mix(in srgb, var(--accent) 8%, var(--paper)); }
+    .tr-sum b { font-size: 0.86rem; font-weight: 800; color: var(--accent); }
+    .tr-sum p { margin: 0.3rem 0 0; font-size: 0.97rem; line-height: 1.65; font-weight: 600; }
+
+    .tr-clear { border: 0; background: none; color: var(--muted); font: inherit; font-size: 0.84rem; font-weight: 700; cursor: pointer; text-decoration: underline; }
+    .tr-hist { display: grid; gap: 0.45rem; }
+    .tr-hist div { display: flex; align-items: center; gap: 0.7rem; padding: 0.65rem 0.85rem; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); font-size: 0.9rem; }
+    .tr-hist time { flex: none; font-size: 0.78rem; color: var(--muted); font-weight: 700; font-variant-numeric: tabular-nums; }
+    .tr-hist span { flex: none; padding: 0.12rem 0.5rem; border-radius: 999px; background: var(--paper-2); font-size: 0.74rem; font-weight: 800; }
+    .tr-hist b { min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .tr-all { display: grid; gap: 0.45rem; }
+    @media (min-width: 640px) { .tr-all { grid-template-columns: 1fr 1fr; align-items: start; } }
+    .tr-all__item { border: 1px solid var(--line); border-radius: 14px; background: var(--paper); overflow: hidden; }
+    .tr-all__item summary { display: flex; align-items: center; gap: 0.75rem; padding: 0.55rem 0.8rem; cursor: pointer; list-style: none; }
+    .tr-all__item summary::-webkit-details-marker { display: none; }
+    .tr-all__item img { flex: none; width: 2.2rem; height: 3.3rem; object-fit: cover; border-radius: 5px; }
+    .tr-all__item b { display: block; font-size: 0.95rem; font-weight: 800; }
+    .tr-all__item small { color: var(--muted); font-size: 0.78rem; }
+    .tr-all__item dl { margin: 0; padding: 0 0.9rem 0.85rem; display: grid; grid-template-columns: auto 1fr; gap: 0.3rem 0.7rem; font-size: 0.88rem; }
+    .tr-all__item dt { color: var(--muted); font-weight: 700; white-space: nowrap; }
+    .tr-all__item dd { margin: 0; line-height: 1.55; }
+    @media (prefers-reduced-motion: reduce) { .tr-flip__in, .tr-deck button { transition: none; animation: none; } .tr-flip:not(.is-open) { animation: none; } }
   </style>
 
-  <script is:inline define:vars={{ TAROT }}>
+  <script is:inline define:vars={{ TAROT, TAROT_DAY }}>
     (() => {
       const $ = (id) => document.getElementById(id);
-      let topic = 'love';
+      if (!$('tr-modes')) return;
+      const P = window.CramaPlay || null;
       const TOPIC = { love: '연애·관계', money: '금전', work: '일·진로' };
+      const POS = ['과거', '현재', '미래'];
+      const MODE = { one: { n: 1, name: '원 카드', desc: '한 장으로 지금의 흐름을 봅니다' }, three: { n: 3, name: '세 장 타로', desc: '과거·현재·미래 순서로 세 장을 뽑습니다' } };
+      let mode = 'daily', topic = 'love', picked = [];
+      const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+      const img = (c) => '/img/tarot/' + c.slug + '.webp';
+      const first = (s) => s.split(',')[0].trim();
+      const readText = (c, rev, t) => (rev ? c[t] + ' 다만 역방향으로 나온 만큼, ' + first(c.rev) + '에 주의하면서 한 박자 천천히 가는 편이 좋습니다.' : c[t]);
+      const pad = (n) => String(n).padStart(2, '0');
+      const todayKey = () => { const d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+
+      /* ---------- 기록 ---------- */
+      const hist = () => (P && P.get('tarotHist')) || [];
+      function addHist(kind, label) {
+        if (!P) return; const h = hist(); h.unshift({ at: todayKey(), kind: kind, label: label }); P.set('tarotHist', h.slice(0, 8)); renderHist();
+      }
+      function renderHist() {
+        const h = hist(); $('tr-hist-sec').hidden = !h.length; const box = $('tr-hist'); box.textContent = '';
+        h.forEach((x) => { const d = el('div'); d.appendChild(el('time', '', x.at.slice(5).replace('-', '.'))); d.appendChild(el('span', '', x.kind)); d.appendChild(el('b', '', x.label)); box.appendChild(d); });
+      }
+      $('tr-clear').addEventListener('click', () => { if (P) { P.set('tarotHist', []); renderHist(); P.toast('기록을 지웠어요'); } });
+
+      /* ---------- 오늘의 카드 ---------- */
+      // 날짜 + 기기마다 다른 값으로 정한다(같은 날에는 다시 와도 같은 카드)
+      function dailyCard() {
+        let dev = P ? P.get('tarotSeed') : null; if (!dev) { dev = 1 + Math.floor(Math.random() * 99991); if (P) P.set('tarotSeed', dev); }
+        const d = new Date(); let seed = ((d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate()) * 37 + dev * 7919) >>> 0;
+        const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+        for (let i = 0; i < 4; i++) rnd();
+        return { c: TAROT[Math.floor(rnd() * TAROT.length)], rev: rnd() < 0.25 };
+      }
+      const daily = dailyCard(), dcard = $('tr-daily-card');
+      function openDaily(fresh) {
+        const c = daily.c, rev = daily.rev;
+        dcard.querySelector('img').src = img(c); dcard.querySelector('img').alt = c.name + ' 카드';
+        dcard.classList.toggle('is-rev', rev); dcard.classList.add('is-open'); dcard.disabled = true;
+        $('tr-daily-dir').textContent = '오늘의 카드 · ' + (rev ? '역방향' : '정방향');
+        $('tr-daily-name').textContent = c.name; $('tr-daily-key').textContent = rev ? c.rev : c.up;
+        $('tr-daily-text').textContent = rev ? TAROT_DAY[c.slug] + ' 역방향으로 나온 만큼 ' + first(c.rev) + '만 조심하면 충분합니다.' : TAROT_DAY[c.slug];
+        $('tr-daily-hint').textContent = '오늘 당신에게 온 카드';
+        setTimeout(() => { $('tr-daily-read').hidden = false; if (fresh === true) $('tr-daily-read').scrollIntoView({ behavior: 'smooth', block: 'center' }); }, fresh === true ? 620 : 0);
+        if (fresh === true) {
+          if (P) { P.set('tarotDaily', todayKey()); P.stamp('tarot'); P.buzz([15, 30, 15]); }
+          addHist('오늘의 카드', c.name + (rev ? ' (역방향)' : ''));
+          try { if (window.gtag) window.gtag('event', 'tool_use', { tool: 'tarot', topic: 'daily' }); } catch (e) {}
+        }
+      }
+      dcard.addEventListener('click', () => openDaily(true));
+      if (P && P.get('tarotDaily') === todayKey()) openDaily(false);
+      $('tr-daily-share').addEventListener('click', () => {
+        const text = '오늘의 타로 카드: ' + daily.c.name + (daily.rev ? ' (역방향)' : '') + ' — ' + TAROT_DAY[daily.c.slug];
+        if (P) P.share({ title: '오늘의 타로', text: text }); else if (navigator.share) navigator.share({ title: '오늘의 타로', text: text, url: location.href }).catch(() => {});
+      });
+
+      /* ---------- 원 카드 · 세 장 ---------- */
+      function step(n) { [1, 2, 3].forEach((i) => { $('tr-step' + i).hidden = i !== n; }); }
+      function slots() {
+        const box = $('tr-slots'); box.textContent = ''; if (MODE[mode].n < 2) return;
+        POS.forEach((p, i) => { const d = el('div', i < picked.length ? 'is-set' : ''); d.appendChild(el('i')); d.appendChild(document.createTextNode(p)); box.appendChild(d); });
+      }
       function deck() {
-        const d = $('tr-deck'); d.textContent = '';
-        for (let i = 0; i < 22; i++) { const b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', (i + 1) + '번째 카드'); b.addEventListener('click', draw); d.appendChild(b); }
+        picked = []; slots(); const d = $('tr-deck'); d.textContent = '';
+        $('tr-pick-title').textContent = MODE[mode].n > 1 ? '카드를 세 장 고르세요' : '카드를 한 장 고르세요';
+        for (let i = 0; i < 22; i++) {
+          const b = el('button'); b.type = 'button'; b.setAttribute('aria-label', (i + 1) + '번째 카드'); b.style.animationDelay = (i * 22) + 'ms';
+          b.addEventListener('click', () => pickCard(b)); d.appendChild(b);
+        }
       }
-      function draw() {
-        const c = TAROT[Math.floor(Math.random() * TAROT.length)], rev = Math.random() < 0.3;
-        $('tr-img').src = '/img/tarot/' + c.slug + '.webp'; $('tr-img').alt = c.name + ' 카드';
-        $('tr-img').classList.toggle('is-rev', rev);
-        $('tr-dir').textContent = TOPIC[topic] + ' · ' + (rev ? '역방향' : '정방향');
-        $('tr-name').textContent = c.name; $('tr-en').textContent = c.en;
-        $('tr-key').textContent = '키워드: ' + (rev ? c.rev : c.up);
-        $('tr-text').textContent = rev ? c[topic] + ' 다만 역방향으로 나온 만큼, ' + c.rev.split(',')[0].trim() + '에 주의하면서 한 박자 천천히 가는 편이 좋습니다.' : c[topic];
-        $('tr-step2').hidden = true; $('tr-step3').hidden = false;
+      function pickCard(btn) {
+        if (picked.length >= MODE[mode].n) return;
+        let c; do { c = TAROT[Math.floor(Math.random() * TAROT.length)]; } while (picked.some((x) => x.c === c));
+        picked.push({ c: c, rev: Math.random() < 0.3 }); btn.classList.add('is-picked'); slots(); if (P) P.buzz(10);
+        if (picked.length >= MODE[mode].n) setTimeout(reveal, 380);
+      }
+      function reveal() {
+        const three = MODE[mode].n > 1, box = $('tr-results'); box.textContent = ''; box.classList.toggle('is-three', three);
+        $('tr-out-title').textContent = TOPIC[topic] + ' · ' + MODE[mode].name;
+        picked.forEach((x, i) => {
+          const res = el('div', 'tr-res');
+          const f = el('div', 'tr-flip' + (x.rev ? ' is-rev' : '')); const inner = el('span', 'tr-flip__in'); inner.appendChild(el('span', 'tr-flip__back'));
+          const fr = el('span', 'tr-flip__front'); const im = document.createElement('img'); im.src = img(x.c); im.alt = x.c.name + ' 카드'; im.width = 280; im.height = 420; fr.appendChild(im); inner.appendChild(fr); f.appendChild(inner);
+          const body = el('div', 'tr-res__body');
+          body.appendChild(el('span', 'tr-res__pos', (three ? POS[i] + ' · ' : '') + (x.rev ? '역방향' : '정방향')));
+          body.appendChild(el('h3', '', x.c.name)); body.appendChild(el('small', '', x.rev ? x.c.rev : x.c.up));
+          let t = readText(x.c, x.rev, topic);
+          if (three && i === 0) t = '지나온 시간에는 ‘' + first(x.rev ? x.c.rev : x.c.up) + '’의 기운이 있었습니다. ' + t;
+          if (three && i === 2) t = '앞으로는 ‘' + first(x.rev ? x.c.rev : x.c.up) + '’ 쪽으로 흐름이 이어집니다. ' + t;
+          body.appendChild(el('p', '', t));
+          res.appendChild(f); res.appendChild(body); box.appendChild(res);
+          setTimeout(() => f.classList.add('is-open'), 250 + i * 450);
+        });
+        if (three) {
+          const k = picked.map((x) => first(x.rev ? x.c.rev : x.c.up)), revs = picked.filter((x) => x.rev).length;
+          $('tr-sum-text').textContent = '‘' + k[0] + '’에서 출발해 지금은 ‘' + k[1] + '’의 자리에 있고, 앞으로는 ‘' + k[2] + '’ 쪽으로 이어지는 흐름입니다. ' +
+            (revs >= 2 ? '역방향 카드가 많으니 서두르기보다 하나씩 점검하며 가는 편이 좋습니다.' : revs === 1 ? '역방향으로 나온 한 장이 지금 살펴볼 지점입니다.' : '세 장 모두 정방향이라 카드의 뜻이 그대로 드러나는 흐름입니다.');
+        }
+        $('tr-sum').hidden = !three; step(3);
         $('tr-step3').scrollIntoView({ behavior: 'smooth', block: 'start' });
-        try { if (window.gtag) window.gtag('event', 'tool_use', { tool: 'tarot', topic: topic }); } catch (e) {}
+        if (P) { P.stamp('tarot'); setTimeout(() => P.buzz([15, 30, 15]), 300); }
+        addHist(MODE[mode].name + ' · ' + TOPIC[topic], picked.map((x) => x.c.name + (x.rev ? '(역)' : '')).join(' → '));
+        try { if (window.gtag) window.gtag('event', 'tool_use', { tool: 'tarot', topic: topic, mode: mode }); } catch (e) {}
       }
-      $('tr-topics').addEventListener('click', (e) => {
-        const b = e.target.closest('[data-topic]'); if (!b) return;
-        topic = b.dataset.topic; deck(); $('tr-step2').hidden = false; $('tr-step3').hidden = true;
-        $('tr-step2').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      function setMode(m) {
+        mode = m;
+        document.querySelectorAll('#tr-modes button').forEach((b) => { const on = b.dataset.mode === m; b.classList.toggle('is-on', on); b.setAttribute('aria-selected', on ? 'true' : 'false'); });
+        $('tr-daily').hidden = m !== 'daily'; $('tr-spread').hidden = m === 'daily';
+        if (m !== 'daily') { $('tr-mode-desc').textContent = MODE[m].desc; step(1); }
+      }
+      $('tr-modes').addEventListener('click', (e) => { const b = e.target.closest('[data-mode]'); if (b) { setMode(b.dataset.mode); if (P) P.buzz(8); } });
+      document.querySelectorAll('[data-go]').forEach((b) => b.addEventListener('click', () => { setMode(b.dataset.go); $('tr-modes').scrollIntoView({ behavior: 'smooth', block: 'start' }); }));
+      $('tr-topics').addEventListener('click', (e) => { const b = e.target.closest('[data-topic]'); if (!b) return; topic = b.dataset.topic; deck(); step(2); $('tr-step2').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+      $('tr-shuffle').addEventListener('click', () => { deck(); if (P) P.buzz(10); });
+      $('tr-back').addEventListener('click', () => step(1));
+      $('tr-again').addEventListener('click', () => { deck(); step(2); $('tr-step2').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+      $('tr-share').addEventListener('click', () => {
+        const text = '타로 ' + TOPIC[topic] + ' ' + MODE[mode].name + ': ' + picked.map((x, i) => (MODE[mode].n > 1 ? POS[i] + ' ' : '') + x.c.name + (x.rev ? '(역방향)' : '')).join(', ');
+        if (P) P.share({ title: '타로 보기', text: text }); else if (navigator.share) navigator.share({ title: '타로 보기', text: text, url: location.href }).catch(() => {});
       });
-      $('tr-again').addEventListener('click', () => { deck(); $('tr-step3').hidden = true; $('tr-step2').hidden = false; $('tr-step2').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
-      $('tr-share').addEventListener('click', async () => {
-        const text = '오늘의 타로: ' + $('tr-name').textContent + ' (' + $('tr-dir').textContent + ')';
-        try { if (navigator.share) await navigator.share({ title: '타로 보기', text: text, url: location.href }); else { await navigator.clipboard.writeText(text + ' ' + location.href); $('tr-share').textContent = '복사됐어요'; } } catch (e) {}
-      });
+      renderHist();
     })();
   </script>
 </BaseLayout>

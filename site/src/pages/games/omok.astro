@@ -5,17 +5,18 @@ import AdSlot from '../../components/AdSlot.astro';
 import '../../styles/portal.css';
 ---
 <BaseLayout title="오목 게임 — 컴퓨터와 두는 온라인 오목" description="컴퓨터와 한 판 두는 오목. 가로·세로·대각선으로 돌 다섯 개를 먼저 이으면 승리. 설치·가입 없이 무료로 바로 즐기세요.">
-  <div class="pt pt-narrow" style="--c:#f59e0b">
+  <div class="pt pt-narrow gm" style="--c:#f59e0b">
     <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/games/">게임</a> › 오목</nav>
     <div class="gm-head">
       <h1>오목</h1>
       <span class="pt-card__tag" id="om-turn">내 차례 (흑)</span>
       <span class="gm-timer" id="om-score">0승 0패</span>
     </div>
-    <div class="tl-quick" style="margin:0 0 0.8rem"><button type="button" id="om-new">새 게임 · 내가 먼저</button><button type="button" id="om-new2">새 게임 · 컴퓨터 먼저</button><button type="button" id="om-undo">한 수 무르기</button></div>
+    <div class="tl-quick" style="margin:0 0 0.8rem"><button type="button" id="om-new">새 게임 · 내가 먼저</button><button type="button" id="om-new2">새 게임 · 컴퓨터 먼저</button><button type="button" id="om-undo">한 수 무르기</button><button type="button" id="om-level">난이도: 보통</button><button type="button" id="om-confirm">두 번 눌러 놓기 끔</button></div>
 
     <div class="om-wrap"><div class="om-board" id="om-board" role="grid" aria-label="오목판"></div></div>
     <p class="gm-msg" id="om-msg" aria-live="polite"></p>
+    <p class="gm-best" id="om-best"></p>
 
     <div class="pt-ad"><AdSlot slot="game-omok" /></div>
 
@@ -25,9 +26,12 @@ import '../../styles/portal.css';
         <li>빈 자리를 눌러 돌을 놓습니다. 기본은 내가 흑(먼저), 컴퓨터가 백입니다.</li>
         <li>가로·세로·대각선 어느 방향이든 <b>돌 다섯 개</b>를 먼저 이으면 이깁니다.</li>
         <li>이 판은 3-3 금지 같은 금수가 없는 자유 규칙이고, 여섯 개 이상 이어도 승리로 봅니다.</li>
+        <li>난이도는 '쉬움'과 '보통' 두 가지입니다. 쉬움에서는 컴퓨터가 내 공격을 가끔 놓쳐요.</li>
+        <li>화면이 작아 옆 칸을 잘못 누르기 쉽다면 '두 번 눌러 놓기'를 켜세요. 처음 누르면 자리만 표시되고, 같은 자리를 한 번 더 눌러야 돌이 놓입니다.</li>
       </ul>
       <h2>이기는 요령</h2>
       <p>양쪽이 모두 열린 돌 세 개(열린 3)는 상대가 막지 않으면 다음 수에 막을 수 없는 열린 4가 됩니다. 그래서 열린 3 두 개를 한 번에 만드는 수가 가장 강합니다. 반대로 상대의 열린 3은 바로 막아야 합니다.</p>
+      <p>기록은 '보통' 난이도에서 무르기 없이 이겼을 때, 내가 놓은 돌의 수로 남습니다. 적은 수로 이길수록 좋은 기록이에요. 쉬움으로 두었거나 한 번이라도 물렀다면 승패 전적에만 반영됩니다.</p>
     </section>
     <section class="pt-sec">
       <div class="pt-sec__head"><div><h2>다른 게임</h2></div></div>
@@ -39,9 +43,12 @@ import '../../styles/portal.css';
     .gm-head { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.8rem; }
     .gm-head h1 { margin: 0; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; }
     .gm-timer { margin-left: auto; font-size: 1.05rem; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
-    .gm-msg { text-align: center; font-weight: 800; color: var(--accent); min-height: 1.6rem; margin: 0.8rem 0; }
+    .gm-msg { text-align: center; font-weight: 800; color: var(--accent); min-height: 1.6rem; margin: 0.8rem 0 0; }
+    .gm-best { text-align: center; font-size: 0.85rem; font-weight: 700; color: var(--muted); min-height: 1.3rem; margin: 0.3rem 0 0.8rem; }
+    .gm .tl-quick button { min-height: 2.6rem; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+    .tl-quick button.is-on { border-color: var(--accent); background: var(--accent); color: #fff; }
     .om-wrap { max-width: 30rem; margin: 0 auto; padding: 0.5rem; border-radius: 14px; background: #e8c27a; box-shadow: inset 0 0 0 2px #c79a4b; }
-    .om-board { display: grid; grid-template-columns: repeat(15, 1fr); }
+    .om-board { display: grid; grid-template-columns: repeat(15, 1fr); touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
     .om-cell { position: relative; aspect-ratio: 1; border: 0; padding: 0; background: none; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     /* 격자선: 칸 가운데를 지나는 가로·세로선 */
     .om-cell::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #6b4a1b; }
@@ -54,16 +61,24 @@ import '../../styles/portal.css';
     .om-cell.is-last i { outline: 2px solid #ef4444; outline-offset: -1px; }
     .om-cell.is-win i { outline: 3px solid #22c55e; outline-offset: -1px; }
     .om-cell.is-dot:not(.is-b):not(.is-w) i { display: block; inset: 40%; background: #6b4a1b; }
+    /* 두 번 눌러 놓기: 처음 누른 자리 표시 */
+    .om-cell.is-pend:not(.is-b):not(.is-w) i { display: block; inset: 10%; background: color-mix(in srgb, var(--accent) 35%, transparent); outline: 2px solid var(--accent); outline-offset: -1px; }
   </style>
 
   <script is:inline>
     (() => {
       const $ = (id) => document.getElementById(id);
-      const N = 15, DIRS = [[0, 1], [1, 0], [1, 1], [1, -1]], KEY = 'crama:game:omok';
-      let grid, cells = [], hist = [], over = false, busy = false, me = 1, ai = 2;
-      const score = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{"w":0,"l":0}'); } catch (e) { return { w: 0, l: 0 }; } };
+      const N = 15, DIRS = [[0, 1], [1, 0], [1, 1], [1, -1]], KEY = 'crama:game:omok', OPT = 'crama:game:omok:opt';
+      const msgEl = $('om-msg'), turnEl = $('om-turn');
+      const buzz = (p) => { if (window.CramaPlay) window.CramaPlay.buzz(p); };
+      let grid, cells = [], hist = [], over = false, busy = false, me = 1, ai = 2, seq = 0;
+      // easy: 쉬움 난이도, confirm: 두 번 눌러 놓기, undos·easyUsed: 이번 판에서 무르기·쉬움을 썼는지
+      let easy = false, confirm = false, pend = null, undos = 0, easyUsed = false, firstMe = true;
+      const score = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{"w":0,"l":0}') || { w: 0, l: 0 }; } catch (e) { return { w: 0, l: 0 }; } };
       const showScore = () => { const s = score(); $('om-score').textContent = s.w + '승 ' + s.l + '패'; };
+      const showBest = () => { const b = window.CramaPlay ? window.CramaPlay.best('omok') : null; $('om-best').textContent = b ? '가장 빨리 이긴 판: ' + b.d : '보통 난이도에서 무르기 없이 이기면 기록이 남아요'; };
       const inb = (r, c) => r >= 0 && r < N && c >= 0 && c < N;
+      const myTurn = () => '내 차례 (' + (me === 1 ? '흑' : '백') + ')';
 
       const board = $('om-board');
       for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
@@ -72,6 +87,7 @@ import '../../styles/portal.css';
         b.appendChild(document.createElement('i')); b.addEventListener('click', () => play(r, c)); board.appendChild(b); cells.push(b);
       }
       const cell = (r, c) => cells[r * N + c];
+      const clearPend = () => { if (pend) cell(pend[0], pend[1]).classList.remove('is-pend'); pend = null; };
 
       // (r,c)에 who 가 놓였다고 볼 때 한 방향으로 이어진 개수와 양 끝이 열렸는지
       function line(r, c, dr, dc, who) {
@@ -97,8 +113,9 @@ import '../../styles/portal.css';
           let near = false;
           for (let dr = -2; dr <= 2 && !near; dr++) for (let dc = -2; dc <= 2; dc++) if (inb(r + dr, c + dc) && grid[r + dr][c + dc]) { near = true; break; }
           if (!near) continue;
-          const atk = value(r, c, ai), def = value(r, c, me);
-          const v = atk >= 1000000 ? 1e9 : def >= 1000000 ? 1e8 : atk * 1.15 + def + (7 - Math.max(Math.abs(r - 7), Math.abs(c - 7))) * 0.5;
+          const atk = value(r, c, ai), def = value(r, c, me), mid = (7 - Math.max(Math.abs(r - 7), Math.abs(c - 7))) * 0.5;
+          // 쉬움: 다섯을 만들거나 막는 수는 그대로 두되, 수비 비중을 낮추고 무작위 값을 섞어 가끔 빈틈을 보인다
+          const v = atk >= 1000000 ? 1e9 : def >= 1000000 ? 1e8 : easy ? atk + def * 0.35 + mid + Math.random() * 2500 : atk * 1.15 + def + mid;
           if (v > best) { best = v; picks = [[r, c]]; } else if (v === best) picks.push([r, c]);
         }
         return picks.length ? picks[Math.floor(Math.random() * picks.length)] : null;
@@ -107,39 +124,68 @@ import '../../styles/portal.css';
         grid[r][c] = who; hist.push([r, c, who]);
         cells.forEach((x) => x.classList.remove('is-last'));
         const el = cell(r, c); el.classList.add(who === (me === 1 ? me : ai) ? 'is-b' : 'is-w', 'is-last');
+        buzz(who === me ? 12 : 8);
         const w = winLine(r, c, who);
-        if (w) { over = true; w.forEach((p) => cell(p[0], p[1]).classList.add('is-win')); finish(who === me); return true; }
-        if (hist.length === N * N) { over = true; $('om-msg').textContent = '무승부예요'; $('om-turn').textContent = '끝'; return true; }
+        if (w) { over = true; w.forEach((p) => cell(p[0], p[1]).classList.add('is-win')); finish(who === me ? 'win' : 'lose'); return true; }
+        if (hist.length === N * N) { over = true; finish('draw'); return true; }
         return false;
       }
-      function finish(win) {
-        const s = score(); if (win) s.w++; else s.l++; try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} showScore();
-        $('om-msg').textContent = win ? '이겼어요! 🎉 (' + hist.length + '수)' : '컴퓨터가 이겼어요. 한 판 더?'; $('om-turn').textContent = '끝';
-        try { if (window.gtag) window.gtag('event', 'game_clear', { game: 'omok', result: win ? 'win' : 'lose' }); } catch (e) {}
+      function finish(res) {
+        const win = res === 'win', s = score();
+        if (res !== 'draw') { if (win) s.w++; else s.l++; try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} showScore(); }
+        const mine = hist.filter((h) => h[2] === me).length;
+        msgEl.textContent = res === 'draw' ? '무승부예요' : win ? '이겼어요! 🎉 (' + hist.length + '수)' : '컴퓨터가 이겼어요. 한 판 더?'; turnEl.textContent = '끝';
+        try { if (window.gtag) window.gtag('event', 'game_clear', { game: 'omok', result: res }); } catch (e) {}
+        // 결과 창: 보통 난이도에서 무르기 없이 이긴 판만 기록(내가 놓은 돌 수, 적을수록 좋음)으로 올린다
+        const clean = win && !easyUsed && undos === 0, my = seq, first = firstMe, total = hist.length, un = undos, lv = easyUsed ? '쉬움' : '보통';
+        setTimeout(() => {
+          if (!window.CramaPlay || !board.isConnected || my !== seq) return;
+          const rows = [['난이도', lv], ['전체 수', total + '수'], ['전적', s.w + '승 ' + s.l + '패']];
+          if (un) rows.push(['무르기', un + '번']);
+          window.CramaPlay.finish({
+            game: 'omok', name: '오목', value: clean ? mine : null, display: win ? mine + '수 만에 승리' : null, lower: true, win: win,
+            title: res === 'draw' ? '무승부예요' : win ? '이겼어요!' : '컴퓨터가 이겼어요',
+            sub: win ? (clean ? '돌 ' + mine + '개로 다섯을 이었어요' : '쉬움이나 무르기를 쓴 판은 전적에만 남아요') : res === 'draw' ? '판이 가득 찼어요. 대단한 접전이었어요' : '상대의 열린 3을 먼저 막아 보세요',
+            rows: rows, shareText: win ? '크라마 오목에서 컴퓨터를 ' + mine + '수 만에 이겼어요!' : res === 'draw' ? '크라마 오목에서 컴퓨터와 비겼어요' : '크라마 오목에서 컴퓨터와 한 판 뒀어요', onRetry: () => start(first),
+          });
+          showBest();
+        }, 900);
       }
-      function aiMove() { const m = think(); if (m) put(m[0], m[1], ai); busy = false; if (!over) $('om-turn').textContent = '내 차례 (' + (me === 1 ? '흑' : '백') + ')'; }
+      function aiMove(my) {
+        if (my !== seq || !board.isConnected) return;
+        if (easy) easyUsed = true;
+        const m = think(); if (m) put(m[0], m[1], ai); busy = false; if (!over) turnEl.textContent = myTurn();
+      }
+      const aiSoon = () => { const my = seq; busy = true; turnEl.textContent = '컴퓨터 생각 중…'; setTimeout(() => aiMove(my), 280); };
       function play(r, c) {
         if (over || busy || grid[r][c]) return;
-        $('om-msg').textContent = '';
+        if (confirm && !(pend && pend[0] === r && pend[1] === c)) { clearPend(); pend = [r, c]; cell(r, c).classList.add('is-pend'); msgEl.textContent = '같은 자리를 한 번 더 누르면 놓여요'; buzz(8); return; }
+        clearPend(); msgEl.textContent = '';
         if (put(r, c, me)) return;
-        busy = true; $('om-turn').textContent = '컴퓨터 생각 중…'; setTimeout(aiMove, 280);
+        aiSoon();
       }
       function start(first) {
-        grid = Array.from({ length: N }, () => Array(N).fill(0)); hist = []; over = false; busy = false;
+        seq++; grid = Array.from({ length: N }, () => Array(N).fill(0)); hist = []; over = false; busy = false; undos = 0; easyUsed = false; firstMe = first;
         // 1 = 흑(선), 2 = 백
         me = first ? 1 : 2; ai = first ? 2 : 1;
-        cells.forEach((x) => x.classList.remove('is-b', 'is-w', 'is-last', 'is-win'));
-        $('om-msg').textContent = ''; $('om-turn').textContent = '내 차례 (' + (me === 1 ? '흑' : '백') + ')';
-        if (!first) { busy = true; $('om-turn').textContent = '컴퓨터 생각 중…'; setTimeout(aiMove, 280); }
+        clearPend(); cells.forEach((x) => x.classList.remove('is-b', 'is-w', 'is-last', 'is-win', 'is-pend'));
+        msgEl.textContent = ''; turnEl.textContent = myTurn(); showBest();
+        if (!first) aiSoon();
       }
+      const saveOpt = () => { try { localStorage.setItem(OPT, JSON.stringify({ easy: easy, confirm: confirm })); } catch (e) {} };
+      const showOpt = () => { $('om-level').textContent = '난이도: ' + (easy ? '쉬움' : '보통'); $('om-confirm').textContent = '두 번 눌러 놓기 ' + (confirm ? '켬' : '끔'); $('om-confirm').classList.toggle('is-on', confirm); };
       $('om-new').addEventListener('click', () => start(true));
       $('om-new2').addEventListener('click', () => start(false));
+      $('om-level').addEventListener('click', () => { easy = !easy; showOpt(); saveOpt(); msgEl.textContent = easy ? '쉬움으로 바꿨어요. 이 판은 기록에 남지 않아요' : '보통으로 바꿨어요'; });
+      $('om-confirm').addEventListener('click', () => { confirm = !confirm; clearPend(); showOpt(); saveOpt(); });
       $('om-undo').addEventListener('click', () => {
         if (busy || over || hist.length < 2 || hist[hist.length - 1][2] !== ai) return;
+        clearPend(); undos++;
         for (let k = 0; k < 2; k++) { const h = hist.pop(); grid[h[0]][h[1]] = 0; cell(h[0], h[1]).classList.remove('is-b', 'is-w', 'is-last'); }
         const last = hist[hist.length - 1]; if (last) cell(last[0], last[1]).classList.add('is-last');
       });
-      showScore(); start(true);
+      try { const o = JSON.parse(localStorage.getItem(OPT) || 'null'); if (o) { easy = !!o.easy; confirm = !!o.confirm; } } catch (e) {}
+      showOpt(); showScore(); start(true);
     })();
   </script>
 </BaseLayout>

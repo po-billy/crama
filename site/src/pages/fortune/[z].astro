@@ -1,5 +1,6 @@
 ---
 // 오늘의 띠별 운세 — 날짜와 띠로 정해지는 문장을 미리 써 둔 목록에서 고른다(매일 자정에 바뀜, AI 호출 없음).
+// 오늘·내일 전환, 분야 5종 점수, 행운 정보 6종, 하면 좋은 일·피할 일, 이번 주 흐름을 보여 준다.
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import AdSlot from '../../components/AdSlot.astro';
 import { ZODIAC, zodiacYears, THIS_YEAR } from '../../lib/people';
@@ -10,40 +11,85 @@ export function getStaticPaths() { return ZODIAC.map((z, i) => ({ params: { z: z
 const { slug, idx } = Astro.props as { slug: string; idx: number };
 const z = ZODIAC[idx];
 const years = zodiacYears(slug, 1948, THIS_YEAR).reverse().slice(0, 7);
+const CATS = [
+  { k: 'money', name: '금전운', c: '#f59e0b' },
+  { k: 'love', name: '애정운', c: '#ec4899' },
+  { k: 'work', name: '일·학업운', c: '#3b82f6' },
+  { k: 'health', name: '컨디션', c: '#10b981' },
+  { k: 'people', name: '대인운', c: '#8b5cf6' },
+];
 ---
-<BaseLayout title={`오늘의 ${z.name} 운세 — ${years.slice(0, 5).join('·')}년생`} description={`${z.name}(${years.slice(0, 5).join('·')}년생)의 오늘 운세. 총운·금전운·애정운·일운과 행운의 색, 행운의 숫자를 매일 새로 확인하세요.`}>
+<BaseLayout title={`오늘의 ${z.name} 운세 — ${years.slice(0, 5).join('·')}년생`} description={`${z.name}(${years.slice(0, 5).join('·')}년생)의 오늘 운세. 총운·금전운·애정운·일운·컨디션·대인운 점수와 행운의 색·숫자·방향·시간, 이번 주 흐름까지 매일 새로 확인하세요.`}>
   <div class="pt pt-narrow" style="--c:#8b5cf6">
     <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/fun/">운세·테스트</a> › <a href="/fortune/">오늘의 운세</a> › {z.name}</nav>
     <header class="pt-hubhero">
       <span style="font-size:3.4rem;line-height:1" aria-hidden="true">{z.emoji}</span>
-      <div><h1>오늘의 {z.name} 운세</h1><p><span id="ft-date"></span> · {years.join(', ')}년생</p></div>
+      <div><h1>오늘의 {z.name} 운세</h1><p>{years.join(', ')}년생</p></div>
     </header>
 
-    <div class="tl-result" style="margin-top:1.2rem">
-      <div class="tl-result__label">오늘의 총운</div>
-      <div class="tl-result__big" id="ft-score">-</div>
-      <div class="tl-result__sub" id="ft-total"></div>
+    <div class="ft-bar">
+      <div class="ft-seg" role="tablist" aria-label="날짜 선택">
+        <button type="button" role="tab" data-off="0" class="is-on" aria-selected="true">오늘 <small id="ft-d0"></small></button>
+        <button type="button" role="tab" data-off="1" aria-selected="false">내일 <small id="ft-d1"></small></button>
+      </div>
+      <button type="button" class="ft-mine" id="ft-mine" aria-pressed="false">내 띠로 저장</button>
+    </div>
+
+    <div class="ft-main" id="ft-main">
+      <div class="ft-ring" aria-hidden="true">
+        <svg viewBox="0 0 120 120" width="132" height="132"><circle cx="60" cy="60" r="52" class="ft-ring__bg" /><circle cx="60" cy="60" r="52" class="ft-ring__fg" id="ft-arc" /></svg>
+        <div class="ft-ring__num"><b id="ft-score">-</b><span>점</span></div>
+      </div>
+      <div class="ft-main__body">
+        <span class="ft-grade" id="ft-grade"></span>
+        <p id="ft-total"></p>
+      </div>
     </div>
 
     <section class="pt-sec">
-      <div class="tl-wrap">
-        <table class="tl-table">
-          <tbody>
-            <tr><td style="width:6.5rem"><b>💰 금전운</b><br /><span id="ft-s-money" class="is-on"></span></td><td id="ft-money" style="text-align:left"></td></tr>
-            <tr><td><b>💕 애정운</b><br /><span id="ft-s-love" class="is-on"></span></td><td id="ft-love" style="text-align:left"></td></tr>
-            <tr><td><b>💼 일·건강</b><br /><span id="ft-s-work" class="is-on"></span></td><td id="ft-work" style="text-align:left"></td></tr>
-          </tbody>
-        </table>
+      <div class="pt-sec__head"><div><h2>분야별 운세</h2></div></div>
+      <div class="ft-cats">
+        {CATS.map((c) => (
+          <div class="ft-cat" style={`--k:${c.c}`}>
+            <div class="ft-cat__top"><b>{c.name}</b><span id={`ft-n-${c.k}`}></span></div>
+            <div class="ft-cat__bar"><i id={`ft-b-${c.k}`}></i></div>
+            <p id={`ft-${c.k}`}></p>
+          </div>
+        ))}
       </div>
-      <div class="pp-facts" style="margin-top:0.8rem">
-        <div><span>행운의 색</span><b id="ft-color"></b></div>
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>행운을 부르는 것들</h2></div></div>
+      <div class="ft-lucky">
+        <div><span>행운의 색</span><b><i class="ft-dot" id="ft-dot"></i><span id="ft-color"></span></b></div>
         <div><span>행운의 숫자</span><b id="ft-num"></b></div>
         <div><span>행운의 물건</span><b id="ft-item"></b></div>
+        <div><span>좋은 방향</span><b id="ft-dir"></b></div>
+        <div><span>좋은 시간</span><b id="ft-time"></b></div>
+        <div><span>어울리는 음식</span><b id="ft-food"></b></div>
       </div>
+    </section>
+
+    <section class="pt-sec">
+      <div class="ft-todo">
+        <div class="ft-todo__box is-do"><b>하면 좋은 일</b><ul id="ft-dos"></ul></div>
+        <div class="ft-todo__box is-dont"><b>피하면 좋은 일</b><ul id="ft-donts"></ul></div>
+      </div>
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>이번 주 흐름</h2><p id="ft-weeknote"></p></div></div>
+      <div class="ft-week" id="ft-week"></div>
+      <div class="tl-quick" style="margin-top:1rem"><button type="button" id="ft-share">운세 공유하기</button></div>
       <p class="pp-note">※ 재미로 보는 운세입니다. 띠는 양력 출생연도 기준이며, 음력 설 이전에 태어났다면 전년도 띠로 확인해 보세요. 운세는 매일 자정에 바뀝니다.</p>
     </section>
 
     <div class="pt-ad"><AdSlot slot="fortune-mid" /></div>
+
+    <section class="pt-sec">
+      <div data-cp-today></div>
+    </section>
 
     <section class="pt-sec">
       <div class="pt-sec__head"><div><h2>다른 띠 운세</h2></div></div>
@@ -51,26 +97,143 @@ const years = zodiacYears(slug, 1948, THIS_YEAR).reverse().slice(0, 7);
     </section>
 
     <section class="pt-sec pp-links">
-      <a class="pp-link" href="/tarot/"><span><b>타로 보기</b><span>오늘의 카드 한 장 뽑기</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+      <a class="pp-link" href="/tarot/"><span><b>타로 보기</b><span>오늘의 카드와 세 장 타로</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
       <a class="pp-link" href={`/people/zodiac/${slug}/`}><span><b>{z.name} 나이표·인물</b><span>{z.name} 출생연도와 같은 띠 인물</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
     </section>
   </div>
 
-  <script is:inline define:vars={{ F: FORTUNE, idx }}>
+  <style is:global>
+    .ft-bar { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; margin-top: 1rem; }
+    .ft-seg { display: inline-flex; padding: 0.25rem; border-radius: 999px; background: var(--paper-2); }
+    .ft-seg button { min-height: 2.5rem; padding: 0 1.1rem; border: 0; border-radius: 999px; background: transparent; color: var(--muted); font: inherit; font-size: 0.92rem; font-weight: 800; cursor: pointer; }
+    .ft-seg button small { font-weight: 700; opacity: 0.75; margin-left: 0.15rem; }
+    .ft-seg button.is-on { background: var(--paper); color: var(--ink); box-shadow: 0 1px 4px rgba(20, 15, 50, 0.12); }
+    .ft-mine { min-height: 2.5rem; padding: 0 0.95rem; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); color: var(--ink); font: inherit; font-size: 0.86rem; font-weight: 800; cursor: pointer; white-space: nowrap; }
+    .ft-mine[aria-pressed="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--paper)); color: var(--accent); }
+    .ft-main { display: flex; align-items: center; gap: 1.2rem; margin-top: 0.8rem; padding: 1.2rem; border-radius: 20px; background: linear-gradient(135deg, #4c1d95, #7c3aed 60%, #a855f7); color: #fff; }
+    .ft-ring { position: relative; flex: none; width: 132px; height: 132px; }
+    .ft-ring svg { transform: rotate(-90deg); }
+    .ft-ring circle { fill: none; stroke-width: 10; }
+    .ft-ring__bg { stroke: rgba(255, 255, 255, 0.22); }
+    .ft-ring__fg { stroke: #fde68a; stroke-linecap: round; stroke-dasharray: 326.7; stroke-dashoffset: 326.7; transition: stroke-dashoffset 0.9s cubic-bezier(0.2, 0.8, 0.2, 1); }
+    .ft-ring__num { position: absolute; inset: 0; display: flex; align-items: baseline; justify-content: center; padding-top: 2.55rem; gap: 0.1rem; }
+    .ft-ring__num b { font-size: 2.5rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+    .ft-ring__num span { font-size: 0.95rem; font-weight: 700; opacity: 0.85; }
+    .ft-grade { display: inline-block; padding: 0.22rem 0.7rem; border-radius: 999px; background: rgba(255, 255, 255, 0.2); font-size: 0.8rem; font-weight: 800; }
+    .ft-main__body p { margin: 0.55rem 0 0; font-size: 1.02rem; font-weight: 600; line-height: 1.6; }
+    @media (max-width: 480px) { .ft-main { flex-direction: column; text-align: center; padding: 1.3rem 1.1rem; } }
+    .ft-cats { display: grid; gap: 0.6rem; }
+    @media (min-width: 640px) { .ft-cats { grid-template-columns: repeat(2, 1fr); } }
+    .ft-cat { padding: 0.95rem 1rem; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); }
+    .ft-cat__top { display: flex; align-items: baseline; justify-content: space-between; }
+    .ft-cat__top b { font-size: 0.98rem; font-weight: 800; }
+    .ft-cat__top span { font-size: 0.95rem; font-weight: 800; color: var(--k); font-variant-numeric: tabular-nums; }
+    .ft-cat__bar { height: 0.45rem; margin: 0.5rem 0 0.6rem; border-radius: 99px; background: var(--paper-2); overflow: hidden; }
+    .ft-cat__bar i { display: block; height: 100%; width: 0; border-radius: 99px; background: var(--k); transition: width 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); }
+    .ft-cat p { margin: 0; font-size: 0.92rem; line-height: 1.6; color: var(--ink-soft, var(--ink)); }
+    .ft-lucky { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+    .ft-lucky > div { padding: 0.8rem 0.5rem; border-radius: 14px; background: var(--paper-2); text-align: center; min-width: 0; }
+    .ft-lucky > div > span { display: block; font-size: 0.76rem; color: var(--muted); }
+    .ft-lucky b { display: flex; align-items: center; justify-content: center; gap: 0.35rem; margin-top: 0.2rem; font-size: 0.98rem; font-weight: 800; word-break: keep-all; }
+    .ft-dot { flex: none; width: 0.85rem; height: 0.85rem; border-radius: 50%; border: 1px solid var(--line); }
+    @media (max-width: 420px) { .ft-lucky { grid-template-columns: repeat(2, 1fr); } }
+    .ft-todo { display: grid; gap: 0.6rem; }
+    @media (min-width: 560px) { .ft-todo { grid-template-columns: 1fr 1fr; } }
+    .ft-todo__box { padding: 0.95rem 1rem; border-radius: 16px; border: 1px solid var(--line); background: var(--paper); }
+    .ft-todo__box b { font-size: 0.9rem; font-weight: 800; }
+    .ft-todo__box.is-do b { color: #059669; }
+    .ft-todo__box.is-dont b { color: #e11d48; }
+    .ft-todo__box ul { margin: 0.45rem 0 0; padding: 0; list-style: none; display: grid; gap: 0.3rem; }
+    .ft-todo__box li { position: relative; padding-left: 0.95rem; font-size: 0.93rem; }
+    .ft-todo__box li::before { content: ''; position: absolute; left: 0; top: 0.62em; width: 0.38rem; height: 0.38rem; border-radius: 50%; background: currentColor; opacity: 0.35; }
+    .ft-week { display: flex; align-items: flex-end; gap: 0.4rem; height: 8.5rem; padding: 0.9rem 0.8rem 0.7rem; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); }
+    .ft-week div { flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 0.25rem; font-size: 0.74rem; color: var(--muted); }
+    .ft-week em { font-style: normal; font-weight: 800; font-size: 0.74rem; font-variant-numeric: tabular-nums; }
+    .ft-week i { display: block; width: 100%; max-width: 2rem; border-radius: 8px 8px 4px 4px; background: color-mix(in srgb, var(--accent) 28%, var(--paper)); }
+    .ft-week .is-today { color: var(--ink); font-weight: 800; }
+    .ft-week .is-today i { background: var(--accent); }
+    .ft-week .is-best em { color: var(--accent); }
+  </style>
+
+  <script is:inline define:vars={{ F: FORTUNE, idx, zslug: slug, zname: z.name, CATS: CATS.map((c) => c.k) }}>
     (() => {
       const $ = (id) => document.getElementById(id);
-      const n = new Date(), day = n.getFullYear() * 10000 + (n.getMonth() + 1) * 100 + n.getDate();
-      // 날짜+띠로 정해지는 난수(같은 날 같은 띠는 항상 같은 결과)
-      let seed = (day * 31 + (idx + 1) * 7919) >>> 0;
-      const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
-      for (let i = 0; i < 5; i++) rnd();
-      const pick = (arr) => arr[Math.floor(rnd() * arr.length)];
-      const score = () => 55 + Math.floor(rnd() * 44);
-      const stars = (s) => '★'.repeat(Math.round(s / 20)) + '☆'.repeat(5 - Math.round(s / 20));
-      $('ft-date').textContent = (n.getMonth() + 1) + '월 ' + n.getDate() + '일';
-      const s0 = score(); $('ft-score').textContent = s0 + '점'; $('ft-total').textContent = pick(F.total);
-      [['money', F.money], ['love', F.love], ['work', F.work]].forEach(([k, arr]) => { const s = score(); $('ft-s-' + k).textContent = stars(s); $('ft-' + k).textContent = pick(arr); });
-      $('ft-color').textContent = pick(F.colors); $('ft-num').textContent = String(1 + Math.floor(rnd() * 45)); $('ft-item').textContent = pick(F.items);
+      if (!$('ft-main')) return;
+      const dayNum = (d) => d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+      const addDays = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return d; };
+      // 날짜+띠로 정해지는 값(같은 날 같은 띠는 항상 같은 결과)
+      function gen(date) {
+        let seed = (dayNum(date) * 31 + (idx + 1) * 7919) >>> 0;
+        const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+        for (let i = 0; i < 5; i++) rnd();
+        const pick = (arr) => arr[Math.floor(rnd() * arr.length)];
+        const score = () => 55 + Math.floor(rnd() * 44);
+        const two = (arr) => { const a = pick(arr); let b = pick(arr), n = 0; while (b === a && n++ < 8) b = pick(arr); return [a, b]; };
+        const o = { score: score(), total: pick(F.total), cats: {} };
+        CATS.forEach((k) => { o.cats[k] = { s: score(), t: pick(F[k]) }; });
+        o.color = pick(F.colors); o.num = 1 + Math.floor(rnd() * 45); o.item = pick(F.items);
+        o.dir = pick(F.directions); o.time = pick(F.times); o.food = pick(F.foods);
+        o.dos = two(F.dos); o.donts = two(F.donts);
+        return o;
+      }
+      const grade = (s) => (s >= 90 ? '최고의 하루' : s >= 80 ? '좋은 흐름' : s >= 70 ? '무난한 하루' : '차분히 가는 날');
+      const md = (d) => (d.getMonth() + 1) + '.' + d.getDate();
+      $('ft-d0').textContent = md(addDays(0)); $('ft-d1').textContent = md(addDays(1));
+      let cur = null, off = 0;
+
+      function show(o) {
+        cur = o;
+        $('ft-score').textContent = String(o.score); $('ft-grade').textContent = grade(o.score); $('ft-total').textContent = o.total;
+        const arc = $('ft-arc'); arc.style.strokeDashoffset = '326.7';
+        CATS.forEach((k) => { $('ft-n-' + k).textContent = o.cats[k].s + '점'; $('ft-' + k).textContent = o.cats[k].t; $('ft-b-' + k).style.width = '0'; });
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          arc.style.strokeDashoffset = String(326.7 * (1 - o.score / 100));
+          CATS.forEach((k) => { $('ft-b-' + k).style.width = o.cats[k].s + '%'; });
+        }));
+        $('ft-color').textContent = o.color; $('ft-dot').style.background = (F.colorHex || {})[o.color] || 'transparent';
+        $('ft-num').textContent = String(o.num); $('ft-item').textContent = o.item;
+        $('ft-dir').textContent = o.dir; $('ft-time').textContent = o.time; $('ft-food').textContent = o.food;
+        [['ft-dos', o.dos], ['ft-donts', o.donts]].forEach(([id, arr]) => { const ul = $(id); ul.textContent = ''; arr.forEach((t) => { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); }); });
+      }
+
+      // 이번 주(월~일) 총운 점수
+      function week() {
+        const box = $('ft-week'); box.textContent = '';
+        const now = new Date(), dow = (now.getDay() + 6) % 7, names = ['월', '화', '수', '목', '금', '토', '일'];
+        const list = names.map((nm, i) => ({ nm: nm, s: gen(addDays(i - dow)).score, today: i === dow }));
+        const max = Math.max.apply(null, list.map((x) => x.s));
+        list.forEach((x) => {
+          const d = document.createElement('div'); d.className = (x.today ? 'is-today ' : '') + (x.s === max ? 'is-best' : '');
+          const em = document.createElement('em'); em.textContent = String(x.s);
+          const bar = document.createElement('i'); bar.style.height = Math.round(18 + (x.s - 55) / 44 * 60) + '%';
+          d.appendChild(em); d.appendChild(bar); d.appendChild(document.createTextNode(x.today ? '오늘' : x.nm)); box.appendChild(d);
+        });
+        const best = list.find((x) => x.s === max);
+        $('ft-weeknote').textContent = best.today ? '이번 주에는 오늘이 가장 좋은 날이에요' : '이번 주에는 ' + best.nm + '요일의 흐름이 가장 좋아요';
+      }
+
+      document.querySelectorAll('.ft-seg button').forEach((b) => b.addEventListener('click', () => {
+        off = Number(b.dataset.off);
+        document.querySelectorAll('.ft-seg button').forEach((x) => { const on = x === b; x.classList.toggle('is-on', on); x.setAttribute('aria-selected', on ? 'true' : 'false'); });
+        show(gen(addDays(off))); if (window.CramaPlay) window.CramaPlay.buzz(8);
+      }));
+
+      // 내 띠 저장 — 운세 목록·오늘의 놀거리에서 바로 이 화면으로 온다
+      const P = window.CramaPlay, mine = $('ft-mine');
+      const syncMine = () => { const on = !!P && P.get('myZodiac') === zslug; mine.setAttribute('aria-pressed', on ? 'true' : 'false'); mine.textContent = on ? '내 띠로 저장됨' : '내 띠로 저장'; };
+      mine.addEventListener('click', () => {
+        if (!P) return; const on = P.get('myZodiac') === zslug;
+        P.set('myZodiac', on ? null : zslug); P.set('myZodiacName', on ? null : zname); syncMine(); P.render();
+        P.toast(on ? '저장을 풀었어요' : zname + '를 내 띠로 저장했어요'); P.buzz(10);
+      });
+      $('ft-share').addEventListener('click', () => {
+        const text = (off ? '내일' : '오늘') + '의 ' + zname + ' 운세 ' + cur.score + '점 · ' + grade(cur.score) + ' — ' + cur.total;
+        if (P) P.share({ title: zname + ' 운세', text: text }); else if (navigator.share) navigator.share({ title: zname + ' 운세', text: text, url: location.href }).catch(() => {});
+      });
+
+      show(gen(addDays(0))); week(); syncMine();
+      if (P) P.stamp('fortune');
+      try { if (window.gtag) window.gtag('event', 'tool_use', { tool: 'fortune', zodiac: zslug }); } catch (e) {}
     })();
   </script>
 </BaseLayout>

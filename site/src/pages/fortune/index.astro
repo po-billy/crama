@@ -14,6 +14,8 @@ const slugs = ZODIAC.map((z) => z.slug);
       <div><h1>오늘의 운세</h1><p>내 띠를 고르면 오늘의 운세를 알려드려요</p></div>
     </header>
 
+    <a class="fi-mine" id="fi-mine" href="/fortune/" hidden><span><small>내 띠 운세 바로 보기</small><b id="fi-mine-name"></b></span><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
+
     <section class="pt-sec">
       <div class="tl-card">
         <div class="tl-row">
@@ -35,6 +37,8 @@ const slugs = ZODIAC.map((z) => z.slug);
       <p class="pp-note">※ 재미로 보는 운세입니다. 띠는 양력 출생연도 기준이며 음력 설 이전 출생자는 전년도 띠로 보기도 합니다.</p>
     </section>
 
+    <section class="pt-sec"><div data-cp-today></div></section>
+
     <div class="pt-ad"><AdSlot slot="fortune-index" /></div>
 
     <section class="pt-sec pp-links">
@@ -42,8 +46,15 @@ const slugs = ZODIAC.map((z) => z.slug);
       <a class="pp-link" href="/zodiac-match/"><span><b>띠궁합</b><span>두 띠의 궁합 알아보기</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
     </section>
   </div>
+  <style is:global>
+    .fi-mine { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; margin-top: 1rem; padding: 1rem 1.1rem; border-radius: 18px; background: linear-gradient(135deg, #4c1d95, #7c3aed 60%, #a855f7); color: #fff; text-decoration: none; }
+    .fi-mine[hidden] { display: none; }
+    .fi-mine small { display: block; font-size: 0.8rem; font-weight: 700; opacity: 0.85; }
+    .fi-mine b { display: block; margin-top: 0.1rem; font-size: 1.2rem; font-weight: 800; }
+  </style>
   <script is:inline define:vars={{ slugs }}>
     (() => {
+      try { const P = window.CramaPlay, z = P && P.get('myZodiac'); if (z && slugs.indexOf(z) >= 0) { const m = document.getElementById('fi-mine'); m.href = '/fortune/' + z + '/'; document.getElementById('fi-mine-name').textContent = '오늘의 ' + (P.get('myZodiacName') || '내 띠') + ' 운세'; m.hidden = false; } } catch (e) {}
       const go = () => { const y = Number(document.getElementById('fi-year').value); if (!(y > 1900)) { document.getElementById('fi-year').focus(); return; } location.href = '/fortune/' + slugs[(((y - 4) % 12) + 12) % 12] + '/'; };
       document.getElementById('fi-go').addEventListener('click', go);
       document.getElementById('fi-year').addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });

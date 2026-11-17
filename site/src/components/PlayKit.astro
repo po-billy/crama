@@ -1,0 +1,222 @@
+---
+// 게임·운세 공통 도구(window.CramaPlay) — 기록 저장, 오늘의 놀거리 도장, 결과 창, 공유, 진동, 축하 효과.
+// 계정 없이 이 기기(localStorage `crama:play`)에만 저장한다. BaseLayout이 조회·게임·운세 화면에 붙인다.
+// 화면 전환(ClientRouter) 때마다 다시 실행되므로 한 번만 정의하고, 화면에 그리는 일은 astro:page-load 에서 한다.
+import { allGroups } from '../data/menu';
+const pickItems = (slug: string) => (allGroups().find((g) => g.slug === slug)?.items || []).filter((i: any) => i.href).map((i: any) => ({ name: i.name, href: i.href }));
+const GAMES = pickItems('games');
+---
+<div id="cp-root" transition:persist></div>
+
+<style is:global>
+  .cp-toast { position: fixed; left: 50%; bottom: calc(5.2rem + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 1rem); z-index: 1200; max-width: calc(100vw - 2rem); padding: 0.7rem 1.1rem; border-radius: 999px; background: var(--ink); color: var(--paper); font-size: 0.9rem; font-weight: 700; opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cp-toast.is-on { opacity: 1; transform: translate(-50%, 0); }
+
+  .cp-back { position: fixed; inset: 0; z-index: 1100; display: flex; align-items: flex-end; justify-content: center; background: rgba(15, 12, 35, 0.5); opacity: 0; transition: opacity 0.2s; }
+  .cp-back.is-on { opacity: 1; }
+  .cp-sheet { width: 100%; max-width: 30rem; max-height: 88vh; overflow-y: auto; padding: 0.6rem 1.2rem calc(1.3rem + env(safe-area-inset-bottom, 0px)); border-radius: 24px 24px 0 0; background: var(--paper); color: var(--ink); box-shadow: 0 -10px 40px rgba(15, 12, 35, 0.25); transform: translateY(100%); transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1); text-align: center; }
+  .cp-back.is-on .cp-sheet { transform: translateY(0); }
+  .cp-sheet__grip { width: 2.6rem; height: 0.28rem; margin: 0 auto 0.9rem; border-radius: 99px; background: var(--line); }
+  .cp-sheet__kicker { display: inline-block; padding: 0.22rem 0.7rem; border-radius: 999px; background: color-mix(in srgb, var(--accent) 12%, var(--paper)); color: var(--accent); font-size: 0.78rem; font-weight: 800; }
+  .cp-sheet__kicker.is-new { background: linear-gradient(135deg, #f59e0b, #ef4444); color: #fff; }
+  .cp-sheet h2 { margin: 0.6rem 0 0; font-size: 1.15rem; font-weight: 800; letter-spacing: -0.02em; }
+  .cp-sheet__big { margin: 0.35rem 0 0; font-size: 2.7rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1.15; font-variant-numeric: tabular-nums; }
+  .cp-sheet__sub { margin: 0.35rem 0 0; font-size: 0.92rem; color: var(--ink-soft, var(--muted)); line-height: 1.5; }
+  .cp-sheet__rows { display: grid; grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr)); gap: 0.5rem; margin: 1rem 0 0; }
+  .cp-sheet__rows div { padding: 0.6rem 0.4rem; border-radius: 14px; background: var(--paper-2); }
+  .cp-sheet__rows span { display: block; font-size: 0.74rem; color: var(--muted); }
+  .cp-sheet__rows b { display: block; margin-top: 0.1rem; font-size: 1rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .cp-sheet__acts { display: flex; gap: 0.5rem; margin-top: 1.1rem; }
+  .cp-sheet__acts button, .cp-sheet__acts a { flex: 1; min-height: 3rem; display: inline-flex; align-items: center; justify-content: center; padding: 0 0.8rem; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); color: var(--ink); font: inherit; font-size: 0.95rem; font-weight: 800; text-decoration: none; cursor: pointer; }
+  .cp-sheet__acts .is-primary { border-color: var(--accent); background: var(--accent); color: #fff; }
+  .cp-sheet__more { margin-top: 1.1rem; padding-top: 0.9rem; border-top: 1px solid var(--line); text-align: left; }
+  .cp-sheet__more > span { display: block; margin-bottom: 0.5rem; font-size: 0.8rem; font-weight: 800; color: var(--muted); }
+  .cp-sheet__more div { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .cp-sheet__more a { padding: 0.45rem 0.8rem; border-radius: 999px; background: var(--paper-2); color: var(--ink); font-size: 0.86rem; font-weight: 700; text-decoration: none; }
+  @media (min-width: 700px) {
+    .cp-back { align-items: center; }
+    .cp-sheet { border-radius: 24px; padding-top: 1.4rem; transform: translateY(1.5rem) scale(0.97); }
+    .cp-sheet__grip { display: none; }
+  }
+
+  .cp-confetti { position: fixed; inset: 0; z-index: 1150; pointer-events: none; overflow: hidden; }
+  .cp-confetti i { position: absolute; top: -1rem; width: 0.55rem; height: 0.9rem; border-radius: 2px; animation: cp-fall linear forwards; }
+  @keyframes cp-fall { to { transform: translate3d(var(--dx), 105vh, 0) rotate(var(--rot)); opacity: 0.9; } }
+
+  /* 오늘의 놀거리(도장) */
+  .cp-today { border: 1px solid var(--line); border-radius: 18px; padding: 1rem; background: var(--paper); }
+  .cp-today__head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.6rem; }
+  .cp-today__head b { font-size: 1.02rem; font-weight: 800; }
+  .cp-today__head span { font-size: 0.82rem; font-weight: 800; color: var(--accent); }
+  .cp-today__list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-top: 0.75rem; }
+  .cp-today__list a { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; padding: 0.75rem 0.3rem; border-radius: 14px; background: var(--paper-2); color: var(--ink); font-size: 0.84rem; font-weight: 700; text-decoration: none; text-align: center; }
+  .cp-today__list i { display: grid; place-items: center; width: 2.1rem; height: 2.1rem; border-radius: 50%; border: 2px dashed var(--line); color: transparent; font-style: normal; }
+  .cp-today__list a.is-done { background: color-mix(in srgb, var(--accent) 10%, var(--paper)); }
+  .cp-today__list a.is-done i { border: 0; background: var(--accent); color: #fff; }
+  .cp-today__week { display: flex; justify-content: space-between; gap: 0.25rem; margin-top: 0.8rem; }
+  .cp-today__week span { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.25rem; font-size: 0.7rem; color: var(--muted); }
+  .cp-today__week em { width: 0.55rem; height: 0.55rem; border-radius: 50%; background: var(--line); }
+  .cp-today__week .is-on em { background: var(--accent); }
+  .cp-today__week .is-today { color: var(--ink); font-weight: 800; }
+
+  /* 내 기록 */
+  .cp-records { display: grid; grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr)); gap: 0.5rem; }
+  .cp-records a { display: flex; flex-direction: column; gap: 0.1rem; padding: 0.75rem 0.85rem; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); color: var(--ink); text-decoration: none; }
+  .cp-records a span { font-size: 0.8rem; color: var(--muted); font-weight: 700; }
+  .cp-records a b { font-size: 1.15rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .cp-records a small { font-size: 0.72rem; color: var(--muted); }
+  .cp-records a.is-empty b { font-size: 0.9rem; color: var(--muted); font-weight: 700; }
+  @media (prefers-reduced-motion: reduce) { .cp-sheet, .cp-back, .cp-toast { transition: none; } }
+</style>
+
+<script is:inline define:vars={{ GAMES }}>
+  (() => {
+    if (!window.CramaPlay) {
+      const KEY = 'crama:play';
+      const pad = (n) => String(n).padStart(2, '0');
+      const dkey = (d) => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+      const load = () => { let s = {}; try { s = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) {} s.days = s.days || {}; s.best = s.best || {}; s.plays = s.plays || {}; return s; };
+      const save = (s) => { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} };
+      const root = () => document.getElementById('cp-root') || document.body;
+      const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+      let toastT = null;
+
+      const P = {
+        today: () => dkey(new Date()),
+        state: load,
+        /** 오늘 한 일 도장. kind: 'fortune' | 'tarot' | 'game' */
+        stamp(kind) {
+          const s = load(), t = P.today(); const list = s.days[t] || (s.days[t] = []);
+          const isNew = list.indexOf(kind) < 0; if (isNew) list.push(kind);
+          // 60일보다 오래된 날은 지운다
+          const keys = Object.keys(s.days).sort(); while (keys.length > 60) delete s.days[keys.shift()];
+          save(s); if (isNew) P.render();
+          return { isNew: isNew, streak: P.streak() };
+        },
+        done(kind) { return (load().days[P.today()] || []).indexOf(kind) >= 0; },
+        /** 오늘(또는 어제)까지 이어진 연속 방문 일수 */
+        streak() {
+          const s = load(); const d = new Date(); let n = 0;
+          if (!(s.days[dkey(d)] || []).length) d.setDate(d.getDate() - 1);
+          while ((s.days[dkey(d)] || []).length) { n++; d.setDate(d.getDate() - 1); }
+          return n;
+        },
+        best(game) { return load().best[game] || null; },
+        plays(game) { return load().plays[game] || 0; },
+        /** 기록 제출. lower=true 면 작을수록 좋은 기록(시간·횟수) */
+        submit(game, value, opt) {
+          opt = opt || {}; const s = load(); const prev = s.best[game] || null;
+          s.plays[game] = (s.plays[game] || 0) + 1;
+          const isNew = value != null && isFinite(value) && (!prev || (opt.lower ? value < prev.v : value > prev.v));
+          if (isNew) s.best[game] = { v: value, d: opt.display || String(value), at: P.today(), name: opt.name || game, href: location.pathname };
+          save(s); if (isNew) P.render();
+          return { isNew: isNew, prev: prev, best: s.best[game] || null, plays: s.plays[game] };
+        },
+        get(k) { return load()[k]; },
+        set(k, v) { const s = load(); s[k] = v; save(s); },
+        buzz(p) { try { if (navigator.vibrate) navigator.vibrate(p || 12); } catch (e) {} },
+        toast(msg) {
+          let t = document.querySelector('.cp-toast'); if (!t) { t = el('div', 'cp-toast'); t.setAttribute('role', 'status'); root().appendChild(t); }
+          t.textContent = msg; requestAnimationFrame(() => t.classList.add('is-on'));
+          clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('is-on'), 2200);
+        },
+        async share(o) {
+          o = o || {}; const url = o.url || location.href; const text = o.text || document.title;
+          try { if (navigator.share) { await navigator.share({ title: o.title || document.title, text: text, url: url }); return true; } } catch (e) { if (e && e.name === 'AbortError') return false; }
+          try { await navigator.clipboard.writeText(text + ' ' + url); P.toast('결과를 복사했어요. 붙여넣어 공유해 보세요'); return true; } catch (e) { P.toast('공유를 지원하지 않는 브라우저예요'); return false; }
+        },
+        confetti() {
+          if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+          const box = el('div', 'cp-confetti'); const colors = ['#8b5cf6', '#f97316', '#10b981', '#f59e0b', '#ec4899', '#3b82f6'];
+          for (let i = 0; i < 44; i++) { const p = el('i'); p.style.left = Math.random() * 100 + '%'; p.style.background = colors[i % colors.length]; p.style.setProperty('--dx', (Math.random() * 160 - 80) + 'px'); p.style.setProperty('--rot', (Math.random() * 720 - 360) + 'deg'); p.style.animationDuration = (1.4 + Math.random() * 1.2) + 's'; p.style.animationDelay = (Math.random() * 0.3) + 's'; box.appendChild(p); }
+          root().appendChild(box); setTimeout(() => box.remove(), 3200);
+        },
+        closeSheet() { const b = document.querySelector('.cp-back'); if (!b) return; b.classList.remove('is-on'); setTimeout(() => b.remove(), 240); document.removeEventListener('keydown', P._esc); },
+        _esc(e) { if (e.key === 'Escape') P.closeSheet(); },
+        /** 결과 창. o: { kicker, isNew, title, big, sub, rows:[[이름,값]], actions:[{label, primary, onClick, href, keep}], more:[{name,href}] } */
+        sheet(o) {
+          const old = document.querySelector('.cp-back'); if (old) old.remove();
+          const back = el('div', 'cp-back'); const sh = el('div', 'cp-sheet'); sh.setAttribute('role', 'dialog'); sh.setAttribute('aria-modal', 'true'); sh.setAttribute('aria-label', o.title || '결과');
+          sh.appendChild(el('div', 'cp-sheet__grip'));
+          if (o.kicker) sh.appendChild(el('span', 'cp-sheet__kicker' + (o.isNew ? ' is-new' : ''), o.kicker));
+          if (o.title) sh.appendChild(el('h2', '', o.title));
+          if (o.big != null) sh.appendChild(el('p', 'cp-sheet__big', o.big));
+          if (o.sub) sh.appendChild(el('p', 'cp-sheet__sub', o.sub));
+          if (o.rows && o.rows.length) { const r = el('div', 'cp-sheet__rows'); o.rows.forEach((x) => { const d = el('div'); d.appendChild(el('span', '', x[0])); d.appendChild(el('b', '', x[1])); r.appendChild(d); }); sh.appendChild(r); }
+          const acts = el('div', 'cp-sheet__acts');
+          (o.actions || [{ label: '닫기', primary: true }]).forEach((a) => {
+            const b = a.href ? el('a', a.primary ? 'is-primary' : '', a.label) : el('button', a.primary ? 'is-primary' : '', a.label);
+            if (a.href) b.href = a.href; else b.type = 'button';
+            b.addEventListener('click', () => { if (!a.keep) P.closeSheet(); if (a.onClick) a.onClick(); });
+            acts.appendChild(b);
+          });
+          sh.appendChild(acts);
+          if (o.more && o.more.length) { const m = el('div', 'cp-sheet__more'); m.appendChild(el('span', '', o.moreLabel || '이어서 해 볼까요?')); const w = el('div'); o.more.forEach((x) => { const a = el('a', '', x.name); a.href = x.href; w.appendChild(a); }); m.appendChild(w); sh.appendChild(m); }
+          back.appendChild(sh); back.addEventListener('click', (e) => { if (e.target === back) P.closeSheet(); });
+          root().appendChild(back); requestAnimationFrame(() => back.classList.add('is-on'));
+          document.addEventListener('keydown', P._esc);
+          const first = acts.querySelector('.is-primary') || acts.firstChild; if (first) setTimeout(() => first.focus({ preventScroll: true }), 260);
+        },
+        /** 게임 한 판이 끝났을 때. o: { game, name, value, display, lower, title, sub, rows, shareText, onRetry, win } */
+        finish(o) {
+          const r = P.submit(o.game, o.value, { lower: o.lower, display: o.display, name: o.name });
+          P.stamp('game');
+          const rows = (o.rows || []).slice();
+          if (r.best && o.value != null) rows.push([o.bestLabel || '내 최고 기록', r.best.d]);
+          rows.push(['플레이', r.plays + '판']);
+          const isNew = r.isNew && !!r.prev;
+          if (isNew || o.win) { P.confetti(); P.buzz([20, 40, 20]); }
+          const others = GAMES.filter((g) => g.href !== location.pathname).sort(() => Math.random() - 0.5).slice(0, 4);
+          P.sheet({
+            kicker: isNew ? '최고 기록 경신!' : (r.isNew ? '첫 기록' : (o.kicker || o.name)), isNew: isNew,
+            title: o.title || '결과', big: o.display != null ? o.display : null, sub: o.sub, rows: rows,
+            actions: [
+              { label: '결과 공유', keep: true, onClick: () => P.share({ title: o.name, text: o.shareText || (o.name + ' ' + (o.display || '')) }) },
+              { label: '한 판 더', primary: true, onClick: o.onRetry },
+            ],
+            more: others, moreLabel: '다른 게임도 해 볼까요?',
+          });
+          try { if (window.gtag) window.gtag('event', 'game_finish', { game: o.game }); } catch (e) {}
+          return r;
+        },
+        /** 화면 안의 [data-cp-today], [data-cp-records] 자리를 채운다 */
+        render() {
+          const s = load(), t = P.today(), done = s.days[t] || [];
+          document.querySelectorAll('[data-cp-today]').forEach((box) => {
+            box.textContent = ''; box.classList.add('cp-today');
+            const head = el('div', 'cp-today__head'); head.appendChild(el('b', '', '오늘의 놀거리')); const n = P.streak();
+            head.appendChild(el('span', '', done.length >= 3 ? '오늘 3개 모두 완료!' : (n > 1 ? n + '일 연속 방문 중' : done.length + ' / 3 완료')));
+            box.appendChild(head);
+            const list = el('div', 'cp-today__list');
+            const my = s.myZodiac ? '/fortune/' + s.myZodiac + '/' : '/fortune/';
+            [['fortune', '오늘의 운세', my], ['tarot', '오늘의 타로', '/tarot/'], ['game', '게임 한 판', '/hub/games/']].forEach((m) => {
+              const a = el('a', done.indexOf(m[0]) >= 0 ? 'is-done' : ''); a.href = m[2];
+              const i = el('i', '', '✓'); i.setAttribute('aria-hidden', 'true'); a.appendChild(i); a.appendChild(el('span', '', m[1]));
+              if (done.indexOf(m[0]) >= 0) a.setAttribute('aria-label', m[1] + ' 완료');
+              list.appendChild(a);
+            });
+            box.appendChild(list);
+            const week = el('div', 'cp-today__week'); const names = ['일', '월', '화', '수', '목', '금', '토'];
+            for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); const sp = el('span', ((s.days[dkey(d)] || []).length ? 'is-on' : '') + (i === 0 ? ' is-today' : '')); sp.appendChild(el('em')); sp.appendChild(document.createTextNode(i === 0 ? '오늘' : names[d.getDay()])); week.appendChild(sp); }
+            box.appendChild(week);
+          });
+          document.querySelectorAll('[data-cp-records]').forEach((box) => {
+            box.textContent = ''; box.classList.add('cp-records');
+            GAMES.forEach((g) => {
+              const key = g.href.replace(/^\/games\//, '').replace(/\/$/, ''); const b = s.best[key];
+              const a = el('a', b ? '' : 'is-empty'); a.href = g.href; a.appendChild(el('span', '', g.name));
+              a.appendChild(el('b', '', b ? b.d : '아직 기록 없음')); a.appendChild(el('small', '', b ? (s.plays[key] || 1) + '판 · ' + b.at.slice(5).replace('-', '.') : '도전해 보세요'));
+              box.appendChild(a);
+            });
+          });
+        },
+      };
+      window.CramaPlay = P;
+      document.addEventListener('astro:before-swap', () => { const b = document.querySelector('.cp-back'); if (b) b.remove(); const c = document.querySelector('.cp-confetti'); if (c) c.remove(); });
+      document.addEventListener('astro:page-load', () => P.render());
+    }
+    // 이 스크립트는 본문보다 먼저 실행되므로, 본문이 다 읽힌 뒤에 한 번 더 그린다
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => window.CramaPlay.render(), { once: true });
+    else window.CramaPlay.render();
+  })();
+</script>

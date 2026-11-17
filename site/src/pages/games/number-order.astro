@@ -5,7 +5,7 @@ import AdSlot from '../../components/AdSlot.astro';
 import '../../styles/portal.css';
 ---
 <BaseLayout title="숫자 순서대로 누르기 — 1부터 25까지 집중력 게임" description="흩어진 숫자를 1부터 순서대로 최대한 빨리 누르는 집중력 게임. 9칸·16칸·25칸 난이도와 내 최고 기록을 확인하세요. 설치 없이 무료.">
-  <div class="pt pt-narrow" style="--c:#f59e0b">
+  <div class="pt pt-narrow gm" style="--c:#f59e0b">
     <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/games/">게임</a> › 숫자 순서대로 누르기</nav>
     <div class="gm-head">
       <h1>숫자 순서대로 누르기</h1>
@@ -14,6 +14,7 @@ import '../../styles/portal.css';
     </div>
     <div class="tl-quick" style="margin:0 0 0.8rem"><button type="button" data-n="3">새 게임 · 1~9</button><button type="button" data-n="4">새 게임 · 1~16</button><button type="button" data-n="5">새 게임 · 1~25</button></div>
 
+    <div class="gm-prog" id="no-prog" role="progressbar" aria-label="누른 숫자" aria-valuemin="0" aria-valuemax="25" aria-valuenow="0"><i id="no-bar"></i></div>
     <div class="no-board" id="no-board"></div>
     <p class="gm-msg" id="no-msg" aria-live="polite"></p>
 
@@ -23,9 +24,11 @@ import '../../styles/portal.css';
       <h2>하는 법</h2>
       <ul>
         <li>1을 누르는 순간 시간이 흐르기 시작합니다. 1부터 마지막 숫자까지 순서대로 누르세요.</li>
-        <li>틀린 숫자를 누르면 칸이 잠깐 붉게 표시되고 시간은 계속 흐릅니다.</li>
+        <li>틀린 숫자를 누르면 칸이 잠깐 붉게 표시되고 시간은 계속 흐릅니다. 틀린 횟수는 결과에 함께 나와요.</li>
         <li>눈을 판 가운데에 두고 주변 숫자를 한꺼번에 보려고 하면 기록이 빨라집니다.</li>
       </ul>
+      <h2>기록은 어떻게 보나요</h2>
+      <p>이 게임은 집중력 훈련에 쓰이는 '슐테 표'와 같은 방식입니다. 숫자를 하나씩 찾아 눈을 옮기기보다, 지금 누르는 숫자의 다음과 그다음 숫자 자리까지 미리 봐 두면 손이 멈추지 않아요. 칸 수마다 최고 기록이 따로 저장되고, 게임 목록의 '내 기록'에는 1~25 판의 시간이 올라갑니다. 결과에 나오는 '숫자 하나당' 시간이 줄어드는지 보면 실력이 느는 것을 확인할 수 있습니다.</p>
     </section>
     <section class="pt-sec">
       <div class="pt-sec__head"><div><h2>다른 게임</h2></div></div>
@@ -38,41 +41,61 @@ import '../../styles/portal.css';
     .gm-head h1 { margin: 0; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; }
     .gm-timer { margin-left: auto; font-size: 1.05rem; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
     .gm-msg { text-align: center; font-weight: 800; color: var(--accent); min-height: 1.6rem; margin: 0.8rem 0; }
-    .no-board { display: grid; grid-template-columns: repeat(var(--cols, 5), 1fr); gap: 0.4rem; max-width: 24rem; margin: 0 auto; }
-    .no-cell { aspect-ratio: 1; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); font: inherit; font-size: clamp(1.1rem, 5.5vw, 1.6rem); font-weight: 800; color: var(--ink); cursor: pointer; padding: 0; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+    .gm .tl-quick button { min-height: 2.6rem; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+    .gm-prog { max-width: 24rem; height: 6px; margin: 0 auto 0.7rem; border-radius: 99px; background: var(--line); overflow: hidden; }
+    .gm-prog i { display: block; width: 0; height: 100%; border-radius: 99px; background: var(--accent); transition: width 0.12s ease; }
+    .no-board { display: grid; grid-template-columns: repeat(var(--cols, 5), 1fr); gap: 0.4rem; max-width: 24rem; margin: 0 auto; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+    .no-cell { aspect-ratio: 1; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); font: inherit; font-size: clamp(1.1rem, 5.5vw, 1.6rem); font-weight: 800; color: var(--ink); cursor: pointer; padding: 0; touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
     .no-cell.is-done { background: var(--paper-2); color: var(--line); border-color: transparent; cursor: default; }
     .no-cell.is-bad { background: #fee2e2; border-color: #ef4444; }
+    @media (prefers-reduced-motion: reduce) { .gm-prog i { transition: none; } }
   </style>
 
   <script is:inline>
     (() => {
       const $ = (id) => document.getElementById(id);
       const KEY = 'crama:game:number-order';
-      let size = 5, next = 1, t0 = 0, raf = 0, done = false;
-      const best = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { return {}; } };
-      const loop = () => { $('no-time').textContent = ((performance.now() - t0) / 1000).toFixed(2) + '초'; raf = requestAnimationFrame(loop); };
+      const board = $('no-board'), timeEl = $('no-time'), msgEl = $('no-msg');
+      const buzz = (p) => { if (window.CramaPlay) window.CramaPlay.buzz(p); };
+      let size = 5, next = 1, t0 = 0, raf = 0, done = false, miss = 0, seq = 0;
+      const best = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; } };
+      // 화면을 떠났으면 시계를 스스로 멈춘다
+      const loop = () => { if (!timeEl.isConnected) return; timeEl.textContent = ((performance.now() - t0) / 1000).toFixed(2) + '초'; raf = requestAnimationFrame(loop); };
+      const prog = () => { const total = size * size; $('no-bar').style.width = ((next - 1) / total) * 100 + '%'; $('no-prog').setAttribute('aria-valuemax', total); $('no-prog').setAttribute('aria-valuenow', next - 1); };
       function start(n) {
-        size = n; next = 1; t0 = 0; done = false; cancelAnimationFrame(raf);
+        size = n; next = 1; t0 = 0; done = false; miss = 0; seq++; cancelAnimationFrame(raf);
         const total = n * n, nums = Array.from({ length: total }, (_, i) => i + 1);
         for (let i = total - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const x = nums[i]; nums[i] = nums[j]; nums[j] = x; }
-        const board = $('no-board'); board.textContent = ''; board.style.setProperty('--cols', n);
+        board.textContent = ''; board.style.setProperty('--cols', n);
         nums.forEach((v) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'no-cell'; b.textContent = v; b.addEventListener('pointerdown', (e) => { e.preventDefault(); hit(b, v); }); b.addEventListener('click', (e) => { if (e.detail === 0) hit(b, v); }); board.appendChild(b); });
-        $('no-next').textContent = '다음: 1'; $('no-time').textContent = '0.00초';
-        const b = best()[total]; $('no-msg').textContent = b ? '내 최고 기록: ' + b.toFixed(2) + '초' : '1을 누르면 시작해요';
+        $('no-next').textContent = '다음: 1'; timeEl.textContent = '0.00초'; prog();
+        const b = best()[total]; msgEl.textContent = b ? '내 최고 기록: ' + b.toFixed(2) + '초' : '1을 누르면 시작해요';
       }
       function hit(b, v) {
         if (done || b.classList.contains('is-done')) return;
-        if (v !== next) { b.classList.add('is-bad'); setTimeout(() => b.classList.remove('is-bad'), 250); return; }
-        if (v === 1) { t0 = performance.now(); loop(); $('no-msg').textContent = ''; }
-        b.classList.add('is-done'); next++;
+        if (v !== next) { if (t0) miss++; b.classList.add('is-bad'); buzz(25); setTimeout(() => b.classList.remove('is-bad'), 250); return; }
+        if (v === 1) { t0 = performance.now(); loop(); msgEl.textContent = ''; }
+        b.classList.add('is-done'); next++; buzz(8); prog();
         const total = size * size;
         if (next > total) {
           done = true; cancelAnimationFrame(raf);
-          const t = Math.round((performance.now() - t0) / 10) / 100; $('no-time').textContent = t.toFixed(2) + '초'; $('no-next').textContent = '완료';
+          const t = Math.round((performance.now() - t0) / 10) / 100; timeEl.textContent = t.toFixed(2) + '초'; $('no-next').textContent = '완료';
           const all = best(), prev = all[total], better = !prev || t < prev;
           if (better) { all[total] = t; try { localStorage.setItem(KEY, JSON.stringify(all)); } catch (e) {} }
-          $('no-msg').textContent = t.toFixed(2) + '초!' + (better && prev ? ' 최고 기록 경신 🎉' : better ? ' 🎉' : ' (최고 ' + prev.toFixed(2) + '초)');
+          msgEl.textContent = t.toFixed(2) + '초!' + (better && prev ? ' 최고 기록 경신 🎉' : better ? ' 🎉' : ' (최고 ' + prev.toFixed(2) + '초)');
           try { if (window.gtag) window.gtag('event', 'game_clear', { game: 'number-order', level: total, seconds: t }); } catch (e) {}
+          // 결과 창: 게임 목록의 '내 기록'에는 대표인 1~25 판만 올린다
+          const n = size, ms = miss, my = seq, top = better ? t : prev;
+          setTimeout(() => {
+            if (!window.CramaPlay || !board.isConnected || my !== seq) return;
+            const rows = [['틀린 횟수', ms + '번'], ['숫자 하나당', (t / total).toFixed(2) + '초']];
+            if (total !== 25) rows.push(['1~' + total + ' 최고', top.toFixed(2) + '초']);
+            window.CramaPlay.finish({
+              game: 'number-order', name: '숫자 순서대로 누르기', value: total === 25 ? t : null, display: t.toFixed(2) + '초', lower: true, win: true,
+              title: '1부터 ' + total + '까지 완료!', sub: total === 25 ? (ms ? '틀린 횟수를 줄이면 더 빨라져요' : '한 번도 틀리지 않았어요') : '내 기록에는 1~25 판만 올라가요',
+              rows: rows, shareText: '크라마 숫자 순서대로 누르기 1~' + total + ' ' + t.toFixed(2) + '초에 성공!', onRetry: () => start(n),
+            });
+          }, 500);
         } else $('no-next').textContent = '다음: ' + next;
       }
       document.querySelectorAll('[data-n]').forEach((b) => b.addEventListener('click', () => start(Number(b.dataset.n))));

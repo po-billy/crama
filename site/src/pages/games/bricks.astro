@@ -5,7 +5,7 @@ import AdSlot from '../../components/AdSlot.astro';
 import '../../styles/portal.css';
 ---
 <BaseLayout title="벽돌깨기 무료 게임 — 설치 없이 바로 하기" description="막대를 움직여 공을 튕기고 벽돌을 모두 깨 보세요. PC는 마우스·방향키, 모바일은 손가락으로 즐기는 무료 벽돌깨기 게임.">
-  <div class="pt pt-narrow" style="--c:#6366f1">
+  <div class="pt pt-narrow gm" style="--c:#6366f1">
     <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/games/">게임</a> › 벽돌깨기</nav>
     <div class="gm-head">
       <h1>벽돌깨기</h1>
@@ -15,6 +15,11 @@ import '../../styles/portal.css';
     <div class="bk-wrap">
       <canvas id="bk-cv" width="480" height="600" aria-label="벽돌깨기 게임 화면"></canvas>
       <button type="button" class="tl-btn bk-start" id="bk-start">시작하기</button>
+    </div>
+    <div class="bk-bar">
+      <span id="bk-left">남은 벽돌 0개</span>
+      <span id="bk-best"></span>
+      <button type="button" id="bk-pause">일시정지</button>
     </div>
     <p class="gm-msg" id="bk-msg" aria-live="polite">막대를 좌우로 움직여 공을 받아내세요</p>
 
@@ -26,7 +31,10 @@ import '../../styles/portal.css';
         <li>PC: 마우스를 움직이거나 ← → 방향키로 막대를 움직입니다.</li>
         <li>모바일: 게임 화면을 손가락으로 좌우로 끌어 주세요.</li>
         <li>막대의 가장자리에 맞을수록 공이 옆으로 크게 튑니다. 벽돌을 모두 깨면 다음 단계로 넘어가요.</li>
+        <li>잠깐 쉬고 싶으면 일시정지 버튼이나 키보드 P를 누르세요. 다른 창으로 넘어가도 자동으로 멈춥니다.</li>
       </ul>
+      <h2>점수 올리는 요령</h2>
+      <p>벽돌 하나에 10점이고, 목숨 세 개를 다 쓰면 그때까지의 점수가 기록으로 남아요. 단계가 오를수록 공은 빨라지고 막대는 짧아지니, 초반 단계에서 목숨을 아끼는 것이 중요합니다. 공을 막대 가장자리로 받아 벽돌 옆이나 위쪽 틈으로 보내면 공이 벽돌 사이를 오가며 한 번에 여러 개를 깨 줍니다.</p>
     </section>
     <section class="pt-sec">
       <div class="pt-sec__head"><div><h2>다른 게임</h2></div></div>
@@ -40,17 +48,22 @@ import '../../styles/portal.css';
     .gm-timer { margin-left: auto; font-size: 1.05rem; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
     .gm-msg { text-align: center; font-weight: 800; color: var(--accent); min-height: 1.6rem; margin: 0.8rem 0 0; }
     .bk-wrap { position: relative; max-width: 26rem; margin: 0 auto; }
-    #bk-cv { display: block; width: 100%; height: auto; border-radius: 16px; background: #14122b; touch-action: none; cursor: none; }
-    .bk-start { position: absolute; left: 50%; top: 58%; transform: translate(-50%, -50%); }
+    #bk-cv { display: block; width: 100%; height: auto; border-radius: 16px; background: #14122b; touch-action: none; cursor: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; }
+    .bk-start { position: absolute; left: 50%; top: 58%; transform: translate(-50%, -50%); touch-action: manipulation; }
     .bk-start[hidden] { display: none; }
+    .bk-bar { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; max-width: 26rem; margin: 0.6rem auto 0; font-size: 0.85rem; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .bk-bar button { min-height: 2.6rem; padding: 0 0.9rem; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); color: var(--ink); font: inherit; font-size: 0.85rem; font-weight: 700; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+    .bk-bar button:disabled { color: var(--muted); cursor: default; }
   </style>
 
   <script is:inline>
     (() => {
       const $ = (id) => document.getElementById(id);
       const cv = $('bk-cv'), g = cv.getContext('2d'), W = cv.width, H = cv.height;
+      const startBtn = $('bk-start'), pauseBtn = $('bk-pause'), msgEl = $('bk-msg');
       const COLORS = ['#f43f5e', '#f97316', '#f5b400', '#22c55e', '#0ea5e9', '#8b5cf6'];
-      let px, pw, ball, bricks, score, lives, stage, run = false, raf = 0, keys = {};
+      const buzz = (p) => { if (window.CramaPlay) window.CramaPlay.buzz(p); };
+      let px, pw, ball, bricks, score, lives, stage, broken = 0, lastBuzz = 0, run = false, raf = 0, keys = {};
       function build() {
         bricks = []; const cols = 8, rows = Math.min(4 + stage, 8), bw = (W - 40 - (cols - 1) * 6) / cols, bh = 20;
         for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
@@ -59,8 +72,9 @@ import '../../styles/portal.css';
         }
       }
       function serve() { pw = Math.max(64, 100 - stage * 6); px = (W - pw) / 2; const sp = 4.4 + stage * 0.45; ball = { x: W / 2, y: H - 60, vx: sp * (Math.random() < 0.5 ? -0.6 : 0.6), vy: -sp, r: 7, sp: sp }; }
-      function init() { score = 0; lives = 3; stage = 1; build(); serve(); hud(); draw(); }
-      const hud = () => { $('bk-score').textContent = score + '점 · ❤ ' + lives; $('bk-stage').textContent = stage + '단계'; };
+      function showBest() { const b = window.CramaPlay ? window.CramaPlay.best('bricks') : null; $('bk-best').textContent = b ? '내 최고 기록 ' + b.d : ''; }
+      function init() { score = 0; lives = 3; stage = 1; broken = 0; build(); serve(); hud(); draw(); showBest(); }
+      const hud = () => { $('bk-score').textContent = score + '점 · ❤ ' + lives; $('bk-stage').textContent = stage + '단계'; $('bk-left').textContent = '남은 벽돌 ' + bricks.filter((b) => b.on).length + '개'; };
       function draw() {
         g.clearRect(0, 0, W, H);
         bricks.forEach((b) => { if (!b.on) return; g.fillStyle = b.color; g.beginPath(); g.roundRect(b.x, b.y, b.w, b.h, 5); g.fill(); });
@@ -68,6 +82,8 @@ import '../../styles/portal.css';
         g.fillStyle = '#ffd84d'; g.beginPath(); g.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2); g.fill();
       }
       function step() {
+        // 화면을 떠났으면 스스로 멈춘다
+        if (!cv.isConnected) { run = false; off(); return; }
         if (keys.ArrowLeft) px -= 8; if (keys.ArrowRight) px += 8;
         px = Math.max(0, Math.min(W - pw, px));
         ball.x += ball.vx; ball.y += ball.vy;
@@ -82,31 +98,58 @@ import '../../styles/portal.css';
         for (const b of bricks) {
           if (!b.on) continue;
           if (ball.x + ball.r > b.x && ball.x - ball.r < b.x + b.w && ball.y + ball.r > b.y && ball.y - ball.r < b.y + b.h) {
-            b.on = false; score += 10;
+            b.on = false; score += 10; broken++;
             const ox = Math.min(ball.x + ball.r - b.x, b.x + b.w - (ball.x - ball.r)), oy = Math.min(ball.y + ball.r - b.y, b.y + b.h - (ball.y - ball.r));
             if (ox < oy) ball.vx = -ball.vx; else ball.vy = -ball.vy;
+            // 진동은 연달아 깨져도 0.12초에 한 번만
+            const now = Date.now(); if (now - lastBuzz > 120) { lastBuzz = now; buzz(8); }
             hud(); break;
           }
         }
         if (ball.y > H + 20) {
           lives--; hud();
-          if (lives <= 0) { end('게임 종료 · ' + score + '점', '다시 하기'); return; }
-          serve(); pause('공을 놓쳤어요', '이어 하기'); return;
+          if (lives <= 0) { end('게임 종료 · ' + score + '점', '다시 하기'); buzz([40, 60, 40]); report(); return; }
+          buzz(30); serve(); pause('공을 놓쳤어요', '이어 하기'); return;
         }
-        if (bricks.every((b) => !b.on)) { stage++; build(); serve(); hud(); try { if (window.gtag) window.gtag('event', 'game_clear', { game: 'bricks', stage: stage - 1 }); } catch (e) {} pause((stage - 1) + '단계 통과! 🎉', '다음 단계'); return; }
+        if (bricks.every((b) => !b.on)) { stage++; build(); serve(); hud(); buzz([15, 30, 15]); try { if (window.gtag) window.gtag('event', 'game_clear', { game: 'bricks', stage: stage - 1 }); } catch (e) {} pause((stage - 1) + '단계 통과! 🎉', '다음 단계'); return; }
         draw(); raf = requestAnimationFrame(step);
       }
-      function pause(msg, label) { run = false; draw(); $('bk-msg').textContent = msg; $('bk-start').textContent = label; $('bk-start').hidden = false; }
+      function pause(msg, label) { run = false; cancelAnimationFrame(raf); draw(); msgEl.textContent = msg; startBtn.textContent = label; startBtn.hidden = false; pauseBtn.disabled = true; }
       // 게임이 끝나면 다음 시작 때 점수·목숨·단계를 처음으로 되돌린다
       let needInit = false;
       function end(msg, label) { pause(msg, label); needInit = true; }
-      $('bk-start').addEventListener('click', () => { if (needInit) { needInit = false; init(); } $('bk-start').hidden = true; $('bk-msg').textContent = ''; run = true; cancelAnimationFrame(raf); raf = requestAnimationFrame(step); });
+      function go() { if (needInit) { needInit = false; init(); } startBtn.hidden = true; msgEl.textContent = ''; pauseBtn.disabled = false; run = true; cancelAnimationFrame(raf); raf = requestAnimationFrame(step); }
+      // 한 판이 끝나면 결과 창을 띄운다
+      function report() {
+        const sc = score, st = stage, br = broken;
+        setTimeout(() => {
+          if (!window.CramaPlay || !cv.isConnected || !needInit) return;
+          window.CramaPlay.finish({
+            game: 'bricks', name: '벽돌깨기', value: sc > 0 ? sc : null, display: sc + '점', title: '게임 종료',
+            sub: st + '단계까지 갔어요', rows: [['도달 단계', st + '단계'], ['깬 벽돌', br + '개']],
+            shareText: '크라마 벽돌깨기 ' + sc + '점! ' + st + '단계까지 갔어요', onRetry: go,
+          });
+          showBest();
+        }, 450);
+      }
+      startBtn.addEventListener('click', go);
+      pauseBtn.addEventListener('click', () => { if (run) pause('잠시 멈췄어요', '이어 하기'); });
       const move = (clientX) => { const r = cv.getBoundingClientRect(); px = ((clientX - r.left) / r.width) * W - pw / 2; if (!run) { px = Math.max(0, Math.min(W - pw, px)); draw(); } };
       cv.addEventListener('pointermove', (e) => move(e.clientX));
       cv.addEventListener('pointerdown', (e) => move(e.clientX));
-      document.addEventListener('keydown', (e) => { if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { keys[e.key] = true; if (run) e.preventDefault(); } });
-      document.addEventListener('keyup', (e) => { keys[e.key] = false; });
-      document.addEventListener('visibilitychange', () => { if (document.hidden && run) pause('잠시 멈춤', '이어 하기'); });
+      const onDown = (e) => {
+        if (!cv.isConnected) { off(); return; }
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { keys[e.key] = true; if (run) e.preventDefault(); }
+        else if ((e.key === 'p' || e.key === 'P') && !(e.target.closest && e.target.closest('input,textarea,select'))) { if (run) pause('잠시 멈췄어요', '이어 하기'); else if (!startBtn.hidden) go(); }
+      };
+      const onUp = (e) => { keys[e.key] = false; };
+      const onVis = () => { if (!cv.isConnected) { off(); return; } if (document.hidden && run) pause('잠시 멈췄어요', '이어 하기'); };
+      // 다른 화면으로 넘어간 뒤에는 전역 리스너를 걷어 낸다
+      function off() { document.removeEventListener('keydown', onDown); document.removeEventListener('keyup', onUp); document.removeEventListener('visibilitychange', onVis); }
+      document.addEventListener('keydown', onDown);
+      document.addEventListener('keyup', onUp);
+      document.addEventListener('visibilitychange', onVis);
+      pauseBtn.disabled = true;
       init();
     })();
   </script>

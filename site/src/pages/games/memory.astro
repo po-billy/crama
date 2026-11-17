@@ -5,7 +5,7 @@ import AdSlot from '../../components/AdSlot.astro';
 import '../../styles/portal.css';
 ---
 <BaseLayout title="카드 짝 맞추기 — 같은 그림 찾기 기억력 게임" description="뒤집힌 카드 중 같은 그림 두 장을 찾아 모두 맞추는 기억력 게임. 12장·16장·24장 난이도로 설치 없이 무료로 즐기세요.">
-  <div class="pt pt-narrow" style="--c:#f59e0b">
+  <div class="pt pt-narrow gm" style="--c:#f59e0b">
     <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/games/">게임</a> › 카드 짝 맞추기</nav>
     <div class="gm-head">
       <h1>카드 짝 맞추기</h1>
@@ -14,6 +14,7 @@ import '../../styles/portal.css';
     </div>
     <div class="tl-quick" style="margin:0 0 0.8rem"><button type="button" data-n="12">새 게임 · 12장</button><button type="button" data-n="16">새 게임 · 16장</button><button type="button" data-n="24">새 게임 · 24장</button></div>
 
+    <div class="gm-prog" id="mm-prog" role="progressbar" aria-label="찾은 짝" aria-valuemin="0" aria-valuemax="8" aria-valuenow="0"><i id="mm-bar"></i></div>
     <div class="mm-board" id="mm-board"></div>
     <p class="gm-msg" id="mm-msg" aria-live="polite"></p>
 
@@ -24,8 +25,10 @@ import '../../styles/portal.css';
       <ul>
         <li>카드를 두 장씩 뒤집어 같은 그림이면 그대로 열려 있고, 다르면 다시 뒤집힙니다.</li>
         <li>모든 짝을 찾으면 끝. 걸린 시간과 뒤집은 횟수가 기록됩니다.</li>
-        <li>가장 좋은 기록은 이 기기에 저장되어 다음에 다시 도전할 수 있습니다.</li>
+        <li>가장 좋은 기록은 장수별로 이 기기에 저장되어 다음에 다시 도전할 수 있습니다.</li>
       </ul>
+      <h2>빨리 맞추는 요령</h2>
+      <p>처음 몇 번은 맞추려 하지 말고 새 카드를 넓게 열어 위치를 익히는 편이 빠릅니다. 한 번 본 그림은 '왼쪽 위 사과'처럼 자리와 함께 소리 내어 외우면 오래 기억돼요. 새 카드를 열었는데 이미 본 그림이 나오면 그 자리에서 바로 짝을 맞추고, 모르는 카드끼리는 한 줄씩 순서대로 열어 가세요. 게임 목록의 '내 기록'에는 16장 판의 시간이 올라갑니다.</p>
     </section>
     <section class="pt-sec">
       <div class="pt-sec__head"><div><h2>다른 게임</h2></div></div>
@@ -38,13 +41,16 @@ import '../../styles/portal.css';
     .gm-head h1 { margin: 0; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; }
     .gm-timer { margin-left: auto; font-size: 1.05rem; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
     .gm-msg { text-align: center; font-weight: 800; color: var(--accent); min-height: 1.6rem; margin: 0.8rem 0; }
-    .mm-board { display: grid; grid-template-columns: repeat(var(--cols, 4), 1fr); gap: 0.5rem; max-width: 26rem; margin: 0 auto; }
-    .mm-card { aspect-ratio: 1; border: 0; border-radius: 14px; background: linear-gradient(135deg, #6c5ce7, #8b7bff); font-size: clamp(1.5rem, 8vw, 2.4rem); line-height: 1; cursor: pointer; display: grid; place-items: center; color: transparent; transition: transform 0.18s ease, background 0.18s ease; padding: 0; }
+    .gm .tl-quick button { min-height: 2.6rem; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+    .gm-prog { max-width: 26rem; height: 6px; margin: 0 auto 0.7rem; border-radius: 99px; background: var(--line); overflow: hidden; }
+    .gm-prog i { display: block; width: 0; height: 100%; border-radius: 99px; background: var(--accent); transition: width 0.2s ease; }
+    .mm-board { display: grid; grid-template-columns: repeat(var(--cols, 4), 1fr); gap: 0.5rem; max-width: 26rem; margin: 0 auto; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+    .mm-card { aspect-ratio: 1; border: 0; border-radius: 14px; background: linear-gradient(135deg, #6c5ce7, #8b7bff); font-size: clamp(1.5rem, 8vw, 2.4rem); line-height: 1; cursor: pointer; display: grid; place-items: center; color: transparent; transition: transform 0.18s ease, background 0.18s ease; padding: 0; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     .mm-card span { opacity: 0; }
     .mm-card.is-open, .mm-card.is-done { background: var(--paper); box-shadow: inset 0 0 0 2px var(--line); transform: rotateY(180deg); }
     .mm-card.is-open span, .mm-card.is-done span { opacity: 1; transform: rotateY(180deg); }
     .mm-card.is-done { box-shadow: inset 0 0 0 2px #16a34a; background: color-mix(in srgb, #16a34a 8%, var(--paper)); cursor: default; }
-    @media (prefers-reduced-motion: reduce) { .mm-card { transition: none; } }
+    @media (prefers-reduced-motion: reduce) { .mm-card, .gm-prog i { transition: none; } }
   </style>
 
   <script is:inline>
@@ -52,41 +58,58 @@ import '../../styles/portal.css';
       const $ = (id) => document.getElementById(id);
       const FACES = ['🍎', '🍋', '🍇', '🍉', '🍓', '🥝', '🍑', '🥕', '🌽', '🍩', '🧀', '🍙'];
       const KEY = 'crama:game:memory';
-      let n = 16, open = [], lock = false, moves = 0, found = 0, t0 = 0, timer = null;
-      const best = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { return {}; } };
+      const board = $('mm-board'), timeEl = $('mm-time'), msgEl = $('mm-msg');
+      const buzz = (p) => { if (window.CramaPlay) window.CramaPlay.buzz(p); };
+      let n = 16, open = [], lock = false, moves = 0, found = 0, t0 = 0, timer = null, seq = 0;
+      const best = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; } };
       const secs = () => (t0 ? Math.floor((Date.now() - t0) / 1000) : 0);
-      const tick = () => { $('mm-time').textContent = secs() + '초 · ' + moves + '번'; };
+      // 화면을 떠났으면 시계를 스스로 멈춘다
+      const tick = () => { if (!timeEl.isConnected) { clearInterval(timer); return; } timeEl.textContent = secs() + '초 · ' + moves + '번'; };
+      const prog = () => { const pairs = n / 2; $('mm-bar').style.width = (found / pairs) * 100 + '%'; $('mm-prog').setAttribute('aria-valuemax', pairs); $('mm-prog').setAttribute('aria-valuenow', found); $('mm-tag').textContent = n + '장 · 짝 ' + found + '/' + pairs; };
       function start(count) {
-        n = count; clearInterval(timer); timer = null; open = []; lock = false; moves = 0; found = 0; t0 = 0;
+        n = count; seq++; clearInterval(timer); timer = null; open = []; lock = false; moves = 0; found = 0; t0 = 0;
         const faces = FACES.slice(0, n / 2), deck = faces.concat(faces);
         for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const x = deck[i]; deck[i] = deck[j]; deck[j] = x; }
-        const board = $('mm-board'); board.textContent = ''; board.style.setProperty('--cols', n === 24 ? 6 : 4); board.style.maxWidth = n === 24 ? '34rem' : '26rem';
+        board.textContent = ''; board.style.setProperty('--cols', n === 24 ? 6 : 4); board.style.maxWidth = n === 24 ? '34rem' : '26rem';
         deck.forEach((f, i) => {
           const b = document.createElement('button'); b.type = 'button'; b.className = 'mm-card'; b.dataset.f = f; b.setAttribute('aria-label', (i + 1) + '번 카드');
           const s = document.createElement('span'); s.textContent = f; b.appendChild(s);
           b.addEventListener('click', () => flip(b)); board.appendChild(b);
         });
-        $('mm-tag').textContent = n + '장'; tick();
-        const b = best()[n]; $('mm-msg').textContent = b ? '내 최고 기록: ' + b.t + '초 · ' + b.m + '번' : '';
+        prog(); tick();
+        const b = best()[n]; msgEl.textContent = b ? '내 최고 기록: ' + b.t + '초 · ' + b.m + '번' : '카드를 누르면 시간이 흐르기 시작해요';
       }
       function flip(b) {
         if (lock || b.classList.contains('is-open') || b.classList.contains('is-done')) return;
-        if (!t0) { t0 = Date.now(); timer = setInterval(tick, 500); }
-        b.classList.add('is-open'); b.setAttribute('aria-label', b.dataset.f); open.push(b);
+        if (!t0) { t0 = Date.now(); timer = setInterval(tick, 500); msgEl.textContent = ''; }
+        b.classList.add('is-open'); b.setAttribute('aria-label', b.dataset.f); open.push(b); buzz(8);
         if (open.length < 2) return;
         moves++; tick();
         const a = open[0], c = open[1]; open = [];
         if (a.dataset.f === c.dataset.f) {
-          a.classList.add('is-done'); c.classList.add('is-done'); found++;
+          a.classList.add('is-done'); c.classList.add('is-done'); found++; prog(); buzz(15);
           if (found === n / 2) finish();
-        } else { lock = true; setTimeout(() => { a.classList.remove('is-open'); c.classList.remove('is-open'); lock = false; }, 750); }
+        } else { lock = true; const my = seq; setTimeout(() => { if (my !== seq) return; a.classList.remove('is-open'); c.classList.remove('is-open'); lock = false; }, 750); }
       }
       function finish() {
-        clearInterval(timer); const t = secs(), all = best(), prev = all[n];
+        clearInterval(timer); const exact = Math.round((Date.now() - t0) / 100) / 10, t = secs(), all = best(), prev = all[n];
         const better = !prev || t < prev.t || (t === prev.t && moves < prev.m);
         if (better) { all[n] = { t: t, m: moves }; try { localStorage.setItem(KEY, JSON.stringify(all)); } catch (e) {} }
-        $('mm-msg').textContent = '모두 찾았어요! ' + t + '초 · ' + moves + '번' + (better && prev ? ' — 최고 기록 경신 🎉' : better ? ' 🎉' : ' (최고 ' + prev.t + '초)');
+        tick();
+        msgEl.textContent = '모두 찾았어요! ' + t + '초 · ' + moves + '번' + (better && prev ? ' — 최고 기록 경신 🎉' : better ? ' 🎉' : ' (최고 ' + prev.t + '초)');
         try { if (window.gtag) window.gtag('event', 'game_clear', { game: 'memory', level: n, seconds: t }); } catch (e) {}
+        // 결과 창: 게임 목록의 '내 기록'에는 대표 난이도인 16장만 올린다
+        const lv = n, mv = moves, my = seq, top = better ? t : prev.t;
+        setTimeout(() => {
+          if (!window.CramaPlay || !board.isConnected || my !== seq) return;
+          const rows = [['카드', lv + '장'], ['뒤집은 횟수', mv + '번']];
+          if (lv !== 16) rows.push([lv + '장 최고', top + '초']);
+          window.CramaPlay.finish({
+            game: 'memory', name: '카드 짝 맞추기', value: lv === 16 ? exact : null, display: exact.toFixed(1) + '초', lower: true, win: true,
+            title: '모두 찾았어요!', sub: lv === 16 ? mv + '번 뒤집어서 ' + (lv / 2) + '쌍을 모두 맞췄어요' : '내 기록에는 16장 판만 올라가요',
+            rows: rows, shareText: '크라마 카드 짝 맞추기 ' + lv + '장을 ' + exact.toFixed(1) + '초에 성공!', onRetry: () => start(lv),
+          });
+        }, 650);
       }
       document.querySelectorAll('[data-n]').forEach((b) => b.addEventListener('click', () => start(Number(b.dataset.n))));
       start(16);

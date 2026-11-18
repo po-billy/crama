@@ -31,6 +31,9 @@ const ico = (name: string) => ICONS[name] ?? ICONS.grid;
       <input type="search" name="q" placeholder="계산기, 조회, 글 검색" aria-label="검색" autocomplete="off" />
     </form>
     <div class="ph__acts">
+      <a href="/install/" class="ph__btn ph__inst" id="ph-inst" aria-label="앱으로 설치하기" title="앱으로 설치하기">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="m7 11 5 5 5-5"/><path d="M5 20h14"/></svg>
+      </a>
       <a href="/search/" class="ph__btn ph__btn--search" aria-label="검색">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
       </a>
@@ -113,6 +116,24 @@ const ico = (name: string) => ICONS[name] ?? ICONS.grid;
 </div>
 
 <script is:inline>
+  // 앱으로 설치하기 — 설치 창을 띄울 수 있으면 바로 띄우고(안드로이드·PC 크롬 등), 아니면 /install/ 안내로 이동(아이폰 등)
+  (function () {
+    var btn = document.getElementById('ph-inst'); if (!btn) return;
+    var standalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+    if (standalone) { btn.hidden = true; return; }
+    if (!window.__phInstBound) {
+      window.__phInstBound = true;
+      window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); window.__deferredInstall = e; });
+      window.addEventListener('appinstalled', function () { window.__deferredInstall = null; var b = document.getElementById('ph-inst'); if (b) b.hidden = true; });
+    }
+    btn.addEventListener('click', function (e) {
+      var d = window.__deferredInstall;
+      try { if (window.gtag) window.gtag('event', 'install_click', { place: 'header', direct: !!d }); } catch (err) {}
+      if (!d) return;
+      e.preventDefault(); d.prompt();
+      Promise.resolve(d.userChoice).then(function (r) { window.__deferredInstall = null; if (r && r.outcome === 'accepted') btn.hidden = true; }).catch(function () {});
+    });
+  })();
   // 테마 전환
   document.getElementById('theme-toggle')?.addEventListener('click', () => {
     const el = document.documentElement;
@@ -181,6 +202,7 @@ const ico = (name: string) => ICONS[name] ?? ICONS.grid;
   .ph__btn { display: inline-flex; align-items: center; gap: 0.4rem; height: 2.5rem; padding: 0 0.6rem; border: 0; border-radius: 10px; background: none; color: var(--ink); font: inherit; font-size: 0.9rem; font-weight: 700; cursor: pointer; text-decoration: none; }
   .ph__btn:hover { background: var(--paper-2); color: var(--accent); }
   .ph__btn--search { display: none; }
+  .ph__inst[hidden] { display: none; }
   .ph__tabs { border-top: 1px solid color-mix(in srgb, var(--line) 60%, transparent); }
   .ph__tabs-in { max-width: 76rem; margin: 0 auto; padding: 0 0.6rem; display: flex; gap: 0.2rem; overflow-x: auto; scrollbar-width: none; }
   .ph__tabs-in::-webkit-scrollbar { display: none; }

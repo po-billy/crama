@@ -1,0 +1,73 @@
+---
+// 입학·졸업 연도 — 올해 학년별 출생연도 표와 연도별 페이지 목록.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import { THIS_YEAR, classOf } from '../../lib/people';
+import { schoolYears, gradeNow, SCHOOL_FROM, SCHOOL_TO } from '../../lib/life';
+import '../../styles/portal.css';
+
+const students = schoolYears().filter((y) => THIS_YEAR - y >= 6 && THIS_YEAR - y <= 18).reverse();
+const nextElem = THIS_YEAR + 1 - 7;
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: [
+  { '@type': 'Question', name: `${THIS_YEAR + 1}년 초등학교 입학은 몇 년생인가요?`, acceptedAnswer: { '@type': 'Answer', text: `${nextElem}년 1월 1일부터 12월 31일 사이에 태어난 아이가 ${THIS_YEAR + 1}년 3월에 초등학교에 입학합니다.` } },
+  { '@type': 'Question', name: `${THIS_YEAR}년 고3은 몇 년생인가요?`, acceptedAnswer: { '@type': 'Answer', text: `${THIS_YEAR - 18}년생이 ${THIS_YEAR}년 고등학교 3학년이며, ${THIS_YEAR}년 11월에 수능을 봅니다.` } },
+] };
+---
+<BaseLayout title={`${THIS_YEAR}년 학년별 나이·출생연도 — 입학·졸업 연도, 학번 조회`} description={`${THIS_YEAR}년 초등학교 1학년은 ${THIS_YEAR - 7}년생, 고3은 ${THIS_YEAR - 18}년생입니다. 출생연도를 누르면 초·중·고·대학 입학과 졸업 연도, 학번, 수능 응시 연도를 한 표로 확인할 수 있습니다.`} jsonLd={jsonLd}>
+  <div class="pt pt-narrow">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/">생활 조회</a> › 입학·졸업 연도</nav>
+    <header class="pt-hubhero" style="--c:#3b82f6">
+      <img src="/img/portal/g-date.webp" alt="" width="200" height="200" />
+      <div><h1>입학·졸업 연도</h1><p>출생연도로 학년·학번·수능 연도를 한 번에</p></div>
+    </header>
+
+    <section class="pt-sec">
+      <div class="tl-card">
+        <div class="tl-row">
+          <label class="tl-field">출생연도로 찾기<input id="sc-year" type="number" inputmode="numeric" min={SCHOOL_FROM} max={SCHOOL_TO} placeholder="예: 2020" /></label>
+          <button type="button" class="tl-btn" id="sc-go">연도표 보기</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>{THIS_YEAR}년 학년별 출생연도</h2><p>3월 기준</p></div></div>
+      <div class="tl-wrap">
+        <table class="tl-table">
+          <thead><tr><th>학년</th><th>출생연도</th><th>초등 입학</th><th>수능</th></tr></thead>
+          <tbody>
+            {students.map((y) => (
+              <tr>
+                <td><b>{gradeNow(y)}</b></td>
+                <td><a href={`/school/${y}/`}>{y}년생</a></td>
+                <td>{y + 7}년</td><td>{y + 18}년 11월</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="pp-note">※ 같은 해 1월 1일부터 12월 31일 사이에 태어난 아이가 같은 학년입니다. 입학을 늦추거나 앞당긴 경우에는 한 학년 차이가 날 수 있습니다.</p>
+    </section>
+
+    <div class="pt-ad"><AdSlot slot="school-index" /></div>
+
+    <section class="pt-sec pt-prose">
+      <h2>입학 연도 계산하는 법</h2>
+      <p>초등학교는 만 6세가 된 다음 해 3월에 입학합니다. 출생연도에 7을 더하면 초등학교, 13을 더하면 중학교, 16을 더하면 고등학교, 19를 더하면 대학 입학 연도가 됩니다. 수능은 고등학교 3학년 11월이므로 출생연도에 18을 더한 해에 봅니다.</p>
+      <p>2001년생까지는 1·2월에 태어난 아이가 한 해 일찍 입학하는 일이 흔해서 같은 해에 태어나도 학년이 달랐습니다. 2002년생부터는 1월 1일부터 12월 31일 출생이 같은 학년으로 묶입니다.</p>
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>출생연도별 보기</h2></div></div>
+      <div class="pt-chips">{schoolYears().map((y) => <a class="pt-chip" href={`/school/${y}/`} title={`${classOf(y)}학번`}>{y}</a>)}</div>
+    </section>
+  </div>
+  <script is:inline define:vars={{ from: SCHOOL_FROM, to: SCHOOL_TO }}>
+    (() => {
+      const inp = document.getElementById('sc-year'); if (!inp) return;
+      const go = () => { const y = Number(inp.value); if (!(y >= from && y <= to)) { inp.focus(); return; } location.href = '/school/' + y + '/'; };
+      document.getElementById('sc-go').addEventListener('click', go);
+      inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
+    })();
+  </script>
+</BaseLayout>

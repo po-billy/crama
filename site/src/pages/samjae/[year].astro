@@ -1,0 +1,98 @@
+---
+// 출생연도별 삼재 — 올해 삼재인지, 지난·다음 삼재가 언제인지. 띠 묶음별로 정해진 해를 계산한다(lib/life.ts).
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import { THIS_YEAR, ZODIAC, zodiacOf, bornYears, BORN_FROM, BORN_TO } from '../../lib/people';
+import { samjaePhase, samjaeBlocks, samjaeGroup, SAMJAE_NAMES, SAMJAE_DESC } from '../../lib/life';
+import '../../styles/portal.css';
+
+export function getStaticPaths() { return bornYears().map((y) => ({ params: { year: String(y) }, props: { year: y } })); }
+const { year } = Astro.props as { year: number };
+const z = zodiacOf(year);
+const short = String(year).slice(2);
+const phase = samjaePhase(year, THIS_YEAR);
+const blocks = samjaeBlocks(year);
+const next = blocks.find((b) => b > THIS_YEAR);
+const prev = [...blocks].reverse().find((b) => b + 2 < THIS_YEAR);
+const cur = blocks.find((b) => b <= THIS_YEAR && b + 2 >= THIS_YEAR);
+const group = samjaeGroup(year).map((i) => ZODIAC[i]);
+const range = (b: number) => `${b}~${b + 2}년`;
+const ages = (b: number) => `만 ${b - year}~${b + 2 - year}세`;
+
+const status = phase >= 0 ? `${THIS_YEAR}년은 ${SAMJAE_NAMES[phase]}입니다` : `${THIS_YEAR}년은 삼재가 아닙니다`;
+const title = `${year}년생 삼재 — ${short}년생 ${z.name} ${phase >= 0 ? `${THIS_YEAR}년 ${SAMJAE_NAMES[phase]}` : `다음 삼재 ${next ? range(next) : ''}`}`;
+const description = `${year}년생 ${z.name}의 ${status}. ${phase >= 0 && cur ? `이번 삼재는 ${range(cur)}이고, ` : ''}${next ? `다음 삼재는 ${range(next)}(${ages(next)})입니다. ` : ''}들삼재·눌삼재·날삼재 연도와 지난 삼재까지 한 표로 확인하세요.`;
+const faq = [
+  { q: `${year}년생은 ${THIS_YEAR}년에 삼재인가요?`, a: phase >= 0 ? `네. ${year}년생 ${z.name}는 ${THIS_YEAR}년이 ${SAMJAE_NAMES[phase]}(${SAMJAE_DESC[phase]})입니다. 이번 삼재는 ${range(cur!)}입니다.` : `아니요. ${year}년생 ${z.name}는 ${THIS_YEAR}년에 삼재가 아닙니다.${next ? ` 다음 삼재는 ${range(next)}입니다.` : ''}` },
+  { q: `${year}년생의 다음 삼재는 언제인가요?`, a: next ? `${next}년(들삼재), ${next + 1}년(눌삼재), ${next + 2}년(날삼재)입니다. 그때 나이는 ${ages(next)}입니다.` : '계산 범위 안에 다음 삼재가 없습니다.' },
+  { q: `${z.name}와 같이 삼재를 맞는 띠는 무엇인가요?`, a: `${group.map((g) => g.name).join(', ')}가 같은 해에 삼재를 맞습니다. 삼재는 세 띠가 한 묶음으로 12년마다 3년씩 돌아옵니다.` },
+  { q: '삼재에는 꼭 나쁜 일이 생기나요?', a: '삼재는 민간에서 전해 오는 풍속으로, 과학적 근거가 있는 것은 아닙니다. 예부터 삼재가 든 해에는 큰 결정을 한 번 더 살피고 건강과 안전을 챙기라는 뜻으로 받아들여 왔습니다. 좋은 일이 겹치는 해를 복삼재라고 부르기도 합니다.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+  <div class="pt pt-narrow">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/samjae/">삼재 조회</a> › {year}년생</nav>
+    <header class="pt-hubhero" style="--c:#8b5cf6">
+      <span style="font-size:3.4rem;line-height:1" aria-hidden="true">{z.emoji}</span>
+      <div><h1>{year}년생 삼재</h1><p>{short}년생 {z.name} · {THIS_YEAR}년 기준</p></div>
+    </header>
+
+    <div class="tl-result" style="margin-top:1.2rem">
+      <div class="tl-result__label">{year}년생 {z.name}</div>
+      <div class="tl-result__big" style="font-size:1.7rem">{status}</div>
+      <div class="tl-result__sub">{phase >= 0 ? `${SAMJAE_DESC[phase]}예요. 이번 삼재는 ${range(cur!)}입니다.` : next ? `다음 삼재는 ${range(next)}(${ages(next)})입니다.` : ''}</div>
+    </div>
+
+    <div class="pp-facts pp-facts--4" style="margin-top:0.8rem">
+      <div><span>띠</span><b>{z.name}</b></div>
+      <div><span>{phase >= 0 ? '이번 삼재' : '지난 삼재'}</span><b>{phase >= 0 ? range(cur!) : prev ? range(prev) : '-'}</b></div>
+      <div><span>다음 삼재</span><b>{next ? range(next) : '-'}</b></div>
+      <div><span>같은 삼재 띠</span><b>{group.map((g) => g.name.replace('띠', '')).join('·')}</b></div>
+    </div>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>{year}년생 삼재 연도표</h2><p>태어난 뒤 맞는 삼재를 모두 정리했어요</p></div></div>
+      <div class="tl-wrap">
+        <table class="tl-table">
+          <thead><tr><th>들삼재</th><th>눌삼재</th><th>날삼재</th><th>나이</th></tr></thead>
+          <tbody>
+            {blocks.filter((b) => b - year <= 90).map((b) => (
+              <tr>
+                {[0, 1, 2].map((k) => <td class={b + k === THIS_YEAR ? 'is-on' : ''}>{b + k}년</td>)}
+                <td>{ages(b)}{b <= THIS_YEAR && b + 2 >= THIS_YEAR ? ' · 지금' : b + 2 < THIS_YEAR ? ' · 지남' : ''}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="pp-note">※ 삼재는 민간에서 전해 오는 풍속으로 재미로 참고하는 내용입니다. 띠는 양력 출생연도 기준이며, 음력 설(1~2월) 이전에 태어났다면 전년도 띠로 보기도 합니다.{year > BORN_FROM && <> 그 경우 <a href={`/samjae/${year - 1}/`}>{year - 1}년생 삼재</a>를 확인하세요.</>}</p>
+    </section>
+
+    <section class="pt-sec pt-prose">
+      <h2>삼재란</h2>
+      <p>삼재(三災)는 12년에 한 번, 3년 동안 이어진다고 전해지는 시기입니다. 첫해를 <b>들삼재</b>, 둘째 해를 <b>눌삼재</b>, 마지막 해를 <b>날삼재</b>라고 부릅니다. 띠 세 개가 한 묶음으로 같은 해에 삼재를 맞는데, {z.name}는 {group.filter((g) => g.slug !== z.slug).map((g) => g.name).join('·')}와 한 묶음입니다.</p>
+      <p>옛사람들은 삼재가 든 해에 이사·개업·큰 계약 같은 일을 한 번 더 살피고, 건강과 안전을 평소보다 챙겼습니다. 반대로 삼재에 좋은 일이 이어지면 복삼재라고 불렀습니다. 그러니 불안해하기보다 한 해 계획을 점검하는 계기로 삼으면 충분합니다.</p>
+    </section>
+
+    <div class="pt-ad"><AdSlot slot="samjae-mid" /></div>
+
+    <section class="pt-sec pt-prose">
+      <h2>자주 묻는 질문</h2>
+      {faq.map((f) => (<><p><b>{f.q}</b><br />{f.a}</p></>))}
+    </section>
+
+    <section class="pt-sec pp-links">
+      <a class="pp-link" href={`/fortune/${z.slug}/`}><span><b>오늘의 {z.name} 운세</b><span>분야별 점수와 행운 정보</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+      <a class="pp-link" href={`/born/${year}/`}><span><b>{year}년생 나이·띠·학번</b><span>올해 챙길 것까지 한 번에</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+      <a class="pp-link" href={`/health-check/${year}/`}><span><b>{year}년생 건강검진</b><span>{THIS_YEAR}년 대상 여부와 암검진</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>다른 출생연도 삼재</h2></div><a class="pt-more" href="/samjae/">전체 보기 →</a></div>
+      <div class="pt-chips">
+        {[-3, -2, -1, 1, 2, 3].map((k) => year + k).filter((y) => y >= BORN_FROM && y <= BORN_TO).map((y) => <a class="pt-chip" href={`/samjae/${y}/`}>{y}년생</a>)}
+      </div>
+    </section>
+  </div>
+</BaseLayout>

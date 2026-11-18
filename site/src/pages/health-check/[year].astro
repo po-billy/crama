@@ -27,7 +27,7 @@ const myCancers = cancers.filter((c) => c.ok);
 const isTransition = age === 40 || age === 66; // 확대 검진 연령
 
 const pageTitle = `${year}년생 건강검진 — ${THIS_YEAR}년 대상${eligible ? '입니다' : ' 아님(내년)'}`;
-const pageDesc = `${year}년생(만 ${age}세)은 ${THIS_YEAR}년 국가건강검진 대상${eligible ? '입니다' : `이 아니며 ${nextYear}년 대상입니다`}. 받을 수 있는 암검진 ${myCancers.length}종과 신청 방법까지 정리했어요.`;
+const pageDesc = `${year}년생(만 ${age}세)은 ${THIS_YEAR}년 국가건강검진 대상${eligible ? '입니다' : `이 아니며 ${nextYear}년 대상입니다`}. 받을 수 있는 암검진 ${myCancers.length}종과 일반검진 항목, 신청 방법까지 정리했어요.`;
 ---
 <BaseLayout title={pageTitle} description={pageDesc}>
   <div class="wrap hc">
@@ -51,6 +51,20 @@ const pageDesc = `${year}년생(만 ${age}세)은 ${THIS_YEAR}년 국가건강�
     </section>
 
     <section class="hc-sec">
+      <h2>{year}년생 일반건강검진 항목</h2>
+      <ul class="hc-list">
+        <li><b>진찰·상담</b><span>문진, 과거 병력과 생활 습관 확인</span></li>
+        <li><b>신체 계측</b><span>키, 몸무게, 허리둘레, 체질량지수</span></li>
+        <li><b>혈압·시력·청력</b><span>기본 측정</span></li>
+        <li><b>흉부 방사선 촬영</b><span>폐와 심장 상태 확인</span></li>
+        <li><b>혈액 검사</b><span>빈혈, 공복혈당, 간 기능, 신장 기능</span></li>
+        <li><b>소변 검사</b><span>요단백</span></li>
+        <li><b>구강 검진</b><span>치과에서 따로 받음</span></li>
+      </ul>
+      <p class="hc-note">※ 모든 대상자가 받는 공통 항목입니다. 이 밖에 성별과 나이에 따라 이상지질혈증(콜레스테롤), 간염, 골밀도, 인지기능, 정신건강, 폐기능 검사 등이 추가됩니다. 추가 항목은 해마다 기준이 조정되므로 공단에서 보내는 검진표나 The건강보험 앱의 '검진 대상 조회'에서 본인 항목을 확인하세요.</p>
+    </section>
+
+    <section class="hc-sec">
       <h2>어떻게 받나</h2>
       <ul class="hc-steps">
         <li><b>대상 확인</b> — 국민건강보험공단에서 검진표 발송(모바일 확인 가능)</li>
@@ -66,6 +80,9 @@ const pageDesc = `${year}년생(만 ${age}세)은 ${THIS_YEAR}년 국가건강�
     </div>
     <div class="hc-cross">
       <a href={`/born/${year}/`}>{year}년생 나이·띠·같은 해 인물 →</a>
+      <a href={`/pension-age/${year}/`}>{year}년생 국민연금 수령 나이 →</a>
+      <a href={`/samjae/${year}/`}>{year}년생 삼재 →</a>
+      <a href="/health-check/cancer/">암검진 대상 조회 →</a>
       <a href="/welfare/">의료비 지원 복지 찾기 →</a>
       <a href="/benefits/">내 지원금 매칭 →</a>
     </div>

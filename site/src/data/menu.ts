@@ -66,9 +66,10 @@ export const MENU: MenuTab[] = [
         desc: '오늘의 운세부터 궁합, 성향 테스트까지',
         items: [
           { name: '오늘의 운세', href: '/fortune/', desc: '띠별 운세, 매일 업데이트' },
-          { name: '타로 보기', href: '/tarot/', desc: '카드 한 장으로 보는 오늘' },
+          { name: '타로 보기', href: '/tarot/', desc: '오늘의 카드와 세 장 타로' },
           { name: '이름 궁합', href: '/name-match/', desc: '커플·친구·동료·가족 궁합' },
           { name: '띠궁합', href: '/zodiac-match/', desc: '두 띠의 전통 궁합' },
+          { name: '삼재 조회', href: '/samjae/', desc: '올해 삼재띠와 내 삼재 연도' },
           { name: '로또 번호 생성기', href: '/lotto/', desc: '버튼 한 번으로 번호 뽑기' },
           { name: '점심 메뉴 추천', href: '/lunch/', desc: '오늘 뭐 먹지 고민될 때' },
           { name: '머니 캐릭터 테스트', href: '/quiz/money-character/', desc: '10가지 질문으로 보는 내 돈 성향' },
@@ -121,6 +122,8 @@ export const MENU: MenuTab[] = [
         items: [
           { name: '만 나이 계산기', href: '/age/', desc: '생년월일로 오늘 기준 나이 계산' },
           { name: '출생연도별 나이표', href: '/born/', desc: '연도별 만 나이·띠·학번 한 표로' },
+          { name: '입학·졸업 연도', href: '/school/', desc: '올해 학년, 학번, 수능 연도' },
+          { name: '국민연금 수령 나이', href: '/pension-age/', desc: '출생연도별 받기 시작하는 나이' },
           { name: '띠별 나이표', href: '/people/zodiac/rat/', desc: '12띠의 출생연도와 나이' },
           { name: 'D-day 계산기', href: '/dday/', desc: '남은 날·기념일 계산' },
           { name: '날짜 계산기', href: '/calc/date-add/', desc: '며칠 후·몇 개월 후 날짜와 요일' },

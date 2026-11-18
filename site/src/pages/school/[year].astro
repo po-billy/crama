@@ -1,0 +1,128 @@
+---
+// 출생연도별 학교 입학·졸업 연도 — 올해 학년, 초·중·고·대학 입학 연도, 학번, 수능 응시 연도, 나이별 일정.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import { THIS_YEAR, zodiacOf, classOf, BORN_FROM, BORN_TO } from '../../lib/people';
+import { schoolYears, schoolPlan, gradeNow, hasEarlyEntry, SCHOOL_FROM, SCHOOL_TO } from '../../lib/life';
+import '../../styles/portal.css';
+
+export function getStaticPaths() { return schoolYears().map((y) => ({ params: { year: String(y) }, props: { year: y } })); }
+const { year } = Astro.props as { year: number };
+const z = zodiacOf(year);
+const short = String(year).slice(2);
+const plan = schoolPlan(year).map((p) => {
+  const done = THIS_YEAR >= p.out;
+  const now = !done && THIS_YEAR >= p.in;
+  return { ...p, now, state: done ? '졸업' : now ? `재학 ${THIS_YEAR - p.in + 1}학년` : `${p.in - THIS_YEAR}년 뒤` };
+});
+const grade = gradeNow(year);
+const cls = classOf(year);
+const elem = year + 7, exam = year + 18, univ = year + 19;
+const stage = elem > THIS_YEAR ? 'pre' : univ > THIS_YEAR ? 'student' : 'adult';
+const early = hasEarlyEntry(year);
+const hasBorn = year >= BORN_FROM && year <= BORN_TO;
+const entryNote = early
+  ? ` ${year}년생 가운데 1·2월에 태어난 빠른 ${short}년생은 한 해 일찍 입학한 경우가 많습니다. 그 경우 표의 연도에서 1년씩 앞당겨 보세요.`
+  : ' 같은 해 1월 1일부터 12월 31일 사이에 태어난 아이가 같은 학년입니다.';
+
+const title = stage === 'pre' ? `${year}년생 초등학교 입학 — ${elem}년 3월 (입학·졸업 연도표)`
+  : stage === 'student' ? `${year}년생 학년 — ${THIS_YEAR}년 ${grade} (입학·졸업 연도표)`
+  : `${year}년생 학번 — ${cls}학번 (초·중·고 입학·졸업 연도)`;
+const description = stage === 'pre' ? `${year}년생은 ${elem}년 3월에 초등학교에 입학합니다. 중학교 ${year + 13}년, 고등학교 ${year + 16}년, 수능 ${exam}년 11월까지 입학·졸업 연도를 한 표로 정리했습니다.`
+  : stage === 'student' ? `${year}년생은 ${THIS_YEAR}년 기준 ${grade}입니다. 중학교 ${year + 13}년, 고등학교 ${year + 16}년 입학, 수능 ${exam}년 11월, 대학 ${cls}학번까지 연도를 한 표로 확인하세요.`
+  : `${year}년생은 대학 ${cls}학번(${univ}년 입학)입니다. 초등학교 ${elem}년, 중학교 ${year + 13}년, 고등학교 ${year + 16}년 입학과 졸업 연도, 수능 응시 연도를 한 표로 정리했습니다.`;
+const life = [
+  { when: `${year + 17}년`, age: '만 17세', what: '주민등록증 발급 대상' },
+  { when: `${year + 18}년`, age: '만 18세 생일부터', what: '선거권, 운전면허(1종·2종 보통) 취득 가능' },
+  { when: `${exam}년 11월`, age: '고등학교 3학년', what: '대학수학능력시험 응시' },
+  { when: `${year + 19}년 1월 1일`, age: '연 나이 19세', what: '청소년보호법상 성인(술·담배 구매 가능)' },
+  { when: `${year + 19}년`, age: '19세가 되는 해', what: '병역판정검사 대상(남성)' },
+];
+const faq = [
+  stage === 'pre'
+    ? { q: `${year}년생은 초등학교에 언제 입학하나요?`, a: `${elem}년 3월에 입학합니다. 초등학교는 만 6세가 된 다음 해 3월에 들어가며, ${year}년 1월 1일부터 12월 31일 사이에 태어난 아이가 같은 학년이 됩니다. 취학통지서는 입학 전해 12월에 나오고 예비소집은 보통 1월에 열립니다.` }
+    : { q: `${year}년생은 ${THIS_YEAR}년에 몇 학년인가요?`, a: `${THIS_YEAR}년 3월 기준 ${grade}입니다.${early ? ' 다만 1·2월생은 한 해 일찍 입학한 경우가 많아 한 학년 위일 수 있습니다.' : ''}` },
+  { q: `${year}년생은 몇 학번인가요?`, a: `고등학교를 마치고 바로 대학에 가면 ${cls}학번(${univ}년 입학)입니다. 재수나 입학 유예를 했다면 그만큼 늦어집니다.${early ? ` 1·2월생으로 한 해 일찍 입학했다면 ${String((year + 18) % 100).padStart(2, '0')}학번입니다.` : ''}` },
+  { q: `${year}년생은 수능을 언제 보나요?`, a: `고등학교 3학년인 ${exam}년 11월에 봅니다. 그 시험은 ${univ}학년도 대학수학능력시험입니다.` },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+  <div class="pt pt-narrow">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/school/">입학·졸업 연도</a> › {year}년생</nav>
+    <header class="pt-hubhero" style="--c:#3b82f6">
+      <span style="font-size:3.4rem;line-height:1" aria-hidden="true">{z.emoji}</span>
+      <div><h1>{year}년생 입학·졸업 연도</h1><p>{short}년생 {z.name} · {THIS_YEAR}년 기준 학년과 학번</p></div>
+    </header>
+
+    <div class="tl-result" style="margin-top:1.2rem">
+      <div class="tl-result__label">{THIS_YEAR}년 {year}년생은</div>
+      <div class="tl-result__big" style="font-size:1.7rem">{grade}</div>
+      <div class="tl-result__sub">{stage === 'pre' ? `${elem}년 3월에 초등학교에 입학해요.` : stage === 'student' ? `수능은 ${exam}년 11월, 대학은 ${cls}학번이에요.` : `대학에 바로 갔다면 ${cls}학번이에요.`}</div>
+    </div>
+
+    <div class="pp-facts pp-facts--4" style="margin-top:0.8rem">
+      <div><span>초등학교 입학</span><b>{elem}년</b></div>
+      <div><span>고등학교 졸업</span><b>{year + 19}년 2월</b></div>
+      <div><span>수능</span><b>{exam}년 11월</b></div>
+      <div><span>학번</span><b>{cls}학번</b></div>
+    </div>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>{year}년생 입학·졸업 연도표</h2></div></div>
+      <div class="tl-wrap">
+        <table class="tl-table">
+          <thead><tr><th>학교</th><th>입학</th><th>졸업</th><th>상태</th></tr></thead>
+          <tbody>
+            {plan.map((p) => (
+              <tr>
+                <td><b>{p.name}</b></td><td>{p.in}년 3월</td><td>{p.out}년 2월</td>
+                <td class={p.now ? 'is-on' : ''}>{p.state}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="pp-note">※ 3월 입학, 유급·휴학·재수 없이 진학한 경우의 연도입니다. 대학은 4년제 기준이며 군 복무나 휴학을 하면 졸업이 늦어집니다.{entryNote}</p>
+    </section>
+
+    {stage === 'pre' && (
+      <section class="pt-sec pt-prose">
+        <h2>초등학교 입학 준비 일정</h2>
+        <p>{year}년생은 {elem}년 3월 입학 대상입니다. 입학 전해인 <b>{elem - 1}년 12월</b>에 취학통지서가 나오고, <b>{elem}년 1월</b>쯤 예비소집이 열립니다. 취학통지서는 주민센터에서 보내 주며 온라인으로도 발급받을 수 있습니다. 예비소집에는 아이와 함께 참석해야 하고, 날짜는 학교와 지역마다 다르니 통지서에 적힌 일정을 확인하세요.</p>
+        <p>발달이나 건강 문제로 입학을 한 해 늦추거나, 반대로 한 해 일찍 보내고 싶다면 입학 전해 가을부터 연말 사이에 주소지 주민센터에 신청합니다.</p>
+      </section>
+    )}
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>나이별로 달라지는 것</h2></div></div>
+      <div class="tl-wrap">
+        <table class="tl-table">
+          <thead><tr><th>시기</th><th>기준</th><th>할 수 있는 것</th></tr></thead>
+          <tbody>{life.map((l) => <tr><td><b>{l.when}</b></td><td>{l.age}</td><td style="text-align:left">{l.what}</td></tr>)}</tbody>
+        </table>
+      </div>
+      <p class="pp-note">※ 법령 기준을 간단히 정리한 것으로, 세부 조건은 제도에 따라 다를 수 있습니다.</p>
+    </section>
+
+    <div class="pt-ad"><AdSlot slot="school-mid" /></div>
+
+    <section class="pt-sec pt-prose">
+      <h2>자주 묻는 질문</h2>
+      {faq.map((f) => (<><p><b>{f.q}</b><br />{f.a}</p></>))}
+    </section>
+
+    <section class="pt-sec pp-links">
+      {hasBorn && <a class="pp-link" href={`/born/${year}/`}><span><b>{year}년생 나이·띠</b><span>올해 챙길 것까지 한 번에</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>}
+      <a class="pp-link" href="/age/"><span><b>만 나이 계산기</b><span>생년월일로 오늘 기준 나이 계산</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+      <a class="pp-link" href="/dday/"><span><b>디데이 계산기</b><span>수능·입학까지 남은 날</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>다른 출생연도</h2></div><a class="pt-more" href="/school/">전체 보기 →</a></div>
+      <div class="pt-chips">
+        {[-3, -2, -1, 1, 2, 3].map((k) => year + k).filter((y) => y >= SCHOOL_FROM && y <= SCHOOL_TO).map((y) => <a class="pt-chip" href={`/school/${y}/`}>{y}년생</a>)}
+      </div>
+    </section>
+  </div>
+</BaseLayout>

@@ -1,0 +1,94 @@
+---
+// 삼재 조회 — 올해 삼재인 띠와 출생연도별 삼재 페이지 목록.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import { THIS_YEAR, ZODIAC, zodiacYears, bornYears, BORN_FROM, BORN_TO } from '../../lib/people';
+import { samjaePhase, samjaeBlocks, samjaeZodiacsOf, SAMJAE_NAMES } from '../../lib/life';
+import '../../styles/portal.css';
+
+const nowZ = samjaeZodiacsOf(THIS_YEAR).map((i) => ZODIAC[i]);
+const nowPhase = samjaePhase(2020 + samjaeZodiacsOf(THIS_YEAR)[0], THIS_YEAR);
+const nextZ = samjaeZodiacsOf(THIS_YEAR + 1).map((i) => ZODIAC[i]);
+const nextPhase = samjaePhase(2020 + samjaeZodiacsOf(THIS_YEAR + 1)[0], THIS_YEAR + 1);
+// 띠별: 올해 상태와 다음 삼재
+const rows = ZODIAC.map((z, i) => {
+  const birth = 2020 + i, ph = samjaePhase(birth, THIS_YEAR);
+  const b = samjaeBlocks(birth, THIS_YEAR + 14).find((x) => x + 2 >= THIS_YEAR)!;
+  return { z, ph, block: b, years: zodiacYears(z.slug, BORN_FROM, BORN_TO).reverse().slice(0, 5) };
+});
+const yearsOfNow = bornYears().filter((y) => samjaePhase(y, THIS_YEAR) >= 0);
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: [
+  { '@type': 'Question', name: `${THIS_YEAR}년 삼재띠는 무엇인가요?`, acceptedAnswer: { '@type': 'Answer', text: `${THIS_YEAR}년 삼재띠는 ${nowZ.map((z) => z.name).join(', ')}이며, ${SAMJAE_NAMES[nowPhase]}에 해당합니다.` } },
+  { '@type': 'Question', name: `${THIS_YEAR + 1}년 삼재띠는 무엇인가요?`, acceptedAnswer: { '@type': 'Answer', text: `${THIS_YEAR + 1}년 삼재띠는 ${nextZ.map((z) => z.name).join(', ')}이며, ${SAMJAE_NAMES[nextPhase]}에 해당합니다.` } },
+] };
+---
+<BaseLayout title={`${THIS_YEAR}년 삼재띠 조회 — 출생연도별 들삼재·눌삼재·날삼재`} description={`${THIS_YEAR}년 삼재띠는 ${nowZ.map((z) => z.name).join('·')}(${SAMJAE_NAMES[nowPhase]})입니다. 출생연도를 누르면 올해 삼재인지, 지난 삼재와 다음 삼재가 언제인지 바로 알려드립니다.`} jsonLd={jsonLd}>
+  <div class="pt pt-narrow">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/fun/">운세·테스트</a> › 삼재 조회</nav>
+    <header class="pt-hubhero" style="--c:#8b5cf6">
+      <img src="/img/portal/c-fortune.webp" alt="" width="200" height="200" />
+      <div><h1>삼재 조회</h1><p>출생연도만 누르면 올해 삼재인지 알려드려요</p></div>
+    </header>
+
+    <div class="tl-result" style="margin-top:1.2rem">
+      <div class="tl-result__label">{THIS_YEAR}년 삼재띠 · {SAMJAE_NAMES[nowPhase]}</div>
+      <div class="tl-result__big" style="font-size:1.7rem">{nowZ.map((z) => z.name).join(' · ')}</div>
+      <div class="tl-result__sub">{THIS_YEAR + 1}년은 {nextZ.map((z) => z.name).join('·')}의 {SAMJAE_NAMES[nextPhase]}입니다.</div>
+    </div>
+
+    <section class="pt-sec">
+      <div class="tl-card">
+        <div class="tl-row">
+          <label class="tl-field">출생연도로 찾기<input id="sj-year" type="number" inputmode="numeric" min={BORN_FROM} max={BORN_TO} placeholder="예: 1984" /></label>
+          <button type="button" class="tl-btn" id="sj-go">삼재 보기</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>{THIS_YEAR}년 삼재에 해당하는 출생연도</h2></div></div>
+      <div class="pt-chips">{yearsOfNow.map((y) => <a class="pt-chip" href={`/samjae/${y}/`}>{y}년생</a>)}</div>
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>띠별 삼재 연도</h2></div></div>
+      <div class="tl-wrap">
+        <table class="tl-table">
+          <thead><tr><th>띠</th><th>출생연도</th><th>{THIS_YEAR}년</th><th>삼재 기간</th></tr></thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr>
+                <td><b>{r.z.emoji} {r.z.name}</b></td>
+                <td>{r.years.map((y, i) => <>{i > 0 && ' · '}<a href={`/samjae/${y}/`}>{y}</a></>)}</td>
+                <td class={r.ph >= 0 ? 'is-on' : ''}>{r.ph >= 0 ? SAMJAE_NAMES[r.ph] : '해당 없음'}</td>
+                <td>{r.block}~{r.block + 2}년</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="pp-note">※ 삼재는 민간에서 전해 오는 풍속으로 재미로 참고하는 내용입니다. 띠는 양력 출생연도 기준이며, 음력 설 이전에 태어났다면 전년도 띠로 보기도 합니다.</p>
+    </section>
+
+    <div class="pt-ad"><AdSlot slot="samjae-index" /></div>
+
+    <section class="pt-sec pt-prose">
+      <h2>삼재는 어떻게 정해지나</h2>
+      <p>삼재는 열두 띠를 세 띠씩 네 묶음으로 나누어, 묶음마다 정해진 3년 동안 든다고 봅니다. 원숭이·쥐·용띠는 호랑이·토끼·용의 해에, 돼지·토끼·양띠는 뱀·말·양의 해에, 호랑이·말·개띠는 원숭이·닭·개의 해에, 뱀·닭·소띠는 돼지·쥐·소의 해에 삼재를 맞습니다.</p>
+      <p>3년 가운데 첫해를 들삼재, 둘째 해를 눌삼재, 마지막 해를 날삼재라고 부릅니다. 누구나 12년마다 한 번씩 맞는 주기이므로 지나치게 걱정하기보다 한 해를 차분히 점검하는 계기로 삼는 편이 좋습니다.</p>
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>출생연도별 삼재</h2></div></div>
+      <div class="pt-chips">{bornYears().map((y) => <a class="pt-chip" href={`/samjae/${y}/`}>{y}</a>)}</div>
+    </section>
+  </div>
+  <script is:inline define:vars={{ from: BORN_FROM, to: BORN_TO }}>
+    (() => {
+      const inp = document.getElementById('sj-year'); if (!inp) return;
+      const go = () => { const y = Number(inp.value); if (!(y >= from && y <= to)) { inp.focus(); return; } location.href = '/samjae/' + y + '/'; };
+      document.getElementById('sj-go').addEventListener('click', go);
+      inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
+    })();
+  </script>
+</BaseLayout>

@@ -31,8 +31,11 @@ const rows: number[] = [];
 for (let r = 2.5; r <= 5.01; r += 0.25) rows.push(Math.round(r * 100) / 100);
 if (best && !rows.includes(best.rate)) { rows.push(best.rate); rows.sort((a, b) => a - b); }
 
-const pageTitle = `${manLabel}원 예금 이자 — 1년 세후 ${bestCalc ? fmt(bestCalc.n) : ''}원`;
-const pageDesc = `${manLabel}원을 정기예금(12개월)에 맡기면? 오늘 최고금리 연 ${best?.rate}% 기준 세전 ${bestCalc ? fmt(bestCalc.g) : ''}원, 세후 ${bestCalc ? fmt(bestCalc.n) : ''}원. 금리별 이자표와 최고금리 은행까지.`;
+// 한 달 이자(세후 1년 이자를 12로 나눈 값) — 1만원 이상이면 만원 단위로
+const perMonth = bestCalc ? bestCalc.n / 12 : 0;
+const monthLabel = perMonth >= 10000 ? `${Math.round(perMonth / 10000).toLocaleString('ko-KR')}만원` : `${fmt(perMonth)}원`;
+const pageTitle = bestCalc ? `${manLabel} 예금이자 — 한 달 약 ${monthLabel}, 1년 세후 ${fmt(bestCalc.n)}원` : `${manLabel} 예금이자 계산`;
+const pageDesc = `${manLabel}원을 정기예금(12개월)에 맡기면 한 달 이자는 세후 약 ${monthLabel}. 오늘 최고금리 연 ${best?.rate}% 기준 세전 ${bestCalc ? fmt(bestCalc.g) : ''}원, 세후 ${bestCalc ? fmt(bestCalc.n) : ''}원. 금리별 이자표와 최고금리 은행까지.`;
 ---
 <BaseLayout title={pageTitle} description={pageDesc}>
   <div class="wrap it">

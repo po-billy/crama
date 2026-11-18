@@ -31,6 +31,32 @@ function buildLastmodMap() {
 const MEMBER_UI = false;
 const MEMBER_PATHS = /^\/(login|me|wardrobe|worms|calendar|gacha|ranking|play|challenge|vote|ai-report|saved|membership)(\/|$)/;
 const lastmodBySlug = buildLastmodMap();
+
+// 태그별 글 수 — 글이 TAG_MIN 개 미만인 태그 목록 페이지는 사이트맵에서 뺀다(페이지 쪽 noindex 기준과 같게 유지)
+const TAG_MIN = 3;
+function buildTagCounts() {
+  const counts = new Map();
+  let files = [];
+  try { files = fs.readdirSync(blogDir).filter((f) => /\.(md|mdx)$/.test(f)); } catch { return counts; }
+  const clean = (x) => x.trim().replace(/^["']|["']$/g, '');
+  for (const f of files) {
+    let raw = '';
+    try { raw = fs.readFileSync(path.join(blogDir, f), 'utf8'); } catch { continue; }
+    const parts = raw.split(/^---\s*$/m);
+    const fm = parts.length >= 3 ? parts[1] : '';
+    if (/^\s*draft:\s*true/m.test(fm)) continue;
+    let tags = [];
+    const inline = fm.match(/^tags:\s*\[(.*)\]/m);
+    if (inline) tags = inline[1].split(',').map(clean);
+    else {
+      const block = fm.match(/^tags:\s*\r?\n((?:\s+-\s+.*\r?\n?)+)/m);
+      if (block) tags = block[1].split(/\r?\n/).map((x) => clean(x.replace(/^\s+-\s+/, '')));
+    }
+    for (const t of new Set(tags.filter(Boolean))) counts.set(t, (counts.get(t) || 0) + 1);
+  }
+  return counts;
+}
+const tagCounts = buildTagCounts();
 const buildDate = new Date().toISOString().slice(0, 10); // 동적/목록 페이지 기본 수정일(빌드일)
 
 // https://astro.build/config
@@ -43,6 +69,9 @@ export default defineConfig({
       filter: (page) => {
         const p = new URL(page).pathname;
         if (!MEMBER_UI && MEMBER_PATHS.test(p)) return false;
+        // 글이 적은 태그 목록(글 수를 모르는 태그는 그대로 둔다)
+        const tag = p.match(/^\/tag\/([^/]+)\//);
+        if (tag) { let name = tag[1]; try { name = decodeURIComponent(name); } catch {} const n = tagCounts.get(name); if (n !== undefined && n < TAG_MIN) return false; }
         return !/\/(search|404)\/?$/.test(p);
       },
       // 페이지 유형별 lastmod·changefreq·priority 차등(검색엔진 우선순위 신호)

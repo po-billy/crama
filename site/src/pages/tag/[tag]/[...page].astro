@@ -18,9 +18,10 @@ export const getStaticPaths = (async ({ paginate }) => {
 
 const { tag } = Astro.params as { tag: string };
 const { page, total } = Astro.props;
+// 글이 3개 미만인 태그 목록은 내용이 얇아 색인에서 뺀다(astro.config.mjs 의 TAG_MIN 과 같은 기준). 글이 늘면 자동으로 다시 색인된다.
 const titleSuffix = page.currentPage > 1 ? ` (${page.currentPage}페이지)` : '';
 ---
-<BaseLayout title={`#${tag} 글 모음${titleSuffix}`} description={`'${tag}' 태그가 달린 글 ${total}개 — Crama`}>
+<BaseLayout title={`#${tag} 글 모음${titleSuffix}`} description={`'${tag}' 태그가 달린 글 ${total}개 — Crama`} noindex={total < 3}>
   <div class="wrap">
     <header class="page-hero">
       <span class="eyebrow">Tag</span>

@@ -26,7 +26,10 @@ const {
 const canonical = new URL(Astro.url.pathname, Astro.site ?? SITE.url).href;
 // 회원 UI 가 꺼져 있으면 회원 전용 경로는 색인 제외
 const robotsNoindex = noindex || (!MEMBER_UI && MEMBER_PATHS.test(Astro.url.pathname));
-const ogImage = new URL(image, Astro.site ?? SITE.url).href;
+// 대표 이미지를 바꾸면 이 날짜도 바꿀 것 — 주소가 같으면 네이버·카카오가 예전 그림을 계속 보여 준다
+const OG_HOME_VERSION = '20261116';
+const ogPath = image === '/og-home.png' ? `${image}?v=${OG_HOME_VERSION}` : image;
+const ogImage = new URL(ogPath, Astro.site ?? SITE.url).href;
 const fullTitle = title === SITE.title ? title : `${title} · ${SITE.name}`;
 
 // 사이트 레벨 구조화 데이터(브랜드 인식 + 사이트링크 검색창)

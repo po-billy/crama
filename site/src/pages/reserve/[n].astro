@@ -1,0 +1,37 @@
+---
+// 예비군 N년차 — "예비군 3년차 훈련", "예비군 5년차 몇 시간" 검색을 받는다.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ReserveDetail from '../../components/ReserveDetail.astro';
+import { RESERVE_YEAR, MAX_GRADE, stageOf, trainingsOf, dischargeYearOf, RESERVE_FAQ } from '../../lib/reserve';
+
+export function getStaticPaths() {
+  return Array.from({ length: 8 }, (_, i) => ({ params: { n: String(i + 1) } }));
+}
+const grade = Number(Astro.params.n);
+const dy = dischargeYearOf(grade);
+const st = stageOf(grade);
+const tr = trainingsOf(grade);
+const title = `예비군 ${grade}년차 훈련 ${RESERVE_YEAR} — ${st.key === 'mob' ? '동원훈련 2박 3일·4일 출퇴근' : st.key === 'local' ? '기본훈련 8시간·작계훈련' : '정기 소집 없음'}`;
+const desc = `${RESERVE_YEAR}년 예비군 ${grade}년차는 ${dy}년 전역자예요. ${tr.map((t) => `${t.name} ${t.time}`).join(', ')}. 훈련비와 예비군 끝나는 해까지 정리했어요.`;
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: RESERVE_FAQ.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title={title} description={desc} jsonLd={jsonLd}>
+  <div class="wrap rp">
+    <nav class="rp-crumb"><a href="/">홈</a> › <a href="/reserve/">예비군 연차 계산기</a> › <b>{grade}년차</b></nav>
+    <h1>예비군 {grade}년차, {RESERVE_YEAR}년에 받는 훈련</h1>
+    <ReserveDetail grade={grade} dischargeYear={dy} />
+    <div class="rp-pn">
+      {grade > 1 ? <a href={`/reserve/${grade - 1}/`}>← {grade - 1}년차</a> : <span></span>}
+      <a href="/reserve/">계산기</a>
+      {MAX_GRADE > grade ? <a href={`/reserve/${grade + 1}/`}>{grade + 1}년차 →</a> : <span></span>}
+    </div>
+  </div>
+  <style>
+    .rp { max-width: 40rem; }
+    .rp-crumb { font-size: 0.8rem; color: var(--muted); margin: 0.4rem 0 1.1rem; }
+    .rp-crumb a { color: var(--muted); text-decoration: none; }
+    .rp h1 { font-family: var(--font-serif); font-size: clamp(1.4rem, 4.5vw, 2rem); margin: 0 0 1rem; }
+    .rp-pn { display: flex; justify-content: space-between; padding-top: 1.2rem; border-top: 1px solid var(--line); margin-bottom: 1.5rem; }
+    .rp-pn a { font-size: 0.88rem; font-weight: 700; color: var(--accent); text-decoration: none; }
+  </style>
+</BaseLayout>

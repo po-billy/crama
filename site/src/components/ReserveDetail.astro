@@ -1,0 +1,80 @@
+---
+// 예비군 연차 상세 — /reserve/[n]/ 와 /reserve/from/[year]/ 가 같이 쓰는 본문.
+import { RESERVE_YEAR, MAX_GRADE, stageOf, trainingsOf, dischargeYearOf, RESERVE_FAQ } from '../lib/reserve';
+interface Props { grade: number; dischargeYear: number }
+const { grade, dischargeYear } = Astro.props;
+const st = stageOf(grade);
+const trainings = trainingsOf(grade);
+const endYear = dischargeYear + MAX_GRADE;
+const timeline = Array.from({ length: MAX_GRADE }, (_, i) => i + 1).map((g) => ({ g, y: dischargeYear + g, st: stageOf(g), past: dischargeYear + g < RESERVE_YEAR }));
+const heroLabel = grade <= 0 ? '훈련 없음' : grade > MAX_GRADE ? '예비군 만료' : `${RESERVE_YEAR}년 ${grade}년차`;
+---
+<div class={`rd-hero is-${st.key}`}>
+  <b>{heroLabel}</b>
+  <span>{dischargeYear}년 전역 · 예비군 끝나는 날 {endYear}년 12월 31일</span>
+  <p>{st.summary}</p>
+</div>
+
+{trainings.length > 0 && (
+  <section class="rd-sec">
+    <h2>{RESERVE_YEAR}년에 받는 훈련</h2>
+    <div class="rd-list">
+      {trainings.map((t) => (
+        <div class="rd-item">
+          <b>{t.name}</b>
+          <dl>
+            <div><dt>대상</dt><dd>{t.who}</dd></div>
+            <div><dt>시간</dt><dd>{t.time}</dd></div>
+            <div><dt>장소</dt><dd>{t.place}</dd></div>
+            {t.pay && <div><dt>훈련비</dt><dd>{t.pay}</dd></div>}
+          </dl>
+        </div>
+      ))}
+    </div>
+    {st.key === 'mob' && <p class="rd-note">※ 동원 지정 여부는 병무청이 정해 소집통지서로 알려 줍니다. 1~4년차라도 지정되지 않으면 동원훈련Ⅱ형을 받아요.</p>}
+  </section>
+)}
+
+<section class="rd-sec">
+  <h2>{dischargeYear}년 전역자의 예비군 8년</h2>
+  <div class="rd-tl">
+    {timeline.map((t) => (
+      <a class:list={['rd-tl-row', { 'is-cur': t.g === grade, 'is-past': t.past }]} href={`/reserve/${t.g}/`}>
+        <b>{t.y}년</b><span>{t.g}년차</span><em>{t.st.key === 'mob' ? '동원훈련' : t.st.key === 'local' ? '기본·작계훈련' : '소집 없음'}</em>
+      </a>
+    ))}
+  </div>
+  <p class="rd-note">※ {RESERVE_YEAR + 1}년 이후 훈련 내용은 그해 국방부 발표에 따라 바뀔 수 있어요. 예비군이 끝나면 만 40세가 되는 해까지 민방위 대상이에요.</p>
+</section>
+
+<section class="rd-sec">
+  <h2>자주 묻는 질문</h2>
+  <div class="rd-faq">{RESERVE_FAQ.map((f) => <details><summary>{f.q}</summary><p>{f.a}</p></details>)}</div>
+</section>
+
+<style>
+  .rd-hero { border-radius: 16px; padding: 1.2rem 1.4rem; display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 1.6rem; border: 1.5px solid var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--paper)); }
+  .rd-hero.is-none, .rd-hero.is-done, .rd-hero.is-pre { border-color: var(--line); background: var(--paper-2); }
+  .rd-hero b { font-size: 1.25rem; }
+  .rd-hero span { font-size: 0.84rem; color: var(--muted); }
+  .rd-hero p { margin: 0.2rem 0 0; font-size: 0.93rem; line-height: 1.55; color: var(--ink-soft); }
+  .rd-sec { margin-bottom: 1.8rem; }
+  .rd-sec h2 { font-size: 1.1rem; margin: 0 0 0.7rem; }
+  .rd-list { display: grid; gap: 0.6rem; }
+  .rd-item { border: 1px solid var(--line); border-radius: 12px; padding: 0.85rem 1rem; }
+  .rd-item > b { font-size: 0.98rem; }
+  .rd-item dl { margin: 0.5rem 0 0; display: grid; gap: 0.25rem; }
+  .rd-item dl div { display: flex; gap: 0.8rem; font-size: 0.86rem; }
+  .rd-item dt { min-width: 3rem; color: var(--muted); }
+  .rd-item dd { margin: 0; }
+  .rd-tl { display: grid; gap: 0.35rem; }
+  .rd-tl-row { display: grid; grid-template-columns: 4rem 3.5rem 1fr; gap: 0.5rem; padding: 0.55rem 0.85rem; border: 1px solid var(--line); border-radius: 10px; text-decoration: none; color: var(--ink); font-size: 0.9rem; }
+  .rd-tl-row.is-past { opacity: 0.55; }
+  .rd-tl-row.is-cur { border-color: var(--accent); opacity: 1; }
+  .rd-tl-row em { font-style: normal; color: var(--ink-soft); font-size: 0.84rem; }
+  .rd-tl-row:hover { border-color: var(--accent); }
+  .rd-note { font-size: 0.78rem; color: var(--muted); margin: 0.7rem 0 0; line-height: 1.5; }
+  .rd-faq details { border: 1px solid var(--line); border-radius: 10px; padding: 0.7rem 0.9rem; margin-bottom: 0.45rem; }
+  .rd-faq summary { cursor: pointer; font-weight: 700; font-size: 0.92rem; }
+  .rd-faq p { font-size: 0.88rem; line-height: 1.6; color: var(--ink-soft); margin: 0.5rem 0 0; }
+</style>

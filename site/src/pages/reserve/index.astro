@@ -1,0 +1,165 @@
+---
+// 예비군 연차 계산기 — 전역일(또는 전역연도)로 올해 몇 년차인지, 받는 훈련, 예비군 끝나는 해를 보여 준다.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { RESERVE_YEAR, MAX_GRADE, FROM_YEARS, gradeOf, stageOf, trainingsOf, RESERVE_FAQ } from '../../lib/reserve';
+const rows = FROM_YEARS.map((y) => ({ y, g: gradeOf(y), st: stageOf(gradeOf(y)) })).map((r) => ({ ...r, link: r.g >= 1 && MAX_GRADE >= r.g, label: r.g >= 1 ? (r.g > MAX_GRADE ? '만료' : `${r.g}년차`) : '0년차' }));
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: RESERVE_FAQ.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+const grades = Array.from({ length: MAX_GRADE }, (_, i) => i + 1);
+const data = { year: RESERVE_YEAR, max: MAX_GRADE };
+---
+<BaseLayout
+  title={`예비군 연차 계산기 ${RESERVE_YEAR} — 전역연도로 보는 올해 훈련`}
+  description={`전역일만 넣으면 ${RESERVE_YEAR}년 예비군 몇 년차인지, 동원훈련·기본훈련 중 무엇을 받는지, 예비군이 언제 끝나는지 바로 알려드려요. 국방부 ${RESERVE_YEAR}년 훈련 기준.`}
+  jsonLd={jsonLd}
+>
+  <div class="wrap rs">
+    <header class="page-hero">
+      <span class="eyebrow">Reserve</span>
+      <h1>예비군 연차 계산기</h1>
+      <p>전역일만 넣으세요. <b>올해 몇 년차인지, 받는 훈련, 끝나는 해</b>가 바로 나옵니다.</p>
+    </header>
+
+    <div class="rs-form">
+      <label>전역일 (또는 전역 예정일)<input id="rs-date" type="date" /></label>
+      <button type="button" id="rs-go">계산하기</button>
+    </div>
+
+    <div class="rs-result" id="rs-result" hidden>
+      <div class="rs-hero">
+        <div class="rs-hero__main"><span>{RESERVE_YEAR}년</span><b id="rs-grade">-</b><em id="rs-stage">-</em></div>
+        <div><span>예비군 끝나는 날</span><b id="rs-end">-</b><em id="rs-left">-</em></div>
+      </div>
+      <p class="rs-sum" id="rs-sum"></p>
+      <div id="rs-train"></div>
+      <a class="rs-more" id="rs-more" href="/reserve/">이 연차 자세히 보기 →</a>
+    </div>
+
+    <section class="rs-sec">
+      <h2>{RESERVE_YEAR}년 전역연도별 연차표</h2>
+      <table class="rs-table">
+        <thead><tr><th>전역연도</th><th>{RESERVE_YEAR}년 연차</th><th>훈련</th></tr></thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr>
+              <th><a href={`/reserve/from/${r.y}/`}>{r.y}년 전역</a></th>
+              <td>{r.link ? <a href={`/reserve/${r.g}/`}>{r.label}</a> : r.label}</td>
+              <td>{r.st.key === 'mob' ? '동원훈련' : r.st.key === 'local' ? '기본·작계훈련' : r.st.key === 'none' ? '소집 없음' : r.st.key === 'pre' ? '훈련 없음' : '민방위'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="rs-sec">
+      <h2>연차별 훈련 한눈에 ({RESERVE_YEAR}년)</h2>
+      <div class="rs-cards">
+        {[[1, 4], [5, 6], [7, 8]].map(([a, b]) => (
+          <div class="rs-card">
+            <b>{a}~{b}년차</b>
+            <ul>{trainingsOf(a).map((t) => <li><strong>{t.name}</strong><span>{t.who} · {t.time}{t.pay ? ` · 훈련비 ${t.pay}` : ''}</span></li>)}</ul>
+          </div>
+        ))}
+      </div>
+      <div class="rs-chips">{grades.map((g) => <a href={`/reserve/${g}/`}>예비군 {g}년차</a>)}</div>
+      <p class="rs-note">※ 국방부 {RESERVE_YEAR}년도 예비군 훈련 발표 기준. 부대·지역마다 일정이 달라 실제 소집 날짜와 시간은 예비군 홈페이지(yebigun1.mil.kr)에서 확인하세요.</p>
+    </section>
+
+    <section class="rs-sec">
+      <h2>자주 묻는 질문</h2>
+      <div class="rs-faq">{RESERVE_FAQ.map((f) => <details><summary>{f.q}</summary><p>{f.a}</p></details>)}</div>
+    </section>
+
+    <div class="rs-cross">
+      <a href="/discharge/">전역일 계산기 →</a>
+      <a href="/youth/">전역 후 챙길 청년 정책 →</a>
+      <a href="/salary/">첫 월급 실수령액 →</a>
+    </div>
+  </div>
+
+  <script is:inline define:vars={{ data }}>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const KEY = 'crama:reserve';
+      const T = {
+        mob: [['동원훈련Ⅰ형 (동원 지정자)', '2박 3일 입영 · 훈련비 9만 5천 원'], ['동원훈련Ⅱ형 (동원 미지정자)', '4일 출퇴근 · 훈련비 5만 원']],
+        local: [['기본훈련', '1일 8시간 · 훈련비 1만 원'], ['작계훈련', '전·후반기 나눠 총 12시간']],
+        none: [['정기 훈련 소집 없음', '비상소집 점검 대상']],
+      };
+      function calc(save) {
+        const v = $('rs-date').value; if (!v) return;
+        const dy = Number(v.slice(0, 4));
+        const g = data.year - dy;
+        const endY = dy + data.max;
+        let key = 'pre', stage = '전역한 해라 훈련 없음', sum = '전역한 해에는 소집이 없어요. 다음 해 1월 1일부터 1년차예요.';
+        if (g < 0) { stage = '전역 전'; sum = `${dy}년에 전역하면 ${dy + 1}년에 1년차가 돼요.`; }
+        else if (g >= 1 && g <= 4) { key = 'mob'; stage = '동원훈련 대상'; sum = '동원 지정 여부에 따라 2박 3일 입영 또는 4일 출퇴근 훈련을 받아요.'; }
+        else if (g <= 6 && g >= 5) { key = 'local'; stage = '지역예비군'; sum = '하루 8시간 기본훈련과 거주지 작계훈련을 받아요.'; }
+        else if (g <= data.max && g >= 7) { key = 'none'; stage = '정기 소집 없음'; sum = '정기 훈련 소집은 없고 비상소집 점검 대상이에요.'; }
+        else if (g > data.max) { key = 'done'; stage = '예비군 만료'; sum = '예비군이 끝났어요. 만 40세가 되는 해까지는 민방위 대상이에요.'; }
+        $('rs-grade').textContent = g < 0 ? '전역 전' : g > data.max ? '만료' : g + '년차';
+        $('rs-stage').textContent = stage;
+        $('rs-sum').textContent = sum;
+        const end = new Date(endY, 11, 31); const today = new Date(); today.setHours(0, 0, 0, 0);
+        const left = Math.round((end - today) / 86400000);
+        $('rs-end').textContent = endY + '.12.31';
+        $('rs-left').textContent = left > 0 ? 'D-' + left.toLocaleString() : '끝났어요';
+        $('rs-train').innerHTML = (T[key] || []).map(([n, d]) => `<div class="rs-tr"><b>${n}</b><span>${d}</span></div>`).join('');
+        const more = $('rs-more');
+        if (g >= 1 && g <= data.max) { more.href = `/reserve/${g}/`; more.textContent = `예비군 ${g}년차 자세히 보기 →`; more.hidden = false; }
+        else more.hidden = true;
+        $('rs-result').hidden = false;
+        if (save) try { localStorage.setItem(KEY, v); } catch (e) {}
+      }
+      $('rs-go').addEventListener('click', () => calc(true));
+      $('rs-date').addEventListener('change', () => calc(true));
+      try { const s = localStorage.getItem(KEY); if (s) { $('rs-date').value = s; calc(false); } } catch (e) {}
+    })();
+  </script>
+
+  <style is:global>
+    .rs-tr { display: flex; justify-content: space-between; gap: 0.8rem; padding: 0.6rem 0.85rem; border: 1px solid var(--line); border-radius: 10px; margin-bottom: 0.4rem; }
+    .rs-tr b { font-size: 0.92rem; }
+    .rs-tr span { font-size: 0.8rem; color: var(--muted); text-align: right; }
+  </style>
+  <style>
+    .rs { max-width: 40rem; }
+    .rs-form { display: grid; grid-template-columns: 1fr auto; gap: 0.8rem; align-items: end; margin: 1.4rem 0 1rem; padding: 1.1rem 1.2rem; border: 1px solid var(--line); border-radius: 14px; background: var(--paper-2); }
+    .rs-form label { font-size: 0.84rem; font-weight: 700; color: var(--ink-soft); display: flex; flex-direction: column; gap: 0.35rem; }
+    .rs-form input { font: inherit; font-size: 0.95rem; padding: 0.6rem 0.8rem; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); }
+    .rs-form button { font: inherit; font-weight: 800; padding: 0.7rem 1.2rem; border: 0; border-radius: 12px; background: var(--accent); color: #fff; cursor: pointer; }
+    @media (max-width: 560px) { .rs-form { grid-template-columns: 1fr; } }
+    .rs-result[hidden], .rs-more[hidden] { display: none; }
+    .rs-hero { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+    .rs-hero > div { border: 1px solid var(--line); border-radius: 14px; padding: 0.95rem 1rem; display: flex; flex-direction: column; gap: 0.15rem; }
+    .rs-hero span { font-size: 0.76rem; color: var(--muted); font-weight: 600; }
+    .rs-hero b { font-size: 1.15rem; }
+    .rs-hero em { font-style: normal; font-size: 0.8rem; color: var(--ink-soft); }
+    .rs-hero__main { background: var(--accent); border-color: var(--accent) !important; color: #fff; }
+    .rs-hero__main span, .rs-hero__main em { color: rgba(255,255,255,0.88) !important; }
+    .rs-hero__main b { font-size: 1.6rem; }
+    .rs-sum { font-size: 0.92rem; color: var(--ink-soft); margin: 0.8rem 0; line-height: 1.55; }
+    .rs-more { display: inline-block; font-size: 0.88rem; font-weight: 700; color: var(--accent); text-decoration: none; margin-top: 0.3rem; }
+    .rs-sec { margin: 1.9rem 0; }
+    .rs-sec h2 { font-size: 1.1rem; margin: 0 0 0.7rem; }
+    .rs-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    .rs-table th, .rs-table td { padding: 0.55rem 0.6rem; border-bottom: 1px solid var(--line); text-align: left; }
+    .rs-table thead th { font-size: 0.78rem; color: var(--muted); }
+    .rs-table a { color: var(--accent); text-decoration: none; font-weight: 700; }
+    .rs-cards { display: grid; gap: 0.6rem; }
+    .rs-card { border: 1px solid var(--line); border-radius: 14px; padding: 0.9rem 1rem; }
+    .rs-card > b { font-size: 1rem; }
+    .rs-card ul { list-style: none; margin: 0.5rem 0 0; padding: 0; display: grid; gap: 0.35rem; }
+    .rs-card li { display: flex; flex-direction: column; gap: 0.1rem; }
+    .rs-card strong { font-size: 0.9rem; }
+    .rs-card span { font-size: 0.8rem; color: var(--muted); }
+    .rs-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.8rem; }
+    .rs-chips a { font-size: 0.82rem; padding: 0.3rem 0.7rem; border: 1px solid var(--line); border-radius: 999px; text-decoration: none; color: var(--ink-soft); }
+    .rs-chips a:hover { border-color: var(--accent); color: var(--accent); }
+    .rs-note { font-size: 0.78rem; color: var(--muted); margin: 0.8rem 0 0; line-height: 1.5; }
+    .rs-faq details { border: 1px solid var(--line); border-radius: 10px; padding: 0.7rem 0.9rem; margin-bottom: 0.45rem; }
+    .rs-faq summary { cursor: pointer; font-weight: 700; font-size: 0.92rem; }
+    .rs-faq p { font-size: 0.88rem; line-height: 1.6; color: var(--ink-soft); margin: 0.5rem 0 0; }
+    .rs-cross { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; margin: 2rem 0 1rem; padding-top: 1.4rem; border-top: 1px solid var(--line); }
+    .rs-cross a { font-size: 0.88rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--line); border-radius: 999px; }
+  </style>
+</BaseLayout>

@@ -1,0 +1,143 @@
+---
+// 나이별 건강검진 — "42세 건강검진", "50세 무료 암검진"처럼 나이로 찾는 검색을 받는다.
+// 2년 주기 검진은 출생연도와 검진 연도의 짝·홀이 같을 때라 검진 나이는 항상 짝수가 된다. 홀수 나이는 매년 받는 검진(대장암·비사무직)만 해당.
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { CHECK_YEAR, NEXT_YEAR, AGE_FROM, AGE_TO, YEAR_FROM, YEAR_TO, extrasFor, cancersFor, ageHeadline, short, BASIC_ITEMS } from '../../../lib/checkup';
+
+export function getStaticPaths() {
+  const out = [];
+  for (let a = AGE_FROM; a <= AGE_TO; a++) out.push({ params: { age: String(a) } });
+  return out;
+}
+
+const age = Number(Astro.params.age);
+const even = age % 2 === 0;
+const yNow = CHECK_YEAR - age;
+const yNext = NEXT_YEAR - age;
+const allCancers = cancersFor(age);
+// 홀수 나이에는 매년(대장암)·6개월(간암 고위험군) 검진만 남는다
+const cancers = even ? allCancers : allCancers.filter((c) => c.name === '대장암' || c.name === '간암');
+const extras = even ? extrasFor(age) : [];
+const head = ageHeadline(age);
+
+const title = even
+  ? `${age}세 건강검진 항목 — 무료로 받는 검사${allCancers.length ? `와 암검진 ${allCancers.length}종` : ''} (${CHECK_YEAR}·${NEXT_YEAR})`
+  : `${age}세 건강검진 — 2년 주기 검진이 없는 나이, 받을 수 있는 검사`;
+const desc = even
+  ? `${age}세에 받는 국가건강검진 항목을 정리했어요. ${head}. ${CHECK_YEAR}년에 ${age}세는 ${yNow}년생(${short(yNow)}년생), ${NEXT_YEAR}년에는 ${yNext}년생입니다.`
+  : `국가건강검진은 짝수 나이에 받아서 ${age}세에는 일반검진 차례가 없어요. ${cancers.length ? `${cancers.map((c) => c.name).join('·')} 검진은 받을 수 있고, ` : ''}비사무직 직장가입자는 매년 받습니다. ${CHECK_YEAR}년 ${age}세는 ${yNow}년생.`;
+
+const faq = [
+  { q: `건강검진에서 ${age}세는 몇 년생인가요?`, a: `검진 나이는 생일과 관계없이 검진 연도에서 출생연도를 뺀 값입니다. ${CHECK_YEAR}년에 ${age}세는 ${yNow}년생, ${NEXT_YEAR}년에 ${age}세는 ${yNext}년생입니다. 만 나이와 다를 수 있어요.` },
+  even
+    ? { q: `${age}세에는 어떤 검사를 추가로 받나요?`, a: extras.length ? `공통 항목 외에 ${extras.map((e) => `${e.name}(${e.who})`).join(', ')}을 받습니다.` : '나이로 정해진 추가 검사는 없고 공통 항목을 받습니다.' }
+    : { q: `${age}세에는 왜 건강검진 대상이 아닌가요?`, a: `2년마다 받는 일반건강검진은 출생연도와 검진 연도의 짝·홀이 같을 때 차례가 옵니다. 그래서 검진 나이는 항상 짝수이고, ${age}세에는 차례가 오지 않습니다. 직전 검진은 ${age - 1}세, 다음 검진은 ${age + 1}세입니다.` },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+const yLink = (y: number) => (y >= YEAR_FROM && y <= YEAR_TO ? `/health-check/${y}/` : null);
+---
+<BaseLayout title={title} description={desc} jsonLd={jsonLd}>
+  <div class="wrap hc">
+    <nav class="hc-crumb"><a href="/">홈</a><span>›</span><a href="/health-check/">건강검진 조회</a><span>›</span><a href="/health-check/age/">나이별</a><span>›</span><b>{age}세</b></nav>
+    <h1>{age}세 건강검진, {even ? '무엇을 받을까?' : '받는 나이일까?'}</h1>
+
+    <div class={`hc-hero ${even ? 'is-yes' : 'is-next'}`}>
+      <b>{even ? `✅ ${age}세는 검진 받는 나이예요` : `⏸ ${age}세는 2년 주기 검진이 쉬는 나이예요`}</b>
+      <span>{even ? head : `직전 ${age - 1}세, 다음 ${age + 1}세에 받아요 · 비사무직 직장가입자는 매년`}</span>
+    </div>
+
+    <section class="hc-sec">
+      <h2>{age}세는 몇 년생?</h2>
+      <div class="hc-yrs">
+        {[{ cy: CHECK_YEAR, by: yNow }, { cy: NEXT_YEAR, by: yNext }].map((r) => {
+          const href = yLink(r.by);
+          return href
+            ? <a class="hc-yr" href={href}><small>{r.cy}년에 {age}세</small><b>{r.by}년생</b><span>{short(r.by)}년생 검진 보기 →</span></a>
+            : <div class="hc-yr"><small>{r.cy}년에 {age}세</small><b>{r.by}년생</b></div>;
+        })}
+      </div>
+      <p class="hc-note">※ 건강검진은 생일과 상관없이 '검진 연도 − 출생연도'로 나이를 셉니다. 만 나이 계산은 <a href="/age/">만 나이 계산기</a>에서 할 수 있어요.</p>
+    </section>
+
+    <section class="hc-sec">
+      <h2>{age}세에 받는 국가암검진 {cancers.length}종</h2>
+      {cancers.length ? (
+        <ul class="hc-list">
+          {cancers.map((c) => <li><b>{c.name}{c.sex === 'f' ? ' (여성)' : ''}{c.risk ? ' (고위험군)' : ''}</b><span>{c.rule} · {c.how}</span></li>)}
+        </ul>
+      ) : <p class="hc-empty">{age < 40 && even ? '20~30대는 자궁경부암 검진(여성)만 해당해요.' : `${age}세에 받을 수 있는 국가 암검진이 없어요.`}</p>}
+      {!even && allCancers.length > cancers.length && <p class="hc-note">※ 위암·유방암·자궁경부암 등 2년 주기 암검진은 {age - 1}세와 {age + 1}세에 받습니다.</p>}
+    </section>
+
+    {even && (
+      <section class="hc-sec">
+        <h2>{age}세 일반건강검진 항목</h2>
+        <h3 class="hc-h3">누구나 받는 공통 검사</h3>
+        <ul class="hc-list">
+          {BASIC_ITEMS.map((b) => <li><b>{b.name}</b><span>{b.desc}</span></li>)}
+        </ul>
+        <h3 class="hc-h3">{age}세라서 추가로 받는 검사</h3>
+        {extras.length ? (
+          <ul class="hc-list is-plus">
+            {extras.map((e) => <li><b>+ {e.name}</b><span>{e.who} · {e.note}</span></li>)}
+          </ul>
+        ) : <p class="hc-empty">{age}세에는 나이로 정해진 추가 검사가 없어요.</p>}
+        <p class="hc-note">※ 국민건강보험공단 {CHECK_YEAR}년 안내 기준. 실제 항목은 공단이 보내는 검진표가 기준입니다.</p>
+      </section>
+    )}
+
+    <section class="hc-sec">
+      <h2>자주 묻는 질문</h2>
+      <div class="hc-faq">
+        {faq.map((f) => <details><summary>{f.q}</summary><p>{f.a}</p></details>)}
+      </div>
+    </section>
+
+    <div class="hc-pn">
+      {age > AGE_FROM ? <a href={`/health-check/age/${age - 1}/`}>← {age - 1}세</a> : <span></span>}
+      <a href="/health-check/age/">나이별 전체</a>
+      {age < AGE_TO ? <a href={`/health-check/age/${age + 1}/`}>{age + 1}세 →</a> : <span></span>}
+    </div>
+    <div class="hc-cross">
+      <a href="/health-check/">출생연도로 조회 →</a>
+      <a href="/health-check/cancer/">암검진 대상 조회 →</a>
+      <a href="/blog/health-checkup-items-by-age-2026/">나이별 항목 정리 글 →</a>
+    </div>
+  </div>
+
+  <style>
+    .hc { max-width: 40rem; }
+    .hc-crumb { display: flex; flex-wrap: wrap; gap: 0.45rem; font-size: 0.8rem; color: var(--muted); margin: 0.4rem 0 1.1rem; }
+    .hc-crumb a { color: var(--muted); text-decoration: none; }
+    .hc h1 { font-family: var(--font-serif); font-size: clamp(1.4rem, 4.5vw, 2rem); margin: 0 0 1rem; }
+    .hc-hero { border-radius: 16px; padding: 1.2rem 1.4rem; display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 1.6rem; }
+    .hc-hero.is-yes { background: color-mix(in srgb, #22c55e 12%, var(--paper)); border: 1.5px solid #22c55e; }
+    .hc-hero.is-next { background: var(--paper-2); border: 1px solid var(--line); }
+    .hc-hero b { font-size: 1.15rem; }
+    .hc-hero span { font-size: 0.86rem; color: var(--ink-soft); }
+    .hc-sec { margin-bottom: 1.7rem; }
+    .hc-sec h2 { font-size: 1.1rem; margin: 0 0 0.7rem; }
+    .hc-yrs { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+    .hc-yr { display: flex; flex-direction: column; gap: 0.15rem; padding: 0.8rem 1rem; border: 1px solid var(--line); border-radius: 12px; text-decoration: none; color: var(--ink); }
+    a.hc-yr:hover { border-color: var(--accent); }
+    .hc-yr small { font-size: 0.75rem; color: var(--muted); }
+    .hc-yr b { font-size: 1.1rem; }
+    .hc-yr span { font-size: 0.78rem; color: var(--accent); font-weight: 700; }
+    .hc-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.45rem; }
+    .hc-list li { display: flex; justify-content: space-between; gap: 0.8rem; align-items: baseline; padding: 0.6rem 0.85rem; border: 1px solid var(--line); border-radius: 10px; }
+    .hc-list.is-plus li { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+    .hc-list b { font-size: 0.92rem; }
+    .hc-list span { font-size: 0.78rem; color: var(--muted); text-align: right; }
+    .hc-h3 { font-size: 0.98rem; margin: 1.1rem 0 0.55rem; }
+    .hc-note { font-size: 0.78rem; color: var(--muted); margin: 0.7rem 0 0; line-height: 1.5; }
+    .hc-note a { color: var(--accent); }
+    .hc-empty { font-size: 0.9rem; color: var(--ink-soft); }
+    .hc-faq details { border: 1px solid var(--line); border-radius: 10px; padding: 0.7rem 0.9rem; margin-bottom: 0.45rem; }
+    .hc-faq summary { cursor: pointer; font-weight: 700; font-size: 0.92rem; }
+    .hc-faq p { font-size: 0.88rem; line-height: 1.6; color: var(--ink-soft); margin: 0.5rem 0 0; }
+    .hc-pn { display: flex; justify-content: space-between; gap: 0.6rem; padding-top: 1.2rem; border-top: 1px solid var(--line); }
+    .hc-pn a { font-size: 0.86rem; font-weight: 700; color: var(--accent); text-decoration: none; }
+    .hc-cross { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; margin: 1.6rem 0 1rem; }
+    .hc-cross a { font-size: 0.88rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--line); border-radius: 999px; }
+  </style>
+</BaseLayout>

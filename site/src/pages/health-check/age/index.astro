@@ -1,0 +1,45 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { CHECK_YEAR, AGE_FROM, AGE_TO, ageHeadline, isTransition } from '../../../lib/checkup';
+const ages: number[] = [];
+for (let a = AGE_FROM; a <= AGE_TO; a++) ages.push(a);
+const keyAges = ages.filter((a) => isTransition(a) || a === 54);
+---
+<BaseLayout
+  title={`나이별 건강검진 항목 — 20세부터 80세까지 받는 검사 (${CHECK_YEAR})`}
+  description="나이만 고르면 그 나이에 받는 국가건강검진 항목과 암검진을 알려드려요. 40세·50세·66세처럼 검사가 새로 붙는 나이도 한눈에 볼 수 있어요."
+>
+  <div class="wrap hca">
+    <header class="page-hero">
+      <span class="eyebrow">Health Check</span>
+      <h1>나이별 건강검진 항목</h1>
+      <p>국가건강검진은 2년마다 <b>짝수 나이</b>에 받아요. 내 나이를 눌러 받는 검사를 확인하세요.</p>
+    </header>
+
+    <h2 class="hca-h2">검사가 새로 붙는 나이</h2>
+    <div class="hca-keys">
+      {keyAges.map((a) => <a href={`/health-check/age/${a}/`}><b>{a}세</b><span>{ageHeadline(a)}</span></a>)}
+    </div>
+
+    <h2 class="hca-h2">전체 나이</h2>
+    <div class="hca-grid">
+      {ages.map((a) => <a class={a % 2 === 0 ? 'is-on' : ''} href={`/health-check/age/${a}/`}>{a}세</a>)}
+    </div>
+    <p class="hca-note">※ 검진 나이는 '검진 연도 − 출생연도'입니다. 홀수 나이는 2년 주기 검진이 쉬는 해예요(비사무직 직장가입자와 50세 이상 대장암 검진은 매년). <a href="/health-check/">출생연도로 조회하기 →</a></p>
+  </div>
+  <style>
+    .hca { max-width: 44rem; }
+    .hca-h2 { font-size: 1.05rem; margin: 1.5rem 0 0.7rem; }
+    .hca-keys { display: grid; gap: 0.45rem; }
+    .hca-keys a { display: flex; gap: 0.8rem; align-items: baseline; padding: 0.65rem 0.9rem; border: 1px solid var(--line); border-radius: 10px; text-decoration: none; color: var(--ink); }
+    .hca-keys a:hover { border-color: var(--accent); }
+    .hca-keys b { min-width: 3rem; }
+    .hca-keys span { font-size: 0.85rem; color: var(--ink-soft); }
+    .hca-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(4.2rem, 1fr)); gap: 0.4rem; }
+    .hca-grid a { text-align: center; padding: 0.55rem 0.3rem; border: 1px solid var(--line); border-radius: 10px; text-decoration: none; color: var(--muted); font-weight: 700; font-size: 0.92rem; }
+    .hca-grid a.is-on { color: var(--ink); border-color: color-mix(in srgb, #22c55e 60%, var(--line)); }
+    .hca-grid a:hover { border-color: var(--accent); }
+    .hca-note { font-size: 0.8rem; color: var(--muted); margin: 1rem 0 0; line-height: 1.5; }
+    .hca-note a { color: var(--accent); }
+  </style>
+</BaseLayout>

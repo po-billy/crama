@@ -1,131 +1,165 @@
 ---
+// 출생연도별 건강검진 — 올해 대상이면 올해 기준, 아니면 다음 대상 연도(홀수년생은 2027년) 기준으로 보여 준다.
+// 계산은 lib/checkup.ts. 11월부터 홀수년생이 내년 검진을 미리 찾는 검색이 많아 '다음 대상 연도'를 앞에 둔다.
 import BaseLayout from '../../layouts/BaseLayout.astro';
-
-const THIS_YEAR = 2026; // 짝수해 → 짝수년생 일반검진 대상(지역가입자·피부양자·직장 사무직 기준)
+import { CHECK_YEAR, YEAR_FROM, YEAR_TO, checkAge, isTargetYear, nextTargetYear, extrasFor, cancersFor, ageHeadline, short, parity, BASIC_ITEMS, AGE_FROM, AGE_TO } from '../../lib/checkup';
+import { BORN_FROM, BORN_TO } from '../../lib/people';
 
 export async function getStaticPaths() {
   const list: number[] = [];
-  for (let y = 1947; y <= 2006; y++) list.push(y);
+  for (let y = YEAR_FROM; y <= YEAR_TO; y++) list.push(y);
   return list.map((y) => ({ params: { year: String(y) } }));
 }
 
 const year = Number(Astro.params.year);
-const age = THIS_YEAR - year; // 만 나이(생일 지난 기준)
-const eligible = year % 2 === THIS_YEAR % 2;
-const nextYear = eligible ? THIS_YEAR : THIS_YEAR + 1;
+const s = short(year);
+const nowAge = checkAge(year);
+const isNow = isTargetYear(year, CHECK_YEAR);
+const focusYear = isNow ? CHECK_YEAR : nextTargetYear(year);
+const fAge = checkAge(year, focusYear);
+const extras = extrasFor(fAge);
+const cancers = cancersFor(fAge);
+const nowExtras = nowAge >= 20 ? extrasFor(nowAge) : [];
+const tooYoung = nowAge < 20;
 
-// 연령별 국가암검진(만 나이 기준)
-const cancers = [
-  { name: '위암', ok: age >= 40, rule: '만 40세부터 2년마다 (위내시경)' },
-  { name: '대장암', ok: age >= 50, rule: '만 50세부터 매년 (분변잠혈검사)' },
-  { name: '유방암', ok: age >= 40, rule: '만 40세부터 2년마다 (여성)' },
-  { name: '자궁경부암', ok: age >= 20, rule: '만 20세부터 2년마다 (여성)' },
-  { name: '간암', ok: age >= 40, rule: '만 40세부터, 고위험군 6개월마다' },
-  { name: '폐암', ok: age >= 54 && age <= 74, rule: '만 54~74세 고위험군(장기 흡연) 2년마다' },
+// 앞으로 세 번의 검진 연도
+const timeline = [0, 2, 4].map((d) => {
+  const y = focusYear + d;
+  const a = checkAge(year, y);
+  return { y, a, head: ageHeadline(a) };
+});
+
+// 짝수년생(올해 대상) 제목·설명·h1은 유입이 잘 되던 예전 문구를 그대로 둔다(2026-11 결정). 바꾸려면 서치어드바이저로 비교한 뒤에.
+const pageTitle = isNow
+  ? `${year}년생 건강검진 — ${CHECK_YEAR}년 대상입니다 · 검진 항목`
+  : `${s}년생(${year}년생) 건강검진 — ${focusYear}년 대상 · 받는 검사 미리보기`;
+const pageDesc = isNow
+  ? `${year}년생(${s}년생, 만 ${nowAge}세)은 ${CHECK_YEAR}년 국가건강검진 대상입니다. 받을 수 있는 암검진 ${cancers.length}종과 일반검진 항목, 신청 방법까지 정리했어요.`
+  : `${year}년생(${s}년생)은 ${focusYear}년 국가건강검진 대상(${parity(year)}년생)입니다. ${focusYear}년 검진 나이 ${fAge}세에 받는 무료 검사 항목${extras.length ? `(추가 검사 ${extras.length}개)` : ''}과 암검진 ${cancers.length}종을 미리 정리했어요.`;
+
+const faq = [
+  {
+    q: `${year}년생은 언제 건강검진을 받나요?`,
+    a: isNow
+      ? `${CHECK_YEAR}년이 대상 연도입니다. 2년마다 받는 일반건강검진은 출생연도와 검진 연도의 짝·홀이 같을 때 차례가 오며, ${CHECK_YEAR}년 12월 31일까지 받으면 됩니다. 다음 차례는 ${CHECK_YEAR + 2}년입니다.`
+      : `${focusYear}년이 대상 연도입니다. ${tooYoung ? `${CHECK_YEAR}년에는 아직 20세가 되지 않아 대상이 아니고, ${focusYear}년에 20세로 첫 검진을 받습니다.` : `${CHECK_YEAR}년은 ${parity(CHECK_YEAR)}년생 차례라 쉬는 해입니다. 다만 비사무직 직장가입자는 매년 받습니다.`}`,
+  },
+  {
+    q: `${year}년생은 ${focusYear}년에 몇 살 기준으로 검사를 받나요?`,
+    a: `검진 나이는 생일과 상관없이 검진 연도에서 출생연도를 뺀 ${fAge}세로 셉니다. ${extras.length ? `${fAge}세에는 공통 항목 외에 ${extras.map((e) => e.name).join(', ')} 검사가 추가됩니다.` : `${fAge}세에는 나이로 정해진 추가 검사가 없고 공통 항목만 받습니다.`}`,
+  },
+  {
+    q: '국가건강검진은 무료인가요?',
+    a: '일반건강검진은 공단이 비용을 전액 부담합니다. 암검진은 자궁경부암과 대장암(분변잠혈검사)이 무료이고, 나머지는 본인부담 10%(건강보험료 하위 50%와 의료급여 수급권자는 무료)입니다.',
+  },
 ];
-const myCancers = cancers.filter((c) => c.ok);
-
-// 성·연령별 추가 검사 — 국민건강보험공단 일반건강검진 안내(2026년) 기준. 검진 나이는 '검진 연도 - 출생연도'로 센다.
-// 해마다 조정되므로 1월에 공단 안내를 확인해 고칠 것(2025년 C형간염, 2026년 폐기능 검사가 새로 들어왔다).
-const extras: { name: string; who: string; note: string }[] = [];
-const add = (name: string, who: string, note: string) => extras.push({ name, who, note });
-const lipidM = age >= 24 && (age - 24) % 4 === 0;
-const lipidF = age >= 40 && age % 4 === 0;
-if (lipidM || lipidF) add('이상지질혈증(콜레스테롤)', lipidM && lipidF ? '남녀 모두' : lipidM ? '남성' : '여성', '남성 24세·여성 40세부터 4년마다');
-if (age === 40) add('B형간염', '남녀 모두', '40세에 한 번(보균자·면역자 제외)');
-if (age === 56) add('C형간염', '남녀 모두', '56세에 한 번');
-if (age === 56 || age === 66) add('폐기능 검사', '남녀 모두', '56세·66세에 한 번씩');
-if ([54, 60, 66].includes(age)) add('골밀도 검사', '여성', '54세·60세·66세');
-if (age >= 66) add('인지기능장애 검사', '남녀 모두', '66세부터 2년마다');
-if (age >= 20 && age <= 34) add('정신건강검사(우울증·조기정신증)', '남녀 모두', '20~34세 2년마다');
-if ([40, 50, 60, 70].includes(age)) add('생활습관평가', '남녀 모두', '40·50·60·70세');
-if ([66, 70, 80].includes(age)) add('노인신체기능 검사', '남녀 모두', '66·70·80세');
-if (age === 40) add('치면세균막 검사(구강)', '남녀 모두', '40세');
-const depressionBand = age >= 35 && age <= 79;
-const isTransition = age === 40 || age === 56 || age === 66; // 추가 검사가 여러 개 붙는 나이
-
-const pageTitle = `${year}년생 건강검진 — ${THIS_YEAR}년 대상${eligible ? '입니다' : ' 아님(내년)'} · 검진 항목`;
-const pageDesc = `${year}년생(${String(year).slice(2)}년생, 만 ${age}세)은 ${THIS_YEAR}년 국가건강검진 대상${eligible ? '입니다' : `이 아니며 ${nextYear}년 대상입니다`}. 받을 수 있는 암검진 ${myCancers.length}종과 일반검진 항목, 신청 방법까지 정리했어요.`;
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+const inBorn = year >= BORN_FROM && year <= BORN_TO;
 ---
-<BaseLayout title={pageTitle} description={pageDesc}>
+<BaseLayout title={pageTitle} description={pageDesc} jsonLd={jsonLd}>
   <div class="wrap hc">
     <nav class="hc-crumb"><a href="/">홈</a><span>›</span><a href="/health-check/">건강검진 조회</a><span>›</span><b>{year}년생</b></nav>
-    <h1>{year}년생, 올해 건강검진 대상일까?</h1>
+    <h1>{isNow ? `${year}년생, 올해 건강검진 대상일까?` : `${s}년생 건강검진, ${focusYear}년에 받아요`}</h1>
 
-    <div class={`hc-hero ${eligible ? 'is-yes' : 'is-no'}`}>
-      <b>{eligible ? `✅ ${THIS_YEAR}년 검진 대상입니다` : `⏳ 올해는 아니에요 — ${nextYear}년 대상`}</b>
-      <span>만 {age}세 · {THIS_YEAR}년은 {THIS_YEAR % 2 === 0 ? '짝수' : '홀수'}해라 {THIS_YEAR % 2 === 0 ? '짝수' : '홀수'}년생이 대상 {isTransition ? `· 만 ${age}세 확대 검진(추가 항목) 해당` : ''}</span>
-      {eligible && <em>12월 31일까지 받으면 됩니다 — 연말엔 예약이 몰려요</em>}
+    <div class={`hc-hero ${isNow ? 'is-yes' : 'is-next'}`}>
+      <b>{isNow ? `✅ ${CHECK_YEAR}년 검진 대상입니다` : `📅 ${focusYear}년 검진 대상입니다`}</b>
+      <span>
+        {year}년생 · {focusYear}년 검진 나이 {fAge}세 ·{' '}
+        {tooYoung ? `${CHECK_YEAR}년에는 ${nowAge}세라 아직 대상이 아니에요` : isNow ? `${CHECK_YEAR}년은 ${parity(CHECK_YEAR)}년생 차례` : `${CHECK_YEAR}년은 ${parity(CHECK_YEAR)}년생 차례라 쉬는 해`}
+      </span>
+      {isNow
+        ? <em>12월 31일까지 받으면 됩니다 — 연말엔 예약이 몰려요</em>
+        : <em>{focusYear}년 초 검진 대상이 확정되면 바로 받을 수 있어요{tooYoung ? ' — 첫 국가건강검진이에요' : ''}</em>}
     </div>
 
     <section class="hc-sec">
-      <h2>받을 수 있는 국가암검진 {myCancers.length}종</h2>
-      {myCancers.length ? (
+      <h2>{focusYear}년에 받는 국가암검진 {cancers.length}종</h2>
+      {cancers.length ? (
         <ul class="hc-list">
-          {myCancers.map((c) => <li><b>{c.name}</b><span>{c.rule}</span></li>)}
+          {cancers.map((c) => <li><b>{c.name}{c.sex === 'f' ? ' (여성)' : ''}{c.risk ? ' (고위험군)' : ''}</b><span>{c.rule} · {c.how}</span></li>)}
         </ul>
-      ) : <p class="hc-empty">아직 암검진 대상 연령(만 20세~)이 아니에요. 일반검진(진찰·혈액·소변 등)은 만 20세부터!</p>}
-      <p class="hc-note">※ 유방암·자궁경부암은 여성 대상. 간암·폐암은 고위험군 기준. 비사무직 직장가입자는 일반검진을 매년 받아요.</p>
+      ) : <p class="hc-empty">{fAge}세는 아직 암검진 대상 연령이 아니에요. 자궁경부암 검진(여성)이 20세부터 시작돼요.</p>}
+      <p class="hc-note">※ 간암은 B·C형 간염 보유자나 간경변 등 고위험군, 폐암은 30갑년 이상 흡연력이 있는 고위험군만 대상입니다. 출생연도·성별로 다시 확인하려면 <a href="/health-check/cancer/">암검진 대상 조회</a>를 쓰세요.</p>
     </section>
 
     <section class="hc-sec">
-      <h2>{year}년생 일반건강검진 항목</h2>
+      <h2>{s}년생 일반건강검진 항목 ({focusYear}년, {fAge}세)</h2>
+      <h3 class="hc-h3">누구나 받는 공통 검사</h3>
       <ul class="hc-list">
-        <li><b>진찰·상담</b><span>문진, 과거 병력과 생활 습관 확인</span></li>
-        <li><b>신체 계측</b><span>키, 몸무게, 허리둘레, 체질량지수</span></li>
-        <li><b>혈압·시력·청력</b><span>기본 측정</span></li>
-        <li><b>흉부 방사선 촬영</b><span>폐와 심장 상태 확인</span></li>
-        <li><b>혈액 검사</b><span>빈혈, 공복혈당, 간 기능, 신장 기능</span></li>
-        <li><b>소변 검사</b><span>요단백</span></li>
-        <li><b>구강 검진</b><span>치과에서 따로 받음</span></li>
+        {BASIC_ITEMS.map((b) => <li><b>{b.name}</b><span>{b.desc}</span></li>)}
       </ul>
-      <p class="hc-note">※ 모든 대상자가 받는 공통 항목입니다.</p>
 
-      <h3 class="hc-h3">{year}년생이 {THIS_YEAR}년에 추가로 받는 검사</h3>
+      <h3 class="hc-h3">{fAge}세라서 추가로 받는 검사</h3>
       {extras.length ? (
-        <ul class="hc-list">
-          {extras.map((e) => <li><b>{e.name}</b><span>{e.who} · {e.note}</span></li>)}
+        <ul class="hc-list is-plus">
+          {extras.map((e) => <li><b>+ {e.name}</b><span>{e.who} · {e.note}</span></li>)}
         </ul>
-      ) : <p class="hc-empty">{THIS_YEAR}년 검진 나이 {age}세에는 나이로 정해진 추가 검사가 없어요. 공통 항목만 받습니다.</p>}
-      <p class="hc-note">※ 검진 나이는 {THIS_YEAR}년에서 출생연도를 뺀 {age}세로 계산했습니다(국민건강보험공단 {THIS_YEAR}년 안내 기준).{depressionBand ? ' 우울증 검사는 30대 후반부터 70대까지 연령대마다 한 번씩 받는데, 받는 해는 검진표에 표시됩니다.' : ''}{eligible ? '' : ` ${year}년생은 2년 주기로는 ${nextYear}년 대상이라, 위 항목은 비사무직 직장가입자처럼 올해 검진을 받는 경우에 해당합니다.`} 실제 항목은 공단이 보내는 검진표가 기준이니, 검진표나 건강보험25시 앱(옛 The건강보험), 공단 고객센터(1577-1000)에서 확인하세요. 자세한 설명은 <a href="/blog/health-checkup-items-by-age-2026/">나이별 건강검진 항목 정리</a>에 있습니다.</p>
+      ) : <p class="hc-empty">{fAge}세에는 나이로 정해진 추가 검사가 없어요. 공통 항목만 받습니다.</p>}
+      <p class="hc-note">※ 검진 나이는 생일과 상관없이 {focusYear}에서 출생연도를 뺀 {fAge}세로 계산했습니다(국민건강보험공단 {CHECK_YEAR}년 안내 기준{isNow ? '' : `, ${focusYear}년 기준이 바뀌면 고쳐 둘게요`}). 우울증 검사는 30대 후반부터 70대까지 연령대마다 한 번씩 받는데, 받는 해는 검진표에 표시됩니다. 실제 항목은 공단이 보내는 검진표가 기준이니 건강보험25시 앱(옛 The건강보험)이나 공단 고객센터(1577-1000)에서 확인하세요.</p>
+    </section>
+
+    {!isNow && !tooYoung && (
+      <section class="hc-sec hc-box">
+        <h2>비사무직이라 {CHECK_YEAR}년에 받는다면</h2>
+        <p>비사무직 직장가입자는 출생연도와 상관없이 매년 검진을 받아요. {CHECK_YEAR}년에는 검진 나이 {nowAge}세 기준으로{nowExtras.length ? <> 공통 항목에 <b>{nowExtras.map((e) => e.name).join(', ')}</b>이 붙습니다.</> : ' 공통 항목만 받습니다.'}</p>
+        <p class="hc-note">사무직·비사무직 구분은 <a href="/blog/office-or-non-office-worker-checkup-criteria/">직종별 기준 정리</a>에 있어요.</p>
+      </section>
+    )}
+
+    <section class="hc-sec">
+      <h2>{s}년생 앞으로의 검진 연도</h2>
+      <div class="hc-tl">
+        {timeline.map((t, i) => (
+          <a class={`hc-tl-row ${i === 0 ? 'is-cur' : ''}`} href={t.a >= AGE_FROM && t.a <= AGE_TO ? `/health-check/age/${t.a}/` : undefined}>
+            <b>{t.y}년</b><span class="hc-tl-age">{t.a}세</span><span class="hc-tl-head">{t.head}</span>
+          </a>
+        ))}
+      </div>
+      <p class="hc-note">※ 대장암 검진(50세부터)은 매년, 나머지 일반검진과 암검진은 2년마다입니다.</p>
     </section>
 
     <section class="hc-sec">
       <h2>어떻게 받나</h2>
       <ul class="hc-steps">
-        <li><b>대상 확인</b> — 국민건강보험공단에서 검진표 발송(모바일 확인 가능)</li>
+        <li><b>대상 확인</b> — 건강보험25시 앱이나 공단 홈페이지 건강모아에서 조회(검진표는 모바일로도 와요)</li>
         <li><b>병원 예약</b> — 공단 홈페이지·앱에서 가까운 검진기관 검색 후 예약</li>
-        <li><b>무료</b> — 국가검진 항목은 본인부담 없음(추가 선택 항목만 유료)</li>
+        <li><b>무료</b> — 일반검진 항목은 본인부담 없음(추가 선택 항목만 유료)</li>
       </ul>
+    </section>
+
+    <section class="hc-sec">
+      <h2>자주 묻는 질문</h2>
+      <div class="hc-faq">
+        {faq.map((f) => <details><summary>{f.q}</summary><p>{f.a}</p></details>)}
+      </div>
     </section>
 
     <section class="hc-sec">
       <h2>함께 읽으면 좋은 글</h2>
       <ul class="hc-reads">
-        <li><a href="/blog/health-checkup-items-by-age-2026/">{THIS_YEAR}년 건강검진 항목, 나이별·성별 정리</a></li>
-        <li><a href="/blog/health-checkup-deadline-missed-2026/">12월 31일까지 못 받으면 어떻게 되나</a></li>
+        {!isNow && <li><a href="/blog/health-checkup-2027-odd-year-born/">2027년 건강검진 대상은 홀수년생</a></li>}
+        <li><a href="/blog/health-checkup-items-by-age-2026/">건강검진 항목, 나이별·성별 정리</a></li>
+        {isNow && <li><a href="/blog/health-checkup-deadline-missed-2026/">12월 31일까지 못 받으면 어떻게 되나</a></li>}
         <li><a href="/blog/health-checkup-eligibility-check-how-to/">건강검진 대상인지 확인하는 법</a></li>
         <li><a href="/blog/health-checkup-office-vs-non-office-worker/">사무직·비사무직 검진 주기 차이</a></li>
-        <li><a href="/blog/office-or-non-office-worker-checkup-criteria/">나는 사무직일까 비사무직일까, 직종별 기준</a></li>
         <li><a href="/blog/national-cancer-screening-by-age/">국가 암검진 6종, 나이별로 받는 것</a></li>
         <li><a href="/blog/colon-stomach-cancer-screening-where-cost/">대장암·위암 검진 받는 곳과 비용</a></li>
         <li><a href="/blog/employee-health-checkup-employer-duties/">직원 건강검진, 회사가 챙길 일</a></li>
-        {!eligible && <li><a href="/blog/health-checkup-2027-odd-year-born/">2027년 건강검진 대상은 홀수년생</a></li>}
       </ul>
     </section>
 
     <div class="hc-pn">
-      {year > 1947 && <a href={`/health-check/${year - 1}/`}>← {year - 1}년생</a>}
+      {year > YEAR_FROM ? <a href={`/health-check/${year - 1}/`}>← {short(year - 1)}년생</a> : <span></span>}
       <a href="/health-check/">전체 표</a>
-      {year < 2006 && <a href={`/health-check/${year + 1}/`}>{year + 1}년생 →</a>}
+      {year < YEAR_TO ? <a href={`/health-check/${year + 1}/`}>{short(year + 1)}년생 →</a> : <span></span>}
     </div>
     <div class="hc-cross">
-      <a href={`/born/${year}/`}>{year}년생 나이·띠·같은 해 인물 →</a>
-      <a href={`/pension-age/${year}/`}>{year}년생 국민연금 수령 나이 →</a>
-      <a href={`/samjae/${year}/`}>{year}년생 삼재 →</a>
+      {fAge >= AGE_FROM && fAge <= AGE_TO && <a href={`/health-check/age/${fAge}/`}>{fAge}세 건강검진 →</a>}
+      {inBorn && <a href={`/born/${year}/`}>{year}년생 나이·띠 →</a>}
+      {inBorn && <a href={`/pension-age/${year}/`}>{year}년생 국민연금 →</a>}
+      {inBorn && <a href={`/samjae/${year}/`}>{year}년생 삼재 →</a>}
       <a href="/health-check/cancer/">암검진 대상 조회 →</a>
       <a href="/welfare/">의료비 지원 복지 찾기 →</a>
-      <a href="/benefits/">내 지원금 매칭 →</a>
     </div>
   </div>
 
@@ -136,18 +170,32 @@ const pageDesc = `${year}년생(${String(year).slice(2)}년생, 만 ${age}세)�
     .hc h1 { font-family: var(--font-serif); font-size: clamp(1.4rem, 4.5vw, 2rem); margin: 0 0 1rem; }
     .hc-hero { border-radius: 16px; padding: 1.2rem 1.4rem; display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 1.6rem; }
     .hc-hero.is-yes { background: color-mix(in srgb, #22c55e 12%, var(--paper)); border: 1.5px solid #22c55e; }
-    .hc-hero.is-no { background: var(--paper-2); border: 1px solid var(--line); }
+    .hc-hero.is-next { background: color-mix(in srgb, #3b82f6 10%, var(--paper)); border: 1.5px solid #3b82f6; }
     .hc-hero b { font-size: 1.15rem; }
     .hc-hero span { font-size: 0.86rem; color: var(--ink-soft); }
-    .hc-hero em { font-style: normal; font-size: 0.82rem; color: #16a34a; font-weight: 700; }
+    .hc-hero em { font-style: normal; font-size: 0.82rem; font-weight: 700; }
+    .hc-hero.is-yes em { color: #16a34a; }
+    .hc-hero.is-next em { color: #2563eb; }
     .hc-sec { margin-bottom: 1.7rem; }
     .hc-sec h2 { font-size: 1.1rem; margin: 0 0 0.7rem; }
     .hc-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.45rem; }
     .hc-list li { display: flex; justify-content: space-between; gap: 0.8rem; align-items: baseline; padding: 0.6rem 0.85rem; border: 1px solid var(--line); border-radius: 10px; }
+    .hc-list.is-plus li { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
     .hc-list b { font-size: 0.92rem; }
     .hc-list span { font-size: 0.78rem; color: var(--muted); text-align: right; }
-    .hc-h3 { font-size: 1rem; margin: 1.3rem 0 0.6rem; }
-    .hc-note a { color: var(--accent); }
+    .hc-h3 { font-size: 0.98rem; margin: 1.1rem 0 0.55rem; }
+    .hc-note a, .hc-box a { color: var(--accent); }
+    .hc-box { padding: 1rem 1.2rem; border: 1px dashed var(--line); border-radius: 14px; }
+    .hc-box p { font-size: 0.92rem; line-height: 1.6; margin: 0; color: var(--ink-soft); }
+    .hc-tl { display: grid; gap: 0.4rem; }
+    .hc-tl-row { display: grid; grid-template-columns: 4.2rem 3rem 1fr; gap: 0.6rem; align-items: baseline; padding: 0.6rem 0.85rem; border: 1px solid var(--line); border-radius: 10px; text-decoration: none; color: var(--ink); }
+    .hc-tl-row.is-cur { border-color: var(--accent); }
+    .hc-tl-row[href]:hover { border-color: var(--accent); }
+    .hc-tl-age { font-size: 0.85rem; color: var(--muted); }
+    .hc-tl-head { font-size: 0.84rem; color: var(--ink-soft); }
+    .hc-faq details { border: 1px solid var(--line); border-radius: 10px; padding: 0.7rem 0.9rem; margin-bottom: 0.45rem; }
+    .hc-faq summary { cursor: pointer; font-weight: 700; font-size: 0.92rem; }
+    .hc-faq p { font-size: 0.88rem; line-height: 1.6; color: var(--ink-soft); margin: 0.5rem 0 0; }
     .hc-reads { margin: 0; padding-left: 1.1rem; display: grid; gap: 0.45rem; font-size: 0.93rem; }
     .hc-reads a { color: var(--accent); font-weight: 700; text-decoration: none; }
     .hc-reads a:hover { text-decoration: underline; }

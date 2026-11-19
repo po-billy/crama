@@ -1,27 +1,51 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-const THIS_YEAR = 2026;
+import { CHECK_YEAR, NEXT_YEAR, YEAR_FROM, YEAR_TO, isTargetYear, short, parity } from '../../lib/checkup';
 const years: number[] = [];
-for (let y = 2006; y >= 1947; y--) years.push(y);
+for (let y = YEAR_TO; y >= YEAR_FROM; y--) years.push(y);
+const nowList = years.filter((y) => isTargetYear(y, CHECK_YEAR));
+const nextList = years.filter((y) => isTargetYear(y, NEXT_YEAR));
 ---
 <BaseLayout
-  title="건강검진 대상 조회 2026 — 내 출생연도는?"
-  description="2026년 국가건강검진 대상은 짝수년생. 출생연도를 고르면 대상 여부·받을 수 있는 암검진·신청 방법을 바로 알려드려요."
+  title={`건강검진 대상자 조회 ${CHECK_YEAR}·${NEXT_YEAR} — 내 출생연도는 언제 받나`}
+  description={`${CHECK_YEAR}년 국가건강검진 대상은 ${parity(CHECK_YEAR)}년생, ${NEXT_YEAR}년 대상은 ${parity(NEXT_YEAR)}년생이에요. 출생연도를 고르면 대상 연도, 받는 검사 항목, 암검진까지 바로 알려드려요.`}
 >
   <div class="wrap hcx">
     <header class="page-hero">
       <span class="eyebrow">Health Check</span>
-      <h1>건강검진 대상 조회 <span class="hcx-y">2026</span></h1>
-      <p>{THIS_YEAR}년은 <b>짝수해 → 짝수년생</b>이 국가건강검진 대상입니다. 내 출생연도를 눌러 확인하세요.</p>
+      <h1>건강검진 대상자 조회 <span class="hcx-y">{CHECK_YEAR}·{NEXT_YEAR}</span></h1>
+      <p><b>{CHECK_YEAR}년은 {parity(CHECK_YEAR)}년생</b>, <b>{NEXT_YEAR}년은 {parity(NEXT_YEAR)}년생</b>이 국가건강검진 대상입니다. 내 출생연도를 눌러 받는 검사를 확인하세요.</p>
     </header>
+    <div class="hcx-legend"><span class="is-on">{CHECK_YEAR}년 대상</span><span class="is-next">{NEXT_YEAR}년 대상</span></div>
     <div class="hcx-grid">
-      {years.map((y) => (
-        <a class={`hcx-y-item ${y % 2 === 0 ? 'is-on' : ''}`} href={`/health-check/${y}/`}>
-          {y}<small>{y % 2 === 0 ? '올해 대상' : '내년'}</small>
-        </a>
-      ))}
+      {years.map((y) => {
+        const now = isTargetYear(y, CHECK_YEAR);
+        return (
+          <a class={`hcx-y-item ${now ? 'is-on' : 'is-next'}`} href={`/health-check/${y}/`}>
+            {y}<small>{now ? `${CHECK_YEAR} 대상` : `${NEXT_YEAR} 대상`}</small>
+          </a>
+        );
+      })}
     </div>
+
+    <section class="hcx-sec">
+      <h2>{NEXT_YEAR}년 건강검진 대상자</h2>
+      <p>{NEXT_YEAR}년에는 {parity(NEXT_YEAR)}해라 <b>{parity(NEXT_YEAR)}년생</b>이 2년 주기 일반건강검진을 받습니다. {YEAR_TO}년생은 {NEXT_YEAR}년에 20세가 되어 첫 검진을 받아요. 올해 대상이었는데 못 받은 분은 공단에 '전년도 미수검자 추가 등록'을 신청하면 {NEXT_YEAR}년 대상에 넣어 줍니다.</p>
+      <div class="hcx-chips">
+        {nextList.slice(0, 30).map((y) => <a href={`/health-check/${y}/`}>{short(y)}년생</a>)}
+      </div>
+    </section>
+
+    <section class="hcx-sec">
+      <h2>{CHECK_YEAR}년 건강검진 대상자</h2>
+      <p>{CHECK_YEAR}년 대상인 {parity(CHECK_YEAR)}년생은 12월 31일까지 받아야 합니다. 비사무직 직장가입자는 출생연도와 상관없이 매년 대상이에요.</p>
+      <div class="hcx-chips">
+        {nowList.slice(0, 30).map((y) => <a href={`/health-check/${y}/`}>{short(y)}년생</a>)}
+      </div>
+    </section>
+
     <div class="hcx-more">
+      <a href="/health-check/age/">나이별 검진 항목 →</a>
       <a href="/health-check/cancer/">암검진 대상 조회 →</a>
       <a href="/born/">출생연도별 나이·띠 →</a>
       <a href="/health/bmi/">BMI 계산기 →</a>
@@ -31,13 +55,25 @@ for (let y = 2006; y >= 1947; y--) years.push(y);
   <style>
     .hcx { max-width: 44rem; }
     .hcx-y { color: var(--accent); }
-    .hcx-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(5.2rem, 1fr)); gap: 0.45rem; margin-top: 1.3rem; }
+    .hcx-legend { display: flex; gap: 0.8rem; margin-top: 1.1rem; font-size: 0.8rem; color: var(--muted); }
+    .hcx-legend span::before { content: ''; display: inline-block; width: 0.7rem; height: 0.7rem; border-radius: 3px; margin-right: 0.3rem; vertical-align: -1px; }
+    .hcx-legend .is-on::before { background: #22c55e; }
+    .hcx-legend .is-next::before { background: #3b82f6; }
+    .hcx-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(5.2rem, 1fr)); gap: 0.45rem; margin-top: 0.6rem; }
     .hcx-y-item { display: flex; flex-direction: column; align-items: center; gap: 0.1rem; padding: 0.55rem 0.3rem; border: 1px solid var(--line); border-radius: 10px; text-decoration: none; color: var(--ink); font-weight: 700; font-size: 0.95rem; }
     .hcx-y-item small { font-size: 0.62rem; font-weight: 600; color: var(--muted); }
     .hcx-y-item.is-on { border-color: #22c55e; background: color-mix(in srgb, #22c55e 10%, var(--paper)); }
     .hcx-y-item.is-on small { color: #16a34a; }
+    .hcx-y-item.is-next { border-color: color-mix(in srgb, #3b82f6 45%, var(--line)); }
+    .hcx-y-item.is-next small { color: #2563eb; }
     .hcx-y-item:hover { border-color: var(--accent); }
-    .hcx-more { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.2rem; }
+    .hcx-sec { margin-top: 1.8rem; }
+    .hcx-sec h2 { font-size: 1.08rem; margin: 0 0 0.5rem; }
+    .hcx-sec p { font-size: 0.92rem; line-height: 1.6; color: var(--ink-soft); margin: 0 0 0.7rem; }
+    .hcx-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .hcx-chips a { font-size: 0.82rem; padding: 0.3rem 0.65rem; border: 1px solid var(--line); border-radius: 999px; text-decoration: none; color: var(--ink-soft); }
+    .hcx-chips a:hover { border-color: var(--accent); color: var(--accent); }
+    .hcx-more { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.6rem; }
     .hcx-more a { font-size: 0.9rem; font-weight: 700; color: var(--accent); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--line); border-radius: 999px; }
     .hcx-more a:hover { border-color: var(--accent); }
     .hcx-note { font-size: 0.8rem; color: var(--muted); margin: 1rem 0 0; }

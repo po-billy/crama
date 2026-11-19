@@ -55,6 +55,10 @@ export const FUN = [
 
 // 새로 나왔어요 — 새 페이지를 만들면 맨 위에 추가(위에서 6개만 노출)
 export const NEW_ITEMS = [
+  { name: '출산예정일 계산기', href: '/mom/', desc: '오늘 임신 몇 주 며칠, 내 일정표' },
+  { name: '아기 100일 계산기', href: '/mom/baby/', desc: '50일·100일·돌, 예방접종 날짜' },
+  { name: '예비군 연차 계산기', href: '/reserve/', desc: '올해 몇 년차, 받는 훈련' },
+  { name: '나이별 건강검진 항목', href: '/health-check/age/', desc: '42세·50세, 내 나이에 받는 검사' },
   { name: '연말정산 계산기', href: '/year-end-tax/', desc: '환급받을까 더 낼까, 2026년 귀속' },
   { name: '삼재 조회', href: '/samjae/', desc: '올해 삼재띠와 내 삼재 연도' },
   { name: '입학·졸업 연도', href: '/school/', desc: '올해 학년, 학번, 수능 연도' },
@@ -72,7 +76,7 @@ export const NEW_ITEMS = [
 ];
 
 // 이 영역을 붙이는 주소(조회·계산기·게임·운세·테스트). 홈, 글, 회원 화면, 목록이 넓은 복지·청년 화면은 제외.
-export const RAIL_RE = /^\/(hub|born|samjae|school|pension-age|age|dday|lunar|holidays|business-days|fortune|tarot|name-match|zodiac-match|lotto|lunch|games|pick|calc|convert|health|health-check|salary|year-end-tax|wage|severance|insurance|freelance-tax|realty-fee|minimum-wage|unemployment|interest|tools|car-tax|gift-tax|inheritance-tax|property-tax|discharge|median-income|quiz|tax|rate-calendar)(\/|$)/;
+export const RAIL_RE = /^\/(hub|born|samjae|school|pension-age|age|dday|lunar|holidays|business-days|fortune|tarot|name-match|zodiac-match|lotto|lunch|games|pick|calc|convert|health|health-check|salary|year-end-tax|wage|severance|insurance|freelance-tax|realty-fee|minimum-wage|unemployment|interest|tools|car-tax|gift-tax|inheritance-tax|property-tax|discharge|reserve|mom|median-income|quiz|tax|rate-calendar)(\/|$)/;
 
 const clean = (h: string) => h.split('#')[0];
 /** 지금 주소가 속한 분야와, 그 분야의 다른 페이지들 */

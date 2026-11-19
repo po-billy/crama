@@ -1,0 +1,159 @@
+---
+// 아기 100일 계산기 — 출생일 하나로 50일·100일·돌, 예방접종, 영유아검진, 지원금 끝나는 날을 보여 준다.
+// 출생일은 기기(localStorage 'crama:mom-baby')에만 저장.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/mom.css';
+import { MOM_BRAND, BABY_DAYS, VACCINES, INFANT_CHECKS, SUPPORTS, SUPPORT_NOTE } from '../../lib/mom';
+
+const faq = [
+  { q: '아기 100일은 어떻게 세나요?', a: '태어난 날을 1일로 셉니다. 그래서 100일은 출생일에 99일을 더한 날이에요. 50일도 같은 방식으로 출생일에 49일을 더해요.' },
+  { q: '돌은 언제인가요?', a: '태어난 지 1년이 되는 첫 생일이 돌이에요. 돌잔치는 보통 돌 전후 주말에 많이 해요.' },
+  { q: '예방접종 날짜를 놓치면 어떻게 하나요?', a: '늦어도 접종은 이어서 받을 수 있지만 백신에 따라 횟수가 달라질 수 있어요. 질병관리청 예방접종도우미(nip.kdca.go.kr)에서 아이 접종 기록을 확인하고 소아청소년과와 상담하세요.' },
+  { q: '영유아건강검진은 언제 받나요?', a: '생후 14일부터 71개월까지 차수별로 정해진 기간 안에 받아요. 기간이 지나면 그 차수는 받을 수 없으니 국민건강보험공단 홈페이지의 영유아 검진일자 조회로 확인하세요.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout
+  title="아기 100일 계산기 — 50일·100일·돌 날짜, 예방접종·영유아검진 일정"
+  description="아기 생일만 넣으면 50일, 100일, 200일, 돌, 1000일 날짜와 예방접종·영유아건강검진 일정, 부모급여·첫만남이용권이 끝나는 날까지 한 번에 보여 드려요."
+  jsonLd={jsonLd}
+>
+  <div class="wrap mm">
+    <nav class="mm-crumb"><a href="/mom/">{MOM_BRAND}</a> › 아기 100일 계산기</nav>
+    <span class="mm-brand">{MOM_BRAND}</span>
+    <h1>아기 100일 · 돌 계산기</h1>
+    <p class="mm-lead">아기 생일만 넣으세요. <b>기념일, 예방접종, 영유아검진, 지원금 끝나는 날</b>까지 날짜로 정리해 드려요. 생일은 이 기기에만 저장돼요.</p>
+
+    <div class="mm-card mm-form">
+      <div class="mm-row">
+        <label>아기 생일<input id="bb-date" type="date" /></label>
+        <label>아기 이름(선택)<input id="bb-name" type="text" maxlength="10" placeholder="태명도 좋아요" /></label>
+      </div>
+      <button type="button" class="mm-btn" id="bb-go">계산하기</button>
+    </div>
+
+    <div class="mm-out" id="bb-out" hidden>
+      <div class="mm-now">
+        <small id="bb-who">우리 아기</small>
+        <b id="bb-day">-</b>
+        <span id="bb-sub">-</span>
+      </div>
+      <section class="mm-sec" style="margin:0.4rem 0 0">
+        <h2>기념일</h2>
+        <table class="mm-table"><tbody id="bb-days"></tbody></table>
+      </section>
+      <section class="mm-sec" style="margin:0.4rem 0 0">
+        <h2>예방접종 일정</h2>
+        <table class="mm-table"><thead><tr><th>시기</th><th>백신</th><th class="r">날짜</th></tr></thead><tbody id="bb-vac"></tbody></table>
+        <p class="mm-note">※ 질병관리청 표준예방접종일정표 기준의 권장 시기예요. 접종 전 예방접종도우미(nip.kdca.go.kr)나 소아청소년과에서 다시 확인하세요.</p>
+      </section>
+      <section class="mm-sec" style="margin:0.4rem 0 0">
+        <h2>영유아건강검진</h2>
+        <table class="mm-table"><thead><tr><th>차수</th><th class="r">받을 수 있는 기간</th></tr></thead><tbody id="bb-chk"></tbody></table>
+        <p class="mm-note">※ 기간이 지나면 그 차수는 받을 수 없어요. 정확한 기간은 국민건강보험공단 '영유아 검진일자 조회'로 확인하세요.</p>
+      </section>
+      <section class="mm-sec" style="margin:0.4rem 0 0">
+        <h2>지원금 끝나는 날</h2>
+        <table class="mm-table"><tbody id="bb-sup"></tbody></table>
+      </section>
+      <button type="button" class="mm-reset" id="bb-reset">저장한 생일 지우기</button>
+    </div>
+
+    <section class="mm-sec">
+      <h2>기념일 세는 법</h2>
+      <p>50일, 100일은 태어난 날을 1일로 세요. 예를 들어 1월 1일에 태어난 아기의 100일은 4월 10일이에요(윤년이 아닐 때). 돌은 1년 뒤 같은 날, 첫 생일이에요.</p>
+      <table class="mm-table"><tbody>{BABY_DAYS.map((d) => <tr><td>{d.name}</td><td class="r">{d.add !== undefined ? `출생일 + ${d.add}일` : '1년 뒤 같은 날'}</td></tr>)}</tbody></table>
+    </section>
+
+    <section class="mm-sec">
+      <h2>개월별 예방접종 한눈에</h2>
+      <table class="mm-table"><thead><tr><th>시기</th><th>백신</th></tr></thead>
+        <tbody>{VACCINES.map((v) => <tr><td>{v.m === 0 ? '출생 직후' : v.m >= 48 ? '만 4~6세' : `${v.m}개월`}</td><td>{v.name}{v.note ? <small> · {v.note}</small> : ''}</td></tr>)}</tbody>
+      </table>
+    </section>
+
+    <section class="mm-sec">
+      <h2>받을 수 있는 지원금</h2>
+      <table class="mm-table"><tbody>{SUPPORTS.slice(1).map((s) => <tr><td>{s.when}</td><td><b>{s.name}</b><br /><small>{s.amount}</small></td></tr>)}</tbody></table>
+      <p class="mm-note">{SUPPORT_NOTE}</p>
+    </section>
+
+    <section class="mm-sec">
+      <h2>자주 묻는 질문</h2>
+      <div class="mm-faq">{faq.map((f) => <details><summary>{f.q}</summary><p>{f.a}</p></details>)}</div>
+    </section>
+
+    <div class="mm-chips">
+      <a href="/mom/support/">임신·출산 지원금 총정리 →</a>
+      <a href="/mom/">출산예정일 계산기 →</a>
+      <a href="/school/">초등학교 입학 연도 →</a>
+    </div>
+  </div>
+
+  <script is:inline define:vars={{ BABY_DAYS, VACCINES, INFANT_CHECKS }}>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const KEY = 'crama:mom-baby';
+      const DAY = 86400000;
+      const parse = (s) => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+      const addD = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+      const addM = (d, n) => new Date(d.getFullYear(), d.getMonth() + n, d.getDate());
+      const fmt = (d) => `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`;
+      const WD = '일월화수목금토';
+      const today = () => { const t = new Date(); return new Date(t.getFullYear(), t.getMonth(), t.getDate()); };
+      const dd = (d) => { const n = Math.round((d - today()) / DAY); return n > 0 ? `D-${n}` : n === 0 ? '오늘' : '지남'; };
+      function render(st) {
+        const b = parse(st.date), t = today();
+        const days = Math.round((t - b) / DAY) + 1;
+        let months = (t.getFullYear() - b.getFullYear()) * 12 + t.getMonth() - b.getMonth();
+        if (t.getDate() < b.getDate()) months--;
+        $('bb-out').hidden = false;
+        $('bb-who').textContent = st.name ? st.name : '우리 아기';
+        $('bb-day').textContent = days > 0 ? `태어난 지 ${days.toLocaleString()}일째` : '태어나기 전';
+        $('bb-sub').textContent = days > 0 ? `생후 ${months}개월 · ${fmt(b)} 출생` : '생일을 다시 확인해 주세요';
+        $('bb-days').innerHTML = BABY_DAYS.map((x) => {
+          const d = x.addYear ? addM(b, 12) : addD(b, x.add);
+          return `<tr class="${d < t ? 'is-past' : ''}"><td>${x.name}</td><td class="r">${fmt(d)} (${WD[d.getDay()]})</td><td class="r">${dd(d)}</td></tr>`;
+        }).join('');
+        let marked = false;
+        $('bb-vac').innerHTML = VACCINES.map((v) => {
+          const d = addM(b, v.m);
+          const past = addM(d, 1) < t;
+          let cls = past ? 'is-past' : '';
+          if (!past && !marked) { cls = 'is-next'; marked = true; }
+          const when = v.m === 0 ? '출생 직후' : v.m >= 48 ? '만 4~6세' : `${v.m}개월`;
+          return `<tr class="${cls}"><td class="nw">${when}</td><td>${v.name}${v.note ? `<br><small>${v.note}</small>` : ''}</td><td class="r">${v.m >= 48 ? fmt(d) + '~' : fmt(d)}</td></tr>`;
+        }).join('');
+        marked = false;
+        $('bb-chk').innerHTML = INFANT_CHECKS.map((c) => {
+          const s = c.fromD !== undefined ? addD(b, c.fromD) : addM(b, c.fromM);
+          const e = c.toD !== undefined ? addD(b, c.toD) : addD(addM(b, c.toM + 1), -1);
+          const past = e < t;
+          let cls = past ? 'is-past' : '';
+          if (!past && !marked) { cls = 'is-next'; marked = true; }
+          const when = c.fromD !== undefined ? `생후 ${c.fromD}~${c.toD}일` : `${c.fromM}~${c.toM}개월`;
+          return `<tr class="${cls}"><td>${c.name}<br><small>${when}</small></td><td class="r">${fmt(s)} ~ ${fmt(e)}</td></tr>`;
+        }).join('');
+        const sup = [
+          ['첫만남이용권 사용 기한', addD(addM(b, 24), -1)],
+          ['부모급여 월 100만 원 (0~11개월)', addD(addM(b, 12), -1)],
+          ['부모급여 월 50만 원 (12~23개월)', addD(addM(b, 24), -1)],
+          ['아동수당 (만 9세 전까지)', addD(addM(b, 108), -1)],
+        ];
+        $('bb-sup').innerHTML = sup.map(([n, d]) => `<tr class="${d < t ? 'is-past' : ''}"><td>${n}</td><td class="r">~${fmt(d)}</td></tr>`).join('');
+      }
+      function go() {
+        const v = $('bb-date').value; if (!v) return;
+        const st = { date: v, name: $('bb-name').value.trim() };
+        try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {}
+        render(st);
+      }
+      $('bb-go').addEventListener('click', go);
+      $('bb-reset').addEventListener('click', () => { try { localStorage.removeItem(KEY); } catch (e) {} $('bb-out').hidden = true; $('bb-date').value = ''; $('bb-name').value = ''; });
+      try {
+        const st = JSON.parse(localStorage.getItem(KEY) || 'null');
+        if (st && st.date) { $('bb-date').value = st.date; $('bb-name').value = st.name || ''; render(st); }
+      } catch (e) {}
+    })();
+  </script>
+</BaseLayout>

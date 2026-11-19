@@ -1,0 +1,192 @@
+---
+// 크라마 맘 — 임신 주수·출산예정일 계산기(서비스 첫 화면).
+// 입력한 날짜는 기기(localStorage 'crama:mom')에만 저장하고, 다시 오면 오늘 주수와 할 일을 바로 보여 준다.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/mom.css';
+import { MOM_BRAND, TASKS, WEEK_FROM, WEEK_TO, monthOfWeek } from '../../lib/mom';
+import { WEEKS } from '../../data/mom-weeks';
+
+const slimWeeks = WEEKS.map((w) => ({ w: w.w, like: w.like, len: w.len, wt: w.wt }));
+const weeks = WEEKS.map((w) => w.w);
+const faq = [
+  { q: '출산예정일은 어떻게 계산하나요?', a: '마지막 생리 시작일에 280일(40주)을 더합니다. 생리 주기가 28일보다 길거나 짧으면 그 차이만큼 예정일을 늦추거나 당겨요. 초음파로 잰 크기에 따라 병원에서 예정일을 조정하기도 해요.' },
+  { q: '임신 주수는 언제부터 세나요?', a: '수정된 날이 아니라 마지막 생리 시작일을 0주 0일로 셉니다. 그래서 임신 사실을 알게 되는 시점이 보통 4~5주예요.' },
+  { q: '시험관 시술은 어떻게 계산하나요?', a: '이식일을 기준으로 3일 배아는 17일, 5일 배아는 19일을 빼서 마지막 생리 시작일로 바꾼 뒤 280일을 더합니다.' },
+  { q: '임신 몇 주가 몇 개월인가요?', a: '흔히 4주를 한 달로 셉니다. 0~3주가 1개월, 4~7주가 2개월이고, 36주부터는 10개월이에요.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+const monthRows = Array.from({ length: 10 }, (_, i) => ({ m: i + 1, from: i * 4, to: i === 9 ? 40 : i * 4 + 3 })).map((r) => ({ ...r, stage: r.to < 14 ? '초기' : r.from >= 28 ? '후기' : r.from < 14 ? '초기·중기' : '중기' }));
+---
+<BaseLayout
+  title="출산예정일 계산기 · 임신 주수 계산 — 오늘 몇 주 며칠, 몇 개월"
+  description="마지막 생리일, 수정일, 시험관 이식일 중 하나만 넣으면 출산예정일과 오늘 임신 몇 주 며칠인지, 이번 주에 받을 검사와 할 일까지 날짜로 정리해 드려요."
+  jsonLd={jsonLd}
+>
+  <div class="wrap mm">
+    <span class="mm-brand">{MOM_BRAND}</span>
+    <h1>출산예정일 · 임신 주수 계산기</h1>
+    <p class="mm-lead">날짜 하나만 넣으면 <b>오늘 몇 주 며칠인지, 예정일, 이번 주에 챙길 검사</b>까지 바로 보여 드려요. 입력한 날짜는 이 기기에만 저장돼요.</p>
+
+    <div class="mm-card mm-form">
+      <div class="mm-tabs" role="tablist">
+        <button type="button" data-mode="lmp" class="is-on">마지막 생리일</button>
+        <button type="button" data-mode="conc">수정일(배란일)</button>
+        <button type="button" data-mode="ivf">시험관 이식일</button>
+        <button type="button" data-mode="due">예정일을 알아요</button>
+      </div>
+      <div class="mm-row">
+        <label><span id="mm-label">마지막 생리 시작일</span><input id="mm-date" type="date" /></label>
+        <label id="mm-cycle-wrap">생리 주기
+          <select id="mm-cycle">{Array.from({ length: 15 }, (_, i) => 21 + i).map((d) => <option value={d} selected={d === 28}>{d}일</option>)}</select>
+        </label>
+        <label id="mm-ivf-wrap" hidden>배아 일수
+          <select id="mm-ivf"><option value="3">3일 배아</option><option value="5" selected>5일 배아</option></select>
+        </label>
+      </div>
+      <button type="button" class="mm-btn" id="mm-go">계산하기</button>
+    </div>
+
+    <div class="mm-out" id="mm-out" hidden>
+      <div class="mm-now">
+        <small id="mm-tri">-</small>
+        <b id="mm-week">-</b>
+        <span id="mm-sub">-</span>
+        <div class="mm-bar"><i id="mm-bar"></i></div>
+      </div>
+      <div class="mm-stats">
+        <div><span>출산예정일</span><b id="mm-due">-</b></div>
+        <div><span>남은 날</span><b id="mm-left">-</b></div>
+        <div><span>임신 개월</span><b id="mm-month">-</b></div>
+      </div>
+      <a class="mm-baby" id="mm-baby" href="/mom/week/4/">
+        <i>🍼</i>
+        <div><b id="mm-baby-t">-</b><span id="mm-baby-s">-</span></div>
+      </a>
+      <section class="mm-sec" style="margin:0.6rem 0 0">
+        <h2>지금 챙길 것</h2>
+        <div class="mm-tasks" id="mm-now-tasks"></div>
+      </section>
+      <section class="mm-sec" style="margin:0.6rem 0 0">
+        <h2>내 일정표</h2>
+        <table class="mm-table"><thead><tr><th>할 일</th><th>주수</th><th class="r">날짜</th></tr></thead><tbody id="mm-plan"></tbody></table>
+        <p class="mm-note">※ 일반적인 산전관리 일정이에요. 실제 검사 시기는 다니는 병원 안내를 따르세요.</p>
+      </section>
+      <div class="mm-chips">
+        <a href="/mom/baby/">아기가 태어났어요 → 100일·예방접종</a>
+        <a href="/mom/support/">받을 수 있는 지원금 →</a>
+        <a href="/mom/checklist/">출산가방 체크리스트 →</a>
+      </div>
+      <button type="button" class="mm-reset" id="mm-reset">저장한 날짜 지우기</button>
+    </div>
+
+    <section class="mm-sec">
+      <h2>임신 주차별 정보</h2>
+      <p>주차를 누르면 아기 크기, 엄마 몸의 변화, 그 주에 받는 검사를 볼 수 있어요.</p>
+      <div class="mm-weeks">{weeks.map((w) => <a href={`/mom/week/${w}/`} data-w={w}>{w}주</a>)}</div>
+    </section>
+
+    <section class="mm-sec">
+      <h2>임신 몇 주는 몇 개월?</h2>
+      <table class="mm-table">
+        <thead><tr><th>개월</th><th>주수</th><th>시기</th></tr></thead>
+        <tbody>{monthRows.map((r) => <tr><td>{r.m}개월</td><td>{r.from}~{r.to}주</td><td>{r.stage}</td></tr>)}</tbody>
+      </table>
+      <p class="mm-note">※ 4주를 한 달로 세는 방식이에요. 초기는 13주까지, 중기는 14~27주, 후기는 28주부터예요.</p>
+    </section>
+
+    <section class="mm-sec">
+      <h2>자주 묻는 질문</h2>
+      <div class="mm-faq">{faq.map((f) => <details><summary>{f.q}</summary><p>{f.a}</p></details>)}</div>
+    </section>
+
+    <div class="mm-chips">
+      <a href="/mom/support/">임신·출산 지원금 →</a>
+      <a href="/mom/baby/">아기 100일·돌 계산기 →</a>
+      <a href="/mom/checklist/">출산가방 체크리스트 →</a>
+      <a href="/welfare/">우리 동네 출산 지원 찾기 →</a>
+    </div>
+  </div>
+
+  <script is:inline define:vars={{ TASKS, slimWeeks, WEEK_FROM, WEEK_TO }}>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const KEY = 'crama:mom';
+      const DAY = 86400000;
+      const LABEL = { lmp: '마지막 생리 시작일', conc: '수정일(배란일)', ivf: '이식일', due: '출산예정일' };
+      const KIND = { check: '검사', admin: '신청', prep: '준비' };
+      let mode = 'lmp';
+      const parse = (s) => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+      const add = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+      const fmt = (d) => `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`;
+      const fmtK = (d) => `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
+      const today = () => { const t = new Date(); return new Date(t.getFullYear(), t.getMonth(), t.getDate()); };
+      const setMode = (m) => {
+        mode = m;
+        document.querySelectorAll('.mm-tabs button').forEach((b) => b.classList.toggle('is-on', b.dataset.mode === m));
+        $('mm-label').textContent = LABEL[m];
+        $('mm-cycle-wrap').hidden = m !== 'lmp';
+        $('mm-ivf-wrap').hidden = m !== 'ivf';
+      };
+      // 입력값 → '보정된 마지막 생리일'(예정일 - 280일)
+      function baseOf(st) {
+        const d = parse(st.date);
+        if (st.mode === 'lmp') return add(d, Number(st.cycle || 28) - 28);
+        if (st.mode === 'conc') return add(d, -14);
+        if (st.mode === 'ivf') return add(d, -(Number(st.ivf || 5) + 14));
+        return add(d, -280);
+      }
+      function render(st) {
+        const base = baseOf(st);
+        const due = add(base, 280);
+        const t = today();
+        const days = Math.round((t - base) / DAY);
+        const left = Math.round((due - t) / DAY);
+        const w = Math.floor(days / 7), d = days % 7;
+        $('mm-out').hidden = false;
+        if (days < 0) { $('mm-week').textContent = '아직 시작 전'; $('mm-sub').textContent = '입력한 날짜를 다시 확인해 주세요.'; }
+        else if (w > 42) { $('mm-week').textContent = '출산 후'; $('mm-sub').textContent = '아기 날짜는 100일 계산기에서 볼 수 있어요.'; }
+        else { $('mm-week').textContent = `임신 ${w}주 ${d}일`; $('mm-sub').textContent = `오늘이 임신 ${days + 1}일째예요`; }
+        const tri = w < 14 ? '임신 초기' : w < 28 ? '임신 중기' : '임신 후기';
+        $('mm-tri').textContent = days >= 0 && w <= 42 ? tri : '';
+        $('mm-bar').style.width = Math.max(0, Math.min(100, (days / 280) * 100)) + '%';
+        $('mm-due').textContent = fmt(due);
+        $('mm-left').textContent = left > 0 ? `D-${left}` : left === 0 ? 'D-day' : `D+${-left}`;
+        $('mm-month').textContent = days >= 0 ? `${Math.min(10, Math.floor(w / 4) + 1)}개월` : '-';
+        const cw = Math.max(WEEK_FROM, Math.min(WEEK_TO, w));
+        const wk = slimWeeks.find((x) => x.w === cw);
+        if (wk) {
+          $('mm-baby').href = `/mom/week/${cw}/`;
+          $('mm-baby-t').textContent = `${cw}주 아기는 ${wk.like}만 해요`;
+          $('mm-baby-s').textContent = `키 ${wk.len}${wk.wt !== '-' ? ' · 몸무게 ' + wk.wt : ''} · 이번 주 자세히 보기 →`;
+        }
+        const nowT = TASKS.filter((x) => w >= x.from && w <= x.to);
+        $('mm-now-tasks').innerHTML = nowT.length
+          ? nowT.map((x) => `<div class="mm-task"><em class="k-${x.kind}">${KIND[x.kind]}</em><b>${x.title} <small>~${fmt(add(base, x.to * 7 + 6))}</small></b><span>${x.desc}</span></div>`).join('')
+          : '<p class="mm-note">이번 주에 정해진 일정은 없어요. 다음 일정을 확인해 보세요.</p>';
+        let nextMarked = false;
+        $('mm-plan').innerHTML = TASKS.map((x) => {
+          const s = add(base, x.from * 7), e = add(base, x.to * 7 + 6);
+          const past = e < t, cur = !past && s <= t;
+          let cls = past ? 'is-past' : '';
+          if (!past && !cur && !nextMarked) { cls = 'is-next'; nextMarked = true; }
+          const range = x.from === x.to ? `${x.from}주` : `${x.from}~${x.to}주`;
+          return `<tr class="${cls}"><td>${x.title}</td><td>${range}</td><td class="r">${x.from === x.to ? fmt(s) : fmt(s) + ' ~ ' + fmt(e)}</td></tr>`;
+        }).join('') + `<tr><td><b>출산예정일</b></td><td>40주 0일</td><td class="r">${fmtK(due)}</td></tr>`;
+        document.querySelectorAll('.mm-weeks a').forEach((a) => a.classList.toggle('is-cur', Number(a.dataset.w) === cw));
+      }
+      function go() {
+        const v = $('mm-date').value; if (!v) return;
+        const st = { mode, date: v, cycle: $('mm-cycle').value, ivf: $('mm-ivf').value };
+        try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {}
+        render(st);
+      }
+      document.querySelectorAll('.mm-tabs button').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.mode)));
+      $('mm-go').addEventListener('click', go);
+      $('mm-reset').addEventListener('click', () => { try { localStorage.removeItem(KEY); } catch (e) {} $('mm-out').hidden = true; $('mm-date').value = ''; });
+      try {
+        const st = JSON.parse(localStorage.getItem(KEY) || 'null');
+        if (st && st.date) { setMode(st.mode || 'lmp'); $('mm-date').value = st.date; if (st.cycle) $('mm-cycle').value = st.cycle; if (st.ivf) $('mm-ivf').value = st.ivf; render(st); }
+      } catch (e) {}
+    })();
+  </script>
+</BaseLayout>

@@ -85,7 +85,8 @@ export const MENU: MenuTab[] = [
         slug: 'health', name: '건강검진·건강', icon: 'heart', color: '#ef4444',
         desc: '올해 건강검진 대상인지, 내 몸 수치는 어떤지',
         items: [
-          { name: '건강검진 대상 조회', href: '/health-check/', desc: '출생연도만 누르면 올해 대상인지 확인' },
+          { name: '건강검진 대상 조회', href: '/health-check/', desc: '출생연도로 2026·2027년 대상 확인' },
+          { name: '나이별 건강검진 항목', href: '/health-check/age/', desc: '20~80세, 내 나이에 받는 검사' },
           { name: '암검진 대상 조회', href: '/health-check/cancer/', desc: '올해 받을 수 있는 국가 암검진 6종' },
           { name: 'BMI 계산기', href: '/health/bmi/', desc: '키·몸무게로 비만도 확인' },
           { name: '기초대사량 계산기', href: '/health/bmr/', desc: '하루 필요 칼로리까지' },
@@ -94,6 +95,17 @@ export const MENU: MenuTab[] = [
           { name: '수면시간 계산기', href: '/health/sleep/', desc: '몇 시에 자야 개운할까' },
           { name: '카페인 계산기', href: '/health/caffeine/', desc: '하루 권장량과 몸에 남은 양' },
           { name: '무료 예방접종 대상' }, { name: '술 깨는 시간 계산기' },
+        ],
+      },
+      {
+        slug: 'mom', name: '임신·육아', icon: 'heart', color: '#ec6f8e',
+        desc: '출산예정일, 임신 주차, 아기 100일, 출산 지원금',
+        items: [
+          { name: '출산예정일 · 임신 주수', href: '/mom/', desc: '오늘 몇 주 며칠, 내 일정표까지' },
+          { name: '임신 주차별 정보', href: '/mom/week/20/', desc: '4~40주 아기 크기와 이번 주 검사' },
+          { name: '아기 100일 · 돌 계산기', href: '/mom/baby/', desc: '기념일·예방접종·영유아검진 날짜' },
+          { name: '임신·출산 지원금', href: '/mom/support/', desc: '첫만남이용권·부모급여·아동수당' },
+          { name: '출산가방 체크리스트', href: '/mom/checklist/', desc: '체크하며 싸는 준비물 목록' },
         ],
       },
       {
@@ -132,6 +144,7 @@ export const MENU: MenuTab[] = [
           { name: '음력·양력 변환', href: '/lunar/', desc: '음력 생일을 양력으로' },
           { name: '영업일 계산기', href: '/business-days/', desc: '주말·공휴일 뺀 날짜 계산' },
           { name: '전역일 계산기', href: '/discharge/', desc: '입대일로 전역일·D-day 계산' },
+          { name: '예비군 연차 계산기', href: '/reserve/', desc: '전역연도로 올해 몇 년차, 받는 훈련' },
           { name: '공휴일·황금연휴', href: '/holidays/', desc: '올해·내년 쉬는 날과 연휴' },
         ],
       },

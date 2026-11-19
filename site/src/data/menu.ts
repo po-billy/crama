@@ -101,11 +101,13 @@ export const MENU: MenuTab[] = [
         desc: '실수령액부터 퇴직금, 세금까지',
         items: [
           { name: '연봉 실수령액', href: '/salary/', desc: '연봉별 세후 월급 한눈에' },
+          { name: '연말정산 계산기', href: '/year-end-tax/', desc: '환급받을까 더 낼까, 2026년 귀속' },
           { name: '월급 실수령액', href: '/salary/monthly/', desc: '세전 월급별 세후 금액' },
           { name: '시급 → 월급 환산', href: '/wage/', desc: '주휴수당 포함 월급 계산' },
           { name: '4대보험 계산기', href: '/insurance/', desc: '내 부담과 회사 부담 한 번에' },
           { name: '퇴직금', href: '/severance/', desc: '월급·근속연수별 퇴직금' },
           { name: '실업급여', href: '/unemployment/', desc: '받을 수 있는 금액과 기간' },
+          { name: '연금저축 세액공제', href: '/tools/pension-tax-calculator/', desc: '얼마 넣으면 얼마 돌려받나' },
           { name: '프리랜서 3.3% 세금', href: '/freelance-tax/', desc: '원천징수 후 받는 금액' },
           { name: '부가세 계산기', href: '/tools/vat-calculator/', desc: '공급가액·부가세 바로 계산' },
           { name: '증여세', href: '/gift-tax/', desc: '공제 한도와 예상 세액' },

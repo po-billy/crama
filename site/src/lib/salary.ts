@@ -17,7 +17,7 @@ export const LTC_RATE = 0.1314; // 건보료 대비
 export const EI_RATE = 0.009;
 
 // 근로소득공제(연, 원)
-function earnedIncomeDeduction(gross: number): number {
+export function earnedIncomeDeduction(gross: number): number {
   let d: number;
   if (gross <= 5_000_000) d = gross * 0.7;
   else if (gross <= 15_000_000) d = 3_500_000 + (gross - 5_000_000) * 0.4;
@@ -28,7 +28,7 @@ function earnedIncomeDeduction(gross: number): number {
 }
 
 // 기본세율 누진(과세표준 → 산출세액, 연)
-function basicTax(base: number): number {
+export function basicTax(base: number): number {
   if (base <= 0) return 0;
   if (base <= 14_000_000) return base * 0.06;
   if (base <= 50_000_000) return 840_000 + (base - 14_000_000) * 0.15;
@@ -41,7 +41,7 @@ function basicTax(base: number): number {
 }
 
 // 근로소득세액공제(연) — 산출세액·총급여 기반 한도
-function earnedTaxCredit(calcTax: number, gross: number): number {
+export function earnedTaxCredit(calcTax: number, gross: number): number {
   let credit = calcTax <= 1_300_000 ? calcTax * 0.55 : 715_000 + (calcTax - 1_300_000) * 0.3;
   let cap: number;
   if (gross <= 33_000_000) cap = 740_000;

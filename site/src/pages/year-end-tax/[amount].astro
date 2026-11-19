@@ -1,0 +1,115 @@
+---
+// 연봉별 연말정산 미리 보기 — 1인 가구 기준선에 항목 하나씩 더했을 때 줄어드는 세금을 빌드할 때 계산한다.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { computeYearEnd, whatIf, cardDeduction, yeAmounts, YE_YEAR, type YeInput } from '../../lib/yearend';
+import { fmt } from '../../lib/salary';
+import '../../styles/portal.css';
+
+export function getStaticPaths() {
+  const list = yeAmounts();
+  return list.map((m, i) => ({ params: { amount: String(m) }, props: { man: m, prev: list[i - 1] ?? null, next: list[i + 1] ?? null } }));
+}
+const { man, prev, next } = Astro.props as { man: number; prev: number | null; next: number | null };
+const gross = man * 10_000;
+const base: YeInput = { gross };
+const r = computeYearEnd(base);
+const card0 = cardDeduction(gross, {}, 0);
+const label = man >= 10000 ? `${Math.floor(man / 10000)}억${man % 10000 ? ' ' + fmt(man % 10000) + '만' : ''}` : `${fmt(man)}만`;
+const won = (n: number) => fmt(Math.round(n)) + '원';
+const manOf = (n: number) => fmt(Math.round(n / 10_000)) + '만원';
+
+const half = Math.round(gross * 0.5);
+const rows = [
+  { what: `신용카드로 연봉의 절반(${manOf(half)}) 사용`, save: whatIf(base, { credit: half }) },
+  { what: `체크카드·현금영수증으로 연봉의 절반(${manOf(half)}) 사용`, save: whatIf(base, { debit: half }) },
+  { what: '연금저축 600만원 납입', save: whatIf(base, { pensionSaving: 6_000_000 }) },
+  { what: '연금저축 600만원 + IRP 300만원 납입', save: whatIf(base, { pensionSaving: 6_000_000, irp: 3_000_000 }) },
+  ...(gross <= 80_000_000 ? [{ what: '월세 월 50만원(연 600만원)', save: whatIf(base, { rent: 6_000_000 }) }] : []),
+  { what: '배우자 공제(소득 없는 배우자)', save: whatIf(base, { spouse: true }) },
+  { what: '자녀 1명(2006~2016년생)', save: whatIf(base, { kids: 1, kidsCredit: 1 }) },
+  { what: '60세 이상 부모님 1명 부양', save: whatIf(base, { parents: 1 }) },
+  { what: '본인 의료비 연 300만원', save: whatIf(base, { medSelf: 3_000_000 }) },
+  { what: '고향사랑기부금 10만원', save: whatIf(base, { donHometown: 100_000 }) },
+];
+const pensionMax = rows[3].save;
+const total = r.decided + r.decidedLocal;
+const pensionRate = gross <= 55_000_000 ? '16.5%' : '13.2%';
+
+const all = yeAmounts();
+const idx = all.indexOf(man);
+const nearby = all.slice(Math.max(0, idx - 3), idx + 4);
+const title = `연봉 ${label}원 연말정산 ${YE_YEAR} — 카드 공제 문턱 ${manOf(card0.threshold)}, 환급 늘리는 법`;
+const desc = `연봉 ${label}원은 카드를 ${manOf(card0.threshold)} 넘게 써야 소득공제가 시작되고, 연금저축·IRP 900만원을 넣으면 최대 ${won(pensionMax)}의 세금이 줄어듭니다. ${YE_YEAR}년 귀속 기준 결정세액과 항목별 절세 효과를 표로 정리했습니다.`;
+const jsonLd = {
+  '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: '홈', item: 'https://crama.app/' },
+    { '@type': 'ListItem', position: 2, name: '연말정산 계산기', item: 'https://crama.app/year-end-tax/' },
+    { '@type': 'ListItem', position: 3, name: `연봉 ${label}원` },
+  ],
+};
+---
+<BaseLayout title={title} description={desc} jsonLd={jsonLd}>
+  <div class="pt pt-narrow" style="--c:#10b981">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/year-end-tax/">연말정산 계산기</a> › 연봉 {label}원</nav>
+    <h1 class="yea-h1">연봉 {label}원 연말정산 <span>{YE_YEAR}년 귀속</span></h1>
+
+    <div class="yea-cards">
+      <div class="yea-card is-main"><span>카드 공제가 시작되는 사용액</span><b>{manOf(card0.threshold)}</b><em>총급여의 25%를 넘는 부분부터 공제</em></div>
+      <div class="yea-card"><span>카드 공제 기본 한도</span><b>{manOf(card0.baseCap)}</b><em>자녀 1명이면 {gross <= 70_000_000 ? '350' : '275'}만원, 2명 이상 {gross <= 70_000_000 ? '400' : '300'}만원</em></div>
+      <div class="yea-card"><span>연금저축·IRP로 줄일 수 있는 세금</span><b>최대 {won(pensionMax)}</b><em>900만원 납입 기준, 공제율 {pensionRate}(낸 세금보다 많이 줄지는 않음)</em></div>
+      <div class="yea-card"><span>공제 없이 1인 기준 결정세액</span><b>{won(total)}</b><em>소득세 {won(r.decided)} + 지방소득세</em></div>
+    </div>
+
+    <a class="yea-cta" href={`/year-end-tax/?salary=${man}`}>내 조건으로 환급액 계산하기 →</a>
+
+    <section class="pt-sec">
+      <h2 class="yea-h2">이렇게 하면 세금이 이만큼 줄어요</h2>
+      <div class="tl-wrap">
+        <table class="tl-table yea-table">
+          <thead><tr><th>항목 (1인 가구에 하나만 더했을 때)</th><th>줄어드는 세금</th></tr></thead>
+          <tbody>{rows.map((x) => <tr><td>{x.what}</td><td>{x.save > 0 ? won(x.save) : '변화 없음'}</td></tr>)}</tbody>
+        </table>
+      </div>
+      <p class="pp-note">※ {YE_YEAR}년 귀속 세법, 근로소득만 있는 1인 가구(본인 공제·4대보험 공제만)에 항목 하나씩 더해 계산한 값이에요(지방소득세 포함). 여러 항목을 함께 쓰면 세율 구간이 바뀌어 합계가 달라지고, 결정세액보다 많이 줄어들 수는 없어요. 실제 환급액은 이미 낸 세금에 따라 달라지니 계산기에서 확인하세요.</p>
+    </section>
+
+    <section class="pt-sec pt-prose">
+      <h2>연봉 {label}원이 챙길 것</h2>
+      <p><b>카드는 {manOf(card0.threshold)}까지는 혜택 위주로.</b> 카드·현금영수증 사용액이 총급여의 25%인 {manOf(card0.threshold)}을 넘기 전에는 어떤 수단을 써도 공제가 없어요. 넘은 뒤부터는 체크카드·현금영수증(30%)이 신용카드(15%)보다 두 배 유리하고, 전통시장과 대중교통은 40%예요.</p>
+      <p><b>연금저축·IRP는 12월 31일까지.</b> 그날 입금한 금액까지 올해 공제에 들어가요. 연봉 {label}원은 납입액의 {pensionRate}를 세금에서 빼 줘요. 다만 연금저축은 55세 전에 꺼내면 공제받은 세금을 다시 내야 하니 오래 묻어 둘 돈으로만 넣으세요.</p>
+      {gross <= 80_000_000 && <p><b>월세 사는 무주택 세대주라면 월세 공제를 꼭.</b> 연 1,000만원까지 {gross <= 55_000_000 ? '17%' : '15%'}를 세금에서 빼 줘요. 회사 연말정산 때 임대차계약서와 이체 내역을 내면 돼요.</p>}
+    </section>
+
+    <section class="pt-sec">
+      <h2 class="yea-h2">주변 연봉 보기</h2>
+      <div class="ye-amts">{nearby.map((m) => m === man ? <span class="is-cur">{fmt(m)}만원</span> : <a href={`/year-end-tax/${m}/`}>{fmt(m)}만원</a>)}</div>
+      <div class="yea-pn">
+        {prev ? <a href={`/year-end-tax/${prev}/`}>← {fmt(prev)}만원</a> : <span></span>}
+        <a href={`/salary/${man}/`}>연봉 {label}원 실수령액 보기</a>
+        {next ? <a href={`/year-end-tax/${next}/`}>{fmt(next)}만원 →</a> : <span></span>}
+      </div>
+    </section>
+  </div>
+
+  <style>
+    .yea-h1 { font-size: clamp(1.45rem, 4.5vw, 2rem); margin: 0.3rem 0 1rem; }
+    .yea-h1 span { display: block; font-size: 0.85rem; color: var(--muted); font-weight: 600; margin-top: 0.3rem; }
+    .yea-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+    .yea-card { border: 1px solid var(--line); border-radius: 14px; padding: 0.9rem 1rem; background: var(--paper); display: flex; flex-direction: column; gap: 0.2rem; }
+    .yea-card span { font-size: 0.8rem; color: var(--muted); }
+    .yea-card b { font-size: 1.3rem; }
+    .yea-card em { font-style: normal; font-size: 0.76rem; color: var(--ink-soft); line-height: 1.4; }
+    .yea-card.is-main { background: #10b981; border-color: #10b981; color: #fff; }
+    .yea-card.is-main span, .yea-card.is-main em { color: rgba(255, 255, 255, 0.88); }
+    @media (max-width: 520px) { .yea-cards { grid-template-columns: 1fr; } }
+    .yea-cta { display: block; text-align: center; margin: 1rem 0 1.6rem; padding: 0.85rem; border-radius: 12px; background: var(--accent); color: #fff; font-weight: 800; text-decoration: none; }
+    .yea-h2 { font-size: 1.12rem; margin: 0 0 0.7rem; }
+    .yea-table td:last-child { text-align: right; font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .ye-amts { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+    .ye-amts a, .ye-amts span { padding: 0.5rem 0.8rem; border: 1px solid var(--line); border-radius: 10px; text-decoration: none; color: var(--ink); font-size: 0.86rem; font-weight: 600; background: var(--paper); }
+    .ye-amts .is-cur { border-color: var(--accent); background: var(--accent-soft); }
+    .yea-pn { display: flex; justify-content: space-between; gap: 0.6rem; margin-top: 0.9rem; flex-wrap: wrap; font-size: 0.86rem; font-weight: 700; }
+    .yea-pn a { color: var(--accent); text-decoration: none; }
+  </style>
+</BaseLayout>

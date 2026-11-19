@@ -1,0 +1,253 @@
+---
+// 연말정산 계산기(2026년 귀속) — 계산은 lib/yearend.ts(브라우저에서 그대로 실행). 입력은 이 기기에만 저장.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import { YE_YEAR, yeAmounts } from '../../lib/yearend';
+import '../../styles/portal.css';
+
+const faq = [
+  { q: '연말정산 환급은 언제 받나요?', a: `${YE_YEAR}년 귀속 연말정산은 ${YE_YEAR + 1}년 1월에 간소화 서비스에서 자료를 받아 회사에 내고, 보통 2월 급여(회사에 따라 3월)에 환급액이 더해지거나 추가 납부액이 빠집니다.` },
+  { q: '왜 사람마다 환급액이 다른가요?', a: '매달 월급에서 떼는 소득세는 간이세액표로 대략 걷은 금액이고, 연말정산은 1년 치 공제를 다 반영해 실제 세금을 다시 계산하는 절차입니다. 공제가 많으면 덜 내야 했던 만큼 돌려받고, 적으면 모자란 만큼 더 냅니다.' },
+  { q: '신용카드는 얼마부터 공제되나요?', a: '카드·현금영수증 사용액이 총급여의 25%를 넘어야 넘는 부분부터 공제됩니다. 넘는 부분은 신용카드 15%, 체크카드·현금영수증 30%, 전통시장·대중교통 40%가 소득에서 빠집니다.' },
+  { q: `${YE_YEAR}년 귀속에서 달라진 것은요?`, a: '카드 공제 기본한도가 자녀 수에 따라 늘었고(총급여 7천만원 이하 300만·350만·400만원), 자녀세액공제 대상 나이가 9세 이상(2006~2016년생)으로 바뀌었으며, 고향사랑기부금 10만~20만원 구간의 공제율이 40%가 됐습니다.' },
+  { q: '계산 결과가 실제와 다를 수 있나요?', a: '이미 낸 세금을 비워 두면 간이세액표 원리로 추정하므로 실제 원천징수액과 차이가 날 수 있습니다. 급여명세서의 소득세 합계를 넣으면 더 정확합니다. 최종 금액은 회사의 연말정산 결과가 기준입니다.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+const quick = [3000, 4000, 5000, 6000, 8000];
+const num = (id: string, label: string, hint = '') => ({ id, label, hint });
+const groups = [
+  { key: 'card', title: '신용카드·현금영수증', open: true, note: '1년 사용액(만원). 전통시장·대중교통·문화는 결제수단과 상관없이 아래 칸에만 적어요.', fields: [
+    num('credit', '신용카드'), num('debit', '체크카드·현금영수증'), num('market', '전통시장'), num('transit', '대중교통'), num('culture', '도서·공연·영화·헬스장', '총급여 7천만원 이하만'),
+  ] },
+  { key: 'pension', title: '연금저축·IRP·보험', open: false, note: '1년 납입액(만원). 연금저축은 600만원, IRP와 합쳐 900만원까지.', fields: [
+    num('pensionSaving', '연금저축'), num('irp', 'IRP(퇴직연금)'), num('insPremium', '보장성 보험료', '100만원까지 12%'),
+  ] },
+  { key: 'med', title: '의료비·교육비', open: false, note: '1년 지출액(만원). 의료비는 총급여의 3%를 넘는 부분부터 공제돼요.', fields: [
+    num('medSelf', '의료비: 본인·65세 이상·6세 이하·장애인'), num('medOther', '의료비: 그 밖의 가족'), num('medIvf', '난임 시술비'),
+    num('eduSelf', '교육비: 본인'), num('eduKids', '교육비: 취학 전·초중고', '1인당 300만원까지'), num('eduUniv', '교육비: 대학생 자녀', '1인당 900만원까지'),
+  ] },
+  { key: 'home', title: '월세·주택', open: false, note: '1년 금액(만원). 무주택 세대주 기준이에요.', fields: [
+    num('rent', '월세', '총급여 8천만원 이하'), num('subscription', '주택청약 납입액', '총급여 7천만원 이하, 300만원까지'), num('rentLoan', '전세대출 원리금 상환액'), num('mortgage', '주택담보대출 이자'),
+  ] },
+  { key: 'don', title: '기부금', open: false, note: '1년 기부액(만원).', fields: [
+    num('donHometown', '고향사랑기부금'), num('donPolitical', '정치후원금'), num('donGeneral', '그 밖의 기부금', '종교단체 제외'),
+  ] },
+];
+const amounts = yeAmounts();
+---
+<BaseLayout title={`연말정산 계산기 ${YE_YEAR} — 환급받을까, 더 낼까`} description={`총급여와 카드 사용액, 부양가족, 연금저축·의료비·월세를 넣으면 ${YE_YEAR}년 귀속 연말정산 결정세액과 예상 환급액을 바로 계산합니다. 카드 공제 문턱까지 남은 금액과 연말에 더 돌려받는 방법도 알려 드려요.`} jsonLd={jsonLd}>
+  <div class="pt pt-narrow" style="--c:#10b981">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/pay/">월급·세금</a> › 연말정산 계산기</nav>
+    <header class="pt-hubhero">
+      <img src="/img/portal/g-pay.webp" alt="" width="200" height="200" />
+      <div><h1>연말정산 계산기 {YE_YEAR}</h1><p>환급받을지, 더 낼지 미리 확인하세요</p></div>
+    </header>
+
+    <section class="pt-sec">
+      <div class="tl-card">
+        <div class="tl-row">
+          <label class="tl-field">총급여(만원)<input id="ye-gross" type="number" inputmode="numeric" min="0" step="10" placeholder="예: 4000" /></label>
+          <label class="tl-field">이미 낸 소득세(만원)<input id="ye-paid" type="number" inputmode="decimal" min="0" step="any" placeholder="모르면 비워 두세요" /></label>
+        </div>
+        <div class="tl-quick" id="ye-quick">{quick.map((m) => <button type="button" data-m={m}>{m.toLocaleString('ko-KR')}만원</button>)}</div>
+        <p class="ye-hint">총급여는 비과세 식대 등을 뺀 1년 세전 급여예요. 이미 낸 소득세는 급여명세서의 '소득세' 1~12월 합계(지방소득세 제외)이고, 비우면 추정해서 계산해요.</p>
+      </div>
+
+      <details class="ye-grp" open>
+        <summary>가족</summary>
+        <div class="ye-grid">
+          <label class="ye-check"><input type="checkbox" id="ye-spouse" /> 배우자 공제(배우자 연소득 100만원 이하, 근로소득만 있으면 총급여 500만원 이하)</label>
+          <label class="tl-field">20세 이하 자녀 수<input id="ye-kids" type="number" inputmode="numeric" min="0" step="1" value="0" /></label>
+          <label class="tl-field">그중 2006~2016년생<input id="ye-kidsCredit" type="number" inputmode="numeric" min="0" step="1" value="0" /></label>
+          <label class="tl-field">{YE_YEAR}년에 태어난 아이<select id="ye-newborn"><option value="0">없음</option><option value="1">첫째</option><option value="2">둘째</option><option value="3">셋째 이상</option></select></label>
+          <label class="tl-field">60세 이상 부모님 등<input id="ye-parents" type="number" inputmode="numeric" min="0" step="1" value="0" /></label>
+          <label class="tl-field">공제받는 가족 중 70세 이상<input id="ye-senior70" type="number" inputmode="numeric" min="0" step="1" value="0" /></label>
+          <label class="tl-field">공제받는 가족 중 장애인(본인 포함)<input id="ye-disabled" type="number" inputmode="numeric" min="0" step="1" value="0" /></label>
+          <label class="ye-check"><input type="checkbox" id="ye-singleParent" /> 한부모(배우자 없이 자녀를 부양)</label>
+          <label class="ye-check"><input type="checkbox" id="ye-woman" /> 부녀자(배우자가 있는 여성, 또는 부양가족이 있는 여성 세대주)</label>
+        </div>
+        <p class="ye-hint">부모님·자녀 등은 연소득 100만원 이하(근로소득만 있으면 총급여 500만원 이하)여야 공제받아요.</p>
+      </details>
+
+      {groups.map((g) => (
+        <details class="ye-grp" open={g.open}>
+          <summary>{g.title}</summary>
+          <p class="ye-hint">{g.note}</p>
+          <div class="ye-grid">
+            {g.fields.map((f) => (
+              <label class="tl-field">{f.label}{f.hint && <small>{f.hint}</small>}<input id={`ye-${f.id}`} type="number" inputmode="numeric" min="0" step="any" placeholder="0" /></label>
+            ))}
+            {g.key === 'home' && (
+              <label class="tl-field">주택담보대출 공제 한도<select id="ye-mortgageCap">
+                <option value="2000">15년 이상·고정금리·비거치식 (2,000만원)</option>
+                <option value="1800">15년 이상·고정금리 또는 비거치식 (1,800만원)</option>
+                <option value="800" selected>15년 이상·그 밖의 대출 (800만원)</option>
+                <option value="600">10년 이상·고정금리 또는 비거치식 (600만원)</option>
+              </select></label>
+            )}
+          </div>
+        </details>
+      ))}
+
+      <button type="button" class="tl-btn ye-go" id="ye-go">연말정산 계산하기</button>
+
+      <div id="ye-out" hidden aria-live="polite">
+        <div class="tl-result ye-res" id="ye-res">
+          <div class="tl-result__label" id="ye-label"></div>
+          <div class="tl-result__big" id="ye-big"></div>
+          <div class="tl-result__sub" id="ye-sub"></div>
+        </div>
+        <div class="ye-tips" id="ye-tips"></div>
+        <div class="tl-wrap" style="margin-top:0.8rem">
+          <table class="tl-table"><tbody id="ye-body"></tbody></table>
+        </div>
+      </div>
+      <p class="pp-note">※ {YE_YEAR}년 귀속, 근로소득만 있고 1년 내내 한 회사에 다닌 경우 기준. 국세청 연말정산 신고안내의 계산식과 {YE_YEAR}년 개정 세법(카드 공제 한도, 자녀세액공제 나이, 고향사랑기부금)을 반영했어요. 4대보험은 총급여로 추정하고, 중도 입사·퇴사, 다른 소득, 세액감면은 넣지 않았어요. 실제 금액은 회사 연말정산 결과가 기준이에요. 입력한 값은 이 기기에만 저장돼요.</p>
+    </section>
+
+    <div class="pt-ad"><AdSlot slot="yearend-mid" /></div>
+
+    <section class="pt-sec">
+      <h2 class="ye-h2">연봉별 연말정산 미리 보기</h2>
+      <div class="ye-amts">{amounts.filter((m) => m % 500 === 0 && m <= 10000).map((m) => <a href={`/year-end-tax/${m}/`}>{m.toLocaleString('ko-KR')}만원</a>)}</div>
+    </section>
+
+    <section class="pt-sec pt-prose">
+      <h2>자주 묻는 질문</h2>
+      {faq.map((f) => <p><b>{f.q}</b><br />{f.a}</p>)}
+    </section>
+
+    <section class="pt-sec pp-links">
+      <a class="pp-link" href="/salary/"><span><b>연봉 실수령액</b><span>매달 떼는 세금과 4대보험</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+      <a class="pp-link" href="/tools/pension-tax-calculator/"><span><b>연금저축 세액공제</b><span>얼마 넣으면 얼마 돌려받나</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+      <a class="pp-link" href="/tax/"><span><b>세금 캘린더</b><span>연말정산·종합소득세 일정</span></span><svg class="pp-link__go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+    </section>
+  </div>
+
+  <script>
+    import { computeYearEnd, whatIf, type YeInput } from '../../lib/yearend';
+    const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
+    const MAN = 10_000;
+    const won = (n: number) => Math.round(n).toLocaleString('ko-KR') + '원';
+    const NUM = ['kids', 'kidsCredit', 'parents', 'senior70', 'disabled', 'credit', 'debit', 'market', 'transit', 'culture', 'pensionSaving', 'irp', 'insPremium', 'medSelf', 'medOther', 'medIvf', 'eduSelf', 'eduKids', 'eduUniv', 'rent', 'subscription', 'rentLoan', 'mortgage', 'donHometown', 'donPolitical', 'donGeneral'];
+    const COUNT = new Set(['kids', 'kidsCredit', 'parents', 'senior70', 'disabled']);
+    const CHECK = ['spouse', 'singleParent', 'woman'];
+    const KEY = 'crama:yearend';
+
+    function read(): YeInput | null {
+      const gross = Number($('ye-gross').value) * MAN;
+      if (!gross) return null;
+      const inp: any = { gross };
+      for (const k of NUM) { const v = Number($('ye-' + k).value) || 0; inp[k] = COUNT.has(k) ? Math.floor(v) : v * MAN; }
+      for (const k of CHECK) inp[k] = $('ye-' + k).checked;
+      inp.newborn = Number($('ye-newborn').value);
+      inp.mortgageCap = Number($('ye-mortgageCap').value) * MAN;
+      const p = $('ye-paid').value;
+      if (p !== '') inp.paid = Number(p) * MAN;
+      return inp;
+    }
+    function save() {
+      try {
+        const o: Record<string, string | boolean> = {};
+        document.querySelectorAll<HTMLInputElement>('[id^="ye-"]').forEach((el) => { if (el.type === 'checkbox') o[el.id] = el.checked; else if ('value' in el) o[el.id] = el.value; });
+        localStorage.setItem(KEY, JSON.stringify(o));
+      } catch (e) {}
+    }
+    function load() {
+      try {
+        const o = JSON.parse(localStorage.getItem(KEY) || 'null');
+        if (o) for (const id in o) { const el = document.getElementById(id) as HTMLInputElement | null; if (!el) continue; if (el.type === 'checkbox') el.checked = !!o[id]; else el.value = String(o[id]); }
+      } catch (e) {}
+      const q = new URLSearchParams(location.search).get('salary');
+      if (q && Number(q) > 0) $('ye-gross').value = String(Number(q));
+    }
+
+    function tips(inp: YeInput, r: ReturnType<typeof computeYearEnd>) {
+      const out: string[] = [];
+      const c = r.card;
+      if (c.total < c.threshold) {
+        out.push(`<b>카드 공제는 아직 시작 전이에요.</b> 총급여의 25%인 ${won(c.threshold)}을 넘게 써야 그 위부터 공제돼요. ${won(c.threshold - c.total)}이 남았어요.`);
+      } else if (c.possible < c.baseCap) {
+        const more = whatIf(inp, { debit: (inp.debit || 0) + 1_000_000 });
+        if (more > 0) out.push(`<b>체크카드·현금영수증으로 100만원 더 쓰면</b> 약 ${won(more)}을 더 돌려받아요. 신용카드(15%)보다 공제율이 두 배(30%)예요.`);
+      } else {
+        out.push('<b>카드 공제 한도를 다 채웠어요.</b> 남은 기간에는 혜택이 큰 카드를 써도 공제에는 차이가 없어요.');
+      }
+      const pBase = Math.min(Math.min(inp.pensionSaving || 0, 6_000_000) + (inp.irp || 0), 9_000_000);
+      const room = 9_000_000 - pBase;
+      if (room > 0 && r.decided > 0) {
+        const add = Math.min(room, 3_000_000);
+        const gain = whatIf(inp, { irp: (inp.irp || 0) + add });
+        if (gain > 0) out.push(`<b>연금저축·IRP에 ${Math.round(add / MAN)}만원 더 넣으면</b> 약 ${won(gain)}을 더 돌려받아요. 12월 31일 입금분까지 올해 공제에 들어가요.`);
+      }
+      if (r.usedStandard) out.push('공제 항목이 많지 않아 <b>표준세액공제(13만원)</b>가 더 유리해서 그쪽으로 계산했어요.');
+      if (r.decided === 0) out.push('공제가 세금보다 많아 <b>결정세액이 0원</b>이에요. 이미 낸 세금은 전부 돌려받아요.');
+      return out;
+    }
+
+    function calc() {
+      const inp = read();
+      if (!inp) { $('ye-gross').focus(); return; }
+      const r = computeYearEnd(inp);
+      const back = -r.diff;
+      const res = document.getElementById('ye-res')!;
+      res.classList.toggle('is-pay', back < 0);
+      document.getElementById('ye-label')!.textContent = back >= 0 ? '예상 환급액(지방소득세 포함)' : '예상 추가 납부액(지방소득세 포함)';
+      document.getElementById('ye-big')!.textContent = won(Math.abs(back));
+      document.getElementById('ye-sub')!.textContent = `결정세액 ${won(r.decided + r.decidedLocal)} − 이미 낸 세금 ${won(r.paid + r.paidLocal)}${r.paidEstimated ? ' (추정)' : ''}`;
+      const rows: [string, number, boolean?][] = [
+        ['총급여', r.gross], ['근로소득공제', -r.eid], ['근로소득금액', r.income, true],
+        ['인적공제', -r.personal], ['국민연금', -r.pensionIns], ['건강·고용보험', r.usedStandard ? 0 : -r.healthIns],
+        ['주택자금·청약', -(r.housing + r.subscription)], ['신용카드 등', -r.cardDeduction], ['과세표준', r.taxBase, true],
+        ['산출세액', r.calcTax, true], ['근로소득세액공제', -r.credits.earned], ['자녀세액공제', -r.credits.child], ['연금계좌', -r.credits.pension],
+        ['보험료', -r.credits.insurance], ['의료비', -r.credits.medical], ['교육비', -r.credits.education], ['기부금', -r.credits.donation],
+        ['월세', -r.credits.rent], ['표준세액공제', -r.credits.standard], ['결정세액(소득세)', r.decided, true], ['지방소득세', r.decidedLocal],
+      ];
+      const body = document.getElementById('ye-body')!; body.textContent = '';
+      for (const [label, v, strong] of rows) {
+        if (!v && !strong) continue;
+        const tr = document.createElement('tr'); if (strong) tr.className = 'is-strong';
+        const th = document.createElement('th'); th.textContent = label;
+        const td = document.createElement('td'); td.textContent = (v < 0 ? '−' : '') + won(Math.abs(v));
+        tr.append(th, td); body.appendChild(tr);
+      }
+      document.getElementById('ye-tips')!.innerHTML = tips(inp, r).map((t) => `<p>${t}</p>`).join('');
+      document.getElementById('ye-out')!.hidden = false;
+      save();
+      try { (window as any).gtag?.('event', 'tool_use', { tool: 'year_end_tax' }); } catch (e) {}
+    }
+
+    load();
+    $('ye-go').addEventListener('click', calc);
+    $('ye-gross').addEventListener('keydown', (e) => { if (e.key === 'Enter') calc(); });
+    document.getElementById('ye-quick')!.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest('button'); if (!b) return;
+      $('ye-gross').value = b.dataset.m!; calc();
+    });
+    if ($('ye-gross').value) calc();
+  </script>
+
+  <style is:global>
+    .ye-hint { font-size: 0.8rem; color: var(--muted); margin: 0.6rem 0 0; line-height: 1.5; }
+    .ye-grp { margin-top: 0.8rem; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); padding: 0.2rem 1rem; }
+    .ye-grp[open] { padding-bottom: 1rem; }
+    .ye-grp summary { cursor: pointer; font-weight: 800; padding: 0.75rem 0; }
+    .ye-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); gap: 0.7rem; margin-top: 0.6rem; }
+    .ye-grid .tl-field small { display: block; font-size: 0.72rem; font-weight: 500; color: var(--muted); }
+    .ye-grid select { width: 100%; font: inherit; padding: 0.55rem 0.6rem; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); margin-top: 0.3rem; }
+    .ye-check { grid-column: 1 / -1; display: flex; gap: 0.5rem; align-items: flex-start; font-size: 0.86rem; color: var(--ink-soft); }
+    .ye-check input { margin-top: 0.2rem; }
+    .ye-go { display: block; width: 100%; margin-top: 1rem; padding: 0.9rem; font-size: 1rem; }
+    #ye-out { margin-top: 1rem; }
+    #ye-out[hidden] { display: none; }
+    .ye-res.is-pay .tl-result__big { color: #e03131; }
+    .ye-tips { margin-top: 0.8rem; display: grid; gap: 0.5rem; }
+    .ye-tips p { margin: 0; padding: 0.75rem 0.9rem; border-radius: 12px; background: var(--accent-soft); font-size: 0.88rem; line-height: 1.55; }
+    #ye-body tr.is-strong th, #ye-body tr.is-strong td { font-weight: 800; background: var(--paper-2); }
+    #ye-body td { text-align: right; font-variant-numeric: tabular-nums; }
+    .ye-h2 { font-size: 1.12rem; margin: 0 0 0.7rem; }
+    .ye-amts { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+    .ye-amts a { padding: 0.5rem 0.8rem; border: 1px solid var(--line); border-radius: 10px; text-decoration: none; color: var(--ink); font-size: 0.86rem; font-weight: 600; background: var(--paper); }
+    .ye-amts a:hover { border-color: var(--accent); color: var(--accent); }
+  </style>
+</BaseLayout>

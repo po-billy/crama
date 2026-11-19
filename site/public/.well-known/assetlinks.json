@@ -1,11 +1,16 @@
 [
   {
-    "relation": ["delegate_permission/common.handle_all_urls"],
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
     "target": {
       "namespace": "android_app",
       "package_name": "app.crama.twa",
       "sha256_cert_fingerprints": [
-        "CC:88:EF:1D:E9:36:6E:5F:B3:7C:84:37:61:C9:54:05:B2:62:A0:29:C6:A0:A5:B3:B1:52:53:0C:C4:0E:70:A5"
+        "CC:88:EF:1D:E9:36:6E:5F:B3:7C:84:37:61:C9:54:05:B2:62:A0:29:C6:A0:A5:B3:B1:52:53:0C:C4:0E:70:A5",
+        "60:C3:6E:09:22:B0:E3:F1:71:11:78:F7:FB:E1:C9:4F:4E:0F:E8:95:0A:1F:E3:B0:D7:D8:71:23:28:A2:D6:B6",
+        "C7:DA:5E:72:29:42:93:29:0D:5B:90:88:01:CA:6F:33:93:A3:15:E5:34:FA:4C:36:85:B6:0B:13:16:51:11:1E",
+        "48:F1:B3:0F:5F:A0:86:0D:F9:DD:D0:30:AF:46:4C:9A:DF:41:9F:40:DE:AD:84:5E:EA:F5:F3:DB:83:EF:EA:06"
       ]
     }
   }

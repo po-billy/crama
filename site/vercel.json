@@ -1,4 +1,12 @@
 {
+  "redirects": [
+    { "source": "/ads", "destination": "/answer/", "permanent": true },
+    { "source": "/ads/", "destination": "/answer/", "permanent": true },
+    { "source": "/advertise", "destination": "/answer/", "permanent": true },
+    { "source": "/advertise/", "destination": "/answer/", "permanent": true },
+    { "source": "/games", "destination": "/hub/games/", "permanent": true },
+    { "source": "/games/", "destination": "/hub/games/", "permanent": true }
+  ],
   "functions": {
     "api/ai-report.js": { "maxDuration": 60 }
   },

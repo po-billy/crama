@@ -1,6 +1,6 @@
 // Crama PWA 서비스워커 — 설치 가능(installable) + 가벼운 네트워크 우선 캐시.
 // 콘텐츠/데이터 정확성을 위해 네트워크 우선, 오프라인일 때만 캐시 폴백.
-const CACHE = 'crama-v1';
+const CACHE = 'crama-v2';
 const SHELL = ['/', '/offline.html', '/icon-192.png', '/icon-512.png'];
 
 self.addEventListener('install', (e) => {

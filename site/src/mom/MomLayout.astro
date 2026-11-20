@@ -1,0 +1,218 @@
+---
+// 크라마 맘 앱 셸 — 사이트 헤더·푸터·하단탭 없이 독립 앱처럼 보인다.
+//   모바일(<960px): 하늘 위에 떠 있는 상단바(스크롤하면 화면 제목) + 하단 탭바(5개)
+//   PC(≥960px): 왼쪽 고정 사이드바(로고·메뉴·내 D-day) + 넓은 본문
+//   화면 전환: 문서 간 View Transition(탭바·상단바는 제자리, 본문만 바뀜) + speculation rules 로 링크 미리 받기
+// 사이트에서 빌려 쓰는 것은 BaseHead(메타·분석·테마)와 CookieConsent 둘뿐 — 별도 앱으로 옮길 때 이 두 개만 바꾸면 된다.
+import BaseHead from '../components/BaseHead.astro';
+import CookieConsent from '../components/CookieConsent.astro';
+import Icon from './Icon.astro';
+import Mascot from './Mascot.astro';
+import { MOM_BRAND } from './lib';
+import './mom.css';
+
+type Tab = 'home' | 'week' | 'check' | 'support' | 'baby';
+interface Props {
+  title: string;
+  description: string;
+  jsonLd?: Record<string, unknown>;
+  image?: string;
+  tab: Tab;
+  back?: { href: string; label: string };
+  heading?: string; // 스크롤했을 때 상단바 가운데에 보일 짧은 제목
+}
+const { title, description, jsonLd, image, tab, back, heading } = Astro.props;
+const TABS: { key: Tab; label: string; href: string; icon: 'home' | 'sprout' | 'bag' | 'gift' | 'baby' }[] = [
+  { key: 'home', label: '홈', href: '/mom/', icon: 'home' },
+  { key: 'week', label: '주차', href: '/mom/week/20/', icon: 'sprout' },
+  { key: 'check', label: '출산가방', href: '/mom/checklist/', icon: 'bag' },
+  { key: 'support', label: '지원금', href: '/mom/support/', icon: 'gift' },
+  { key: 'baby', label: '아기', href: '/mom/baby/', icon: 'baby' },
+];
+// 같은 서비스 안의 링크는 손가락을 올리거나 누르기 시작할 때 미리 받아 둔다(스크립트 실행 없는 prefetch — 분석 중복 집계 없음)
+const speculation = { prefetch: [{ where: { href_matches: '/mom/*' }, eagerness: 'moderate' }] };
+---
+<!doctype html>
+<html lang="ko">
+  <head>
+    <BaseHead title={title} description={description} jsonLd={jsonLd} image={image} manifest="/mom/manifest.webmanifest" themeColor="#5cb8ff" appTitle={MOM_BRAND} appleIcon="/mom/apple-touch-icon.png" viewportFit statusBar="black-translucent" />
+    <script is:inline>
+      // 그리기 전에 저장값 유무를 html 클래스로 — 첫 화면이 '처음/재방문' 사이에서 깜빡이지 않게
+      try {
+        if (localStorage.getItem('crama:mom')) document.documentElement.classList.add('mo-has-due');
+        if (matchMedia('(display-mode: standalone)').matches || navigator.standalone) document.documentElement.classList.add('mo-standalone');
+      } catch (e) {}
+    </script>
+    <script type="speculationrules" is:inline set:html={JSON.stringify(speculation)} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap" media="print" onload="this.media='all'" />
+  </head>
+  <body class="mo-app" data-tab={tab}>
+    <script is:inline>
+      // 크라마 맘 공용 상태·도구 — 페이지 스크립트보다 먼저 정의. 저장은 이 기기(localStorage)에만.
+      window.CramaMom = window.CramaMom || (function () {
+        var KEY = 'crama:mom', DAY = 86400000;
+        function add(d, n) { return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n); }
+        function parse(s) { var p = s.split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]); }
+        function today() { var t = new Date(); return new Date(t.getFullYear(), t.getMonth(), t.getDate()); }
+        function load() { try { var st = JSON.parse(localStorage.getItem(KEY) || 'null'); return st && st.date ? st : null; } catch (e) { return null; } }
+        // 입력값 → '보정된 마지막 생리일'(예정일 - 280일)
+        function baseOf(st) {
+          var d = parse(st.date);
+          if (st.mode === 'lmp') return add(d, Number(st.cycle || 28) - 28);
+          if (st.mode === 'conc') return add(d, -14);
+          if (st.mode === 'ivf') return add(d, -(Number(st.ivf || 5) + 14));
+          return add(d, -280);
+        }
+        function status(st) {
+          st = st || load(); if (!st) return null;
+          var base = baseOf(st), due = add(base, 280), t = today();
+          var days = Math.round((t - base) / DAY);
+          return { base: base, due: due, days: days, week: Math.floor(days / 7), day: days % 7, left: Math.round((due - t) / DAY) };
+        }
+        function buzz(ms) { try { if (navigator.vibrate) navigator.vibrate(ms || 8); } catch (e) {} }
+        // 바텀시트: 아래에서 올라오고, 배경 탭·Esc·아래로 끌기로 닫힌다
+        var lastFocus = null;
+        function sheet(id, open) {
+          var el = document.getElementById(id); if (!el) return;
+          if (open) {
+            lastFocus = document.activeElement;
+            el.hidden = false;
+            requestAnimationFrame(function () { el.classList.add('is-open'); });
+            document.documentElement.classList.add('mo-lock');
+            var f = el.querySelector('[data-autofocus]'); if (f) setTimeout(function () { f.focus({ preventScroll: true }); }, 280);
+          } else {
+            el.classList.remove('is-open');
+            document.documentElement.classList.remove('mo-lock');
+            setTimeout(function () { el.hidden = true; }, 260);
+            if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
+          }
+        }
+        document.addEventListener('click', function (e) {
+          var o = e.target.closest('[data-sheet-open]'); if (o) { e.preventDefault(); sheet(o.dataset.sheetOpen, true); return; }
+          var c = e.target.closest('[data-sheet-close]'); if (c) { var s = c.closest('.mo-sheet'); if (s) sheet(s.id, false); }
+        });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { var s = document.querySelector('.mo-sheet.is-open'); if (s) sheet(s.id, false); } });
+        document.addEventListener('touchstart', function (e) {
+          var h = e.target.closest('.mo-sheet-grab'); if (!h) return;
+          var s = h.closest('.mo-sheet'), panel = s.querySelector('.mo-sheet-panel'), y0 = e.touches[0].clientY, dy = 0;
+          function mv(ev) { dy = Math.max(0, ev.touches[0].clientY - y0); panel.style.transform = 'translateY(' + dy + 'px)'; }
+          function up() { document.removeEventListener('touchmove', mv); document.removeEventListener('touchend', up); panel.style.transform = ''; if (dy > 80) sheet(s.id, false); }
+          document.addEventListener('touchmove', mv, { passive: true }); document.addEventListener('touchend', up);
+        }, { passive: true });
+        return { KEY: KEY, DAY: DAY, add: add, parse: parse, today: today, load: load, baseOf: baseOf, status: status, sheet: sheet, buzz: buzz };
+      })();
+    </script>
+    <!-- 바텀시트는 화면에 고정(fixed)이라 위치는 상관없지만, 페이지 스크립트가 찾을 수 있게 본문보다 먼저 둔다 -->
+    <slot name="sheets" />
+    <a href="#main" class="skip-link">본문으로 건너뛰기</a>
+    <div class="mo-shell">
+      <aside class="mo-side" aria-label="크라마 맘 메뉴">
+        <a class="mo-side-logo" href="/mom/">
+          <Mascot char="mong" pose="idle" size={44} label="" />
+          <span>{MOM_BRAND}</span>
+        </a>
+        <nav class="mo-side-nav">
+          {TABS.map((t) => (
+            <a href={t.href} class={t.key === tab ? 'is-on' : ''} data-tab-link={t.key} aria-current={t.key === tab ? 'page' : undefined}>
+              <Icon name={t.icon} size={22} /><span>{t.key === 'week' ? '주차별 정보' : t.key === 'check' ? '출산가방 체크' : t.key === 'baby' ? '아기 100일·돌' : t.label}</span>
+            </a>
+          ))}
+        </nav>
+        <a class="mo-side-dday" id="mo-side-dday" href="/mom/" hidden>
+          <small>출산예정일까지</small>
+          <b id="mo-side-left">-</b>
+          <span id="mo-side-week">-</span>
+          <Mascot char="kong" pose="idle" size={56} label="" class="mo-side-kong" />
+        </a>
+        <div class="mo-side-foot">
+          <button type="button" class="mo-themebtn" data-mo-theme><Icon name="moon" size={18} /><span>밤 하늘 모드</span></button>
+          <a href="/"><Icon name="out" size={18} /><span>크라마 홈</span></a>
+        </div>
+      </aside>
+
+      <div class="mo-body">
+        <header class="mo-top" id="mo-top">
+          {back ? (
+            <a class="mo-top-back" href={back.href} data-back aria-label="뒤로"><Icon name="back" size={24} /></a>
+          ) : (
+            <a class="mo-top-logo" href="/mom/"><Mascot char="mong" pose="idle" size={30} label="" /><span>{MOM_BRAND}</span></a>
+          )}
+          {heading && <span class="mo-top-title" aria-hidden="true">{heading}</span>}
+          <div class="mo-top-act">
+            <button type="button" class="mo-iconbtn" data-mo-theme aria-label="밤 하늘 모드 전환"><Icon name="moon" size={20} /></button>
+          </div>
+        </header>
+
+        <main id="main" class="mo-main"><slot /></main>
+
+        <footer class="mo-foot">
+          <p>{MOM_BRAND}의 일정·크기는 일반적인 산전관리 기준이에요. 진료와 검사는 다니는 병원 안내를 따라 주세요.</p>
+          <nav><a href="/">크라마</a><a href="/privacy/">개인정보처리방침</a><a href="/terms/">이용약관</a><a href="/contact/">문의</a></nav>
+        </footer>
+      </div>
+
+      <nav class="mo-tabs" aria-label="크라마 맘 탭">
+        {TABS.map((t) => (
+          <a href={t.href} class={t.key === tab ? 'is-on' : ''} data-tab-link={t.key} aria-current={t.key === tab ? 'page' : undefined}>
+            <Icon name={t.icon} size={24} /><span>{t.label}</span>
+          </a>
+        ))}
+      </nav>
+    </div>
+    <CookieConsent />
+
+    <script is:inline>
+      (() => {
+        const M = window.CramaMom;
+        // 주차 탭은 내 주수로 바로 간다 + PC 사이드바 D-day
+        const sync = () => {
+          const s = M.status();
+          document.documentElement.classList.toggle('mo-has-due', !!s);
+          const side = document.getElementById('mo-side-dday');
+          if (!s || s.days < 0 || s.week > 42) { if (side) side.hidden = true; return; }
+          const w = Math.max(4, Math.min(40, s.week));
+          document.querySelectorAll('[data-tab-link="week"]').forEach((a) => { a.href = `/mom/week/${w}/`; });
+          if (side) {
+            side.hidden = false;
+            document.getElementById('mo-side-left').textContent = s.left > 0 ? `D-${s.left}` : s.left === 0 ? 'D-day' : `D+${-s.left}`;
+            document.getElementById('mo-side-week').textContent = `오늘 임신 ${s.week}주 ${s.day}일`;
+          }
+        };
+        sync();
+        window.addEventListener('mom:update', sync);
+        // 뒤로: 크라마 맘 안에서 왔으면 진짜 이전 화면으로(스크롤 위치도 브라우저가 복원)
+        document.querySelectorAll('[data-back]').forEach((a) => a.addEventListener('click', (e) => {
+          try {
+            const r = document.referrer && new URL(document.referrer);
+            if (r && r.origin === location.origin && r.pathname.startsWith('/mom/') && history.length > 1) { e.preventDefault(); history.back(); }
+          } catch (err) {}
+        }));
+        // 상단바: 하늘 위에서는 투명, 스크롤하면 불투명 + 화면 제목
+        const top = document.getElementById('mo-top');
+        let ticking = false;
+        const onScroll = () => { if (ticking) return; ticking = true; requestAnimationFrame(() => { top.classList.toggle('is-solid', window.scrollY > 24); top.classList.toggle('is-titled', window.scrollY > 180); ticking = false; }); };
+        onScroll();
+        window.addEventListener('scroll', onScroll, { passive: true });
+        // 지금 탭을 다시 누르면 맨 위로(앱 관례)
+        document.querySelectorAll('.mo-tabs a.is-on').forEach((a) => a.addEventListener('click', (e) => { if (location.pathname === new URL(a.href).pathname) { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); } }));
+        // 밤 하늘 모드(사이트와 같은 'theme' 키)
+        const root = document.documentElement;
+        const paint = () => {
+          const dark = root.dataset.theme === 'dark';
+          document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#16224a' : '#5cb8ff');
+          document.querySelectorAll('[data-mo-theme] span').forEach((s) => { s.textContent = dark ? '낮 하늘 모드' : '밤 하늘 모드'; });
+        };
+        document.querySelectorAll('[data-mo-theme]').forEach((b) => b.addEventListener('click', () => {
+          const dark = root.dataset.theme !== 'dark';
+          if (dark) root.dataset.theme = 'dark'; else delete root.dataset.theme;
+          try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) {}
+          M.buzz();
+          paint();
+        }));
+        paint();
+      })();
+    </script>
+  </body>
+</html>

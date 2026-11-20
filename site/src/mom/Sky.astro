@@ -1,0 +1,36 @@
+---
+// 첫 화면 하늘·초원 배경. public/mom/scene-{day|night}-{wide|tall}.webp 가 있으면 그림을, 없으면 CSS 하늘 + SVG 언덕을 쓴다.
+// 밤 그림은 다크 테마에서만 보인다. size: tall(서비스 첫 화면) | short(하위 화면)
+import fs from 'node:fs';
+import path from 'node:path';
+interface Props { size?: 'tall' | 'short'; class?: string }
+const { size = 'short', class: cls = '' } = Astro.props;
+const has = (f: string) => fs.existsSync(path.join(process.cwd(), 'public', 'mom', f));
+const day = has('scene-day-wide.webp') && has('scene-day-tall.webp');
+const night = has('scene-night-wide.webp') && has('scene-night-tall.webp');
+---
+<section class={`mo-sky mo-sky--${size} ${day ? 'has-scene' : ''} ${cls}`}>
+  {day ? (
+    <>
+      <picture class="mo-scene mo-scene--day">
+        <source media="(min-width: 760px)" srcset="/mom/scene-day-wide.webp" />
+        <img src="/mom/scene-day-tall.webp" alt="" width="900" height="1350" fetchpriority={size === 'tall' ? 'high' : 'auto'} decoding="async" />
+      </picture>
+      {night && (
+        <picture class="mo-scene mo-scene--night">
+          <source media="(min-width: 760px)" srcset="/mom/scene-night-wide.webp" />
+          <img src="/mom/scene-night-tall.webp" alt="" width="900" height="1350" loading="lazy" decoding="async" />
+        </picture>
+      )}
+    </>
+  ) : (
+    <svg class="mo-hills" viewBox="0 0 1200 260" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 150 C180 90 320 120 470 100 C640 78 760 130 900 110 C1040 92 1120 120 1200 105 V260 H0Z" fill="var(--mo-hill-far)" />
+      <path d="M0 190 C160 140 360 170 560 150 C760 130 960 175 1200 145 V260 H0Z" fill="var(--mo-hill-mid)" />
+      <path d="M0 225 C220 195 420 215 640 205 C860 195 1040 215 1200 200 V260 H0Z" fill="var(--mo-hill-near)" />
+    </svg>
+  )}
+  <i class="mo-cloud mo-cloud--a" aria-hidden="true"></i>
+  <i class="mo-cloud mo-cloud--b" aria-hidden="true"></i>
+  <div class="mo-sky-in"><slot /></div>
+</section>

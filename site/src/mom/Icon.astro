@@ -1,0 +1,19 @@
+---
+// 크라마 맘 전용 둥근 선 아이콘(24px 격자, currentColor). 탭바·사이드바·바로가기에서 쓴다.
+interface Props { name: 'home' | 'sprout' | 'bag' | 'gift' | 'baby' | 'back' | 'moon' | 'sun' | 'out' | 'cal' | 'pin'; size?: number }
+const { name, size = 24 } = Astro.props;
+const P: Record<string, string> = {
+  home: '<path d="M4 11.2 12 4.5l8 6.7V19a1.5 1.5 0 0 1-1.5 1.5H15v-5.5h-6v5.5H5.5A1.5 1.5 0 0 1 4 19z"/>',
+  sprout: '<path d="M12 20.5v-8"/><path d="M12 12.5C12 8.5 9 6 4.5 6c0 4 2.8 6.5 7.5 6.5z"/><path d="M12 14.5c0-3.6 2.6-6 7.5-6 0 3.8-3 6-7.5 6z"/>',
+  bag: '<rect x="4" y="8" width="16" height="12.5" rx="3"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/><path d="M9.5 13.5h5"/>',
+  gift: '<rect x="3.5" y="8.5" width="17" height="4" rx="1.5"/><path d="M5 12.5v6.5a1.5 1.5 0 0 0 1.5 1.5h11a1.5 1.5 0 0 0 1.5-1.5v-6.5"/><path d="M12 8.5v12"/><path d="M12 8.5C10.5 5 7 5 7 7c0 1.2 1.5 1.5 5 1.5zM12 8.5c1.5-3.5 5-3.5 5-1.5 0 1.2-1.5 1.5-5 1.5z"/>',
+  baby: '<circle cx="12" cy="12.5" r="7.5"/><path d="M9.3 11.5h.01M14.7 11.5h.01"/><path d="M10 15c1.2 1 2.8 1 4 0"/><path d="M12 5c-1-1.6.6-2.6 1.6-1.6"/>',
+  back: '<path d="M15 5l-7 7 7 7"/>',
+  moon: '<path d="M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 3v1.5M12 19.5V21M3 12h1.5M19.5 12H21M5.6 5.6l1 1M17.4 17.4l1 1M5.6 18.4l1-1M17.4 6.6l1-1"/>',
+  out: '<path d="M14 4.5h5.5V10"/><path d="M19.5 4.5 11 13"/><path d="M17.5 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8.5a2 2 0 0 1 2-2h4"/>',
+  cal: '<rect x="4" y="5.5" width="16" height="15" rx="3"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/>',
+  pin: '<path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/>',
+};
+---
+<svg class="mo-ic" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={P[name]} />

@@ -1,8 +1,9 @@
 ---
 // 임신·출산 지원금 — 받는 순서대로 정리(2026년 기준). 지자체 지원은 /welfare/ 데이터로 연결.
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import '../../styles/mom.css';
-import { MOM_BRAND, MOM_YEAR, SUPPORTS, SUPPORT_NOTE } from '../../lib/mom';
+import MomLayout from '../../mom/MomLayout.astro';
+import Sky from '../../mom/Sky.astro';
+import Mascot from '../../mom/Mascot.astro';
+import { MOM_YEAR, SUPPORTS, SUPPORT_NOTE } from '../../mom/lib';
 
 const steps = [
   { when: '임신 확인 직후', items: ['국민행복카드로 임신·출산 진료비 신청(단태아 100만 원)', '보건소 임산부 등록(엽산제·철분제, 산전검사 지원은 보건소마다 달라요)', '임신 12주 이내 근로시간 단축 신청(하루 2시간, 임금 유지)'] },
@@ -17,53 +18,56 @@ const faq = [
 ];
 const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
 ---
-<BaseLayout
+<MomLayout
+  tab="support"
   title={`임신·출산 지원금 ${MOM_YEAR} 총정리 — 첫만남이용권·부모급여·아동수당, 받는 순서대로`}
   description={`${MOM_YEAR}년 기준 임신·출산 진료비 100만 원, 첫만남이용권 200만~300만 원, 부모급여 월 100만 원, 아동수당 월 10만 원(만 9세 미만)까지 언제 무엇을 신청하는지 순서대로 정리했어요.`}
   jsonLd={jsonLd}
+  back={{ href: '/mom/', label: '홈' }}
+  heading="임신·출산 지원금"
 >
-  <div class="wrap mm">
-    <nav class="mm-crumb"><a href="/mom/">{MOM_BRAND}</a> › 임신·출산 지원금</nav>
-    <span class="mm-brand">{MOM_BRAND}</span>
-    <h1>임신·출산 지원금, 받는 순서대로</h1>
-    <p class="mm-lead">{MOM_YEAR}년 기준으로 임신을 확인한 날부터 아이가 자랄 때까지 받는 지원을 시기별로 모았어요.</p>
+  <Sky size="short">
+    <span class="mo-chip">{MOM_YEAR}년 기준</span>
+    <h1 class="mo-h1 mo-h1--big">임신·출산 지원금,<br />받는 순서대로</h1>
+    <p class="mo-sub">임신 확인부터 아이가 자랄 때까지 받는 지원을 모았어요</p>
+    <div class="mo-chars">
+      <Mascot char="mong" pose="cheer" size="clamp(96px, 26vw, 140px)" />
+      <Mascot char="kong" pose="hi" size="clamp(64px, 17vw, 92px)" />
+    </div>
+  </Sky>
 
-    <section class="mm-sec">
+  <div class="mo-page">
+    <section class="mo-card">
       <h2>한눈에 보는 금액</h2>
-      <table class="mm-table">
-        <thead><tr><th>시기</th><th>지원</th><th class="r">금액</th></tr></thead>
-        <tbody>{SUPPORTS.map((s) => <tr><td>{s.when}</td><td><b>{s.name}</b>{s.desc && <><br /><small>{s.desc}</small></>}</td><td class="r">{s.amount}</td></tr>)}</tbody>
-      </table>
+      <div class="mo-money">
+        {SUPPORTS.map((s) => <div><small>{s.when}</small><b>{s.name}</b><strong>{s.amount}</strong>{s.desc && <span>{s.desc}</span>}</div>)}
+      </div>
       <p class="mm-note">{SUPPORT_NOTE} 금액과 기준은 해마다 바뀔 수 있으니 신청 전에 복지로(bokjiro.go.kr)나 주민센터에서 확인하세요.</p>
     </section>
 
-    <section class="mm-sec">
-      <h2>언제 무엇을 신청할까</h2>
-      <div class="mm-tasks">
-        {steps.map((s) => (
-          <div class="mm-task"><em class="k-admin">신청</em><b>{s.when}</b><span>{s.items.map((i) => <>· {i}<br /></>)}</span></div>
-        ))}
+    <div class="mo-grid2">
+      <section class="mo-card">
+        <h2>언제 무엇을 신청할까</h2>
+        <div class="mo-steps">
+          {steps.map((s) => <div><b>{s.when}</b><ul>{s.items.map((i) => <li>{i}</li>)}</ul></div>)}
+        </div>
+      </section>
+      <div class="mo-col">
+        <section class="mo-card">
+          <h2>우리 동네 지원도 확인하세요</h2>
+          <p>출산축하금, 산후조리비, 임산부 교통비처럼 지자체가 따로 주는 지원이 많아요. 사는 지역에 따라 금액 차이가 커요.</p>
+          <div class="mo-pills"><a href="/welfare/">지자체 복지 찾기 →</a><a href="/benefits/">내 조건으로 혜택 찾기 →</a></div>
+        </section>
+        <section class="mo-card">
+          <h2>자주 묻는 질문</h2>
+          <div class="mm-faq">{faq.map((f) => <details><summary>{f.q}</summary><p>{f.a}</p></details>)}</div>
+        </section>
       </div>
-    </section>
-
-    <section class="mm-sec">
-      <h2>우리 동네 지원도 확인하세요</h2>
-      <p>출산축하금, 산후조리비, 임산부 교통비처럼 지자체가 따로 주는 지원이 많아요. 사는 지역에 따라 금액 차이가 커요.</p>
-      <div class="mm-chips">
-        <a href="/welfare/">지자체 복지 찾기 →</a>
-        <a href="/benefits/">내 조건으로 혜택 찾기 →</a>
-      </div>
-    </section>
-
-    <section class="mm-sec">
-      <h2>자주 묻는 질문</h2>
-      <div class="mm-faq">{faq.map((f) => <details><summary>{f.q}</summary><p>{f.a}</p></details>)}</div>
-    </section>
-
-    <div class="mm-chips">
-      <a href="/mom/">출산예정일 계산기 →</a>
-      <a href="/mom/baby/">아기 100일·지원금 끝나는 날 →</a>
-      <a href="/mom/checklist/">출산가방 체크리스트 →</a>
     </div>
+
+    <section class="mo-card">
+      <h2>더 보기</h2>
+      <div class="mo-pills"><a href="/mom/">출산예정일 계산기 →</a><a href="/mom/baby/">아기 100일·지원금 끝나는 날 →</a><a href="/mom/checklist/">출산가방 체크리스트 →</a></div>
+    </section>
   </div>
-</BaseLayout>
+</MomLayout>

@@ -11,6 +11,13 @@ interface Props {
   publishedTime?: Date;
   jsonLd?: Record<string, unknown>;
   noindex?: boolean; // 얇은 자동생성 페이지 색인 제외(보강되면 다음 빌드에서 자동 복귀)
+  // 하위 앱(예: /mom/ 크라마 맘)이 자기 PWA manifest·테마색·홈 화면 이름을 쓰고 싶을 때
+  manifest?: string;
+  themeColor?: string;
+  appTitle?: string;
+  appleIcon?: string;
+  viewportFit?: boolean; // true = 노치·홈 인디케이터 영역까지 그린다(viewport-fit=cover)
+  statusBar?: 'default' | 'black-translucent';
 }
 
 const {
@@ -21,6 +28,12 @@ const {
   publishedTime,
   jsonLd,
   noindex = false,
+  manifest = '/site.webmanifest',
+  themeColor = '#6c5ce7',
+  appTitle = 'Crama',
+  appleIcon = '/apple-touch-icon.png',
+  viewportFit = false,
+  statusBar = 'default',
 } = Astro.props;
 
 const canonical = new URL(Astro.url.pathname, Astro.site ?? SITE.url).href;
@@ -74,7 +87,7 @@ const siteJsonLd = {
 };
 ---
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content={viewportFit ? 'width=device-width, initial-scale=1, viewport-fit=cover' : 'width=device-width, initial-scale=1'} />
 
 <!-- 폰트: Pretendard 하나로 통일(동적 서브셋). 세리프(Fraunces/Noto Serif KR)는 제거 —
      더 깔끔하고 '서비스'다운 톤 + Google Fonts 요청·preconnect 제거로 로딩도 가벼워짐.
@@ -93,14 +106,14 @@ const siteJsonLd = {
 <link rel="icon" href="/favicon-48.png" sizes="48x48" type="image/png" />
 <link rel="icon" href="/favicon-96.png" sizes="96x96" type="image/png" />
 <link rel="icon" href="/icon-192.png" sizes="192x192" type="image/png" />
-<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-<link rel="manifest" href="/site.webmanifest" />
-<meta name="theme-color" content="#6c5ce7" />
+<link rel="apple-touch-icon" href={appleIcon} />
+<link rel="manifest" href={manifest} />
+<meta name="theme-color" content={themeColor} />
 <!-- PWA: iOS '홈 화면에 추가' 시 독립 앱처럼 실행 -->
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="default" />
-<meta name="apple-mobile-web-app-title" content="Crama" />
+<meta name="apple-mobile-web-app-status-bar-style" content={statusBar} />
+<meta name="apple-mobile-web-app-title" content={appTitle} />
 <script is:inline>
   if ('serviceWorker' in navigator && location.hostname !== 'localhost') {
     window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));

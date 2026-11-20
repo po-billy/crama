@@ -1,0 +1,24 @@
+{
+  "name": "크라마 맘 — 임신 주수·출산 준비",
+  "short_name": "크라마 맘",
+  "id": "/mom/",
+  "description": "오늘 임신 몇 주 며칠, 이번 주 검사와 할 일, 출산가방, 지원금, 아기 100일까지 한 손에.",
+  "start_url": "/mom/?source=pwa",
+  "scope": "/mom/",
+  "display": "standalone",
+  "background_color": "#f2f9ff",
+  "theme_color": "#5cb8ff",
+  "lang": "ko-KR",
+  "orientation": "portrait-primary",
+  "categories": ["health", "lifestyle", "medical"],
+  "icons": [
+    { "src": "/mom/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/mom/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/mom/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "오늘 임신 몇 주", "short_name": "내 주수", "url": "/mom/?source=pwa" },
+    { "name": "출산가방 체크리스트", "short_name": "출산가방", "url": "/mom/checklist/?source=pwa" },
+    { "name": "아기 100일·예방접종", "short_name": "아기", "url": "/mom/baby/?source=pwa" }
+  ]
+}

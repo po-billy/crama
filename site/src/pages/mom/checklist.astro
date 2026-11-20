@@ -1,8 +1,8 @@
 ---
 // 출산가방 체크리스트 — 체크 상태는 기기(localStorage 'crama:mom-check')에 저장. 나중에 항목별 쿠팡 링크를 붙일 자리.
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import '../../styles/mom.css';
-import { MOM_BRAND } from '../../lib/mom';
+import MomLayout from '../../mom/MomLayout.astro';
+import Sky from '../../mom/Sky.astro';
+import Mascot from '../../mom/Mascot.astro';
 
 const GROUPS = [
   { name: '서류', items: [['신분증', ''], ['산모수첩', ''], ['국민행복카드', ''], ['산후조리원 계약서', '조리원 가는 경우'], ['보험 서류', '실손 청구용, 필요하면']] },
@@ -11,36 +11,50 @@ const GROUPS = [
 ];
 const total = GROUPS.reduce((a, g) => a + g.items.length, 0);
 ---
-<BaseLayout
+<MomLayout
+  tab="check"
   title="출산가방 체크리스트 — 서류·엄마·아기 준비물, 체크하며 싸기"
   description="출산가방에 꼭 넣을 서류, 엄마 준비물, 아기 퇴원 준비물을 체크하며 쌀 수 있는 목록이에요. 체크한 항목은 이 기기에 저장돼요."
+  back={{ href: '/mom/', label: '홈' }}
+  heading="출산가방 체크리스트"
 >
-  <div class="wrap mm">
-    <nav class="mm-crumb"><a href="/mom/">{MOM_BRAND}</a> › 출산가방 체크리스트</nav>
-    <span class="mm-brand">{MOM_BRAND}</span>
-    <h1>출산가방 체크리스트</h1>
-    <p class="mm-lead">34주 전후로 싸 두면 마음이 편해요. 체크한 항목은 이 기기에 저장되니 짐을 싸면서 하나씩 눌러 보세요.</p>
-    <p class="mm-progress" id="ck-prog">0 / {total} 챙겼어요</p>
-
-    {GROUPS.map((g) => (
-      <section class="mm-sec">
-        <h2>{g.name}</h2>
-        <div class="mm-check">
-          {g.items.map(([n, note]) => (
-            <label><input type="checkbox" data-k={`${g.name}:${n}`} /><span>{n}</span>{note && <small>{note}</small>}</label>
-          ))}
-        </div>
-      </section>
-    ))}
-    <button type="button" class="mm-reset" id="ck-reset">체크 모두 지우기</button>
-    <p class="mm-note">※ 병원·조리원마다 기본으로 주는 물품이 달라요. 출산 병원에 준비물 목록이 있는지 먼저 물어보세요.</p>
-
-    <div class="mm-chips" style="margin-top:1.5rem">
-      <a href="/mom/">출산예정일 계산기 →</a>
-      <a href="/mom/support/">임신·출산 지원금 →</a>
-      <a href="/mom/baby/">아기 100일 계산기 →</a>
+  <Sky size="short">
+    <span class="mo-chip">34주 전후로 싸 두면 편해요</span>
+    <h1 class="mo-h1 mo-h1--big">출산가방 체크리스트</h1>
+    <p class="mo-sub mm-progress" id="ck-prog">0 / {total} 챙겼어요</p>
+    <div class="mo-chars" style="align-items:center;gap:14px">
+      <div class="mo-ring" id="ck-ring"><div><b id="ck-pct">0%</b><small>준비 완료</small></div></div>
+      <span id="ck-m1"><Mascot char="mong" pose="hold" size="clamp(90px, 24vw, 130px)" /></span>
+      <span id="ck-m2" hidden><Mascot char="mong" pose="cheer" size="clamp(90px, 24vw, 130px)" /></span>
     </div>
+  </Sky>
+
+  <div class="mo-page">
+    <div class="mo-grid2" style="align-items:start">
+      {GROUPS.map((g, i) => (
+        <section class="mo-card" style={i === 0 ? '' : ''}>
+          <h2>{g.name} <small style="font-size:0.8rem;color:var(--mo-muted);font-weight:700" data-gcount={g.name}></small></h2>
+          <div class="mm-check">
+            {g.items.map(([n, note]) => (
+              <label><input type="checkbox" data-k={`${g.name}:${n}`} data-g={g.name} /><span>{n}</span>{note && <small>{note}</small>}</label>
+            ))}
+          </div>
+        </section>
+      ))}
+      <section class="mo-card">
+        <h2>챙기기 전에</h2>
+        <p>병원·조리원마다 기본으로 주는 물품이 달라요. 출산 병원에 준비물 목록이 있는지 먼저 물어보세요.</p>
+        <p>체크한 항목은 이 기기에 저장되니 짐을 싸면서 하나씩 눌러 보세요.</p>
+        <button type="button" class="mm-reset" id="ck-reset" style="padding-left:0">체크 모두 지우기</button>
+      </section>
+    </div>
+
+    <section class="mo-card">
+      <h2>더 보기</h2>
+      <div class="mo-pills"><a href="/mom/">출산예정일 계산기 →</a><a href="/mom/support/">임신·출산 지원금 →</a><a href="/mom/baby/">아기 100일 계산기 →</a></div>
+    </section>
   </div>
+
   <script is:inline define:vars={{ total }}>
     (() => {
       const KEY = 'crama:mom-check';
@@ -49,12 +63,25 @@ const total = GROUPS.reduce((a, g) => a + g.items.length, 0);
       const boxes = [...document.querySelectorAll('.mm-check input')];
       const sync = () => {
         let c = 0;
-        boxes.forEach((b) => { b.checked = !!done[b.dataset.k]; b.parentElement.classList.toggle('is-done', b.checked); if (b.checked) c++; });
+        const per = {};
+        boxes.forEach((b) => {
+          b.checked = !!done[b.dataset.k];
+          b.parentElement.classList.toggle('is-done', b.checked);
+          per[b.dataset.g] = per[b.dataset.g] || [0, 0];
+          per[b.dataset.g][1]++;
+          if (b.checked) { c++; per[b.dataset.g][0]++; }
+        });
+        const pct = Math.round((c / total) * 100);
         document.getElementById('ck-prog').textContent = `${c} / ${total} 챙겼어요${c === total ? ' 🎉' : ''}`;
+        document.getElementById('ck-pct').textContent = pct + '%';
+        document.getElementById('ck-ring').style.setProperty('--p', pct);
+        document.getElementById('ck-m1').hidden = c === total;
+        document.getElementById('ck-m2').hidden = c !== total;
+        document.querySelectorAll('[data-gcount]').forEach((el) => { const p = per[el.dataset.gcount]; if (p) el.textContent = `${p[0]}/${p[1]}`; });
       };
-      boxes.forEach((b) => b.addEventListener('change', () => { done[b.dataset.k] = b.checked; if (!b.checked) delete done[b.dataset.k]; try { localStorage.setItem(KEY, JSON.stringify(done)); } catch (e) {} sync(); }));
-      document.getElementById('ck-reset').addEventListener('click', () => { done = {}; try { localStorage.removeItem(KEY); } catch (e) {} sync(); });
+      boxes.forEach((b) => b.addEventListener('change', () => { done[b.dataset.k] = b.checked; if (!b.checked) delete done[b.dataset.k]; try { localStorage.setItem(KEY, JSON.stringify(done)); } catch (e) {} window.CramaMom.buzz(b.checked ? 12 : 6); sync(); }));
+      document.getElementById('ck-reset').addEventListener('click', () => { if (!confirm('체크를 모두 지울까요?')) return; done = {}; try { localStorage.removeItem(KEY); } catch (e) {} sync(); });
       sync();
     })();
   </script>
-</BaseLayout>
+</MomLayout>

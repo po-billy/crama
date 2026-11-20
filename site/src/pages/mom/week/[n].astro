@@ -1,9 +1,10 @@
 ---
 // 임신 N주 — "임신 20주 몇 개월", "임신 24주 검사" 검색을 받는다. 4~40주.
-import BaseLayout from '../../../layouts/BaseLayout.astro';
-import '../../../styles/mom.css';
-import { MOM_BRAND, WEEK_FROM, WEEK_TO, monthOfWeek, trimesterOf, tasksOf } from '../../../lib/mom';
-import { WEEKS } from '../../../data/mom-weeks';
+import MomLayout from '../../../mom/MomLayout.astro';
+import Sky from '../../../mom/Sky.astro';
+import Mascot from '../../../mom/Mascot.astro';
+import { WEEK_FROM, WEEK_TO, monthOfWeek, trimesterOf, tasksOf } from '../../../mom/lib';
+import { WEEKS, emoOf } from '../../../mom/weeks';
 
 export function getStaticPaths() {
   return WEEKS.map((w) => ({ params: { n: String(w.w) } }));
@@ -24,77 +25,109 @@ const faq = [
 ];
 if (tasks.length) faq.push({ q: `임신 ${n}주에 받는 검사나 할 일이 있나요?`, a: tasks.map((t) => `${t.title}(${t.from}~${t.to}주)`).join(', ') + '을 챙길 시기예요.' });
 const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+const emo = emoOf(wk.like);
 ---
-<BaseLayout title={title} description={desc} jsonLd={jsonLd}>
-  <div class="wrap mm">
-    <nav class="mm-crumb"><a href="/mom/">{MOM_BRAND}</a> › 임신 {n}주</nav>
-    <span class="mm-brand">{tri.name} · {month}개월</span>
-    <h1>임신 {n}주, 아기는 {wk.like}만 해요</h1>
-    <p class="mm-lead">임신 {n}주 0일부터 {n}주 6일까지의 이야기예요. 출산예정일까지 약 {Math.max(0, daysLeft)}일 남았어요.</p>
-    <div class="mm-hide" id="mm-mine" hidden><p class="mm-note" id="mm-mine-t"></p></div>
-
-    <div class="mm-size">
-      <div><span>키</span><b>{wk.len}</b></div>
-      <div><span>몸무게</span><b>{wk.wt}</b></div>
-      <div><span>크기 비유</span><b>{wk.like}</b></div>
+<MomLayout tab="week" title={title} description={desc} jsonLd={jsonLd} back={{ href: '/mom/', label: '홈' }} heading={`임신 ${n}주 · ${wk.like}`}>
+  <Sky size="short">
+    <span class="mo-chip">{tri.name} · {month}개월</span>
+    <h1 class="mo-h1 mo-h1--big">임신 {n}주, 아기는<br />{wk.like}만 해요</h1>
+    <p class="mo-sub">{n}주 0일 ~ {n}주 6일 · 예정일까지 약 {Math.max(0, daysLeft)}일</p>
+    <div class="mo-chars">
+      <Mascot char="mong" pose="hold" size="clamp(96px, 26vw, 140px)" />
+      <Mascot char="kong" pose={n >= 36 ? 'cheer' : 'idle'} size="clamp(64px, 17vw, 92px)" />
     </div>
-    <p class="mm-note">※ 평균치예요. {lenNote}</p>
+  </Sky>
 
-    <section class="mm-sec">
-      <h2>아기는 지금</h2>
-      <p>{wk.baby}</p>
-    </section>
-    <section class="mm-sec">
-      <h2>엄마 몸은</h2>
-      <p>{wk.mom}</p>
-    </section>
-
-    <section class="mm-sec">
-      <h2>임신 {n}주에 챙길 것</h2>
-      {tasks.length ? (
-        <div class="mm-tasks">
-          {tasks.map((t) => <div class="mm-task"><em class={`k-${t.kind}`}>{KIND[t.kind]}</em><b>{t.title} <small>{t.from === t.to ? `${t.from}주` : `${t.from}~${t.to}주`}</small></b><span>{t.desc}</span></div>)}
-        </div>
-      ) : <p>이번 주에 정해진 검사는 없어요. 다음 진료 날짜만 확인해 두세요.</p>}
-      <p class="mm-note">※ 일반적인 산전관리 일정이에요. 실제 검사 시기는 다니는 병원 안내를 따르세요.</p>
+  <div class="mo-page">
+    <section class="mo-card" aria-label="주차 고르기">
+      <div class="mm-weeks" id="mm-weekstrip">{WEEKS.map((w) => <a href={`/mom/week/${w.w}/`} class={w.w === n ? 'is-cur' : ''} aria-current={w.w === n ? 'page' : undefined}>{w.w}주</a>)}</div>
+      <div class="mm-pn">
+        {n > WEEK_FROM ? <a href={`/mom/week/${n - 1}/`}>← {n - 1}주</a> : <span></span>}
+        <a href="/mom/" class="mid">내 주수</a>
+        {WEEK_TO > n ? <a href={`/mom/week/${n + 1}/`}>{n + 1}주 →</a> : <a href="/mom/baby/">태어난 뒤 →</a>}
+      </div>
+      <p class="mo-swipe-hint">화면을 옆으로 밀면 다른 주로 넘어가요</p>
     </section>
 
-    <section class="mm-sec">
-      <h2>내 예정일로 날짜 보기</h2>
-      <p>출산예정일 계산기에 날짜를 넣으면 이번 주가 정확히 며칠부터 며칠까지인지, 지금 몇 주 며칠인지 바로 보여 드려요.</p>
-      <div class="mm-chips"><a href="/mom/">출산예정일 · 주수 계산하기 →</a></div>
-    </section>
-
-    <section class="mm-sec">
-      <h2>자주 묻는 질문</h2>
-      <div class="mm-faq">{faq.map((f) => <details><summary>{f.q}</summary><p>{f.a}</p></details>)}</div>
-    </section>
-
-    <div class="mm-pn">
-      {n > WEEK_FROM ? <a href={`/mom/week/${n - 1}/`}>← {n - 1}주</a> : <span></span>}
-      <a href="/mom/">계산기</a>
-      {WEEK_TO > n ? <a href={`/mom/week/${n + 1}/`}>{n + 1}주 →</a> : <a href="/mom/baby/">태어난 뒤 →</a>}
+    <div class="mo-grid2">
+      <div class="mo-col">
+        <section class="mo-card">
+          <div class="mo-baby" style="margin-bottom:14px"><i class="mo-bubble">{emo}</i><div><b>{wk.like}만 한 우리 아기</b><span>{tri.name} · {month}개월 · {n}주차</span></div></div>
+          <div class="mm-size">
+            <div><span>키</span><b>{wk.len}</b></div>
+            <div><span>몸무게</span><b>{wk.wt}</b></div>
+            <div><span>크기 비유</span><b>{wk.like}</b></div>
+          </div>
+          <p class="mm-note">※ 평균치예요. {lenNote}</p>
+          <p class="mm-note" id="mm-mine" hidden></p>
+        </section>
+        <section class="mo-card">
+          <h2 class="mo-h2"><Mascot char="kong" pose="hi" size={34} label="" />아기는 지금</h2>
+          <p>{wk.baby}</p>
+        </section>
+        <section class="mo-card">
+          <h2 class="mo-h2"><Mascot char="mong" pose="idle" size={34} label="" />엄마 몸은</h2>
+          <p>{wk.mom}</p>
+        </section>
+      </div>
+      <div class="mo-col">
+        <section class="mo-card">
+          <h2>임신 {n}주에 챙길 것</h2>
+          {tasks.length ? (
+            <div class="mm-tasks">
+              {tasks.map((t) => <div class="mm-task"><em class={`k-${t.kind}`}>{KIND[t.kind]}</em><b>{t.title} <small>{t.from === t.to ? `${t.from}주` : `${t.from}~${t.to}주`}</small></b><span>{t.desc}</span></div>)}
+            </div>
+          ) : <p>이번 주에 정해진 검사는 없어요. 다음 진료 날짜만 확인해 두세요.</p>}
+          <p class="mm-note">※ 일반적인 산전관리 일정이에요. 실제 검사 시기는 다니는 병원 안내를 따르세요.</p>
+        </section>
+        <section class="mo-card">
+          <h2>내 예정일로 날짜 보기</h2>
+          <p>출산예정일 계산기에 날짜를 넣으면 이번 주가 정확히 며칠부터 며칠까지인지, 지금 몇 주 며칠인지 바로 보여 드려요.</p>
+          <div class="mo-pills"><a href="/mom/">출산예정일 · 주수 계산하기 →</a></div>
+        </section>
+        <section class="mo-card">
+          <h2>자주 묻는 질문</h2>
+          <div class="mm-faq">{faq.map((f) => <details><summary>{f.q}</summary><p>{f.a}</p></details>)}</div>
+        </section>
+      </div>
     </div>
-    <div class="mm-weeks">{WEEKS.map((w) => <a href={`/mom/week/${w.w}/`} class={w.w === n ? 'is-cur' : ''}>{w.w}주</a>)}</div>
   </div>
 
-  <script is:inline define:vars={{ n }}>
+  <script is:inline define:vars={{ n, WEEK_FROM, WEEK_TO }}>
     (() => {
-      try {
-        const st = JSON.parse(localStorage.getItem('crama:mom') || 'null');
-        if (!st || !st.date) return;
-        const [y, m, d] = st.date.split('-').map(Number);
-        let base = new Date(y, m - 1, d);
-        const add = (x, k) => new Date(x.getFullYear(), x.getMonth(), x.getDate() + k);
-        if (st.mode === 'lmp') base = add(base, Number(st.cycle || 28) - 28);
-        else if (st.mode === 'conc') base = add(base, -14);
-        else if (st.mode === 'ivf') base = add(base, -(Number(st.ivf || 5) + 14));
-        else base = add(base, -280);
-        const s = add(base, n * 7), e = add(base, n * 7 + 6);
-        const f = (x) => `${x.getMonth() + 1}월 ${x.getDate()}일`;
-        document.getElementById('mm-mine-t').textContent = `내 예정일 기준으로 임신 ${n}주는 ${s.getFullYear()}년 ${f(s)} ~ ${f(e)}이에요.`;
-        document.getElementById('mm-mine').hidden = false;
-      } catch (e) {}
+      // 좌우 스와이프로 이전·다음 주(가로 스크롤 영역·입력칸에서 시작한 건 무시)
+      let x0 = null, y0 = 0, t0 = 0;
+      const main = document.getElementById('main');
+      main.addEventListener('touchstart', (e) => {
+        if (e.touches.length !== 1 || e.target.closest('.mm-weeks, .mo-scroll-x, input, select, details')) { x0 = null; return; }
+        x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; t0 = Date.now();
+      }, { passive: true });
+      main.addEventListener('touchend', (e) => {
+        if (x0 === null) return;
+        const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+        x0 = null;
+        if (Math.abs(dx) < 70 || Math.abs(dy) > Math.abs(dx) * 0.6 || Date.now() - t0 > 700) return;
+        const to = dx < 0 ? n + 1 : n - 1;
+        if (to < WEEK_FROM || to > WEEK_TO) return;
+        window.CramaMom.buzz(10);
+        const page = document.querySelector('.mo-page');
+        page.classList.add('mo-swipe-out', dx < 0 ? 'to-left' : 'to-right');
+        setTimeout(() => { location.href = `/mom/week/${to}/`; }, 120);
+      }, { passive: true });
+      window.addEventListener('pageshow', () => document.querySelector('.mo-page')?.classList.remove('mo-swipe-out', 'to-left', 'to-right'));
+      // 현재 주차 칩을 가운데로
+      const strip = document.getElementById('mm-weekstrip');
+      const cur = strip && strip.querySelector('.is-cur');
+      if (cur) strip.scrollLeft = cur.offsetLeft - strip.clientWidth / 2 + cur.clientWidth / 2;
+      const M = window.CramaMom;
+      const st = M.load();
+      if (!st) return;
+      const base = M.baseOf(st);
+      const s = M.add(base, n * 7), e = M.add(base, n * 7 + 6);
+      const f = (x) => `${x.getMonth() + 1}월 ${x.getDate()}일`;
+      const el = document.getElementById('mm-mine');
+      el.textContent = `📅 내 예정일 기준으로 임신 ${n}주는 ${s.getFullYear()}년 ${f(s)} ~ ${f(e)}이에요.`;
+      el.hidden = false;
     })();
   </script>
-</BaseLayout>
+</MomLayout>

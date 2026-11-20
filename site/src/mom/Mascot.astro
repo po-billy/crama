@@ -1,0 +1,105 @@
+---
+// 크라마 맘 마스코트 — 몽이(몽글몽글 구름, 엄마 역할)와 콩이(뱃속 아기 콩).
+// 기본은 클레이 질감을 흉내 낸 SVG. public/mom/char/{char}-{pose}.webp 파일을 넣으면 그 이미지를 대신 쓴다
+// (3D 클레이 렌더로 바꿀 때 코드 수정 없이 파일만 추가하면 된다 — README.md 의 프롬프트 참고).
+import fs from 'node:fs';
+import path from 'node:path';
+
+interface Props {
+  char?: 'mong' | 'kong';
+  pose?: 'hi' | 'cheer' | 'sleep' | 'hold' | 'idle';
+  size?: number | string;
+  class?: string;
+  label?: string;
+}
+const { char = 'mong', pose = 'idle', size = 120, class: cls = '', label } = Astro.props;
+const file = `/mom/char/${char}-${pose}.webp`;
+const hasImg = fs.existsSync(path.join(process.cwd(), 'public', file));
+const uid = `m${Math.random().toString(36).slice(2, 8)}`;
+const w = typeof size === 'number' ? `${size}px` : size;
+const alt = label ?? (char === 'mong' ? '크라마 맘 마스코트 몽이' : '아기 콩이');
+const eyesClosed = pose === 'sleep';
+const happy = pose === 'cheer';
+---
+{hasImg ? (
+  <img src={file} alt={alt} width="400" height="400" loading="lazy" decoding="async" class={`mo-char ${cls}`} style={`width:${w};height:auto`} />
+) : (
+  <svg class={`mo-char mo-char--${char} mo-pose--${pose} ${cls}`} viewBox="0 0 200 200" style={`width:${w};height:auto`} role="img" aria-label={alt}>
+    <defs>
+      <radialGradient id={`${uid}b`} cx="38%" cy="30%" r="75%">
+        {char === 'mong' ? (
+          <><stop offset="0" stop-color="#ffffff" /><stop offset=".55" stop-color="#fbf7f2" /><stop offset="1" stop-color="#e6dcd2" /></>
+        ) : (
+          <><stop offset="0" stop-color="#fff8d6" /><stop offset=".5" stop-color="#ffe17a" /><stop offset="1" stop-color="#eeb43c" /></>
+        )}
+      </radialGradient>
+      <radialGradient id={`${uid}e`} cx="35%" cy="30%" r="70%"><stop offset="0" stop-color="#5a5266" /><stop offset="1" stop-color="#1f1a28" /></radialGradient>
+      <radialGradient id={`${uid}l`} cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#c8f5e2" /><stop offset="1" stop-color="#57c39b" /></radialGradient>
+      <radialGradient id={`${uid}h`} cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#ffd1dd" /><stop offset="1" stop-color="#ff7fa3" /></radialGradient>
+      <filter id={`${uid}s`} x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="5" /></filter>
+    </defs>
+    <ellipse cx="100" cy="176" rx="52" ry="8" fill="#1d4a2a" opacity=".18" filter={`url(#${uid}s)`} />
+    {char === 'mong' ? (
+      <g>
+        <ellipse cx="78" cy="166" rx="14" ry="8" fill={`url(#${uid}b)`} />
+        <ellipse cx="122" cy="166" rx="14" ry="8" fill={`url(#${uid}b)`} />
+        {(pose === 'hi' || happy) && <circle class="mo-hand-r" cx="172" cy={happy ? 86 : 92} r="13" fill={`url(#${uid}b)`} />}
+        {happy && <circle cx="28" cy="86" r="13" fill={`url(#${uid}b)`} />}
+        <path d="M50 162 C24 162 18 130 38 118 C30 92 56 70 80 79 C86 52 122 46 132 73 C154 63 178 86 167 110 C188 120 182 162 152 162 Z" fill={`url(#${uid}b)`} />
+        <path d="M62 84 C70 76 80 76 86 80" stroke="#fff" stroke-width="6" stroke-linecap="round" fill="none" opacity=".85" />
+        <path d="M106 66 C104 52 106 44 110 38" stroke="#57c39b" stroke-width="4" stroke-linecap="round" fill="none" />
+        <ellipse cx="98" cy="40" rx="11" ry="6" transform="rotate(-25 98 40)" fill={`url(#${uid}l)`} />
+        <ellipse cx="121" cy="36" rx="12" ry="6.5" transform="rotate(20 121 36)" fill={`url(#${uid}l)`} />
+        {pose === 'hold' && (
+          <g>
+            <path d="M100 160 C78 146 76 128 89 124 C95 122 99 126 100 130 C101 126 105 122 111 124 C124 128 122 146 100 160 Z" fill={`url(#${uid}h)`} />
+            <circle cx="80" cy="140" r="11" fill={`url(#${uid}b)`} />
+            <circle cx="120" cy="140" r="11" fill={`url(#${uid}b)`} />
+          </g>
+        )}
+      </g>
+    ) : (
+      <g>
+        <ellipse cx="84" cy="166" rx="12" ry="7" fill={`url(#${uid}b)`} />
+        <ellipse cx="116" cy="166" rx="12" ry="7" fill={`url(#${uid}b)`} />
+        {(pose === 'hi' || happy) && <circle class="mo-hand-r" cx="152" cy={happy ? 92 : 100} r="11" fill={`url(#${uid}b)`} />}
+        {happy && <circle cx="48" cy="92" r="11" fill={`url(#${uid}b)`} />}
+        <ellipse cx="100" cy="118" rx="50" ry="50" fill={`url(#${uid}b)`} />
+        <path d="M72 88 C78 80 88 78 94 80" stroke="#fff" stroke-width="6" stroke-linecap="round" fill="none" opacity=".8" />
+        <path d="M100 69 C96 56 106 50 110 58 C113 64 106 68 103 63" stroke="#d99a22" stroke-width="4" stroke-linecap="round" fill="none" />
+      </g>
+    )}
+    {eyesClosed ? (
+      <g stroke="#2b2530" stroke-width="3.2" stroke-linecap="round" fill="none">
+        <path d={char === 'mong' ? 'M76 120 Q82 125 88 120' : 'M80 118 Q86 123 92 118'} />
+        <path d={char === 'mong' ? 'M112 120 Q118 125 124 120' : 'M108 118 Q114 123 120 118'} />
+      </g>
+    ) : happy ? (
+      <g stroke="#2b2530" stroke-width="3.4" stroke-linecap="round" fill="none">
+        <path d={char === 'mong' ? 'M76 122 Q82 113 88 122' : 'M80 120 Q86 111 92 120'} />
+        <path d={char === 'mong' ? 'M112 122 Q118 113 124 122' : 'M108 120 Q114 111 120 120'} />
+      </g>
+    ) : (
+      <g>
+        <circle cx={char === 'mong' ? 82 : 86} cy={char === 'mong' ? 119 : 117} r={char === 'mong' ? 8 : 7} fill={`url(#${uid}e)`} />
+        <circle cx={char === 'mong' ? 118 : 114} cy={char === 'mong' ? 119 : 117} r={char === 'mong' ? 8 : 7} fill={`url(#${uid}e)`} />
+        <circle cx={char === 'mong' ? 79.5 : 83.8} cy={char === 'mong' ? 115.8 : 114.2} r="2.6" fill="#fff" />
+        <circle cx={char === 'mong' ? 115.5 : 111.8} cy={char === 'mong' ? 115.8 : 114.2} r="2.6" fill="#fff" />
+      </g>
+    )}
+    <ellipse cx={char === 'mong' ? 68 : 74} cy={char === 'mong' ? 133 : 130} rx="9" ry="5.5" fill="#ff8fab" opacity=".55" />
+    <ellipse cx={char === 'mong' ? 132 : 126} cy={char === 'mong' ? 133 : 130} rx="9" ry="5.5" fill="#ff8fab" opacity=".55" />
+    {happy ? (
+      <path d={char === 'mong' ? 'M92 130 Q100 142 108 130 Z' : 'M93 128 Q100 139 107 128 Z'} fill="#e8607f" stroke="#2b2530" stroke-width="2.4" stroke-linejoin="round" />
+    ) : (
+      <path d={char === 'mong' ? 'M93 130 Q96.5 134 100 130 Q103.5 134 107 130' : 'M94 128 Q97 132 100 128 Q103 132 106 128'} stroke="#2b2530" stroke-width="2.6" stroke-linecap="round" fill="none" />
+    )}
+    {pose === 'sleep' && <text x="150" y="70" font-size="22" font-weight="800" fill="#8fb6ff" font-family="Jua, sans-serif">z<tspan dx="2" dy="-12" font-size="16">z</tspan></text>}
+    {happy && (
+      <g fill="#ffd65c">
+        <path d="M30 50 l4 9 9 4 -9 4 -4 9 -4 -9 -9 -4 9 -4z" />
+        <path d="M168 40 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3z" />
+      </g>
+    )}
+  </svg>
+)}

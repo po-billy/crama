@@ -138,5 +138,47 @@
     "region": "seoul",
     "source": "applyhome",
     "id": "apt-2026000505"
+  },
+  {
+    "month": 11,
+    "day": 30,
+    "title": "고양 한신더휴 퍼스트원 청약접수",
+    "cat": "housing",
+    "desc": "경기도 고양시 덕양구 행신동 173-1번지 일원 · 접수 2026-11-30~2026-12-02",
+    "url": "https://www.applyhome.co.kr/ai/aia/selectAPTLttotPblancDetail.do?houseManageNo=2026000585&pblancNo=2026000585",
+    "target": "all",
+    "field": "housing",
+    "ageGroup": "all",
+    "region": "gyeonggi",
+    "source": "applyhome",
+    "id": "apt-2026000585"
+  },
+  {
+    "month": 11,
+    "day": 30,
+    "title": "왕숙 한신더휴 센텀(남양주 왕숙 A-17BL) 공공분양주택 청약접수",
+    "cat": "housing",
+    "desc": "경기도 남양주시 진건읍 진관리 일원 남양주 왕숙 공공주택지구 A-17BL · 접수 2026-11-30~2026-12-02",
+    "url": "https://www.applyhome.co.kr/ai/aia/selectAPTLttotPblancDetail.do?houseManageNo=2026000575&pblancNo=2026000575",
+    "target": "all",
+    "field": "housing",
+    "ageGroup": "all",
+    "region": "gyeonggi",
+    "source": "applyhome",
+    "id": "apt-2026000575"
+  },
+  {
+    "month": 11,
+    "day": 30,
+    "title": "더샵 천안라크원 청약접수",
+    "cat": "housing",
+    "desc": "충청남도 천안시 서북구 부대동 354번지 일원 · 접수 2026-11-30~2026-12-02",
+    "url": "https://www.applyhome.co.kr/ai/aia/selectAPTLttotPblancDetail.do?houseManageNo=2026000521&pblancNo=2026000521",
+    "target": "all",
+    "field": "housing",
+    "ageGroup": "all",
+    "region": "all",
+    "source": "applyhome",
+    "id": "apt-2026000521"
   }
 ]

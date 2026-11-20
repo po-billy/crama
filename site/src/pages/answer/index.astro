@@ -111,8 +111,8 @@ const FAQ = [
   { q: '병원·검진기관도 광고할 수 있나요?', a: '네. 월 정액 노출형으로만 진행하며 예약·방문 건당 수수료는 받지 않습니다. 광고 문구는 의료광고 규정에 맞게 사실 위주로 쓰고, 모든 광고에 \'광고\'를 표기합니다.' },
   { q: '어떤 기준으로 광고 대상을 고르나요?', a: '쿠키나 개인정보를 쓰지 않습니다. 출생연도·나이·임신 주차·연봉 구간처럼 페이지 주제와, 방문자가 직접 고른 지역만으로 노출 대상을 정합니다.' },
   { q: '광고 성과는 어떻게 확인하나요?', a: '매월 노출·클릭 리포트를 보내 드리고, 모든 광고 링크에 UTM을 붙여 광고주의 분석 도구에서도 크라마 유입을 직접 확인할 수 있습니다.' },
-  { q: 'AI 답변에서 크라마가 인용된다는 근거가 있나요?', a: `${PROOF_AS_OF} 기준 네이버 AI 답변에서 '1984년생 건강검진', '연봉 4200 실수령액' 검색 시 답변 첫 문단의 출처로 크라마가 인용됐고, 구글 AI 모드에서도 '1954년생 건강검진' 답변 첫 문장의 출처가 crama.app이었습니다. AI 답변은 시점에 따라 달라질 수 있습니다.` },
-];
+  { q: 'AI 답변에서 크라마가 인용된다는 근거가 있나요?', a: 'Crama 팀은 실제 서비스를 만들며 AI 답변이 크라마를 어떻게 인용하는지 계속 연구하고, 그에 맞춰 콘텐츠를 최적화하고 있습니다.', note: `${PROOF_AS_OF} 기준 네이버 AI 답변에서 '1984년생 건강검진', '연봉 4200 실수령액' 검색 시 답변 첫 문단의 출처로 크라마가 인용됐고, 구글 AI 모드에서도 '1954년생 건강검진' 답변 첫 문장의 출처가 crama.app이었습니다. AI 답변은 시점에 따라 달라질 수 있습니다.` },
+] as { q: string; a: string; note?: string }[];
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -131,7 +131,7 @@ const jsonLd = {
         itemListElement: PRODUCTS.map((p) => ({ '@type': 'Offer', itemOffered: { '@type': 'Service', name: p.name, description: p.lead } })),
       },
     },
-    { '@type': 'FAQPage', mainEntity: FAQ.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+    { '@type': 'FAQPage', mainEntity: FAQ.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.note ? `${f.a} ${f.note}` : f.a } })) },
     { '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: '홈', item: 'https://crama.app/' }, { '@type': 'ListItem', position: 2, name: '크라마 앤서 광고·제휴', item: 'https://crama.app/answer/' }] },
   ],
 };
@@ -262,7 +262,7 @@ const jsonLd = {
 
   <section class="an-sec an-alt" id="faq"><div class="an-wrap an-narrow">
     <div class="an-sh"><h2>자주 묻는 질문</h2></div>
-    <div class="an-faq">{FAQ.map((f) => <details><summary>{f.q}</summary><p>{f.a}</p></details>)}</div>
+    <div class="an-faq">{FAQ.map((f) => <details><summary>{f.q}</summary><p>{f.a}</p>{f.note && <p class="an-faq-note">{f.note}</p>}</details>)}</div>
   </div></section>
 
   <section class="an-sec" id="an-form"><div class="an-wrap">
@@ -525,6 +525,7 @@ const jsonLd = {
   .an-faq details { background:#fff; border:1px solid var(--line); border-radius:14px; padding:0 20px; margin-bottom:10px; }
   .an-faq summary { cursor:pointer; padding:18px 0; font-size:16px; font-weight:800; color:var(--ink); }
   .an-faq p { margin:0 0 18px; font-size:15px; line-height:1.75; color:var(--ink2); }
+  .an-faq p.an-faq-note { margin-top:-10px; font-size:12.5px; line-height:1.65; color:#9A97AE; }
 
   /* 문의 */
   .an-contact { background:var(--ink); color:#fff; border-radius:28px; padding:52px; display:grid; grid-template-columns:.85fr 1.15fr; gap:44px; }

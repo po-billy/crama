@@ -49,6 +49,7 @@ export const MENU: MenuTab[] = [
         desc: '시청자 추첨, 점심값 내기, 회식 벌칙',
         items: [
           { name: '방송·회식 추첨 게임 모음', href: '/party/', desc: '스트리머·직장인·회식용 추첨' },
+          { name: '구슬 레이스', href: '/party/marble/', desc: '물리 코스 추첨, 300개까지 실시간 순위' },
           { name: '이름 레이스', href: '/party/race/', desc: '경마 추첨, 역전과 사진 판정' },
           { name: '플링코 추첨', href: '/party/plinko/', desc: '공을 떨어뜨려 당첨·벌칙' },
           { name: '폭탄 돌리기', href: '/party/bomb/', desc: '언제 터질지 모르는 벌칙 폭탄' },

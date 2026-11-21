@@ -7,7 +7,7 @@ import '../../styles/party.css';
 const faq = [
   { q: '결과는 정말 무작위인가요?', a: '네. 출발할 때마다 참가자별 속도와 부스터·미끄러짐이 무작위로 정해집니다. 뒤처진 참가자가 조금 더 빨라지는 보정이 있어 끝까지 접전이 되지만, 누가 이길지는 미리 정해지지 않습니다.' },
   { q: '방송(OBS)에서 쓰려면 어떻게 하나요?', a: '"방송용 링크 복사"를 누르면 참가자 이름이 담긴 주소가 복사됩니다. OBS의 브라우저 소스에 이 주소를 넣으면 화면 전체가 레이스 화면으로 열리고, 스페이스바나 "출발" 버튼으로 시작할 수 있습니다. 초록 배경이 필요하면 주소 끝에 &bg=green을 붙이세요.' },
-  { q: '몇 명까지 참가할 수 있나요?', a: '2명부터 12명까지입니다. 더 많은 인원은 플링코나 폭탄 돌리기를 써 보세요.' },
+  { q: '몇 명까지 참가할 수 있나요?', a: '최대 100명(100마리)까지입니다. "민수 x3"처럼 쓰면 같은 이름으로 3마리가 달립니다. 그보다 많으면 300개까지 되는 구슬 레이스를 써 보세요.' },
   { q: '입력한 이름은 어디에 저장되나요?', a: '서버로 보내지 않고 이 기기의 브라우저에만 저장됩니다. 다음에 열면 마지막에 쓴 이름이 그대로 들어가 있습니다.' },
 ];
 const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
@@ -21,7 +21,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntit
   </div>
 
   <div class="py-stage" id="stage">
-    <div class="py-hud"><b>CRAMA RACE</b><b id="hud"></b></div>
+    <div class="py-hud"><b>CRAMA RACE</b><b id="hud" style="color:#fff;letter-spacing:0"></b></div>
     <div class="py-ticker" id="ticker"></div>
     <canvas id="cv" aria-label="이름 레이스 경기 화면"></canvas>
     <div class="py-result" id="res" hidden>
@@ -32,10 +32,10 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntit
   </div>
 
   <form class="py-form" id="f" onsubmit="return false">
-    <label>참가자 (한 줄에 한 명, 2~12명)<textarea id="names" spellcheck="false"></textarea></label>
+    <label>참가자 (한 줄에 한 명, 최대 100명 · '민수 x3'처럼 쓰면 3마리)<textarea id="names" spellcheck="false"></textarea></label>
     <div style="display:flex;flex-direction:column;gap:12px">
       <label>누가 당첨될까요<span class="py-seg" id="mode"><button type="button" data-v="last" class="on">꼴찌가 당첨 (벌칙·밥값)</button><button type="button" data-v="first">1등이 당첨 (상품)</button></span></label>
-      <label>경기 시간<span class="py-seg" id="speed"><button type="button" data-v="1.35">짧게</button><button type="button" data-v="1" class="on">보통</button><button type="button" data-v="0.75">길게</button></span></label>
+      <label>경기 시간<span class="py-seg" id="speed"><button type="button" data-v="2">짧게 (약 10초)</button><button type="button" data-v="1" class="on">보통 (약 20초)</button><button type="button" data-v="0.68">길게 (약 30초)</button></span></label>
       <p class="py-hint">스페이스바로도 출발할 수 있어요. 이름은 이 기기에만 저장됩니다.</p>
     </div>
   </form>
@@ -63,7 +63,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntit
 </div>
 
 <script>
-  import { initNames, parseList, PALETTE, rand, sfx, shake, confetti, initStream, streamUrl, initMute, copyText, track } from '../../party/kit';
+  import { initNames, parseList, parseEntries, PALETTE, rand, sfx, shake, confetti, initStream, streamUrl, initMute, copyText, track } from '../../party/kit';
 
   const $ = (id: string) => document.getElementById(id) as HTMLElement;
   const cv = $('cv') as HTMLCanvasElement;
@@ -91,18 +91,18 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntit
   let running = false;
   let finished: R[] = [];
   let W = 0, H = 0, laneH = 40, last = 0, nextEvt = 0, leader: R | null = null, slow = false, endAt = 0;
-  const X0 = () => (W < 520 ? 70 : 96);
+  const X0 = () => (W < 520 ? 34 : 44);
   const X1 = () => W - 34;
 
   const build = () => {
-    const names = parseList(ta.value, 12);
-    racers = names.map((name, i) => ({ name, color: PALETTE[i % PALETTE.length], p: 0, base: rand(0.092, 0.104), boost: 0, slip: 0, done: false, place: 0, bob: rand(0, 6) }));
+    const names = parseEntries(ta.value, 100);
+    racers = names.map((name, i) => ({ name, color: PALETTE[i % PALETTE.length], p: 0, base: rand(0.046, 0.052), boost: 0, slip: 0, done: false, place: 0, bob: rand(0, 6) }));
   };
   const size = () => {
     const n = Math.max(2, racers.length);
     const stream = stage.classList.contains('is-stream');
     W = stage.clientWidth;
-    laneH = stream ? Math.min(96, (innerHeight - 140) / n) : Math.max(34, Math.min(52, 380 / n));
+    laneH = stream ? Math.max(10, Math.min(96, (innerHeight - 100) / n)) : Math.max(13, Math.min(54, 640 / n));
     H = Math.round(62 + laneH * n + 26);
     cv.style.height = H + 'px';
     const dpr = Math.min(2, devicePixelRatio || 1);
@@ -110,35 +110,70 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntit
     draw();
   };
 
-  const short = (s: string, n: number) => (s.length > n ? s.slice(0, n) + '…' : s);
+  const shade = (h: string, k: number) => { const n = parseInt(h.slice(1), 16), c = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => Math.round(k >= 0 ? v + (255 - v) * k : v * (1 + k))); return `rgb(${c})`; };
+  const rr = (x: number, y: number, w: number, h: number, r: number) => { g.beginPath(); if ((g as any).roundRect) (g as any).roundRect(x, y, w, h, r); else g.rect(x, y, w, h); };
   function draw() {
     g.clearRect(0, 0, W, H);
-    const x0 = X0(), x1 = X1();
+    const x0 = X0(), x1 = X1(), top = 62;
+    // 경기장 바닥
+    const bg = g.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#191536'); bg.addColorStop(1, '#100D24');
+    if (!stage.dataset.bg) { g.fillStyle = bg; g.fillRect(0, 0, W, H); }
+    // 레인: 트랙 색 + 결 무늬, 레인 사이 흰 줄
     racers.forEach((r, i) => {
-      const y = 62 + i * laneH;
-      g.fillStyle = i % 2 ? 'rgba(255,255,255,.035)' : 'rgba(255,255,255,.07)';
-      g.fillRect(0, y, W, laneH);
-      g.fillStyle = r.color; g.fillRect(0, y, 4, laneH);
-      g.fillStyle = '#fff'; g.font = `800 ${Math.min(15, laneH * 0.36)}px Pretendard, sans-serif`; g.textAlign = 'left'; g.textBaseline = 'middle';
-      g.fillText(short(r.name, W < 520 ? 4 : 6), 10, y + laneH / 2);
+      const y = top + i * laneH;
+      g.fillStyle = i % 2 ? '#211C45' : '#1C1840'; g.fillRect(x0 - 6, y, W - x0 + 6, laneH);
+      g.fillStyle = 'rgba(255,255,255,.025)';
+      for (let k = 0; k < 6; k++) g.fillRect(x0, y + 3 + k * (laneH / 6), x1 - x0, 1);
+      g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(x0 - 6, y, W - x0 + 6, 1);
+      // 레인 번호 배지
+      const bs = Math.min(22, laneH * 0.56);
+      g.fillStyle = r.color; rr(X0() / 2 - bs / 2 + 1, y + laneH / 2 - bs / 2, bs, bs, 5); g.fill();
+      g.fillStyle = '#fff'; g.font = `900 ${Math.round(bs * 0.55)}px Pretendard, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText(String(i + 1), X0() / 2 + 1, y + laneH / 2 + 1);
     });
+    const yb = top + racers.length * laneH;
+    g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(x0 - 6, yb, W - x0 + 6, 1);
+    // 거리 표시(25·50·75%)
+    g.font = '800 11px Pretendard, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'bottom';
+    [0.25, 0.5, 0.75].forEach((t) => {
+      const x = x0 + t * (x1 - x0);
+      g.strokeStyle = 'rgba(255,255,255,.12)'; g.setLineDash([3, 6]); g.beginPath(); g.moveTo(x, top); g.lineTo(x, yb); g.stroke(); g.setLineDash([]);
+      g.fillStyle = 'rgba(185,175,255,.7)'; g.fillText(`${Math.round(t * 100)}m`, x, top - 4);
+    });
+    g.fillStyle = 'rgba(185,175,255,.7)'; g.fillText('START', x0, top - 4); g.fillStyle = '#FFC83D'; g.fillText('FINISH', x1 + 4, top - 4);
     // 출발선·결승선
-    g.strokeStyle = 'rgba(255,255,255,.35)'; g.setLineDash([4, 5]); g.beginPath(); g.moveTo(x0, 58); g.lineTo(x0, H - 22); g.stroke(); g.setLineDash([]);
+    g.fillStyle = 'rgba(255,255,255,.5)'; g.fillRect(x0 - 1, top, 2, yb - top);
     const sq = 7;
-    for (let yy = 58; yy < H - 22; yy += sq) for (let k = 0; k < 2; k++) { g.fillStyle = ((yy / sq + k) | 0) % 2 ? '#fff' : '#111'; g.fillRect(x1 + k * sq, yy, sq, sq); }
+    g.save(); g.shadowColor = '#FFC83D'; g.shadowBlur = 16; g.fillStyle = 'rgba(255,200,61,.3)'; g.fillRect(x1 - 2, top, sq * 2 + 4, yb - top); g.restore();
+    for (let yy = top; yy < yb; yy += sq) for (let k = 0; k < 2; k++) { g.fillStyle = (Math.round((yy - top) / sq) + k) % 2 ? '#fff' : '#111'; g.fillRect(x1 + k * sq, yy, sq, Math.min(sq, yb - yy)); }
     // 주자
     const rad = Math.min(17, laneH * 0.36);
     const lead = running || finished.length ? [...racers].sort((a, b) => b.p - a.p)[0] : null;
     racers.forEach((r, i) => {
-      const y = 62 + i * laneH + laneH / 2 + (running && !r.done ? Math.sin(performance.now() / 90 + r.bob) * 2 : 0);
+      const y = top + i * laneH + laneH / 2 + (running && !r.done ? Math.sin(performance.now() / 90 + r.bob) * 2 : 0);
       const x = x0 + r.p * (x1 - x0 - rad);
+      // 지나온 자취
+      if (r.p > 0.01) { const tg = g.createLinearGradient(Math.max(x0, x - 120), 0, x, 0); tg.addColorStop(0, 'rgba(255,255,255,0)'); tg.addColorStop(1, r.color); g.globalAlpha = 0.28; g.fillStyle = tg; g.fillRect(Math.max(x0, x - 120), y - rad * 0.35, Math.min(120, x - x0), rad * 0.7); g.globalAlpha = 1; }
       if (r.boost > 0) for (let k = 1; k <= 5; k++) { g.globalAlpha = 0.35 / k; g.fillStyle = '#FFC83D'; g.beginPath(); g.arc(x - k * rad * 0.9, y, rad * (1 - k * 0.1), 0, 7); g.fill(); }
       g.globalAlpha = 1;
-      if (r.slip > 0) { g.fillStyle = 'rgba(120,180,255,.5)'; g.beginPath(); g.arc(x, y + rad * 0.9, rad * 1.1, 0, 7); g.fill(); }
-      g.fillStyle = r.color; g.beginPath(); g.arc(x, y, rad, 0, 7); g.fill();
-      if (r === lead) { g.strokeStyle = '#FFC83D'; g.lineWidth = 3; g.stroke(); }
-      g.fillStyle = '#fff'; g.font = `900 ${rad}px Pretendard, sans-serif`; g.textAlign = 'center'; g.fillText(r.name.slice(0, 1), x, y + 1);
-      if (r.place) { g.fillStyle = r.place === 1 ? '#FFC83D' : 'rgba(255,255,255,.85)'; g.font = `900 ${Math.min(14, laneH * 0.32)}px Pretendard, sans-serif`; g.textAlign = 'right'; g.fillText(r.place + '위', x - rad - 6, y); }
+      if (r.slip > 0) { g.fillStyle = 'rgba(120,180,255,.45)'; g.beginPath(); g.ellipse(x, y + rad * 0.8, rad * 1.4, rad * 0.5, 0, 0, 7); g.fill(); }
+      if (r === lead && running) { const gl = g.createRadialGradient(x, y, rad, x, y, rad * 2.6); gl.addColorStop(0, 'rgba(255,200,61,.45)'); gl.addColorStop(1, 'rgba(255,200,61,0)'); g.fillStyle = gl; g.beginPath(); g.arc(x, y, rad * 2.6, 0, 7); g.fill(); }
+      g.fillStyle = 'rgba(0,0,0,.35)'; g.beginPath(); g.ellipse(x + rad * 0.2, y + rad * 0.5, rad * 0.95, rad * 0.6, 0, 0, 7); g.fill();
+      const sp = g.createRadialGradient(x - rad * 0.4, y - rad * 0.45, rad * 0.1, x, y, rad);
+      sp.addColorStop(0, '#fff'); sp.addColorStop(0.25, r.color); sp.addColorStop(1, shade(r.color, -0.5));
+      g.fillStyle = sp; g.beginPath(); g.arc(x, y, rad, 0, 7); g.fill();
+      if (r === lead) { g.strokeStyle = '#FFC83D'; g.lineWidth = 2.5; g.beginPath(); g.arc(x, y, rad + 2, 0, 7); g.stroke(); }
+      // 이름 전체 — 주자 옆 말풍선(오른쪽 공간이 모자라면 왼쪽)
+      const fs = Math.max(9, Math.round(Math.min(stage.classList.contains('is-stream') ? 22 : 15, laneH * (laneH < 26 ? 0.62 : 0.4))));
+      g.font = `800 ${fs}px Pretendard, sans-serif`;
+      const label = (r.place ? `${r.place}위 ` : '') + r.name;
+      const tw = g.measureText(label).width, bw = tw + 16, bh = fs * 1.65;
+      const lx = x + rad + 7 + bw < x1 - 4 ? x + rad + 7 : x - rad - 7 - bw;
+      const hot = r === lead || r.place === 1;
+      g.fillStyle = 'rgba(0,0,0,.3)'; rr(lx + 1, y - bh / 2 + 2, bw, bh, 6); g.fill();
+      g.fillStyle = hot ? '#FFC83D' : 'rgba(11,9,32,.9)'; rr(lx, y - bh / 2, bw, bh, 6); g.fill();
+      if (!hot) { g.fillStyle = r.color; g.fillRect(lx + 3, y - bh / 2 + 4, 3, bh - 8); }
+      g.fillStyle = hot ? '#1E1B3A' : '#fff'; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText(label, lx + (hot ? 8 : 10), y + 1);
     });
   }
 
@@ -178,7 +213,8 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntit
     const lead = [...racers].sort((a, b) => b.p - a.p)[0];
     if (leader && lead !== leader && lead.p > 0.15 && lead.p < 0.97 && Math.random() < 0.7) tick(`${lead.name} 역전!`);
     leader = lead;
-    $('hud').textContent = finished.length ? `${finished.length}/${racers.length} 골인` : '';
+    const top = [...racers].sort((a, b) => (a.done && b.done ? a.place - b.place : b.p - a.p)).slice(0, 3);
+    $('hud').textContent = (finished.length ? `${finished.length}/${racers.length} 골인 · ` : '') + top.map((r, k) => `${k + 1}위 ${r.name}`).join('  ');
     draw();
     if (!endAt && (alive.length === 0 || (mode === 'first' && finished.length >= 1))) endAt = t + 1100;
     if (endAt && t >= endAt) { end(); return; }
@@ -226,7 +262,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntit
   ta.addEventListener('input', () => { if (!running) { build(); size(); } });
   addEventListener('resize', () => size());
   initMute($('mute'));
-  initStream(stage, $('stream'), $('link'), () => streamUrl({ names: parseList(ta.value, 12).join(','), mode }));
+  initStream(stage, $('stream'), $('link'), () => streamUrl({ names: parseList(ta.value, 100).join(','), mode }));
   $('s-exit').addEventListener('click', () => $('stream').click());
   build(); size();
 </script>

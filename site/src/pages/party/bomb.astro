@@ -33,7 +33,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntit
   </div>
 
   <form class="py-form" id="f" onsubmit="return false">
-    <label>참가자 (앉은 순서대로, 2~16명)<textarea id="names" spellcheck="false"></textarea></label>
+    <label>참가자 (앉은 순서대로, 2~24명)<textarea id="names" spellcheck="false"></textarea></label>
     <div style="display:flex;flex-direction:column;gap:12px">
       <label>방식<span class="py-seg" id="mode"><button type="button" data-v="hand" class="on">손으로 넘기기</button><button type="button" data-v="auto">자동으로 돌기 (방송)</button></span></label>
       <label>터지는 시간<span class="py-seg" id="fuse"><button type="button" data-v="6-14">빨리 (6~14초)</button><button type="button" data-v="10-25" class="on">보통 (10~25초)</button><button type="button" data-v="20-45">길게 (20~45초)</button></span></label>
@@ -59,11 +59,14 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntit
 </div>
 
 <style is:global>
-  .bm-stage { height:min(520px, 92vw); }
+  .bm-stage { height:min(560px, 92vw); background:radial-gradient(ellipse at 50% 55%, #2A2358 0%, #17133A 45%, #0D0A22 100%); }
+  .bm-stage.is-stream[data-bg] { background:none; }
+  .bm-ring::before { content:''; position:absolute; left:8%; right:8%; top:12%; bottom:12%; border-radius:50%; background:radial-gradient(ellipse at 50% 40%, rgba(108,92,231,.22), rgba(108,92,231,.05) 70%); border:2px solid rgba(185,175,255,.18); box-shadow:inset 0 0 60px rgba(0,0,0,.45), 0 0 0 10px rgba(185,175,255,.04); }
+  .bm-ring::after { content:''; position:absolute; left:22%; right:22%; top:28%; bottom:28%; border-radius:50%; border:1px dashed rgba(185,175,255,.16); }
   .bm-stage.is-stream { height:auto; }
   .bm-ring { position:absolute; inset:56px 16px 16px; }
-  .bm-chip { position:absolute; transform:translate(-50%, -50%); padding:8px 12px; border-radius:999px; font-weight:800; font-size:clamp(.8rem, 2.6vw, 1rem); color:#fff; background:rgba(255,255,255,.1); border:2px solid transparent; white-space:nowrap; transition:transform .2s, background .2s; }
-  .bm-chip.on { background:#FF4D6D; border-color:#FFC83D; transform:translate(-50%, -50%) scale(1.18); box-shadow:0 0 24px rgba(255,77,109,.7); }
+  .bm-chip { position:absolute; z-index:1; transform:translate(-50%, -50%); padding:9px 14px; border-radius:999px; font-weight:800; font-size:clamp(.8rem, 2.6vw, 1rem); color:#fff; background:linear-gradient(180deg, #2C2660, #1A1640); border:2px solid rgba(185,175,255,.22); box-shadow:0 8px 16px -8px rgba(0,0,0,.7); white-space:nowrap; transition:transform .2s, background .2s; }
+  .bm-chip.on { background:linear-gradient(180deg, #FF6B85, #E0234A); border-color:#FFC83D; transform:translate(-50%, -50%) scale(1.18); box-shadow:0 0 24px rgba(255,77,109,.7); }
   .bm-chip.dead { background:#3a0d16; color:#ff8fa3; text-decoration:line-through; }
   .bm-bomb { position:absolute; left:50%; top:50%; transform:translate(-50%, -50%); font-size:clamp(3.5rem, 14vw, 6rem); transition:left .28s cubic-bezier(.3,1.4,.5,1), top .28s cubic-bezier(.3,1.4,.5,1); pointer-events:none; filter:drop-shadow(0 6px 14px rgba(0,0,0,.4)); }
   .bm-bomb span { display:inline-block; }
@@ -75,7 +78,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntit
 </style>
 
 <script>
-  import { initNames, parseList, rand, sfx, shake, flash, initStream, streamUrl, initMute, copyText, track } from '../../party/kit';
+  import { initNames, parseList, parseEntries, rand, sfx, shake, flash, initStream, streamUrl, initMute, copyText, track } from '../../party/kit';
 
   const $ = (id: string) => document.getElementById(id) as HTMLElement;
   const stage = $('stage'), ring = $('ring'), bomb = $('bomb'), pass = $('pass');
@@ -98,7 +101,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntit
   const history: string[] = [];
 
   const place = () => {
-    names = parseList(ta.value, 16);
+    names = parseEntries(ta.value, 24);
     ring.innerHTML = '';
     chips = names.map((n, i) => {
       const a = (i / names.length) * Math.PI * 2 - Math.PI / 2;

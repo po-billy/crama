@@ -1,0 +1,396 @@
+---
+// 구슬 레이스 — 세로로 긴 물리 코스를 구슬이 굴러 내려간다. 카메라는 아직 골인하지 않은 구슬 중 선두를 따라간다.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/portal.css';
+import '../../styles/party.css';
+
+const faq = [
+  { q: '결과를 조작할 수 있나요?', a: '아니요. 출발 자리는 매번 무작위로 섞이고, 구슬이 못·범퍼·회전 막대에 부딪히는 것은 물리 계산으로 그때그때 정해집니다. 같은 이름으로 다시 해도 결과가 달라집니다.' },
+  { q: '몇 개까지 굴릴 수 있나요? 같은 이름을 여러 개 넣을 수 있나요?', a: '구슬은 최대 300개까지 넣을 수 있습니다. "민수 x3"이나 "민수*3"처럼 이름 뒤에 개수를 쓰면 같은 이름의 구슬이 3개 들어가고, 화면에는 민수 #1, 민수 #2처럼 번호가 붙습니다. 후원·참여 횟수만큼 구슬을 더 주는 추첨에 쓰기 좋습니다. 한 판은 30개 안팎이면 40초~1분, 300개면 1분 30초 정도 걸립니다.' },
+  { q: '방송(OBS)에 넣으려면 어떻게 하나요?', a: '참가자 이름을 적고 "방송용 링크 복사"를 누르면 이름이 담긴 주소가 복사됩니다. OBS에서 브라우저 소스를 추가하고 그 주소를 넣으면 레이스 화면만 크게 나옵니다. 크로마키가 필요하면 주소 끝에 &bg=green을 붙이세요. 스페이스바로 출발합니다.' },
+  { q: '꼴찌 당첨은 어떻게 정해지나요?', a: '"꼴찌 당첨"을 고르면 마지막으로 결승선을 통과한 구슬이 당첨(벌칙)입니다. 레이스 중에는 현재 꼴찌 구슬에 빨간 표시가 붙어 끝까지 긴장감이 이어집니다.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@graph': [
+  { '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+  { '@type': 'WebApplication', name: '크라마 구슬 레이스', applicationCategory: 'GameApplication', operatingSystem: 'Web', offers: { '@type': 'Offer', price: '0', priceCurrency: 'KRW' }, url: 'https://crama.app/party/marble/' },
+] };
+---
+<BaseLayout title="구슬 레이스 추첨 — 이름 넣고 구슬 굴리기 (방송·회식용)" description="참가자 이름이 적힌 구슬이 범퍼·회전 막대·경사로를 지나 결승선까지 굴러 내려가는 추첨 게임. 1등 당첨·꼴찌 벌칙, 실시간 순위와 중계, OBS 방송 모드까지 무료." jsonLd={jsonLd}>
+<div class="pt py mb" style="--c:#6C5CE7">
+  <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/party/">방송·회식 추첨 게임</a> › 구슬 레이스</nav>
+  <div class="py-head">
+    <div><h1>구슬 레이스</h1><p>이름이 적힌 구슬들이 8개 구간을 지나 결승선까지. 카메라는 선두를 따라갑니다.</p></div>
+    <div class="py-tools"><button type="button" class="py-tool" id="mute"></button><button type="button" class="py-tool" id="link">방송용 링크 복사</button><button type="button" class="py-tool hot" id="stream">방송 모드</button></div>
+  </div>
+
+  <div class="py-stage mb-stage" id="stage">
+    <canvas id="cv" aria-label="구슬 레이스 코스"></canvas>
+    <div class="mb-top">
+      <span class="mb-logo"><i></i>CRAMA <b>MARBLE RACE</b></span>
+      <span class="mb-chip" id="sec"><em>01</em>START</span>
+      <span class="mb-chip mb-clock" id="clock">00:00.0</span>
+      <span class="mb-chip" id="left"></span>
+    </div>
+    <aside class="mb-board" id="board" aria-label="실시간 순위">
+      <h4><span>LIVE</span>순위 <small id="mode-label">1등 당첨</small></h4>
+      <ol id="live"></ol>
+    </aside>
+    <div class="mb-call" id="call" hidden><i>중계</i><span id="call-t"></span></div>
+    <div class="mb-count" id="count" hidden></div>
+    <div class="mb-banner" id="banner" hidden><small id="banner-k"></small><b id="banner-n"></b></div>
+    <div class="mb-ctrl" id="ctrl" hidden><button type="button" id="speed">×1</button><button type="button" id="skip">결과 바로 보기</button></div>
+    <div class="mb-ready" id="ready"><button type="button" id="go2">▶ 출발</button><small>스페이스바로도 출발</small></div>
+    <div class="py-result mb-result" id="res" hidden>
+      <small id="res-k">WINNER</small><strong id="res-name"></strong><p id="res-sub"></p>
+      <ol class="mb-podium" id="podium"></ol>
+      <div class="py-rbtns"><button type="button" class="p" id="again">다시 하기</button><button type="button" id="close">코스 보기</button><button type="button" id="share">결과 복사</button></div>
+    </div>
+    <div class="py-streambar"><button type="button" class="p" id="s-go">출발 (Space)</button><button type="button" id="s-exit">나가기</button></div>
+  </div>
+
+  <form class="py-form" id="f" onsubmit="return false">
+    <label>참가자 (한 줄에 한 명, 최대 300개 · '민수 x3'처럼 쓰면 같은 이름 3개)<textarea id="names" spellcheck="false"></textarea></label>
+    <div class="mb-opts">
+      <label>당첨 방식<span class="py-seg" id="mode"><button type="button" data-v="first" class="on">1등 당첨</button><button type="button" data-v="last">꼴찌 당첨 (벌칙)</button></span></label>
+      <label>무엇을 정하나요? (결과 창에 표시)<input id="prize" maxlength="30" placeholder="예: 오늘 점심 쏘기, 다음 방송 게임 선택권" /></label>
+      <p class="py-hint">코스: 출발 → 깔때기 → 못 판 → 지그재그 경사로(천천히) → 범퍼(튕김) → 회전 막대 → 가속·진흙 → 마지막 못 판 → 결승</p>
+    </div>
+  </form>
+  <button type="button" class="py-go" id="go">구슬 굴리기!</button>
+  <ol class="py-rank" id="rank"></ol>
+
+  <a class="py-answer" href="/answer/#lineup"><span>방송·게임에 브랜드를 넣고 싶다면? <b>크라마 앤서</b>로 웹게임 입점·브랜드 테스트를 제안해 보세요.</span><em>알아보기 →</em></a>
+
+  <section class="pt-sec pt-prose">
+    <h2>하는 법</h2>
+    <ul>
+      <li>참가자 이름을 한 줄에 한 명씩 적습니다. 이름은 줄임 없이 구슬 옆에 그대로 표시됩니다.</li>
+      <li>1등 당첨(먼저 골인한 사람)과 꼴찌 당첨(마지막에 골인한 사람) 중에서 고르고 출발을 누릅니다.</li>
+      <li>카메라는 아직 골인하지 않은 구슬 중 가장 앞선 구슬을 따라 내려갑니다. 1등이 들어오면 다음 선두로 넘어가요.</li>
+      <li>오른쪽 실시간 순위표와 중계 자막으로 누가 앞서는지 계속 보여 줍니다. 오래 걸리면 ×2 배속이나 "결과 바로 보기"를 누르세요.</li>
+    </ul>
+    <h2>코스 구간</h2>
+    <p>못 판에서는 어디로 튈지 모르고, 지그재그 경사로에서는 구슬이 천천히 굴러 내려가며 간격이 벌어집니다. 범퍼에 맞으면 크게 튕겨 나가 순위가 뒤집히고, 회전 막대는 타이밍에 따라 길을 막거나 쳐 냅니다. 가속 패드는 속도를 붙여 주고, 진흙 구간에서는 느려집니다. 결승 직전의 마지막 못 판에서 막판 역전이 자주 나옵니다.</p>
+    <h2>자주 묻는 질문</h2>
+    {faq.map((f) => <><h3>{f.q}</h3><p>{f.a}</p></>)}
+  </section>
+</div>
+
+<style is:global>
+  .mb-stage { height:var(--mb-h, 640px); background:#100D24; }
+  .mb-stage canvas { position:absolute; inset:0; width:100%; height:100%; }
+  .mb-stage.is-stream { height:100vh; }
+  .mb-top { position:absolute; left:12px; top:12px; right:12px; display:flex; gap:6px; align-items:center; z-index:3; pointer-events:none; flex-wrap:wrap; }
+  .mb-logo { display:inline-flex; align-items:center; gap:7px; font-size:.78rem; font-weight:800; letter-spacing:.1em; color:#fff; background:rgba(16,13,36,.82); border:1px solid rgba(255,255,255,.12); padding:6px 10px; border-radius:8px; }
+  .mb-logo b { color:#FFC83D; font-weight:900; }
+  .mb-logo i { width:8px; height:8px; border-radius:50%; background:#FF4D6D; box-shadow:0 0 0 3px rgba(255,77,109,.25); animation:mb-blink 1.2s infinite; }
+  @keyframes mb-blink { 50% { opacity:.3; } }
+  .mb-chip { font-size:.8rem; font-weight:800; color:#fff; background:rgba(16,13,36,.82); border:1px solid rgba(255,255,255,.12); padding:6px 10px; border-radius:8px; font-variant-numeric:tabular-nums; }
+  .mb-chip em { font-style:normal; color:#B9AFFF; margin-right:6px; }
+  .mb-chip:empty { display:none; }
+  .mb-chip.pulse { animation:mb-pulse .7s ease; }
+  @keyframes mb-pulse { 0% { transform:scale(1.25); background:#6C5CE7; } 100% { transform:scale(1); } }
+  .mb-board { position:absolute; right:12px; top:52px; width:206px; z-index:3; background:rgba(16,13,36,.86); border:1px solid rgba(255,255,255,.1); border-radius:12px; padding:10px 8px 8px; pointer-events:none; }
+  .mb-board h4 { margin:0 4px 8px; display:flex; align-items:center; gap:6px; font-size:.82rem; font-weight:900; color:#fff; }
+  .mb-board h4 span { font-size:.66rem; letter-spacing:.08em; background:#FF4D6D; padding:2px 5px; border-radius:4px; }
+  .mb-board h4 small { margin-left:auto; font-size:.7rem; color:#B9AFFF; font-weight:800; }
+  .mb-board ol { list-style:none; margin:0; padding:0; display:grid; gap:2px; }
+  .mb-board li { display:flex; align-items:center; gap:7px; padding:4px 6px; border-radius:6px; font-size:.8rem; font-weight:700; color:#E9E6FF; transition:background .2s; }
+  .mb-board li b { width:18px; text-align:right; font-size:.74rem; color:#8E87C7; font-variant-numeric:tabular-nums; }
+  .mb-board li i { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .mb-board li span { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .mb-board li em { font-style:normal; font-size:.7rem; color:#8E87C7; font-variant-numeric:tabular-nums; }
+  .mb-board li.cam { background:rgba(255,200,61,.16); }
+  .mb-board li.cam span { color:#FFC83D; }
+  .mb-board li.fin em { color:#86EFAC; }
+  .mb-board li.lose { background:rgba(255,77,109,.2); }
+  .mb-board li.gap { justify-content:center; color:#5F5A8C; padding:0; font-size:.7rem; }
+  .mb-call { position:absolute; left:12px; bottom:14px; z-index:3; display:flex; align-items:stretch; max-width:min(560px, calc(100% - 250px)); pointer-events:none; animation:mb-in .35s ease; }
+  .mb-call[hidden] { display:none; }
+  .mb-call i { font-style:normal; font-size:.72rem; font-weight:900; letter-spacing:.06em; background:#FFC83D; color:#1E1B3A; padding:8px 9px; border-radius:8px 0 0 8px; display:flex; align-items:center; }
+  .mb-call span { background:rgba(16,13,36,.9); color:#fff; font-weight:800; font-size:.98rem; padding:8px 12px; border-radius:0 8px 8px 0; border:1px solid rgba(255,255,255,.1); border-left:0; }
+  @keyframes mb-in { from { transform:translateY(8px); opacity:0; } }
+  .mb-count { position:absolute; inset:0; z-index:4; display:flex; align-items:center; justify-content:center; font-size:clamp(5rem, 18vw, 10rem); font-weight:900; color:#fff; text-shadow:0 6px 0 rgba(0,0,0,.35); pointer-events:none; }
+  .mb-count[hidden] { display:none; }
+  .mb-count.pop { animation:py-pop .5s cubic-bezier(.2,1.6,.4,1) both; }
+  .mb-banner { position:absolute; left:50%; top:32%; transform:translateX(-50%); z-index:4; text-align:center; pointer-events:none; background:rgba(16,13,36,.9); border:2px solid #FFC83D; border-radius:16px; padding:12px 26px 14px; animation:py-pop .5s cubic-bezier(.2,1.6,.4,1) both; }
+  .mb-banner[hidden] { display:none; }
+  .mb-banner small { display:block; font-size:.8rem; letter-spacing:.14em; font-weight:900; color:#FFC83D; }
+  .mb-banner b { display:block; font-size:clamp(1.6rem, 5vw, 2.6rem); font-weight:900; color:#fff; letter-spacing:-.03em; }
+  .mb-banner.lose { border-color:#FF4D6D; }
+  .mb-banner.lose small { color:#FF8FA3; }
+  .mb-ctrl { position:absolute; right:12px; bottom:14px; z-index:4; display:flex; gap:6px; }
+  .mb-ctrl[hidden] { display:none; }
+  .mb-ctrl button, .mb-ready button { font:inherit; font-size:.82rem; font-weight:800; padding:8px 12px; border-radius:9px; border:1px solid rgba(255,255,255,.18); background:rgba(16,13,36,.86); color:#fff; cursor:pointer; }
+  .mb-ready { position:absolute; left:50%; bottom:22%; transform:translateX(-50%); z-index:4; display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .mb-ready[hidden] { display:none; }
+  .mb-ready button { font-size:1.15rem; padding:14px 30px; border-radius:14px; background:#6C5CE7; border-color:#6C5CE7; box-shadow:0 10px 30px -10px rgba(108,92,231,.9); }
+  .mb-ready small { font-size:.75rem; color:#B9AFFF; font-weight:700; }
+  .mb-stage.is-stream .mb-ready small { display:none; }
+  .mb-podium { list-style:none; margin:6px 0 0; padding:0; display:flex; gap:8px; align-items:flex-end; justify-content:center; }
+  .mb-podium li { display:flex; flex-direction:column; align-items:center; gap:4px; width:110px; }
+  .mb-podium li span { font-weight:800; font-size:.86rem; color:#fff; max-width:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .mb-podium li div { width:100%; border-radius:8px 8px 0 0; display:flex; align-items:flex-start; justify-content:center; padding-top:6px; font-weight:900; color:#1E1B3A; }
+  .mb-opts { display:flex; flex-direction:column; gap:12px; }
+  .mb-stage.is-narrow .mb-board { top:auto; bottom:60px; right:8px; width:150px; padding:6px; }
+  .mb-stage.is-narrow .mb-board h4 { display:none; }
+  .mb-stage.is-narrow .mb-board li { font-size:.72rem; padding:2px 4px; }
+  .mb-stage.is-narrow .mb-board li em { display:none; }
+  .mb-stage.is-narrow .mb-call { max-width:calc(100% - 24px); bottom:12px; }
+  .mb-stage.is-narrow .mb-call span { font-size:.84rem; }
+  .mb-stage.is-narrow .mb-ctrl { bottom:auto; top:48px; }
+  .mb-stage.is-narrow .mb-logo { display:none; }
+  .mb-stage.is-narrow .mb-ready { bottom:34%; }
+  .mb-stage.is-stream .mb-board { width:300px; }
+  .mb-stage.is-stream .mb-board h4 { font-size:1rem; }
+  .mb-stage.is-stream .mb-board li { font-size:1.08rem; padding:5px 8px; }
+  .mb-stage.is-stream .mb-chip, .mb-stage.is-stream .mb-logo { font-size:1rem; padding:8px 13px; }
+  .mb-stage.is-stream .mb-call span { font-size:1.25rem; }
+  .mb-stage.is-stream .mb-ctrl { bottom:70px; }
+</style>
+
+<script>
+  import { initNames, parseList, parseEntries, sfx, shake, confetti, flash, initStream, streamUrl, initMute, copyText, track, pickOne } from '../../party/kit';
+  import { MarbleRace, SECTIONS, type MarbleEvent, type Racer } from '../../party/marble';
+
+  const $ = (id: string) => document.getElementById(id) as HTMLElement;
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
+  const cv = $('cv') as HTMLCanvasElement;
+  const g = cv.getContext('2d')!;
+  const stage = $('stage');
+  const taN = $('names') as HTMLTextAreaElement;
+  const prize = $('prize') as HTMLInputElement;
+  initNames('marble', taN, '김민수\n이지영\n박현우\n최서연\n정우진\n한소희\n오태양\n윤하늘');
+  const qp = new URLSearchParams(location.search);
+  if (qp.get('prize')) prize.value = qp.get('prize')!;
+
+  let mode: 'first' | 'last' = qp.get('mode') === 'last' ? 'last' : 'first';
+  const paintMode = () => {
+    $('mode').querySelectorAll('button').forEach((x) => x.classList.toggle('on', (x as HTMLElement).dataset.v === mode));
+    $('mode-label').textContent = mode === 'first' ? '1등 당첨' : '꼴찌 당첨';
+    if (race) race.markLast = mode === 'last';
+  };
+  $('mode').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { if (phase === 'run') return; mode = (b as HTMLElement).dataset.v as any; paintMode(); }));
+
+  // 상태
+  const COLORS = ['#FF5D73', '#4DA3FF', '#2BD9A0', '#FFC83D', '#A78BFA', '#FF8A3D', '#22D3EE', '#F472B6', '#A3E635', '#F87171', '#60A5FA', '#FBBF24', '#34D399', '#C084FC', '#FB7185'];
+  let race: MarbleRace | null = null;
+  let phase: 'idle' | 'count' | 'run' | 'end' = 'idle';
+  let W = 0, H = 0, last = performance.now(), speed = 1, slow = 1, slowUntil = 0, ended = false;
+  let winnerShown = false;
+
+  const narrow = () => stage.clientWidth < 700;
+  function size() {
+    const stream = stage.classList.contains('is-stream');
+    H = stream ? innerHeight : Math.round(Math.min(720, Math.max(520, innerHeight * 0.78)));
+    stage.style.setProperty('--mb-h', H + 'px');
+    W = stage.clientWidth;
+    stage.classList.toggle('is-narrow', narrow());
+    const dpr = Math.min(2, devicePixelRatio || 1);
+    cv.width = W * dpr; cv.height = H * dpr; g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function build() {
+    const names = parseEntries(taN.value, 300);
+    const list = names.length >= 2 ? names : [...names, '참가자 1', '참가자 2'].slice(0, Math.max(2, names.length));
+    race = new MarbleRace(list, COLORS);
+    race.markLast = mode === 'last';
+    race.bgFill = !stage.dataset.bg;
+    race.onEvent = onEvent;
+    winnerShown = false; ended = false; slow = 1;
+    $('left').textContent = `${list.length}명`;
+    setSec(0, false);
+    $('clock').textContent = '00:00.0';
+    renderBoard(true);
+  }
+
+  // ── 중계 자막 ──
+  let callAt = 0, callPri = 0, callTimer = 0;
+  function say(t: string, pri = 1) {
+    const now = performance.now();
+    if (pri < callPri && now - callAt < 1500) return;
+    callAt = now; callPri = pri;
+    const el = $('call');
+    $('call-t').textContent = t;
+    el.hidden = false; el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
+    clearTimeout(callTimer); callTimer = window.setTimeout(() => { callPri = 0; }, 1500);
+  }
+  const SEC_LINES: Record<string, string[]> = {
+    FUNNEL: ['깔때기로 한꺼번에 몰려듭니다', '좁은 입구, 자리싸움이 시작됩니다'],
+    'PEG FIELD': ['못 판 구간! 어디로 튈지 아무도 모릅니다', '못 판에 들어섭니다, 운이 필요한 구간'],
+    ZIGZAG: ['지그재그 경사로, 천천히 굴러 내려갑니다', '경사로 구간, 간격이 벌어지기 시작합니다'],
+    BUMPERS: ['범퍼 구간! 튕겨 나가면 순위가 뒤집힙니다', '범퍼 지대 진입, 한 번에 역전도 가능합니다'],
+    SPINNERS: ['회전 막대 구간, 타이밍 싸움입니다', '돌아가는 막대에 맞으면 크게 밀려납니다'],
+    RUSH: ['가속 패드와 진흙 구간! 속도 차이가 큽니다', '러시 구간, 가속이냐 진흙이냐'],
+    FINAL: ['마지막 못 판! 결승선이 보입니다', '최종 구간, 막판 역전을 조심하세요'],
+  };
+  function setSec(i: number, anim = true) {
+    const s = SECTIONS[i];
+    $('sec').innerHTML = `<em>${s.no}</em>${s.name}`;
+    if (anim) { $('sec').classList.remove('pulse'); void $('sec').offsetWidth; $('sec').classList.add('pulse'); }
+  }
+
+  let lastLeaderCall = 0;
+  function onEvent(e: MarbleEvent) {
+    if (!race) return;
+    switch (e.type) {
+      case 'peg': sfx.peg(); break;
+      case 'section': setSec(SECTIONS.indexOf(e.s)); sfx.drum(2); if (SEC_LINES[e.s.name]) say(pickOne(SEC_LINES[e.s.name]), 2); break;
+      case 'leader': {
+        const now = performance.now();
+        if (now - lastLeaderCall < 2200) break;
+        lastLeaderCall = now; sfx.tick(true);
+        say(pickOne([`${e.r.name}, 선두로 올라섭니다!`, `역전! ${e.r.name} 1위`, `${e.r.name}이(가) 앞으로 치고 나갑니다`]), 2);
+        break;
+      }
+      case 'bumper': sfx.pop(); say(pickOne([`${e.r.name}, 범퍼에 튕겼습니다!`, `${e.r.name} 범퍼 직격!`]), 1); break;
+      case 'boost': sfx.boost(); if (e.r === race.follow) say(`${e.r.name} 가속 패드! 속도가 붙습니다`, 1); break;
+      case 'mud': sfx.slip(); say(`${e.r.name}, 진흙에 발이 묶입니다`, 1); break;
+      case 'spin': break;
+      case 'finish': onFinish(e.r, e.photo); break;
+    }
+  }
+
+  function banner(k: string, n: string, lose = false) {
+    $('banner-k').textContent = k; $('banner-n').textContent = n;
+    $('banner').classList.toggle('lose', lose);
+    const b = $('banner'); b.hidden = false; b.style.animation = 'none'; void b.offsetWidth; b.style.animation = '';
+    setTimeout(() => { b.hidden = true; }, 2200);
+  }
+
+  function onFinish(r: Racer, photo: boolean) {
+    if (!race) return;
+    const n = race.racers.length, left = n - race.finished.length;
+    $('left').textContent = left ? `남은 ${left}명` : '모두 골인';
+    if (r.place === 1) {
+      sfx.fanfare(); flash('#FFC83D', 300);
+      banner(mode === 'first' ? 'WINNER · 1위 골인' : '1위 골인', r.name);
+      say(`${r.name}, 1위로 골인!! 기록 ${r.time.toFixed(1)}초`, 3);
+      if (mode === 'first') { winnerShown = true; confetti(120); }
+    } else {
+      sfx.land();
+      if (photo) say(`사진 판정! ${r.name} 간발의 차로 ${r.place}위`, 3);
+      else if (r.place <= 3) say(`${r.name} ${r.place}위로 들어옵니다`, 2);
+      else if (mode === 'last' && left <= 3 && left > 0) say(`${r.name} 탈출! 남은 구슬 ${left}개… 꼴찌는 누구?`, 3);
+      else say(`${r.name} ${r.place}위 골인`, 1);
+      if (mode === 'last' && left === 0) { banner('꼴찌 당첨', r.name, true); sfx.sad(); shake(stage, 14, 600); }
+    }
+    if (left === 0) setTimeout(end, mode === 'last' ? 1600 : 900);
+  }
+
+  // ── 실시간 순위표 ──
+  let boardAt = 0;
+  function renderBoard(force = false) {
+    if (!race) return;
+    const now = performance.now();
+    if (!force && now - boardAt < 160) return;
+    boardAt = now;
+    const rank = race.ranking();
+    const lastAlive = mode === 'last' ? [...rank].reverse().find((r) => !r.done) : null;
+    const max = narrow() ? 3 : (H > 760 ? 14 : 10);
+    const show: (Racer | null)[] = rank.length <= max + 2 ? rank : [...rank.slice(0, max), null, ...rank.slice(-2)];
+    const secOf = (r: Racer) => { const y = r.body.position.y; let k = 0; SECTIONS.forEach((s, i) => { if (y >= s.y) k = i; }); return SECTIONS[k].no; };
+    $('live').innerHTML = show.map((r) => {
+      if (!r) return '<li class="gap">· · ·</li>';
+      const p = rank.indexOf(r) + 1;
+      const cls = [r.done ? 'fin' : '', r === race!.follow && phase === 'run' ? 'cam' : '', r === lastAlive && phase === 'run' ? 'lose' : ''].join(' ');
+      const st = r.done ? `${r.time.toFixed(1)}s` : phase === 'run' ? `구간 ${secOf(r)}` : '';
+      return `<li class="${cls}"><b>${p}</b><i style="background:${r.color}"></i><span>${esc(r.name)}</span><em>${st}</em></li>`;
+    }).join('');
+  }
+
+  // ── 진행 ──
+  function start() {
+    if (phase === 'count' || phase === 'run') return;
+    build();
+    $('res').hidden = true; $('rank').innerHTML = ''; $('ready').hidden = true; $('call').hidden = true;
+    ($('go') as HTMLButtonElement).disabled = true;
+    phase = 'count'; speed = 1; $('speed').textContent = '×1';
+    const el = $('count');
+    let n = 3;
+    const tickDown = () => {
+      el.hidden = false; el.textContent = n > 0 ? String(n) : 'GO!';
+      el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+      if (n > 0) { sfx.tick(n === 1); n--; setTimeout(tickDown, 800); }
+      else {
+        sfx.coin(); race!.open(); phase = 'run'; $('ctrl').hidden = false;
+        say(`출발! ${race!.racers.length}개의 구슬이 쏟아집니다`, 3);
+        setTimeout(() => { el.hidden = true; }, 500);
+      }
+    };
+    tickDown();
+    track('party_play', { game: 'marble', players: race!.racers.length, mode });
+  }
+
+  let shareText = '';
+  function end() {
+    if (!race || ended) return;
+    ended = true; phase = 'end';
+    $('ctrl').hidden = true; ($('go') as HTMLButtonElement).disabled = false;
+    const order = race.finished;
+    const target = mode === 'first' ? order[0] : order[order.length - 1];
+    const what = prize.value.trim();
+    $('res-k').textContent = mode === 'first' ? (what ? `WINNER · ${what}` : 'WINNER · 1등 당첨') : (what ? `꼴찌 당첨 · ${what}` : '꼴찌 당첨 (벌칙)');
+    $('res-name').textContent = target.name;
+    $('res-sub').textContent = mode === 'first' ? `기록 ${target.time.toFixed(1)}초 · 참가 ${order.length}명` : `${order.length}명 중 마지막 골인 · ${target.time.toFixed(1)}초`;
+    const pod = [order[1], order[0], order[2]].filter(Boolean);
+    const hts: Record<number, number> = { 1: 64, 2: 46, 3: 34 };
+    $('podium').innerHTML = pod.map((r) => `<li><span>${esc(r.name)}</span><div style="height:${hts[r.place]}px;background:${r.place === 1 ? '#FFC83D' : r.place === 2 ? '#D9D4FF' : '#F4A261'}">${r.place}</div></li>`).join('');
+    $('res').hidden = false;
+    if (mode === 'first') { sfx.fanfare(); confetti(); } else { sfx.sad(); }
+    $('rank').innerHTML = order.map((r) => `<li class="${r === target ? (mode === 'first' ? 'win' : 'lose') : ''}"><i style="background:${r.color}">${r.place}</i><span>${esc(r.name)}</span><em>${r.time.toFixed(1)}초</em></li>`).join('');
+    shareText = `[크라마 구슬 레이스] ${mode === 'first' ? '1등' : '꼴찌'} 당첨: ${target.name}${what ? ` (${what})` : ''}\n순위: ${order.map((r) => `${r.place}. ${r.name}`).join(' / ')}\n${location.origin}/party/marble/`;
+    renderBoard(true);
+    track('party_end', { game: 'marble', players: order.length, mode });
+  }
+
+  // 결정적인 순간은 느리게(슬로 모션)
+  function slowMo() {
+    if (!race || phase !== 'run') return 1;
+    const fin = 4960;
+    const alive = race.racers.filter((r) => !r.done);
+    if (mode === 'first' && race.finished.length === 0 && race.follow && race.follow.body.position.y > fin - 130) return 0.4;
+    if (mode === 'last' && alive.length === 2 && alive.every((r) => r.body.position.y > fin - 160)) return 0.4;
+    return 1;
+  }
+
+  function frame(t: number) {
+    const dt = Math.min(50, t - last); last = t;
+    if (race) {
+      const target = slowMo();
+      slow += (target - slow) * 0.1;
+      const k = phase === 'run' ? speed * slow : 1;
+      race.step(dt * k);
+      if (phase === 'run') {
+        const s = race.t; $('clock').textContent = `${String(Math.floor(s / 60)).padStart(2, '0')}:${(s % 60).toFixed(1).padStart(4, '0')}`;
+        if (race.t > 100 && !race.allDone) { say('시간 초과! 현재 순서대로 순위를 정합니다', 3); race.forceFinish(); }
+      }
+      const ls = H >= 900 ? 1.4 : 1;
+      race.draw(g, W, H, narrow() ? 0 : stage.classList.contains('is-stream') ? 330 : 230, ls);
+      renderBoard();
+    }
+    requestAnimationFrame(frame);
+  }
+
+  $('go').addEventListener('click', () => { stage.scrollIntoView({ behavior: 'smooth', block: 'center' }); start(); });
+  $('go2').addEventListener('click', start);
+  $('again').addEventListener('click', start);
+  $('s-go').addEventListener('click', start);
+  $('close').addEventListener('click', () => { $('res').hidden = true; });
+  $('share').addEventListener('click', (e) => copyText(shareText, e.currentTarget as HTMLElement));
+  $('speed').addEventListener('click', () => { speed = speed === 1 ? 2 : speed === 2 ? 3 : 1; $('speed').textContent = `×${speed}`; });
+  $('skip').addEventListener('click', () => { if (race && phase === 'run') { race.forceFinish(); } });
+  addEventListener('keydown', (e) => {
+    if (e.code !== 'Space' || (document.activeElement && ['TEXTAREA', 'INPUT'].includes(document.activeElement.tagName))) return;
+    e.preventDefault(); start();
+  });
+  let rebuildT = 0;
+  taN.addEventListener('input', () => { clearTimeout(rebuildT); rebuildT = window.setTimeout(() => { if (phase !== 'count' && phase !== 'run') { build(); $('res').hidden = true; $('ready').hidden = false; phase = 'idle'; } }, 300); });
+  addEventListener('resize', size);
+  initMute($('mute'));
+  initStream(stage, $('stream'), $('link'), () => streamUrl({ names: parseList(taN.value, 300).join(','), mode: mode === 'last' ? 'last' : '', prize: prize.value.trim() }));
+  $('s-exit').addEventListener('click', () => $('stream').click());
+  size(); paintMode(); build();
+  requestAnimationFrame(frame);
+</script>
+</BaseLayout>

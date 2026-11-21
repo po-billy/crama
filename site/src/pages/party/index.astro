@@ -4,11 +4,19 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import '../../styles/portal.css';
 import '../../styles/party.css';
 
+const FEATURED = { href: '/party/marble/', name: '구슬 레이스', img: '/img/party/marble.webp', desc: '이름이 적힌 구슬이 못 판·경사로·범퍼·회전 막대를 지나 결승선까지 굴러 내려갑니다. 카메라가 선두를 따라가고, 실시간 순위와 중계 자막이 붙습니다.', meta: ['최대 300개', '"이름 x3" 반복 입력', '1등·꼴찌 당첨', 'OBS 방송 모드'] };
 const GAMES = [
-  { href: '/party/race/', icon: '🏁', name: '이름 레이스', tag: 'RACE', desc: '이름이 달리는 경마 추첨. 부스터·역전·사진 판정까지 마지막까지 모릅니다.', bg: 'linear-gradient(135deg,#6C5CE7,#3B82F6)' },
-  { href: '/party/plinko/', icon: '🟡', name: '플링코 추첨', tag: 'PLINKO', desc: '못 판에 공을 떨어뜨려 들어간 칸이 결과. 당첨·꽝·벌칙을 직접 적어요.', bg: 'linear-gradient(135deg,#F97316,#FF4D6D)' },
-  { href: '/party/bomb/', icon: '💣', name: '폭탄 돌리기', tag: 'BOMB', desc: '언제 터질지 모르는 폭탄. 모여서 손으로 넘기거나, 방송에서 자동으로.', bg: 'linear-gradient(135deg,#1E1B3A,#FF4D6D)' },
-  { href: '/party/pay/', icon: '💸', name: '밥값 몰아주기', tag: 'PAY', desc: '총액만 넣으면 한 명 몰빵, 랜덤 금액, 두 명 반반. 송금 문구까지.', bg: 'linear-gradient(135deg,#20C997,#06B6D4)' },
+  { href: '/party/race/', name: '이름 레이스', img: '/img/party/race.webp', desc: '레인 위를 달리는 경마 추첨. 부스터·미끄러짐·역전, 접전이면 사진 판정.', meta: ['최대 100명', '10~30초'] },
+  { href: '/party/plinko/', name: '플링코 추첨', img: '/img/party/plinko.webp', desc: '못 판에 공을 떨어뜨려 들어간 칸이 결과. 당첨·꽝·벌칙 칸을 직접 적습니다.', meta: ['최대 300개', '칸 직접 입력'] },
+  { href: '/party/bomb/', name: '폭탄 돌리기', img: '/img/party/bomb.webp', desc: '언제 터질지 모르는 폭탄을 넘깁니다. 모여서 손으로, 방송에서는 자동으로.', meta: ['2~24명', '수동·자동'] },
+  { href: '/party/pay/', name: '밥값 몰아주기', img: '/img/party/pay.webp', desc: '총액만 넣으면 한 명 몰빵, 랜덤 금액, 두 명 반반. 송금 문구까지 복사.', meta: ['최대 60명', '금액 계산'] },
+];
+const PICK = [
+  { when: '시청자 추첨·이벤트 당첨자', game: '구슬 레이스', href: '/party/marble/', how: '1등 당첨, 후원 횟수만큼 "닉네임 x3"' },
+  { when: '방송 벌칙·다음 콘텐츠 정하기', game: '플링코 추첨', href: '/party/plinko/', how: '칸에 벌칙·게임 이름을 적고 공 1개' },
+  { when: '점심값·커피값 내기', game: '이름 레이스', href: '/party/race/', how: '꼴찌 당첨, 경기 시간 보통' },
+  { when: '금액을 나눠서 내기', game: '밥값 몰아주기', href: '/party/pay/', how: '랜덤 금액, 송금 문구 복사' },
+  { when: '회식 건배사·벌칙', game: '폭탄 돌리기', href: '/party/bomb/', how: '한 화면을 돌려 가며 손으로 넘기기' },
 ];
 const MORE = [
   { href: '/pick/ladder/', name: '사다리 타기' },
@@ -21,40 +29,57 @@ const faq = [
   { q: '방송(트위치·치지직·유튜브)에서 어떻게 쓰나요?', a: '각 게임의 "방송용 링크 복사"를 누르면 참가자 이름이 담긴 주소가 복사됩니다. OBS나 프리즘의 브라우저 소스에 그 주소를 넣으면 게임 화면만 전체로 열리고, 스페이스바로 시작할 수 있습니다. 크로마키가 필요하면 주소 끝에 &bg=green을 붙이세요.' },
   { q: '설치나 회원가입이 필요한가요?', a: '아니요. 브라우저에서 바로 쓰고, 입력한 이름은 서버로 보내지 않고 이 기기에만 저장합니다.' },
   { q: '결과는 공정한가요?', a: '모든 게임은 시작할 때마다 무작위로 결과가 정해지며, 미리 정해 두거나 조작하는 기능은 없습니다. 이벤트 추첨처럼 증빙이 필요하면 화면을 녹화해 두세요.' },
-  { q: '점심값 내기에 가장 좋은 게임은?', a: '빨리 끝내려면 밥값 몰아주기의 "한 명 몰빵", 다 같이 보며 즐기려면 이름 레이스의 "꼴찌 당첨"을 추천합니다.' },
+  { q: '점심값 내기에 가장 좋은 게임은?', a: '빨리 끝내려면 밥값 몰아주기의 "한 명 몰빵", 다 같이 보며 즐기려면 구슬 레이스나 이름 레이스의 "꼴찌 당첨"을 추천합니다.' },
+  { q: '시청자가 많을 때는 어떤 게임이 좋나요?', a: '구슬 레이스는 300개까지 한 번에 굴릴 수 있고, 이름이 구슬 옆에 줄임 없이 표시됩니다. "닉네임 x3"처럼 쓰면 같은 사람의 구슬을 여러 개 넣을 수 있어 후원·참여 횟수에 따라 확률을 달리하는 추첨도 됩니다.' },
 ];
 const jsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
-    { '@type': 'ItemList', name: '방송·회식 추첨 게임', itemListElement: GAMES.map((g, i) => ({ '@type': 'ListItem', position: i + 1, name: g.name, url: `https://crama.app${g.href}` })) },
+    { '@type': 'ItemList', name: '방송·회식 추첨 게임', itemListElement: [FEATURED, ...GAMES].map((g, i) => ({ '@type': 'ListItem', position: i + 1, name: g.name, url: `https://crama.app${g.href}` })) },
     { '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
   ],
 };
 ---
-<BaseLayout title="방송·회식 추첨 게임 — 이름 레이스·플링코·폭탄 돌리기·밥값 내기" description="스트리머 시청자 추첨, 직장인 점심값 내기, 회식 벌칙까지. 이름 레이스, 플링코, 폭탄 돌리기, 밥값 몰아주기를 설치 없이 무료로. 방송(OBS) 화면 지원." jsonLd={jsonLd}>
-<div class="pt pt-narrow py" style="--c:#6C5CE7">
+<BaseLayout title="방송·회식 추첨 게임 — 구슬 레이스·이름 레이스·플링코·폭탄 돌리기" description="스트리머 시청자 추첨, 직장인 점심값 내기, 회식 벌칙까지. 구슬 레이스, 이름 레이스, 플링코, 폭탄 돌리기, 밥값 몰아주기를 설치 없이 무료로. 방송(OBS) 화면 지원." image="/img/party/marble.webp" jsonLd={jsonLd}>
+<div class="pt py pyh" style="--c:#6C5CE7">
   <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/games/">게임</a> › 방송·회식 추첨 게임</nav>
-  <header class="pt-hubhero" style="--c:#6C5CE7">
-    <div>
+  <header class="pyh-hero">
+    <div class="pyh-copy">
+      <small>CRAMA PARTY</small>
       <h1>방송·회식 추첨 게임</h1>
-      <p>시청자 추첨, 점심값 내기, 회식 벌칙. 다 같이 화면을 보며 소리 지르게 되는 추첨을 모았습니다.</p>
+      <p>시청자 추첨, 점심값 내기, 회식 벌칙. 이름만 넣으면 다 같이 화면을 보며 결과를 기다리는 추첨이 됩니다. 설치·가입 없이 무료, OBS 브라우저 소스로 바로 방송에 넣을 수 있습니다.</p>
+      <div class="pyh-cta"><a class="p" href={FEATURED.href}>구슬 레이스 시작</a><a href="#obs">방송에 넣는 법</a></div>
     </div>
+    <a class="pyh-feat" href={FEATURED.href}>
+      <img src={FEATURED.img} alt="구슬 레이스 실제 경기 화면 — 실시간 순위표와 중계 자막" width="1200" height="955" loading="eager" />
+      <span class="pyh-badge">NEW</span>
+    </a>
   </header>
 
-  <div class="py-hub">
-    {GAMES.map((g) => <a class="py-card" href={g.href} style={`background:${g.bg}`}><small>{g.tag}</small><b>{g.name}</b><span>{g.desc}</span><em>바로 하기 →</em><i aria-hidden="true">{g.icon}</i></a>)}
+  <section class="pyh-main">
+    <a class="pyh-big" href={FEATURED.href}>
+      <div><small>대표 게임</small><b>{FEATURED.name}</b><p>{FEATURED.desc}</p><ul>{FEATURED.meta.map((m) => <li>{m}</li>)}</ul></div>
+      <em>바로 하기 →</em>
+    </a>
+  </section>
+
+  <div class="pyh-grid">
+    {GAMES.map((g) => (
+      <a class="pyh-card" href={g.href}>
+        <figure><img src={g.img} alt={`${g.name} 실제 화면`} loading="lazy" width="1200" height="760" /></figure>
+        <div><b>{g.name}</b><p>{g.desc}</p><ul>{g.meta.map((m) => <li>{m}</li>)}</ul></div>
+      </a>
+    ))}
   </div>
 
   <section class="pt-sec">
-    <div class="pt-sec__head"><div><h2>이럴 때 쓰세요</h2></div></div>
-    <div class="py-uses">
-      <div><b>🎥 스트리머</b><span>시청자 이름으로 레이스·플링코 추첨, 벌칙 대상 정하기. 방송용 링크 하나로 OBS에 바로.</span></div>
-      <div><b>🍱 직장인 점심</b><span>밥값·커피값 한 명 몰빵 또는 랜덤 금액. 송금 문구까지 바로 복사.</span></div>
-      <div><b>🍻 회식·모임</b><span>폭탄 돌리기로 건배사·벌칙 당첨자 뽑기. 손으로 넘기며 다 같이.</span></div>
+    <div class="pt-sec__head"><div><h2>상황별 추천</h2></div></div>
+    <div class="pyh-pick">
+      {PICK.map((x) => <a href={x.href}><span>{x.when}</span><b>{x.game}</b><em>{x.how}</em></a>)}
     </div>
   </section>
 
-  <section class="pt-sec pt-prose">
+  <section class="pt-sec pt-prose" id="obs">
     <h2>방송에서 쓰는 법 (OBS·프리즘)</h2>
     <ol>
       <li>게임 화면에서 참가자 이름을 넣고 <b>방송용 링크 복사</b>를 누릅니다.</li>
@@ -76,4 +101,43 @@ const jsonLd = {
     {faq.map((f) => <><h3>{f.q}</h3><p>{f.a}</p></>)}
   </section>
 </div>
+<style>
+  .pyh-hero { display:grid; grid-template-columns:1fr 1.05fr; gap:28px; align-items:center; margin:10px 0 22px; }
+  .pyh-copy small { font-size:.75rem; font-weight:900; letter-spacing:.16em; color:#6C5CE7; }
+  .pyh-copy h1 { margin:6px 0 10px; font-size:clamp(1.8rem, 4.4vw, 2.6rem); font-weight:900; letter-spacing:-.045em; line-height:1.15; }
+  .pyh-copy p { margin:0; color:#5d5a73; line-height:1.7; font-size:.98rem; }
+  .pyh-cta { display:flex; gap:8px; margin-top:18px; flex-wrap:wrap; }
+  .pyh-cta a { text-decoration:none; font-weight:800; font-size:.95rem; padding:12px 18px; border-radius:12px; border:1px solid var(--line, #e3e0f2); color:#1E1B3A; background:#fff; }
+  .pyh-cta a.p { background:#1E1B3A; border-color:#1E1B3A; color:#fff; }
+  .pyh-feat { position:relative; display:block; border-radius:18px; overflow:hidden; box-shadow:0 24px 50px -28px rgba(20,17,43,.7); background:#100D24; aspect-ratio:1200/760; }
+  .pyh-feat img { width:100%; height:100%; object-fit:cover; object-position:top; display:block; }
+  .pyh-badge { position:absolute; left:12px; bottom:12px; font-size:.72rem; font-weight:900; letter-spacing:.1em; background:#FFC83D; color:#1E1B3A; padding:5px 9px; border-radius:6px; }
+  .pyh-big { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; padding:20px 22px; border-radius:16px; background:#14112B; color:#fff; text-decoration:none; }
+  .pyh-big small { font-size:.72rem; font-weight:900; letter-spacing:.12em; color:#FFC83D; }
+  .pyh-big b { display:block; font-size:1.4rem; font-weight:900; letter-spacing:-.03em; margin:4px 0 6px; }
+  .pyh-big p { margin:0; color:#CFC9F5; font-size:.92rem; line-height:1.6; max-width:640px; }
+  .pyh-big ul, .pyh-card ul { list-style:none; margin:10px 0 0; padding:0; display:flex; gap:6px; flex-wrap:wrap; }
+  .pyh-big li { font-size:.74rem; font-weight:800; padding:4px 8px; border-radius:6px; background:rgba(255,255,255,.08); color:#E9E6FF; }
+  .pyh-big em { font-style:normal; font-weight:900; white-space:nowrap; color:#FFC83D; }
+  .pyh-grid { display:grid; grid-template-columns:repeat(2, 1fr); gap:14px; margin-top:14px; }
+  .pyh-card { display:flex; flex-direction:column; border:1px solid var(--line, #e3e0f2); border-radius:16px; overflow:hidden; text-decoration:none; color:#1E1B3A; background:#fff; transition:transform .15s, box-shadow .15s; }
+  .pyh-card:hover, .pyh-big:hover { transform:translateY(-2px); box-shadow:0 16px 30px -20px rgba(20,17,43,.5); }
+  .pyh-card figure { margin:0; aspect-ratio:16/9; overflow:hidden; background:#14112B; }
+  .pyh-card img { width:100%; height:100%; object-fit:cover; object-position:center top; display:block; }
+  .pyh-card > div { padding:14px 16px 16px; }
+  .pyh-card b { font-size:1.08rem; font-weight:900; letter-spacing:-.02em; }
+  .pyh-card p { margin:4px 0 0; font-size:.88rem; color:#5d5a73; line-height:1.55; }
+  .pyh-card li { font-size:.72rem; font-weight:800; padding:3px 7px; border-radius:6px; background:#F2F0FC; color:#4b3fd0; }
+  .pyh-pick { display:grid; gap:6px; }
+  .pyh-pick a { display:grid; grid-template-columns:1.2fr .8fr 1.2fr; gap:12px; align-items:center; padding:12px 14px; border:1px solid var(--line, #e3e0f2); border-radius:12px; text-decoration:none; color:#1E1B3A; background:#fff; font-size:.9rem; }
+  .pyh-pick span { font-weight:700; }
+  .pyh-pick b { color:#4b3fd0; font-weight:900; }
+  .pyh-pick em { font-style:normal; color:#6b6880; font-size:.84rem; }
+  @media (max-width:760px) {
+    .pyh-hero { grid-template-columns:1fr; }
+    .pyh-grid { grid-template-columns:1fr; }
+    .pyh-big { flex-direction:column; align-items:flex-start; }
+    .pyh-pick a { grid-template-columns:1fr; gap:2px; }
+  }
+</style>
 </BaseLayout>

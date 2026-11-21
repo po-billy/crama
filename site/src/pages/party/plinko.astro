@@ -31,7 +31,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntit
   </div>
 
   <form class="py-form" id="f" onsubmit="return false">
-    <label>참가자 (한 줄에 한 명, 비우면 공 1개)<textarea id="names" spellcheck="false"></textarea></label>
+    <label>참가자 (한 줄에 한 명, 최대 300개 · '민수 x3'처럼 쓰면 공 3개, 비우면 공 1개)<textarea id="names" spellcheck="false"></textarea></label>
     <label>결과 칸 (왼쪽부터, 3~9칸)<textarea id="slots" spellcheck="false"></textarea></label>
     <div class="py-full"><label>떨어뜨리는 방법<span class="py-seg" id="mode"><button type="button" data-v="seq" class="on">한 명씩 차례로</button><button type="button" data-v="all">한꺼번에</button></span></label></div>
   </form>
@@ -55,7 +55,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntit
 </div>
 
 <script>
-  import { initNames, parseList, PALETTE, rand, sfx, shake, confetti, initStream, streamUrl, initMute, copyText, track } from '../../party/kit';
+  import { initNames, parseList, parseEntries, PALETTE, rand, sfx, shake, confetti, initStream, streamUrl, initMute, copyText, track } from '../../party/kit';
 
   const $ = (id: string) => document.getElementById(id) as HTMLElement;
   const cv = $('cv') as HTMLCanvasElement;
@@ -96,29 +96,59 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntit
     draw();
   };
 
+  const shade = (h: string, k: number) => { const n = parseInt(h.slice(1), 16), c = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => Math.round(k >= 0 ? v + (255 - v) * k : v * (1 + k))); return `rgb(${c})`; };
   function draw() {
     g.clearRect(0, 0, W, H);
     const n = slots.length, sw = W / n;
-    // 칸
+    if (!stage.dataset.bg) {
+      const bg = g.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#1B1740'); bg.addColorStop(1, '#100D24');
+      g.fillStyle = bg; g.fillRect(0, 0, W, H);
+      g.fillStyle = 'rgba(255,255,255,.035)'; for (let y = 20; y < slotTop; y += 26) for (let x = (y / 26) % 2 ? 13 : 0; x < W; x += 26) g.fillRect(x, y, 1.5, 1.5);
+    }
+    // 칸(입체 바구니)
     slots.forEach((s, i) => {
       const hot = /당첨|축하|상품|1등|win/i.test(s), bad = /벌칙|쏘기|내기|꼴찌|밥값/.test(s);
-      g.fillStyle = hot ? 'rgba(255,200,61,.22)' : bad ? 'rgba(255,77,109,.2)' : 'rgba(255,255,255,.06)';
-      if (glow[i] > 0) g.fillStyle = `rgba(255,255,255,${0.15 + glow[i] * 0.5})`;
-      g.fillRect(i * sw + 2, slotTop, sw - 4, H - slotTop - 2);
+      const base = hot ? '#FFC83D' : bad ? '#FF4D6D' : '#6C5CE7';
+      const x = i * sw + 3, w = sw - 6, y = slotTop, h = H - slotTop - 4;
+      const gr = g.createLinearGradient(0, y, 0, y + h);
+      gr.addColorStop(0, `rgba(255,255,255,${0.08 + (glow[i] || 0) * 0.5})`); gr.addColorStop(1, hot ? 'rgba(255,200,61,.32)' : bad ? 'rgba(255,77,109,.3)' : 'rgba(108,92,231,.22)');
+      g.fillStyle = gr; g.beginPath(); (g as any).roundRect ? (g as any).roundRect(x, y, w, h, [4, 4, 10, 10]) : g.rect(x, y, w, h); g.fill();
+      g.fillStyle = base; g.fillRect(x, y, w, 3);
+      if (glow[i] > 0) { g.save(); g.shadowColor = base; g.shadowBlur = 30 * glow[i]; g.fillStyle = base; g.fillRect(x, y, w, 3); g.restore(); }
       g.fillStyle = hot ? '#FFC83D' : bad ? '#FF8FA3' : '#fff';
-      g.font = `800 ${Math.min(15, sw * 0.17)}px Pretendard, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.font = `900 ${Math.min(15, sw * 0.17)}px Pretendard, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
       const words = s.length > 5 ? [s.slice(0, Math.ceil(s.length / 2)), s.slice(Math.ceil(s.length / 2))] : [s];
-      words.forEach((w, k) => g.fillText(w, i * sw + sw / 2, H - (H - slotTop) / 2 + (k - (words.length - 1) / 2) * 16));
-      if (i) { g.fillStyle = 'rgba(255,255,255,.3)'; g.fillRect(i * sw - 1, slotTop - 18, 2, H - slotTop + 18); }
+      words.forEach((wd, k) => g.fillText(wd, i * sw + sw / 2, H - (H - slotTop) / 2 + (k - (words.length - 1) / 2) * 16));
+      if (i) { const dg = g.createLinearGradient(i * sw - 2, 0, i * sw + 2, 0); dg.addColorStop(0, '#2B2656'); dg.addColorStop(0.5, '#B9AFFF'); dg.addColorStop(1, '#2B2656'); g.fillStyle = dg; g.fillRect(i * sw - 2, slotTop - 18, 4, H - slotTop + 18); }
     });
-    // 못
-    pegs.forEach((p) => { g.fillStyle = p.hit > 0 ? `rgba(255,200,61,${0.5 + p.hit})` : 'rgba(255,255,255,.75)'; g.beginPath(); g.arc(p.x, p.y, pegR + p.hit * 3, 0, 7); g.fill(); });
-    // 공
+    // 못(금속)
+    pegs.forEach((p) => {
+      const r = pegR + p.hit * 3;
+      if (p.hit > 0) { g.fillStyle = `rgba(255,200,61,${p.hit * 0.4})`; g.beginPath(); g.arc(p.x, p.y, r * 2.4, 0, 7); g.fill(); }
+      g.fillStyle = 'rgba(0,0,0,.35)'; g.beginPath(); g.arc(p.x + 1, p.y + 2, r, 0, 7); g.fill();
+      const pg = g.createRadialGradient(p.x - r * 0.4, p.y - r * 0.4, 0, p.x, p.y, r);
+      pg.addColorStop(0, '#fff'); pg.addColorStop(0.45, p.hit > 0 ? '#FFC83D' : '#C9C3F0'); pg.addColorStop(1, p.hit > 0 ? '#A8741A' : '#5B5494');
+      g.fillStyle = pg; g.beginPath(); g.arc(p.x, p.y, r, 0, 7); g.fill();
+    });
+    // 공(광택)
     balls.forEach((b) => {
       if (!b.live) return;
-      g.fillStyle = b.color; g.beginPath(); g.arc(b.x, b.y, ballR, 0, 7); g.fill();
-      g.strokeStyle = '#fff'; g.lineWidth = 2; g.stroke();
-      g.fillStyle = '#fff'; g.font = `900 ${ballR * 1.05}px Pretendard, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(b.name.slice(0, 1), b.x, b.y + 1);
+      g.fillStyle = 'rgba(0,0,0,.35)'; g.beginPath(); g.ellipse(b.x + ballR * 0.2, b.y + ballR * 0.5, ballR, ballR * 0.6, 0, 0, 7); g.fill();
+      const bg2 = g.createRadialGradient(b.x - ballR * 0.4, b.y - ballR * 0.45, ballR * 0.1, b.x, b.y, ballR);
+      bg2.addColorStop(0, '#fff'); bg2.addColorStop(0.25, b.color); bg2.addColorStop(1, shade(b.color, -0.5));
+      g.fillStyle = bg2; g.beginPath(); g.arc(b.x, b.y, ballR, 0, 7); g.fill();
+    });
+    // 이름 전체 — 공 옆 말풍선(공보다 나중에 그려 가려지지 않게)
+    balls.forEach((b) => {
+      if (!b.live || !b.name || (b.done && balls.length > 8)) return;
+      const fs = stage.classList.contains('is-stream') ? 18 : 12;
+      g.font = `800 ${fs}px Pretendard, sans-serif`;
+      const tw = g.measureText(b.name).width, bw = tw + 12, bh = fs * 1.6;
+      const lx = b.x + ballR + 4 + bw < W ? b.x + ballR + 4 : b.x - ballR - 4 - bw;
+      g.fillStyle = b.done ? 'rgba(16,13,36,.7)' : 'rgba(16,13,36,.88)';
+      g.beginPath(); (g as any).roundRect ? (g as any).roundRect(lx, b.y - bh / 2, bw, bh, 5) : g.rect(lx, b.y - bh / 2, bw, bh); g.fill();
+      g.fillStyle = b.color; g.fillRect(lx, b.y - bh / 2 + 3, 3, bh - 6);
+      g.fillStyle = '#fff'; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText(b.name, lx + 6, b.y + 1);
     });
   }
 
@@ -172,13 +202,13 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntit
   function start() {
     if (running) return;
     layout();
-    const names = parseList(taN.value, 30);
+    const names = parseEntries(taN.value, 300);
     balls = (names.length ? names : ['']).map((name, i) => ({ name, color: PALETTE[i % PALETTE.length], x: 0, y: 0, vx: 0, vy: 0, done: false, slot: -1, live: false }));
     $('res').hidden = true; $('rank').innerHTML = '';
     running = true; ($('go') as HTMLButtonElement).disabled = true;
     last = performance.now();
     if (mode === 'all') balls.forEach((b, i) => setTimeout(() => drop(b), i * 90));
-    else balls.forEach((b, i) => setTimeout(() => drop(b), i * 950));
+    else { const gap = balls.length > 12 ? Math.max(120, 950 * 12 / balls.length) : 950; balls.forEach((b, i) => setTimeout(() => drop(b), i * gap)); }
     requestAnimationFrame(loop);
     track('party_play', { game: 'plinko', players: balls.length, mode });
   }
@@ -211,7 +241,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntit
   [taN, taS].forEach((t) => t.addEventListener('input', () => { if (!running) layout(); }));
   addEventListener('resize', () => { if (!running) layout(); });
   initMute($('mute'));
-  initStream(stage, $('stream'), $('link'), () => streamUrl({ names: parseList(taN.value, 30).join(','), slots: parseList(taS.value, 9).join(',') }));
+  initStream(stage, $('stream'), $('link'), () => streamUrl({ names: parseList(taN.value, 300).join(','), slots: parseList(taS.value, 9).join(',') }));
   $('s-exit').addEventListener('click', () => $('stream').click());
   layout();
 </script>

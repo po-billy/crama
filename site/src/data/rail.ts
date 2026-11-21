@@ -55,6 +55,7 @@ export const FUN = [
 
 // 새로 나왔어요 — 새 페이지를 만들면 맨 위에 추가(위에서 6개만 노출)
 export const NEW_ITEMS = [
+  { name: '구슬 레이스 추첨', href: '/party/marble/', desc: '방송·회식용, 300개까지 실시간 순위' },
   { name: '이름 레이스 추첨', href: '/party/race/', desc: '경마 추첨, 역전과 사진 판정' },
   { name: '밥값 몰아주기', href: '/party/pay/', desc: '점심값 몰빵·랜덤 금액' },
   { name: '폭탄 돌리기', href: '/party/bomb/', desc: '회식·방송 벌칙 폭탄' },

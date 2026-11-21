@@ -15,7 +15,9 @@
     "@astrojs/rss": "^4.0.7",
     "@astrojs/sitemap": "^3.2.0",
     "@supabase/supabase-js": "^2.108.2",
+    "@types/matter-js": "^0.19.8",
     "astro": "^5.1.0",
+    "matter-js": "^0.20.0",
     "sharp": "^0.33.5"
   }
 }

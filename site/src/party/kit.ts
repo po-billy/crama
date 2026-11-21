@@ -8,6 +8,26 @@ export function parseList(text: string, max = 30): string[] {
   return text.split(/[\n,]/).map((s) => s.trim()).filter(Boolean).slice(0, max);
 }
 
+/**
+ * 참가자 목록: 한 줄(또는 쉼표)에 한 명. '민수 x3', '민수*3', '민수×3'처럼 쓰면 같은 이름으로 여러 개를 넣는다.
+ * 같은 이름이 여러 개면 '민수 #1', '민수 #2'로 구분한다. 최대 max개.
+ */
+export function parseEntries(text: string, max = 300): string[] {
+  const out: string[] = [];
+  for (const raw of text.split(/[\n,]/)) {
+    const t = raw.trim();
+    if (!t) continue;
+    const m = t.match(/^(.*?)\s*[xX×*]\s*(\d{1,3})$/);
+    const name = (m ? m[1] : t).trim() || t;
+    const n = m ? Math.max(1, Math.min(300, +m[2])) : 1;
+    for (let i = 0; i < n && out.length < max; i++) out.push(name);
+    if (out.length >= max) break;
+  }
+  const total: Record<string, number> = {}, seen: Record<string, number> = {};
+  out.forEach((n) => { total[n] = (total[n] || 0) + 1; });
+  return out.map((n) => (total[n] > 1 ? `${n} #${(seen[n] = (seen[n] || 0) + 1)}` : n));
+}
+
 /** 주소의 ?names= 가 있으면 그 값을, 없으면 저장된 값을 입력칸에 넣는다 */
 export function initNames(game: string, el: HTMLTextAreaElement, fallback: string, param = 'names') {
   const q = new URLSearchParams(location.search).get(param);

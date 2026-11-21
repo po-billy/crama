@@ -1,0 +1,84 @@
+---
+// 실수령 역산 — "실수령 300만원 연봉"처럼 받고 싶은 돈에서 연봉을 거꾸로 찾는 검색어용. 계산은 lib/salary(연봉 페이지와 같은 공식).
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import AnswerSlot from '../../../components/AnswerSlot.astro';
+import { computeSalary, annualForNet, netAmounts, salaryAmounts, RATE_BASIS, fmt } from '../../../lib/salary';
+import '../../../styles/portal.css';
+
+export function getStaticPaths() { return netAmounts().map((m) => ({ params: { man: String(m) }, props: { man: m } })); }
+const { man } = Astro.props as { man: number };
+const annual = annualForNet(man * 10_000);
+const s = computeSalary(annual);
+const annualMan = Math.round(annual / 10_000);
+const gm = Math.round(s.monthlyGross / 10_000);
+const all = netAmounts();
+const i = all.indexOf(man);
+const near = [all[i - 2], all[i - 1], all[i + 1], all[i + 2]].filter(Boolean);
+// 실수령 10만원 더 받으려면 연봉을 얼마나 올려야 하나
+const plus10 = annualForNet((man + 10) * 10_000) - annual;
+const keep = Math.round((100 * 100_000 * 12) / plus10);
+const nearestAnnual = salaryAmounts().reduce((a, b) => (Math.abs(b - annualMan) < Math.abs(a - annualMan) ? b : a));
+const title = `실수령 월 ${fmt(man)}만원 받으려면 연봉 얼마? — 약 ${fmt(annualMan)}만원 (2026)`;
+const description = `한 달에 ${fmt(man)}만원을 손에 쥐려면 세전 연봉 약 ${fmt(annualMan)}만원(월 ${fmt(gm)}만원)이 필요합니다. 4대보험·세금 공제 내역과 실수령 10만원을 더 받으려면 연봉을 얼마 올려야 하는지 계산했어요. ${RATE_BASIS}.`;
+const rows = [
+  ['국민연금', s.np], ['건강보험', s.hi], ['장기요양보험', s.ltc], ['고용보험', s.ei], ['소득세', s.incomeTax], ['지방소득세', s.localTax],
+] as [string, number][];
+const faq = [
+  { q: `실수령 ${fmt(man)}만원이면 연봉이 얼마인가요?`, a: `부양가족 본인 1명, 비과세 수당 없음 기준으로 세전 연봉 약 ${fmt(annualMan)}만원(월 ${fmt(gm)}만원)입니다. 이때 한 달 공제액은 ${fmt(s.totalDeduct)}원입니다.` },
+  { q: `실수령을 10만원 더 받으려면 연봉을 얼마나 올려야 하나요?`, a: `이 구간에서는 연봉을 약 ${fmt(Math.round(plus10 / 10_000))}만원 올려야 실수령이 월 10만원 늘어납니다. 오른 연봉의 약 ${keep}%만 손에 남는다는 뜻입니다.` },
+  { q: '식대 같은 비과세 수당이 있으면 달라지나요?', a: '네. 월 20만원 식대처럼 비과세 수당이 있으면 그만큼 세금과 4대보험이 줄어 같은 연봉에서도 실수령이 늘어납니다. 부양가족이 많아도 소득세가 줄어듭니다.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+  <div class="pt pt-narrow" style="--c:#10b981">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/pay/">월급·세금</a> › <a href="/salary/net/">실수령으로 연봉 찾기</a> › {fmt(man)}만원</nav>
+    <h1 style="font-size:1.7rem;font-weight:800;letter-spacing:-0.02em;margin:0 0 0.9rem">실수령 월 {fmt(man)}만원 받으려면</h1>
+
+    <div class="tl-result">
+      <div class="tl-result__label">필요한 세전 연봉</div>
+      <div class="tl-result__big">약 {fmt(annualMan)}만원</div>
+      <div class="tl-result__sub">세전 월 {fmt(s.monthlyGross)}원 → 공제 {fmt(s.totalDeduct)}원 → 실수령 {fmt(s.monthlyNet)}원</div>
+    </div>
+
+    <AnswerSlot zone="salary" />
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>한 달에 빠지는 돈</h2></div></div>
+      <div class="tl-wrap">
+        <table class="tl-table">
+          <thead><tr><th>항목</th><th>월 금액</th></tr></thead>
+          <tbody>
+            <tr><td><b>세전 월급</b></td><td><b>{fmt(s.monthlyGross)}원</b></td></tr>
+            {rows.map(([l, v]) => <tr><td>{l}</td><td>-{fmt(v)}원</td></tr>)}
+            <tr><td class="is-on">실수령액</td><td class="is-on">{fmt(s.monthlyNet)}원</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="pp-note">※ {RATE_BASIS}. 부양가족 본인 1명, 비과세 수당 없음 기준의 근사 계산입니다. 1만원 단위로 올려 계산했어요.</p>
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>연봉 협상 때 알아 둘 것</h2></div></div>
+      <ul style="line-height:1.8;color:#334155;padding-left:1.1rem;margin:0">
+        <li>이 구간에서 실수령을 <b>월 10만원</b> 더 받으려면 연봉을 약 <b>{fmt(Math.round(plus10 / 10_000))}만원</b> 올려야 해요. 오른 연봉의 약 {keep}%만 손에 남아요.</li>
+        <li>같은 연봉이라도 식대 같은 비과세 수당으로 받으면 세금·보험료가 줄어 실수령이 늘어요.</li>
+        <li>2027년 1월부터 국민연금 본인 부담이 4.75%에서 5%로 올라 같은 연봉의 실수령이 조금 줄어요. <a href="/blog/2027-four-insurance-rates-take-home-pay/">2027년 4대보험 변화</a></li>
+      </ul>
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>다른 실수령 금액</h2></div></div>
+      <div class="pt-chips">
+        {near.map((m) => <a class="pt-chip" href={`/salary/net/${m}/`}>실수령 {fmt(m)}만원</a>)}
+        <a class="pt-chip" href={`/salary/${nearestAnnual}/`}>연봉 {fmt(nearestAnnual)}만원 실수령액</a>
+        <a class="pt-chip" href="/salary/net/">직접 계산하기</a>
+      </div>
+    </section>
+
+    <section class="pt-sec pt-prose">
+      <h2>자주 묻는 질문</h2>
+      {faq.map((f) => <><h3>{f.q}</h3><p>{f.a}</p></>)}
+    </section>
+  </div>
+</BaseLayout>

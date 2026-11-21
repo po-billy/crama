@@ -1,0 +1,73 @@
+---
+// 실수령 역산 계산기 — 받고 싶은 월 실수령액을 넣으면 필요한 세전 연봉을 찾는다(lib/salary 이분 탐색, 브라우저 계산).
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import AnswerSlot from '../../../components/AnswerSlot.astro';
+import { netAmounts, annualForNet, RATE_BASIS, fmt } from '../../../lib/salary';
+import '../../../styles/portal.css';
+
+const quick = [200, 250, 300, 350, 400, 500];
+const table = [200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 1000].map((m) => ({ m, a: Math.round(annualForNet(m * 10_000) / 10_000) }));
+const faq = [
+  { q: '실수령 300만원이면 연봉이 얼마인가요?', a: `부양가족 본인 1명, 비과세 없음 기준으로 세전 연봉 약 ${fmt(table.find((t) => t.m === 300)!.a)}만원입니다.` },
+  { q: '왜 실수령액에서 연봉을 거꾸로 계산하나요?', a: '연봉 협상이나 이직 때 "한 달에 얼마를 손에 쥐고 싶다"에서 출발하면 필요한 세전 연봉을 바로 알 수 있습니다. 세전 연봉만 비교하면 공제액 차이를 놓치기 쉽습니다.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title="실수령액으로 연봉 계산 — 월 300만원 받으려면 연봉 얼마? (역산 계산기)" description="한 달에 받고 싶은 실수령액을 넣으면 필요한 세전 연봉과 월급을 거꾸로 계산합니다. 실수령 200만~1,000만원 연봉표, 4대보험·세금 공제 내역까지." jsonLd={jsonLd}>
+  <div class="pt pt-narrow" style="--c:#10b981">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/pay/">월급·세금</a> › 실수령으로 연봉 찾기</nav>
+    <header class="pt-hubhero">
+      <img src="/img/portal/g-pay.webp" alt="" width="200" height="200" />
+      <div><h1>실수령액으로 연봉 찾기</h1><p>한 달에 손에 쥐고 싶은 돈을 넣으면 필요한 세전 연봉을 거꾸로 계산해요.</p></div>
+    </header>
+
+    <section class="pt-sec">
+      <div class="tl-card">
+        <div class="tl-row">
+          <label class="tl-field">받고 싶은 월 실수령액 (만원)<input id="net" type="number" inputmode="numeric" value="300" min="50" max="5000" /></label>
+        </div>
+        <div class="tl-quick">{quick.map((q) => <button type="button" data-v={q}>{q}만</button>)}</div>
+        <button type="button" class="tl-btn" id="go">연봉 계산하기</button>
+      </div>
+      <div class="tl-result" id="res" hidden aria-live="polite">
+        <div class="tl-result__label">필요한 세전 연봉</div>
+        <div class="tl-result__big" id="big"></div>
+        <div class="tl-result__sub" id="sub"></div>
+      </div>
+      <p class="pp-note">※ {RATE_BASIS}. 부양가족 본인 1명, 비과세 수당 없음 기준의 근사 계산입니다.</p>
+    </section>
+
+    <AnswerSlot zone="salary" />
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>실수령액별 필요 연봉표</h2></div></div>
+      <div class="tl-wrap"><table class="tl-table">
+        <thead><tr><th>월 실수령</th><th>세전 연봉</th></tr></thead>
+        <tbody>{table.map((t) => <tr><td><a href={`/salary/net/${t.m}/`}>{fmt(t.m)}만원</a></td><td>약 {fmt(t.a)}만원</td></tr>)}</tbody>
+      </table></div>
+      <div class="pt-chips" style="margin-top:10px">{netAmounts().map((m) => <a class="pt-chip" href={`/salary/net/${m}/`}>{fmt(m)}만</a>)}</div>
+    </section>
+
+    <section class="pt-sec pt-prose">
+      <h2>자주 묻는 질문</h2>
+      {faq.map((f) => <><h3>{f.q}</h3><p>{f.a}</p></>)}
+    </section>
+  </div>
+
+  <script>
+    import { annualForNet, computeSalary, fmt } from '../../../lib/salary';
+    const $ = (id: string) => document.getElementById(id) as HTMLElement;
+    const inp = $('net') as HTMLInputElement;
+    function run() {
+      const man = Math.max(50, Math.min(5000, +inp.value || 0));
+      const a = annualForNet(man * 10_000), s = computeSalary(a);
+      $('big').textContent = `약 ${fmt(Math.round(a / 10_000))}만원`;
+      $('sub').textContent = `세전 월 ${fmt(s.monthlyGross)}원 → 4대보험·세금 ${fmt(s.totalDeduct)}원 → 실수령 ${fmt(s.monthlyNet)}원`;
+      $('res').hidden = false;
+      try { (window as any).gtag?.('event', 'salary_reverse', { net: man }); } catch { /* 무시 */ }
+    }
+    document.querySelectorAll<HTMLElement>('.tl-quick button').forEach((b) => b.addEventListener('click', () => { inp.value = b.dataset.v!; run(); }));
+    $('go').addEventListener('click', run);
+    inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') run(); });
+  </script>
+</BaseLayout>

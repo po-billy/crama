@@ -1,0 +1,67 @@
+---
+// 경조사비 관계별 페이지 — "직장 동료 축의금 얼마", "친구 부조금 얼마" 같은 검색어용. 금액은 data/gift-money.ts.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/portal.css';
+import { PAGES, EVENTS, RELS, giftRange, type EventKey, type RelKey } from '../../data/gift-money';
+
+export function getStaticPaths() { return PAGES.map((p) => ({ params: { slug: p.slug }, props: { e: p.e, r: p.r } })); }
+const { e, r } = Astro.props as { e: EventKey; r: RelKey };
+const ev = EVENTS[e], rel = RELS[r];
+const go = giftRange(e, r, true), no = e === 'wedding' ? giftRange(e, r, false) : null;
+const title = `${rel.name} ${ev.money} 얼마? — 보통 ${go[1]}만원 (${go[0]}~${go[2]}만원)`;
+const desc = `${rel.name}(${rel.desc}) ${ev.verb}은 ${go[0]}~${go[2]}만원을 많이 내고, 무난한 금액은 ${go[1]}만원입니다.${no ? ` 식사하지 않고 봉투만 보내면 ${no[1]}만원 정도예요.` : ''} 상황별로 금액을 조정하는 기준과 봉투 예절까지 정리했어요.`;
+const sameEvent = (Object.keys(RELS) as RelKey[]).filter((x) => x !== r).map((x) => ({ x, href: `/gift-money/${ev.slug}-${RELS[x].slug}/`, g: giftRange(e, x, true) }));
+const otherEvents = (Object.keys(EVENTS) as EventKey[]).filter((x) => x !== e).map((x) => ({ x, href: `/gift-money/${EVENTS[x].slug}-${rel.slug}/`, g: giftRange(x, r, true) }));
+const faq = [
+  { q: `${rel.name} ${ev.money}은 얼마가 적당한가요?`, a: `${go[0]}~${go[2]}만원을 많이 내고 무난한 금액은 ${go[1]}만원입니다.${no ? ` 식사하지 않는다면 ${no[0]}~${no[2]}만원이 흔합니다.` : ''} 내가 받은 적이 있다면 받은 금액 이상으로 맞추는 것이 일반적입니다.` },
+  ...(e === 'wedding' ? [{ q: '둘이 같이 가면 두 배로 내야 하나요?', a: '꼭 두 배일 필요는 없지만 식대를 생각해 한 사람 금액에 5만원 이상 더하는 경우가 많습니다. 10만원이면 15~20만원 정도입니다.' }] : []),
+  ...(e === 'funeral' ? [{ q: '조의금은 왜 홀수로 내나요?', a: '예부터 3·5·7만원처럼 홀수로 내는 관례가 있습니다. 10만원을 넘으면 10·15·20만원처럼 내는 경우가 많습니다.' }] : []),
+  { q: '못 가면 얼마를 보내야 하나요?', a: e === 'wedding' ? '식사를 하지 않으니 참석할 때보다 조금 적게 보내는 경우가 많습니다. 다만 친한 사이라면 참석할 때와 같게 보내기도 합니다.' : '참석하지 못해도 관계에 맞는 금액을 계좌로 보내고 짧은 위로나 축하 메시지를 함께 남기면 됩니다.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title={title} description={desc} jsonLd={jsonLd}>
+  <div class="pt pt-narrow" style="--c:#e11d48">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/gift-money/">경조사비 계산</a> › {rel.name} {ev.money}</nav>
+    <h1 style="font-size:1.7rem;font-weight:800;letter-spacing:-0.02em;margin:0 0 0.9rem">{rel.name} {ev.money}, 얼마가 적당할까</h1>
+
+    <div class="tl-result">
+      <div class="tl-result__label">{e === 'wedding' ? '식사하고 오는 경우' : '많이 내는 금액'}</div>
+      <div class="tl-result__big">{go[1]}만원</div>
+      <div class="tl-result__sub">보통 {go[0]}~{go[2]}만원{no ? ` · 봉투만 보내면 ${no[1]}만원 정도(${no[0]}~${no[2]}만원)` : ''}</div>
+    </div>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>금액을 정하는 기준</h2></div></div>
+      <ul style="line-height:1.8;color:#334155;padding-left:1.1rem;margin:0">
+        <li><b>받은 적이 있으면 받은 만큼 이상.</b> 경조사비는 주고받는 돈이라, 그 사람에게 받은 금액이 가장 확실한 기준이에요.</li>
+        {e === 'wedding' && <li><b>식사 여부.</b> 요즘 예식장 식대가 1인 5만원을 넘는 곳이 많아, 식사까지 하면 10만원을 내는 사람이 늘었어요. 2025년 인크루트 직장인 설문에서도 식사하는 직장 동료 결혼식에 10만원이라는 답이 가장 많았어요.</li>}
+        {e === 'wedding' && <li><b>동행.</b> 배우자나 친구와 함께 가면 한 사람 금액에 5만원 이상 더하는 경우가 많아요.</li>}
+        <li><b>관례 금액.</b> 10만원 아래는 3·5·7만원, 그 위는 10·15·20만원처럼 내요.</li>
+        <li><b>형편이 먼저.</b> 무리해서 낼 필요는 없어요. 진심이 담긴 축하·위로가 더 오래 기억돼요.</li>
+      </ul>
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>다른 관계의 {ev.money}</h2></div></div>
+      <div class="tl-wrap"><table class="tl-table"><thead><tr><th>관계</th><th>무난한 금액</th><th>범위</th></tr></thead>
+        <tbody>
+          <tr><td class="is-on">{rel.name}</td><td class="is-on">{go[1]}만원</td><td class="is-on">{go[0]}~{go[2]}만원</td></tr>
+          {sameEvent.map((s) => <tr><td><a href={s.href}>{RELS[s.x].name}</a></td><td>{s.g[1]}만원</td><td>{s.g[0]}~{s.g[2]}만원</td></tr>)}
+        </tbody></table></div>
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-chips">
+        {otherEvents.map((o) => <a class="pt-chip" href={o.href}>{rel.name} {EVENTS[o.x].money} {o.g[1]}만원</a>)}
+        <a class="pt-chip" href="/gift-money/">내 상황으로 계산하기</a>
+      </div>
+    </section>
+
+    <section class="pt-sec pt-prose">
+      <h2>자주 묻는 질문</h2>
+      {faq.map((f) => <><h3>{f.q}</h3><p>{f.a}</p></>)}
+      <p class="pp-note">※ 경조사비에 정해진 금액은 없습니다. 위 금액은 설문과 생활 정보에 자주 나오는 범위를 모은 참고값이에요. 지역·집안 분위기·관계에 따라 달라질 수 있어요.</p>
+    </section>
+  </div>
+</BaseLayout>

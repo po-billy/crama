@@ -119,3 +119,16 @@ export function monthlyAmounts(): number[] {
   for (let m = 650; m <= 1000; m += 50) list.push(m);
   return list;
 }
+
+/** 역산: 월 실수령액(원)을 받으려면 필요한 연봉(원). computeSalary가 연봉에 대해 늘기만 하므로 이분 탐색, 1만원 단위로 올림 */
+export function annualForNet(netMonthly: number): number {
+  let lo = 0, hi = 1_000_000_000;
+  for (let i = 0; i < 60; i++) {
+    const mid = (lo + hi) / 2;
+    if (computeSalary(mid).monthlyNet >= netMonthly) hi = mid; else lo = mid;
+  }
+  return Math.ceil(hi / 10_000) * 10_000;
+}
+
+// 실수령 역산 페이지 대상(만원): 150~600 10만 단위 + 650~1,000 50만 단위
+export function netAmounts(): number[] { return monthlyAmounts(); }

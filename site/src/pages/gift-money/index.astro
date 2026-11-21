@@ -1,0 +1,85 @@
+---
+// 경조사비 계산기 — 결혼식·장례식·돌잔치, 관계·참석·동행·받은 금액으로 무난한 금액을 고른다.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/portal.css';
+import { EVENTS, RELS, PAGES, giftRange, type EventKey, type RelKey } from '../../data/gift-money';
+
+const faq = [
+  { q: '축의금은 보통 얼마 내나요?', a: '식사하고 오는 결혼식이라면 10만원을 가장 많이 냅니다. 2025년 인크루트 직장인 설문에서도 식사하는 직장 동료 결혼식에 10만원이라는 답이 가장 많았습니다. 가까운 사이일수록, 받은 적이 있을수록 더 냅니다.' },
+  { q: '조의금(부조금)은 얼마가 적당한가요?', a: '직장 동료나 지인은 5만원, 가까운 사이는 10만원을 많이 냅니다. 3·5·7만원처럼 홀수로 내는 관례가 있습니다.' },
+  { q: '입력한 내용은 저장되나요?', a: '아니요. 이 화면에서만 계산하고 저장하거나 보내지 않습니다.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+const evs = Object.keys(EVENTS) as EventKey[];
+const rels = Object.keys(RELS) as RelKey[];
+---
+<BaseLayout title="경조사비 계산기 — 축의금·조의금·돌잔치, 관계별 얼마가 적당할까" description="결혼식 축의금, 장례식 조의금(부조금), 돌잔치 축하금을 관계·참석 여부·동행·받은 금액으로 골라 드려요. 친구·직장 동료·상사·친척 관계별 금액표까지." jsonLd={jsonLd}>
+  <div class="pt pt-narrow" style="--c:#e11d48">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/daily/">일상 계산</a> › 경조사비 계산</nav>
+    <h1 style="font-size:1.7rem;font-weight:800;letter-spacing:-0.02em;margin:0 0 0.4rem">경조사비, 얼마 낼까</h1>
+    <p style="margin:0 0 1rem;color:#64748b">관계와 상황을 고르면 많이 내는 금액 범위에서 무난한 금액을 골라 드려요.</p>
+
+    <section class="pt-sec">
+      <div class="tl-card">
+        <div class="tl-quick" id="ev">{evs.map((e, i) => <button type="button" data-v={e} class={i === 0 ? 'is-on' : ''}>{EVENTS[e].name}</button>)}</div>
+        <div class="tl-row">
+          <label class="tl-field">관계<select id="rel">{rels.map((r) => <option value={r}>{RELS[r].name} — {RELS[r].desc}</option>)}</select></label>
+        </div>
+        <div class="tl-row" id="wed-only">
+          <label class="tl-field">참석<select id="att"><option value="1">가서 식사까지</option><option value="0">못 가고 봉투만</option></select></label>
+          <label class="tl-field">같이 가는 사람<select id="with"><option value="0">혼자</option><option value="1">1명 더(배우자·친구)</option><option value="2">2명 더(아이 포함)</option></select></label>
+        </div>
+        <div class="tl-row">
+          <label class="tl-field">그 사람에게 받은 적 있는 금액 (만원, 없으면 비움)<input id="got" type="number" inputmode="numeric" placeholder="예: 10" /></label>
+        </div>
+        <button type="button" class="tl-btn" id="go">금액 정하기</button>
+      </div>
+      <div class="tl-result" id="res" hidden aria-live="polite">
+        <div class="tl-result__label" id="lab"></div>
+        <div class="tl-result__big" id="big"></div>
+        <div class="tl-result__sub" id="sub"></div>
+      </div>
+    </section>
+
+    {evs.map((e) => (
+      <section class="pt-sec">
+        <div class="pt-sec__head"><div><h2>{EVENTS[e].money} 관계별 금액</h2></div></div>
+        <div class="tl-wrap"><table class="tl-table"><thead><tr><th>관계</th><th>무난한 금액</th><th>범위</th>{e === 'wedding' && <th>봉투만</th>}</tr></thead>
+          <tbody>{rels.map((r) => { const g = giftRange(e, r, true), n = giftRange(e, r, false); return <tr><td><a href={`/gift-money/${EVENTS[e].slug}-${RELS[r].slug}/`}>{RELS[r].name}</a></td><td>{g[1]}만원</td><td>{g[0]}~{g[2]}만원</td>{e === 'wedding' && <td>{n[1]}만원</td>}</tr>; })}</tbody>
+        </table></div>
+      </section>
+    ))}
+
+    <section class="pt-sec pt-prose">
+      <h2>자주 묻는 질문</h2>
+      {faq.map((f) => <><h3>{f.q}</h3><p>{f.a}</p></>)}
+      <p class="pp-note">※ 경조사비에 정해진 금액은 없습니다. 인크루트 직장인 설문(2025년)과 생활 정보에 자주 나오는 관계별 범위를 모은 참고값이에요.</p>
+    </section>
+  </div>
+
+  <script>
+    import { EVENTS, RELS, giftRange, tidy, type EventKey, type RelKey } from '../../data/gift-money';
+    const $ = (id: string) => document.getElementById(id) as HTMLElement;
+    let ev: EventKey = 'wedding';
+    $('ev').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
+      $('ev').querySelectorAll('button').forEach((x) => x.classList.remove('is-on')); b.classList.add('is-on');
+      ev = (b as HTMLElement).dataset.v as EventKey; $('wed-only').style.display = ev === 'wedding' ? '' : 'none';
+    }));
+    $('go').addEventListener('click', () => {
+      const rel = ($('rel') as HTMLSelectElement).value as RelKey;
+      const att = ev !== 'wedding' || ($('att') as HTMLSelectElement).value === '1';
+      const extra = ev === 'wedding' && att ? +($('with') as HTMLSelectElement).value : 0;
+      const g = giftRange(ev, rel, att);
+      let pick = tidy(g[1] + extra * 5);
+      const got = +($('got') as HTMLInputElement).value || 0;
+      const why: string[] = [`${RELS[rel].name} ${EVENTS[ev].money}은 보통 ${g[0]}~${g[2]}만원`];
+      if (extra) why.push(`동행 ${extra}명 몫 +${extra * 5}만원`);
+      if (got && got > pick) { pick = tidy(got); why.push(`받은 ${got}만원 이상으로 맞춤`); }
+      $('lab').textContent = `${EVENTS[ev].money} · ${RELS[rel].name}${ev === 'wedding' ? (att ? ' · 식사 참석' : ' · 봉투만') : ''}`;
+      $('big').textContent = `${pick}만원`;
+      $('sub').textContent = why.join(' · ');
+      $('res').hidden = false;
+      try { (window as any).gtag?.('event', 'gift_money', { ev, rel }); } catch { /* 무시 */ }
+    });
+  </script>
+</BaseLayout>

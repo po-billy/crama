@@ -1,0 +1,70 @@
+---
+// 육아휴직 급여 계산기 — 일반 기준(2025년 1월 시행): 1~3개월 통상임금 100%(상한 250만), 4~6개월 100%(상한 200만), 7개월~ 80%(상한 160만), 하한 70만원.
+// 6+6 부모육아휴직제 특례 상한은 출처마다 표가 달라 계산하지 않고 안내만 한다.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import '../styles/portal.css';
+
+const faq = [
+  { q: '육아휴직 급여는 얼마인가요?', a: '1~3개월은 월 통상임금의 100%(상한 250만원), 4~6개월은 100%(상한 200만원), 7개월째부터는 80%(상한 160만원)입니다. 하한은 월 70만원입니다.' },
+  { q: '복직해야 나머지를 받나요?', a: '예전에는 급여의 일부를 복직 후 6개월이 지나야 주는 사후지급금이 있었지만, 지금은 폐지되어 휴직 기간 중에 매달 전액을 받습니다.' },
+  { q: '부부가 같이 쓰면 더 받나요?', a: '같은 자녀에 대해 부모가 모두 육아휴직을 쓰는 "6+6 부모육아휴직제"는 첫 6개월 동안 상한액이 달마다 올라가 최대 월 450만원까지 늘어납니다. 개월별 상한은 고용24에서 확인하세요.' },
+  { q: '누가 받을 수 있나요?', a: '육아휴직을 30일 이상 쓰고, 휴직 전 고용보험 피보험 단위기간이 180일 이상인 근로자입니다. 휴직 시작 1개월 뒤부터 종료 후 12개월 안에 고용24에서 신청합니다.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title="육아휴직 급여 계산기 2026 — 월급별 매달 받는 돈과 총액 (상한 250만원)" description="통상임금과 휴직 개월 수를 넣으면 육아휴직 급여를 달마다 계산합니다. 1~3개월 상한 250만원, 4~6개월 200만원, 7개월부터 80%·160만원, 하한 70만원. 사후지급 없이 매달 전액 지급 기준." jsonLd={jsonLd}>
+  <div class="pt pt-narrow" style="--c:#ec6f8e">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/pay/">월급·세금</a> › 육아휴직 급여 계산</nav>
+    <header class="pt-hubhero">
+      <img src="/img/portal/g-mom.webp" alt="" width="200" height="200" />
+      <div><h1>육아휴직 급여 계산기</h1><p>월 통상임금과 쉴 개월 수를 넣으면 달마다 받는 돈과 총액을 계산해요.</p></div>
+    </header>
+
+    <section class="pt-sec">
+      <div class="tl-card">
+        <div class="tl-row">
+          <label class="tl-field">월 통상임금 (만원)<input id="wage" type="number" inputmode="numeric" value="350" /></label>
+          <label class="tl-field">휴직 개월 수<select id="months">{Array.from({ length: 12 }, (_, i) => <option value={i + 1} selected={i === 11}>{i + 1}개월</option>)}</select></label>
+        </div>
+        <button type="button" class="tl-btn" id="go">급여 계산하기</button>
+      </div>
+      <div class="tl-result" id="res" hidden aria-live="polite">
+        <div class="tl-result__label">휴직 기간 동안 받는 돈(총액)</div>
+        <div class="tl-result__big" id="big"></div>
+        <div class="tl-result__sub" id="sub"></div>
+      </div>
+      <div class="tl-wrap" id="tw" hidden style="margin-top:.8rem"><table class="tl-table"><thead><tr><th>개월</th><th>지급률·상한</th><th>받는 돈</th></tr></thead><tbody id="tb"></tbody></table></div>
+      <p class="pp-note">※ 2025년 1월 시행 일반 기준(1~3개월 100%·상한 250만원, 4~6개월 100%·상한 200만원, 7개월~ 80%·상한 160만원, 하한 70만원). 부모가 함께 쓰는 6+6 특례, 한부모 특례는 상한이 더 높아요. 정확한 금액은 고용24에서 확인하세요.</p>
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-chips"><a class="pt-chip" href="/mom/support/">출산·육아 지원금</a><a class="pt-chip" href="/mom/">출산예정일 계산</a><a class="pt-chip" href="/mom/baby/">아기 100일 계산</a></div>
+    </section>
+
+    <section class="pt-sec pt-prose">
+      <h2>자주 묻는 질문</h2>
+      {faq.map((f) => <><h3>{f.q}</h3><p>{f.a}</p></>)}
+    </section>
+  </div>
+  <style>#tw[hidden] { display:none; }</style>
+  <script>
+    const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
+    const won = (n: number) => `${Math.round(n).toLocaleString('ko-KR')}원`;
+    $('go').addEventListener('click', () => {
+      const w = (+$('wage').value || 0) * 10_000, n = +$('months').value || 12;
+      if (!w) return;
+      const rows = Array.from({ length: n }, (_, i) => {
+        const m = i + 1;
+        const [rate, cap] = m <= 3 ? [1, 2_500_000] : m <= 6 ? [1, 2_000_000] : [0.8, 1_600_000];
+        const pay = Math.max(700_000, Math.min(cap, w * rate));
+        return { m, rate, cap, pay };
+      });
+      const total = rows.reduce((s, r) => s + r.pay, 0);
+      (document.getElementById('big') as HTMLElement).textContent = won(total);
+      (document.getElementById('sub') as HTMLElement).textContent = `${n}개월 · 한 달 평균 ${won(total / n)} · 통상임금 대비 ${Math.round((total / (w * n)) * 100)}%`;
+      (document.getElementById('tb') as HTMLElement).innerHTML = rows.map((r) => `<tr><td>${r.m}개월</td><td>${r.rate * 100}% · 상한 ${r.cap / 10_000}만</td><td>${won(r.pay)}</td></tr>`).join('');
+      (document.getElementById('res') as HTMLElement).hidden = false; (document.getElementById('tw') as HTMLElement).hidden = false;
+      try { (window as any).gtag?.('event', 'parental_leave_pay', { months: n }); } catch { /* 무시 */ }
+    });
+  </script>
+</BaseLayout>

@@ -1,0 +1,94 @@
+---
+// 실시간 월급 카운터 — 월급·근무시간을 넣으면 오늘 지금까지 번 돈이 초 단위로 올라간다. 설정은 이 기기에만 저장.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import '../styles/portal.css';
+---
+<BaseLayout title="실시간 월급 카운터 — 오늘 지금까지 번 돈, 초 단위로 (퇴근까지 남은 시간)" description="월급과 출퇴근 시간을 넣으면 오늘 지금까지 번 돈이 1초마다 올라가요. 이번 달·올해 번 돈, 퇴근까지 남은 시간, 1초에 버는 돈까지. 회사에서 몰래 켜 두기 좋은 월급 계산기.">
+  <div class="pt pt-narrow pc" style="--c:#16a34a">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/pay/">월급·세금</a> › 실시간 월급 카운터</nav>
+
+    <div class="pc-board" id="board">
+      <small id="state">오늘 지금까지 번 돈</small>
+      <b id="today">0원</b>
+      <div class="pc-bar"><i id="bar"></i></div>
+      <div class="pc-row"><span>퇴근까지 <em id="left">-</em></span><span>1초에 <em id="sec">-</em></span></div>
+      <div class="pc-grid">
+        <div><small>이번 달</small><strong id="month">-</strong></div>
+        <div><small>올해</small><strong id="year">-</strong></div>
+      </div>
+    </div>
+
+    <section class="pt-sec">
+      <div class="tl-card">
+        <div class="tl-row">
+          <label class="tl-field">세후 월급 (만원)<input id="pay" type="number" inputmode="numeric" value="300" /></label>
+          <label class="tl-field">점심시간 (분, 돈 안 버는 시간)<input id="lunch" type="number" inputmode="numeric" value="60" /></label>
+        </div>
+        <div class="tl-row">
+          <label class="tl-field">출근<input id="in" type="time" value="09:00" /></label>
+          <label class="tl-field">퇴근<input id="out" type="time" value="18:00" /></label>
+        </div>
+        <p class="pp-note" style="margin:6px 0 0">월~금 근무, 한 달 평균 근무일(약 21.7일)로 나눠 계산해요. 설정은 이 기기에만 저장돼요.</p>
+      </div>
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-chips">
+        <a class="pt-chip" href="/salary/net/">실수령으로 연봉 찾기</a>
+        <a class="pt-chip" href="/annual-leave/">내 연차 며칠</a>
+        <a class="pt-chip" href="/year-receipt/">2026 소비 영수증</a>
+      </div>
+    </section>
+  </div>
+
+  <style>
+    .pc-board { margin:6px 0 4px; padding:24px 22px; border-radius:22px; background:#052E16; color:#DCFCE7; text-align:center; }
+    .pc-board small { font-size:.85rem; font-weight:800; letter-spacing:.04em; color:#86EFAC; }
+    .pc-board > b { display:block; margin:6px 0 14px; font-size:clamp(2.4rem, 11vw, 3.8rem); font-weight:900; color:#fff; font-variant-numeric:tabular-nums; letter-spacing:-.03em; }
+    .pc-bar { height:10px; border-radius:99px; background:rgba(255,255,255,.12); overflow:hidden; }
+    .pc-bar i { display:block; height:100%; width:0; background:linear-gradient(90deg, #22C55E, #A3E635); border-radius:99px; }
+    .pc-row { display:flex; justify-content:space-between; margin-top:10px; font-size:.86rem; color:#BBF7D0; }
+    .pc-row em { font-style:normal; font-weight:900; color:#fff; font-variant-numeric:tabular-nums; }
+    .pc-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:14px; }
+    .pc-grid div { background:rgba(255,255,255,.07); border-radius:12px; padding:10px; }
+    .pc-grid strong { display:block; font-size:1.15rem; color:#fff; font-variant-numeric:tabular-nums; }
+  </style>
+
+  <script>
+    const KEY = 'crama:pay-counter';
+    const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
+    try { const v = JSON.parse(localStorage.getItem(KEY) || 'null'); if (v) (['pay', 'lunch', 'in', 'out'] as const).forEach((k) => { if (v[k] != null) $(k).value = v[k]; }); } catch { /* 무시 */ }
+    const save = () => { try { localStorage.setItem(KEY, JSON.stringify({ pay: $('pay').value, lunch: $('lunch').value, in: $('in').value, out: $('out').value })); } catch { /* 무시 */ } };
+    ['pay', 'lunch', 'in', 'out'].forEach((k) => $(k).addEventListener('input', save));
+    const won = (n: number) => `${Math.floor(n).toLocaleString('ko-KR')}원`;
+    const mins = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+    const workdaysBefore = (d: Date) => { let n = 0; const x = new Date(d.getFullYear(), d.getMonth(), 1); while (x < d) { const w = x.getDay(); if (w && w < 6) n++; x.setDate(x.getDate() + 1); } return n; };
+    const workdaysYear = (d: Date) => { let n = 0; const x = new Date(d.getFullYear(), 0, 1); const t = new Date(d.getFullYear(), d.getMonth(), d.getDate()); while (x < t) { const w = x.getDay(); if (w && w < 6) n++; x.setDate(x.getDate() + 1); } return n; };
+    function tick() {
+      const now = new Date();
+      const monthly = (+$('pay').value || 0) * 10_000;
+      const daily = monthly / 21.7;
+      const start = mins($('in').value || '09:00'), end = mins($('out').value || '18:00');
+      const lunch = Math.max(0, +$('lunch').value || 0);
+      const workMin = Math.max(1, end - start - lunch);
+      const perSec = daily / (workMin * 60);
+      const nowMin = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+      const weekday = now.getDay() > 0 && now.getDay() < 6;
+      // 점심은 근무 시간 한가운데라고 본다
+      const lunchStart = start + (end - start - lunch) / 2;
+      let worked = 0;
+      if (weekday) { const e = Math.min(Math.max(nowMin, start), end); worked = e - start; if (e > lunchStart) worked -= Math.min(lunch, e - lunchStart); }
+      const today = worked * 60 * perSec;
+      (document.getElementById('state') as HTMLElement).textContent = !weekday ? '오늘은 쉬는 날 · 이번 주 번 돈은 그대로' : nowMin < start ? '출근 전 · 곧 돈이 들어와요' : nowMin >= end ? '퇴근 완료! 오늘 번 돈' : (nowMin >= lunchStart && nowMin < lunchStart + lunch) ? '점심시간 · 잠시 멈춤' : '오늘 지금까지 번 돈';
+      (document.getElementById('today') as HTMLElement).textContent = won(weekday ? today : 0);
+      (document.getElementById('bar') as HTMLElement).style.width = `${Math.min(100, (worked / workMin) * 100)}%`;
+      const leftMin = weekday ? Math.max(0, end - nowMin) : 0;
+      (document.getElementById('left') as HTMLElement).textContent = leftMin ? `${Math.floor(leftMin / 60)}시간 ${Math.floor(leftMin % 60)}분 ${Math.floor((leftMin * 60) % 60)}초` : '없음';
+      (document.getElementById('sec') as HTMLElement).textContent = `${perSec.toFixed(1)}원`;
+      (document.getElementById('month') as HTMLElement).textContent = won(workdaysBefore(new Date(now.getFullYear(), now.getMonth(), now.getDate())) * daily + (weekday ? today : 0));
+      (document.getElementById('year') as HTMLElement).textContent = won(workdaysYear(now) * daily + (weekday ? today : 0));
+    }
+    tick(); setInterval(tick, 1000);
+    try { (window as any).gtag?.('event', 'pay_counter_open'); } catch { /* 무시 */ }
+  </script>
+</BaseLayout>

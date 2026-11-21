@@ -141,6 +141,7 @@ export const MENU: MenuTab[] = [
           { name: '연말정산 계산기', href: '/year-end-tax/', desc: '환급받을까 더 낼까, 2026년 귀속' },
           { name: '월급 실수령액', href: '/salary/monthly/', desc: '세전 월급별 세후 금액' },
           { name: '실수령으로 연봉 찾기', href: '/salary/net/', desc: '월 300만원 받으려면 연봉 얼마' },
+          { name: '실시간 월급 카운터', href: '/pay-counter/', desc: '오늘 지금까지 번 돈, 초 단위로' },
           { name: '시급 → 월급 환산', href: '/wage/', desc: '주휴수당 포함 월급 계산' },
           { name: '4대보험 계산기', href: '/insurance/', desc: '내 부담과 회사 부담 한 번에' },
           { name: '연차 계산기', href: '/annual-leave/', desc: '입사일로 내 연차 며칠, 연차수당' },

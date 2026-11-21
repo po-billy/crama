@@ -1,0 +1,201 @@
+---
+// 2026 내 소비 영수증 — 커피·배달·택시처럼 자주 쓰는 돈을 1년 치로 모아 영수증 그림으로 보여 주고, 내년에 줄이면 얼마가 모이는지 역산한다.
+// 계산은 모두 브라우저 안에서만. 공유 링크에는 사용자가 넣은 금액만 담긴다.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import '../styles/portal.css';
+
+const faq = [
+  { q: '입력한 금액이 저장되나요?', a: '서버로 보내거나 저장하지 않습니다. "링크로 공유"를 누를 때만 입력한 금액이 주소에 담겨요.' },
+  { q: '1년 금액은 어떻게 계산하나요?', a: '주 단위는 52주, 월 단위는 12개월을 곱해 계산합니다. 실제 지출과는 차이가 있을 수 있어요.' },
+  { q: '"내년에 모이는 돈"은 어떤 기준인가요?', a: '줄인 금액을 매달 연 3% 적금(단리)에 넣었다고 보고, 이자에서 이자소득세 15.4%를 뺀 금액을 더했습니다. 실제 금리는 상품마다 다릅니다.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title="2026 내 소비 영수증 — 커피·배달·택시, 1년에 얼마 썼을까" description="커피, 배달, 택시, 편의점, 구독료를 한 번 넣으면 2026년 1년 치 지출을 영수증 그림으로 보여 줍니다. 최저시급 몇 시간어치인지, 내년에 30% 줄이면 얼마가 모이는지도 계산해요." jsonLd={jsonLd}>
+<div class="pt pt-narrow yr" style="--c:#0EA5E9">
+  <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/daily/">일상 계산</a> › 2026 소비 영수증</nav>
+  <header class="yr-head">
+    <small>2026 YEAR RECEIPT</small>
+    <h1>2026년, 나는 어디에<br />얼마를 썼을까</h1>
+    <p>자주 쓰는 돈을 한 번에 넣으면 1년 치를 모아 영수증으로 뽑아 드려요. 저장하지 않고 이 화면에서만 계산해요.</p>
+  </header>
+
+  <section class="yr-form" id="form"></section>
+  <button type="button" class="yr-add" id="add">+ 항목 추가</button>
+  <button type="button" class="yr-go" id="go">영수증 뽑기</button>
+
+  <section class="yr-out" id="out" hidden>
+    <canvas id="cv" aria-label="2026 소비 영수증"></canvas>
+    <div class="yr-btns"><button type="button" class="p" id="save">이미지 저장</button><button type="button" id="share">링크로 공유</button></div>
+
+    <div class="yr-plan">
+      <h2>2027년에 줄이면</h2>
+      <label class="yr-slide">줄일 비율 <b id="pct-t">30%</b><input type="range" id="pct" min="10" max="100" step="10" value="30" /></label>
+      <div class="yr-big"><small>1년에 아끼는 돈</small><b id="save-y">0원</b><span id="save-m"></span></div>
+      <p id="save-bank" class="yr-note"></p>
+      <p class="yr-note">줄인 돈을 매달 적금에 넣었다고 보고 계산했어요(연 3% 단리, 이자소득세 15.4% 공제). 목표 금액에서 거꾸로 계산하려면 <a href="/interest/">예적금 이자 계산</a>을 써 보세요.</p>
+    </div>
+  </section>
+
+  <section class="pt-sec pt-prose">
+    <h2>자주 묻는 질문</h2>
+    {faq.map((f) => <><h3>{f.q}</h3><p>{f.a}</p></>)}
+  </section>
+</div>
+
+<style is:global>
+  .yr-head { padding:22px; border-radius:20px; background:#0F172A; color:#fff; margin:8px 0 14px; }
+  .yr-head small { font-size:.74rem; font-weight:900; letter-spacing:.16em; color:#38BDF8; }
+  .yr-head h1 { margin:6px 0 8px; font-size:clamp(1.6rem, 5vw, 2.3rem); font-weight:900; letter-spacing:-.04em; line-height:1.2; color:#fff; }
+  .yr-head p { margin:0; color:#CBD5E1; line-height:1.65; font-size:.94rem; }
+  .yr-form { display:grid; gap:8px; }
+  .yr-row label { display:flex; flex-direction:column; gap:3px; }
+  .yr-row label small { font-size:.7rem; font-weight:800; color:#94A3B8; }
+  .yr-row { display:grid; grid-template-columns:1fr 1fr 1fr auto; gap:6px 8px; align-items:end; background:#fff; border:1px solid var(--line, #e5e7eb); border-radius:12px; padding:8px; }
+  .yr-row input, .yr-row select { font:inherit; font-size:.92rem; padding:9px 8px; border:1.5px solid var(--line, #e5e7eb); border-radius:9px; width:100%; box-sizing:border-box; background:#fff; color:#0F172A; font-variant-numeric:tabular-nums; }
+  .yr-row input.name { font-weight:800; grid-column:1 / 4; }
+  .yr-row button { font:inherit; border:0; background:transparent; color:#94A3B8; font-size:1.1rem; cursor:pointer; padding:4px 6px; }
+  .yr-row button { grid-column:4; grid-row:1; align-self:center; }
+  .yr-row label:nth-of-type(3) { grid-column:3 / 5; }
+  .yr-row .sum { grid-column:1 / -1; font-size:.78rem; color:#64748B; padding:0 2px; }
+  .yr-add { font:inherit; font-weight:800; margin-top:8px; padding:10px; width:100%; border:1.5px dashed #CBD5E1; border-radius:12px; background:#fff; color:#475569; cursor:pointer; }
+  .yr-go { font:inherit; width:100%; margin-top:10px; padding:15px; border:0; border-radius:13px; background:#0F172A; color:#fff; font-size:1.05rem; font-weight:900; cursor:pointer; }
+  .yr-out { margin-top:18px; }
+  .yr-out[hidden] { display:none; }
+  .yr-out canvas { display:block; width:min(420px, 100%); margin:0 auto; filter:drop-shadow(0 16px 26px rgba(15,23,42,.25)); }
+  .yr-btns { display:flex; gap:8px; justify-content:center; margin:14px 0; }
+  .yr-btns button { font:inherit; font-weight:800; padding:11px 18px; border-radius:11px; border:1px solid var(--line, #e5e7eb); background:#fff; cursor:pointer; }
+  .yr-btns .p { background:#0EA5E9; color:#fff; border-color:#0EA5E9; }
+  .yr-plan { border:1px solid var(--line, #e5e7eb); border-radius:16px; padding:16px; background:#F8FAFC; }
+  .yr-plan h2 { margin:0 0 8px; font-size:1.15rem; font-weight:900; }
+  .yr-slide { display:flex; flex-direction:column; gap:6px; font-size:.86rem; font-weight:800; color:#475569; }
+  .yr-slide b { color:#0EA5E9; }
+  .yr-big { margin:12px 0 6px; }
+  .yr-big small { display:block; font-size:.8rem; font-weight:800; color:#64748B; }
+  .yr-big b { font-size:2rem; font-weight:900; letter-spacing:-.03em; color:#0F172A; }
+  .yr-big span { display:block; font-size:.86rem; color:#475569; }
+  .yr-note { font-size:.86rem; color:#475569; line-height:1.6; margin:6px 0 0; }
+
+</style>
+
+<script>
+  type Item = { n: string; p: number; f: number; u: 'w' | 'm' };
+  const DEFAULT: Item[] = [
+    { n: '커피', p: 4500, f: 5, u: 'w' }, { n: '배달 음식', p: 25000, f: 2, u: 'w' }, { n: '택시', p: 12000, f: 4, u: 'm' },
+    { n: '편의점', p: 6000, f: 4, u: 'w' }, { n: '술자리(내 몫)', p: 40000, f: 2, u: 'm' }, { n: '구독료(OTT·음악)', p: 30000, f: 1, u: 'm' }, { n: '온라인 쇼핑', p: 150000, f: 1, u: 'm' },
+  ];
+  const MIN_WAGE = 10320; // 2026 최저시급
+  const $ = (id: string) => document.getElementById(id) as HTMLElement;
+  const won = (n: number) => Math.round(n).toLocaleString('ko-KR');
+  const yearOf = (it: Item) => it.p * it.f * (it.u === 'w' ? 52 : 12);
+
+  // 공유 링크로 들어오면 그 값으로 채운다: ?r=이름~가격~횟수~단위|...
+  let items: Item[] = DEFAULT;
+  const q = new URLSearchParams(location.search).get('r');
+  if (q) { try { const parsed = q.split('|').map((s) => { const [n, p, f, u] = s.split('~'); return { n: decodeURIComponent(n).slice(0, 20), p: +p, f: +f, u: (u === 'm' ? 'm' : 'w') as 'w' | 'm' }; }).filter((x) => x.n && x.p >= 0 && x.f >= 0); if (parsed.length) items = parsed.slice(0, 15); } catch { /* 무시 */ } }
+
+  const form = $('form');
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
+  function paintForm() {
+    form.innerHTML = items.map((it, i) => `<div class="yr-row" data-i="${i}">
+      <input class="name" data-k="n" value="${esc(it.n)}" maxlength="20" aria-label="항목 이름" />
+      <button type="button" data-del aria-label="삭제">×</button>
+      <label><small>한 번에(원)</small><input data-k="p" inputmode="numeric" value="${it.p}" /></label>
+      <label><small>횟수</small><input data-k="f" inputmode="numeric" value="${it.f}" /></label>
+      <label><small>기준</small><select data-k="u"><option value="w"${it.u === 'w' ? ' selected' : ''}>일주일에</option><option value="m"${it.u === 'm' ? ' selected' : ''}>한 달에</option></select></label>
+      <span class="sum">1년 ${won(yearOf(it))}원</span></div>`).join('');
+  }
+  form.addEventListener('input', (e) => {
+    const el = e.target as HTMLInputElement; const row = el.closest('.yr-row') as HTMLElement; if (!row) return;
+    const it = items[+row.dataset.i!]; const k = el.dataset.k as keyof Item;
+    if (k === 'n') it.n = el.value; else if (k === 'u') it.u = el.value as 'w' | 'm'; else (it as any)[k] = Math.max(0, +el.value.replace(/[^0-9]/g, '') || 0);
+    (row.querySelector('.sum') as HTMLElement).textContent = `1년 ${won(yearOf(it))}원`;
+  });
+  form.addEventListener('change', (e) => { const el = e.target as HTMLSelectElement; if (el.dataset.k === 'u') form.dispatchEvent(new Event('input')); });
+  form.addEventListener('click', (e) => { const b = (e.target as HTMLElement).closest('[data-del]'); if (!b) return; items.splice(+(b.closest('.yr-row') as HTMLElement).dataset.i!, 1); paintForm(); });
+  $('add').addEventListener('click', () => { if (items.length >= 15) return; items.push({ n: '새 항목', p: 10000, f: 1, u: 'm' }); paintForm(); });
+  paintForm();
+
+  // ── 영수증 그리기 ──
+  const cv = $('cv') as HTMLCanvasElement;
+  function draw() {
+    const list = items.filter((i) => yearOf(i) > 0).sort((a, b) => yearOf(b) - yearOf(a));
+    const total = list.reduce((s, i) => s + yearOf(i), 0);
+    const W = 600, rowH = 58, H = 600 + list.length * rowH;
+    const dpr = 2; cv.width = W * dpr; cv.height = H * dpr; cv.style.aspectRatio = `${W} / ${H}`;
+    const g = cv.getContext('2d')!; g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    // 종이(아래 톱니)
+    g.fillStyle = '#FFFFFF'; g.beginPath(); g.moveTo(0, 0); g.lineTo(W, 0); g.lineTo(W, H - 14);
+    for (let x = W; x > 0; x -= 20) { g.lineTo(x - 10, H); g.lineTo(x - 20, H - 14); }
+    g.closePath(); g.fill();
+    const F = (w: number, s: number) => `${w} ${s}px Pretendard, 'Malgun Gothic', sans-serif`;
+    const dash = (y: number) => { g.strokeStyle = '#CBD5E1'; g.setLineDash([6, 6]); g.lineWidth = 2; g.beginPath(); g.moveTo(36, y); g.lineTo(W - 36, y); g.stroke(); g.setLineDash([]); };
+    g.textBaseline = 'alphabetic';
+    g.fillStyle = '#0F172A'; g.textAlign = 'center';
+    g.font = F(900, 22); g.fillText('CRAMA', W / 2, 64);
+    g.font = F(900, 40); g.fillText('2026 소비 영수증', W / 2, 116);
+    g.font = F(600, 18); g.fillStyle = '#64748B'; g.fillText('2026.01.01 – 2026.12.31  ·  나의 1년', W / 2, 150);
+    dash(184);
+    g.textAlign = 'left'; g.font = F(800, 16); g.fillStyle = '#94A3B8'; g.fillText('항목', 40, 216); g.textAlign = 'right'; g.fillText('1년 합계', W - 40, 216);
+    let y = 256;
+    for (const it of list) {
+      g.textAlign = 'left'; g.fillStyle = '#0F172A'; g.font = F(800, 22); g.fillText(it.n, 40, y);
+      g.font = F(600, 15); g.fillStyle = '#64748B'; g.fillText(`${won(it.p)}원 × ${it.u === 'w' ? '주' : '월'} ${it.f}회`, 40, y + 24);
+      g.textAlign = 'right'; g.fillStyle = '#0F172A'; g.font = F(800, 22); g.fillText(`${won(yearOf(it))}`, W - 40, y + 6);
+      y += rowH;
+    }
+    dash(y - 14);
+    y += 30;
+    g.textAlign = 'left'; g.font = F(900, 24); g.fillStyle = '#0F172A'; g.fillText('합계', 40, y);
+    g.textAlign = 'right'; g.font = F(900, 36); g.fillStyle = '#0EA5E9'; g.fillText(`${won(total)}원`, W - 40, y + 4);
+    y += 46;
+    g.textAlign = 'left'; g.font = F(700, 17); g.fillStyle = '#475569';
+    const hours = total / MIN_WAGE;
+    g.fillText(`= 한 달 평균 ${won(total / 12)}원`, 40, y); y += 30;
+    g.fillText(`= 최저시급으로 ${won(hours)}시간 일한 돈`, 40, y); y += 30;
+    if (list[0]) { g.fillText(`= 가장 많이 쓴 곳: ${list[0].n} (${Math.round((yearOf(list[0]) / total) * 100)}%)`, 40, y); y += 30; }
+    dash(y + 4); y += 44;
+    // 바코드
+    let bx = 120; const seed = Math.round(total) % 9973;
+    for (let i = 0; i < 64 && bx < W - 120; i++) { const w = 1 + ((seed * (i + 7)) % 4); g.fillStyle = '#0F172A'; g.fillRect(bx, y, w, 54); bx += w + 2 + ((seed + i) % 3); }
+    y += 84;
+    g.textAlign = 'center'; g.font = F(700, 16); g.fillStyle = '#64748B'; g.fillText('crama.app/year-receipt 에서 나도 뽑아 보기', W / 2, y);
+    return total;
+  }
+
+  let total = 0;
+  function plan() {
+    const pct = +($('pct') as HTMLInputElement).value / 100;
+    $('pct-t').textContent = `${Math.round(pct * 100)}%`;
+    const yr = total * pct, m = yr / 12;
+    // 매달 m원씩 12개월 적금(연 3%, 단리) — 이자 = m × 12×13/2 × 0.03/12, 세후 84.6%
+    const interest = m * 78 * 0.03 / 12 * 0.846;
+    $('save-y').textContent = `${won(yr)}원`;
+    $('save-m').textContent = `한 달에 ${won(m)}원씩`;
+    $('save-bank').textContent = `이 돈을 2027년 1월부터 매달 적금에 넣으면 12월 말 통장에 약 ${won(yr + interest)}원이 모여요.`;
+  }
+  $('pct').addEventListener('input', plan);
+  $('go').addEventListener('click', () => {
+    total = draw(); plan();
+    $('out').hidden = false; $('out').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    try { (window as any).gtag?.('event', 'year_receipt', { items: items.length }); } catch { /* 무시 */ }
+  });
+  $('save').addEventListener('click', () => {
+    cv.toBlob(async (blob) => {
+      if (!blob) return;
+      const file = new File([blob], 'crama-2026-receipt.png', { type: 'image/png' });
+      const nav = navigator as any;
+      if (nav.canShare?.({ files: [file] })) { try { await nav.share({ files: [file], title: '2026 소비 영수증' }); return; } catch { /* 취소 */ } }
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    }, 'image/png');
+  });
+  $('share').addEventListener('click', async (e) => {
+    const r = items.map((i) => `${encodeURIComponent(i.n)}~${i.p}~${i.f}~${i.u}`).join('|');
+    const url = `${location.origin}/year-receipt/?r=${r}`;
+    const b = e.currentTarget as HTMLElement;
+    try { if ((navigator as any).share) { await navigator.share({ title: '2026 소비 영수증', url }); return; } await navigator.clipboard.writeText(url); b.textContent = '복사했어요!'; } catch { prompt('이 주소를 복사하세요', url); }
+    setTimeout(() => { b.textContent = '링크로 공유'; }, 1600);
+  });
+  if (q) $('go').click();
+</script>
+</BaseLayout>

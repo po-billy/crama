@@ -249,6 +249,7 @@ export const MENU: MenuTab[] = [
         items: [
           { name: '퍼센트 계산기', href: '/calc/percent/', desc: '비율·증감률 네 가지 계산' },
           { name: '할인 계산기', href: '/calc/discount/', desc: '할인가와 실제 할인율' },
+          { name: '2026 소비 영수증', href: '/year-receipt/', desc: '커피·배달·택시, 1년에 얼마 썼을까' },
           { name: '더치페이 계산기', href: '/calc/dutch-pay/', desc: '1인당 얼마씩, 깔끔하게 정산' },
           { name: '학점 계산기', href: '/calc/gpa/', desc: '4.5·4.3 만점 평점 평균' },
           { name: '날짜 계산기', href: '/calc/date-add/', desc: '며칠 후·몇 개월 후 날짜와 요일' },

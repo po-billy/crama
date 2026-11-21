@@ -1,0 +1,59 @@
+---
+// 출산전후휴가 급여 계산기 — 근로기준법 제74조(최초 60일 유급) + 고용보험 출산전후휴가 급여(2026년 상한 월 220만원).
+// 근로자가 받는 돈: 최초 60일(다태아 75일)은 통상임금 100%, 나머지는 고용보험 상한까지.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import '../styles/portal.css';
+
+const faq = [
+  { q: '출산휴가는 며칠인가요?', a: '출산 전후 합쳐 90일(다태아 120일)이고, 출산 뒤에 45일(다태아 60일) 이상이 남아야 합니다.' },
+  { q: '출산휴가 급여는 얼마인가요?', a: '최초 60일(다태아 75일)은 회사가 통상임금 100%를 줘야 하는 유급휴가이고, 나머지 30일(다태아 45일)은 고용보험에서 통상임금만큼 주되 2026년 상한은 월 220만원입니다. 우선지원대상기업(중소기업)은 90일 전체를 고용보험이 상한까지 지급하고, 처음 60일은 통상임금과의 차액을 회사가 채웁니다.' },
+  { q: '배우자 출산휴가도 있나요?', a: '배우자는 출산일부터 120일 안에 20일의 유급 배우자 출산휴가를 쓸 수 있습니다. 우선지원대상기업은 고용보험에서 급여를 지원합니다.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title="출산휴가 급여 계산기 2026 — 90일 동안 받는 돈 (상한 월 220만원)" description="월 통상임금을 넣으면 출산전후휴가 90일(다태아 120일) 동안 받는 급여를 계산합니다. 최초 60일 통상임금 100%, 나머지 고용보험 상한 월 220만원(2026년). 육아휴직 급여 계산까지 이어서." jsonLd={jsonLd}>
+  <div class="pt pt-narrow" style="--c:#ec6f8e">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/pay/">월급·세금</a> › 출산휴가 급여 계산</nav>
+    <header class="pt-hubhero">
+      <img src="/img/portal/g-mom.webp" alt="" width="200" height="200" />
+      <div><h1>출산휴가 급여 계산기</h1><p>월 통상임금을 넣으면 출산휴가 기간에 받는 돈을 계산해요.</p></div>
+    </header>
+    <section class="pt-sec">
+      <div class="tl-card">
+        <div class="tl-row">
+          <label class="tl-field">월 통상임금 (만원)<input id="wage" type="number" inputmode="numeric" value="350" /></label>
+          <label class="tl-field">아이<select id="multi"><option value="0">한 명</option><option value="1">쌍둥이 이상(120일)</option></select></label>
+        </div>
+        <button type="button" class="tl-btn" id="go">급여 계산하기</button>
+      </div>
+      <div class="tl-result" id="res" hidden aria-live="polite">
+        <div class="tl-result__label">출산휴가 동안 받는 돈(세전)</div>
+        <div class="tl-result__big" id="big"></div>
+        <div class="tl-result__sub" id="sub"></div>
+      </div>
+      <p class="pp-note">※ 근로기준법 제74조와 고용보험 출산전후휴가 급여(2026년 상한 월 220만원) 기준 근사 계산이에요. 상한액 고시는 해마다 바뀔 수 있어요. 고용보험 피보험 단위기간 180일 이상이어야 받을 수 있어요.</p>
+    </section>
+    <section class="pt-sec">
+      <div class="pt-chips"><a class="pt-chip" href="/parental-leave-pay/">이어서 육아휴직 급여 계산 →</a><a class="pt-chip" href="/mom/support/">출산·육아 지원금</a><a class="pt-chip" href="/mom/">출산예정일 계산</a></div>
+    </section>
+    <section class="pt-sec pt-prose">
+      <h2>자주 묻는 질문</h2>
+      {faq.map((f) => <><h3>{f.q}</h3><p>{f.a}</p></>)}
+    </section>
+  </div>
+  <script>
+    const won = (n: number) => `${Math.round(n).toLocaleString('ko-KR')}원`;
+    document.getElementById('go')!.addEventListener('click', () => {
+      const w = (+(document.getElementById('wage') as HTMLInputElement).value || 0) * 10_000;
+      const multi = (document.getElementById('multi') as HTMLSelectElement).value === '1';
+      if (!w) return;
+      const paidDays = multi ? 75 : 60, rest = multi ? 45 : 30;
+      const first = (w / 30) * paidDays;
+      const second = (Math.min(w, 2_200_000) / 30) * rest;
+      (document.getElementById('big') as HTMLElement).textContent = won(first + second);
+      (document.getElementById('sub') as HTMLElement).textContent = `처음 ${paidDays}일 통상임금 100% ${won(first)} + 나머지 ${rest}일 ${won(second)}${w > 2_200_000 ? ' (상한 월 220만원 적용)' : ''}`;
+      (document.getElementById('res') as HTMLElement).hidden = false;
+      try { (window as any).gtag?.('event', 'maternity_pay'); } catch { /* 무시 */ }
+    });
+  </script>
+</BaseLayout>

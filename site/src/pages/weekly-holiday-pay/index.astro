@@ -1,0 +1,20 @@
+---
+// 주휴수당 근무시간별 모음
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/portal.css';
+const HOURS = Array.from({ length: 26 }, (_, i) => i + 15);
+const won = (n: number) => `${Math.round(n).toLocaleString('ko-KR')}원`;
+const rows = HOURS.map((h) => { const hol = Math.min(8, (h * 8) / 40); return { h, hol, a: hol * 10_320, b: hol * 10_700 }; });
+---
+<BaseLayout title="주휴수당 계산표 — 주 15~40시간 근무시간별 주휴수당 (2026·2027 최저시급)" description="일주일 근무시간별 주휴시간과 주휴수당을 한 표로 정리했어요. 주 15시간부터 40시간까지, 2026년 10,320원·2027년 10,700원 최저시급 기준.">
+  <div class="pt pt-narrow" style="--c:#10b981">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/wage/">시급 → 월급</a> › 주휴수당 계산표</nav>
+    <h1 style="font-size:1.7rem;font-weight:800;letter-spacing:-0.02em;margin:0 0 0.9rem">주휴수당 계산표</h1>
+    <p style="color:#64748b;margin:0 0 1rem">주 15시간 이상 일하고 그 주 근무일을 모두 출근하면 받아요. 주휴시간 = 주 근무시간 ÷ 40 × 8.</p>
+    <div class="tl-wrap"><table class="tl-table">
+      <thead><tr><th>주 근무</th><th>주휴시간</th><th>2026년(주)</th><th>2027년(주)</th></tr></thead>
+      <tbody>{rows.map((r) => <tr><td><a href={`/weekly-holiday-pay/${r.h}/`}>{r.h}시간</a></td><td>{r.hol}시간</td><td>{won(r.a)}</td><td>{won(r.b)}</td></tr>)}</tbody>
+    </table></div>
+    <p class="pp-note">※ 주 15시간 미만이면 주휴수당이 없어요. 내 시급이 더 높으면 <a href="/tools/hourly-wage-calculator/">시급·주휴수당 계산기</a>로 계산하세요.</p>
+  </div>
+</BaseLayout>

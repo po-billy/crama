@@ -313,3 +313,4 @@
 .an-sido a.taken { border-color:var(--line); background:var(--paper2); }
 .an-sido a.taken span { color:var(--muted); }
 @media (max-width:860px) { .an-sido { grid-template-columns:repeat(3, 1fr); } }
+.an-ailink { display:inline-block; margin-top:12px; font-size:14px; font-weight:800; color:#C8BFFF; text-decoration:underline; text-underline-offset:3px; }

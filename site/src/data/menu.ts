@@ -88,6 +88,7 @@ export const MENU: MenuTab[] = [
         slug: 'fun', name: '운세·테스트', icon: 'star', color: '#8b5cf6',
         desc: '오늘의 운세부터 궁합, 성향 테스트까지',
         items: [
+          { name: '2027 신년운세', href: '/fortune/2027/', desc: '정미년 띠별·출생연도별 운세' },
           { name: '오늘의 운세', href: '/fortune/', desc: '띠별 운세, 매일 업데이트' },
           { name: '타로 보기', href: '/tarot/', desc: '오늘의 카드와 세 장 타로' },
           { name: '이름 궁합', href: '/name-match/', desc: '커플·친구·동료·가족 궁합' },

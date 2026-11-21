@@ -1,0 +1,67 @@
+---
+// 2027 띠별 신년운세 — "2027 말띠 운세" 검색어용. 문장은 data/fortune-2027.ts(재미로 보는 운세).
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import '../../../styles/portal.css';
+import { ZODIAC, zodiacYears } from '../../../lib/people';
+import { Y2027 } from '../../../data/fortune-2027';
+
+export function getStaticPaths() { return ZODIAC.map((z) => ({ params: { z: z.slug }, props: { slug: z.slug } })); }
+const { slug } = Astro.props as { slug: string };
+const z = ZODIAC.find((x) => x.slug === slug)!;
+const f = Y2027.find((x) => x.slug === slug)!;
+const years = zodiacYears(slug, 1948, 2026).reverse();
+const rank = [...Y2027].sort((a, b) => b.score - a.score).findIndex((x) => x.slug === slug) + 1;
+const title = `2027년 ${z.name} 운세 — ${f.keyword} (${years.slice(0, 4).join('·')}년생)`;
+const desc = `2027년 정미년 ${z.name} 신년운세. ${f.summary.split('. ')[0]}. 재물·직장·애정·건강운, 좋은 달과 조심할 달, 행운의 색·숫자, 출생연도별 운세까지.`;
+const CATS = [['재물운', f.money], ['직장·학업운', f.work], ['애정운', f.love], ['건강운', f.health]];
+const faq = [
+  { q: `2027년 ${z.name} 운세는 어떤가요?`, a: f.summary },
+  { q: `2027년 ${z.name}에게 좋은 달은 언제인가요?`, a: `${f.good.map((m) => `${m}월`).join('·')}이 흐름이 좋고, ${f.care.map((m) => `${m}월`).join('·')}은 조금 조심하면 좋아요.` },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((x) => ({ '@type': 'Question', name: x.q, acceptedAnswer: { '@type': 'Answer', text: x.a } })) };
+---
+<BaseLayout title={title} description={desc} jsonLd={jsonLd}>
+  <div class="pt pt-narrow" style="--c:#dc2626">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/fortune/">운세</a> › <a href="/fortune/2027/">2027 신년운세</a> › {z.name}</nav>
+    <header class="pt-hubhero">
+      <span style="font-size:3.4rem;line-height:1" aria-hidden="true">{z.emoji}</span>
+      <div><h1>2027년 {z.name} 운세</h1><p>{years.join(', ')}년생</p></div>
+    </header>
+
+    <div class="tl-result">
+      <div class="tl-result__label">정미년 한 줄 · 양띠 해와의 관계: {f.rel}</div>
+      <div class="tl-result__big" style="font-size:1.6rem">{f.keyword}</div>
+      <div class="tl-result__sub">총운 {f.score}점 · 12띠 중 {rank}위</div>
+    </div>
+
+    <section class="pt-sec pt-prose"><h2>총운</h2><p>{f.summary}</p></section>
+
+    <section class="pt-sec">
+      <div class="tl-wrap"><table class="tl-table"><tbody>
+        {CATS.map(([k, v]) => <tr><td style="white-space:nowrap"><b>{k}</b></td><td>{v}</td></tr>)}
+        <tr><td><b>좋은 달</b></td><td>{f.good.map((m) => `${m}월`).join(' · ')}</td></tr>
+        <tr><td><b>조심할 달</b></td><td>{f.care.map((m) => `${m}월`).join(' · ')}</td></tr>
+        <tr><td><b>행운</b></td><td>색 {f.color} · 숫자 {f.number} · 방향 {f.dir}</td></tr>
+        <tr><td><b>올해의 습관</b></td><td>{f.tip}</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>출생연도별 2027년 운세</h2></div></div>
+      <div class="pt-chips">{years.filter((y) => y >= 1950 && y <= 2010).map((y) => <a class="pt-chip" href={`/fortune/2027/born/${y}/`}>{y}년생</a>)}</div>
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-chips">
+        {ZODIAC.filter((x) => x.slug !== slug).map((x) => <a class="pt-chip" href={`/fortune/2027/${x.slug}/`}>{x.emoji} {x.name}</a>)}
+        <a class="pt-chip" href={`/fortune/${slug}/`}>오늘의 {z.name} 운세</a>
+      </div>
+    </section>
+
+    <section class="pt-sec pt-prose">
+      <h2>자주 묻는 질문</h2>
+      {faq.map((x) => <><h3>{x.q}</h3><p>{x.a}</p></>)}
+      <p class="pp-note">※ 재미로 보는 운세예요. 전통 띠 관계(삼합·육합·충·원진·형)와 삼재를 바탕으로 썼고 과학적 근거는 없어요. 띠는 설날·입춘 기준이라 1~2월생은 앞 해 띠일 수 있어요.</p>
+    </section>
+  </div>
+</BaseLayout>

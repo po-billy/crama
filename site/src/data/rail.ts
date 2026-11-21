@@ -55,6 +55,7 @@ export const FUN = [
 
 // 새로 나왔어요 — 새 페이지를 만들면 맨 위에 추가(위에서 6개만 노출)
 export const NEW_ITEMS = [
+  { name: '2027 신년운세', href: '/fortune/2027/', desc: '정미년 띠별 운세' },
   { name: '손없는 날 달력', href: '/moving-day/', desc: '이사하기 좋은 날 월별 정리' },
   { name: '연차 계산기', href: '/annual-leave/', desc: '입사일로 내 연차 며칠' },
   { name: '숨은 돈 찾기', href: '/hidden-money/', desc: '휴면예금·보험금·환급금 체크리스트' },

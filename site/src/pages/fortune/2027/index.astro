@@ -1,0 +1,41 @@
+---
+// 2027 신년운세 모음 — 12띠 요약과 출생연도 바로가기.
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import '../../../styles/portal.css';
+import { ZODIAC, zodiacYears } from '../../../lib/people';
+import { Y2027 } from '../../../data/fortune-2027';
+
+const list = ZODIAC.map((z) => ({ z, f: Y2027.find((x) => x.slug === z.slug)!, years: zodiacYears(z.slug, 1950, 2015).reverse() }));
+const faq = [
+  { q: '2027년은 무슨 해인가요?', a: '정미년, 붉은 양의 해입니다. 천간 정(丁)이 불을 뜻해 붉은색과 묶이고 지지 미(未)는 양입니다.' },
+  { q: '2027년에 운이 좋은 띠는?', a: '전통 띠 관계로 보면 양띠와 육합인 말띠, 삼합인 토끼띠·돼지띠가 사람 덕을 보는 해로 봅니다. 다만 토끼띠·돼지띠·양띠는 삼재의 마지막 해(날삼재)이기도 합니다.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((x) => ({ '@type': 'Question', name: x.q, acceptedAnswer: { '@type': 'Answer', text: x.a } })) };
+---
+<BaseLayout title="2027년 신년운세 — 정미년 띠별 운세·출생연도별 운세 (무료)" description="2027년 정미년(붉은 양의 해) 띠별 신년운세. 12띠 총운과 재물·직장·애정·건강운, 좋은 달, 행운의 색·숫자, 1950~2010년생 출생연도별 운세까지 무료로." jsonLd={jsonLd}>
+  <div class="pt pt-narrow" style="--c:#dc2626">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/fortune/">운세</a> › 2027 신년운세</nav>
+    <header class="pt-hubhero">
+      <img src="/img/portal/c-fortune.webp" alt="" width="200" height="200" />
+      <div><h1>2027년 신년운세</h1><p>정미년, 붉은 양의 해. 띠를 고르면 한 해 흐름과 좋은 달을 알려 드려요.</p></div>
+    </header>
+
+    <section class="pt-sec">
+      <div class="tl-wrap"><table class="tl-table">
+        <thead><tr><th>띠</th><th>2027년 한 줄</th><th>총운</th></tr></thead>
+        <tbody>{list.map(({ z, f, years }) => <tr><td style="white-space:nowrap"><a href={`/fortune/2027/${z.slug}/`}>{z.emoji} {z.name}</a><br /><small style="color:#94a3b8">{years.slice(0, 3).join('·')}</small></td><td>{f.keyword}</td><td>{f.score}</td></tr>)}</tbody>
+      </table></div>
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>출생연도로 보기</h2></div></div>
+      <div class="pt-chips">{Array.from({ length: 61 }, (_, i) => 2010 - i).map((y) => <a class="pt-chip" href={`/fortune/2027/born/${y}/`}>{y}</a>)}</div>
+    </section>
+
+    <section class="pt-sec pt-prose">
+      <h2>자주 묻는 질문</h2>
+      {faq.map((x) => <><h3>{x.q}</h3><p>{x.a}</p></>)}
+      <p class="pp-note">※ 재미로 보는 운세예요. 과학적 근거는 없어요.</p>
+    </section>
+  </div>
+</BaseLayout>

@@ -1,0 +1,47 @@
+---
+// 복권 당첨금 세금 계산기 — 금액을 넣으면 세금과 실수령액.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/portal.css';
+import { lottoTax, LOTTO_AMOUNTS, wonLabel, slugOf } from '../../lib/lotto-tax';
+const won = (n: number) => `${Math.round(n).toLocaleString('ko-KR')}원`;
+const faq = [
+  { q: '로또 당첨금 세금은 몇 %인가요?', a: '200만원 이하는 비과세, 그 위로는 3억원까지 22%(소득세 20%+지방소득세 2%), 3억원을 넘는 부분은 33%입니다. 구입비 1,000원은 빼고 계산합니다.' },
+  { q: '연금복권도 같은 세율인가요?', a: '연금복권은 매달 나눠 받는 금액마다 세금을 떼며, 매달 받는 돈이 3억원 이하라 22%가 적용됩니다.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title="로또 당첨금 세금 계산기 — 1등 실수령액, 22%·33% 세율 (복권 세금)" description="로또·복권 당첨금을 넣으면 세금과 실수령액을 바로 계산합니다. 200만원 이하 비과세, 3억원까지 22%, 초과분 33%. 1등 10억·20억·30억 실수령표까지." jsonLd={jsonLd}>
+  <div class="pt pt-narrow" style="--c:#f59e0b">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/lotto/">로또</a> › 당첨금 세금</nav>
+    <header class="pt-hubhero">
+      <img src="/img/portal/c-lotto.webp" alt="" width="200" height="200" />
+      <div><h1>로또 당첨금 세금 계산기</h1><p>당첨금을 넣으면 세금 떼고 손에 쥐는 돈을 계산해요.</p></div>
+    </header>
+    <section class="pt-sec">
+      <div class="tl-card">
+        <div class="tl-row"><label class="tl-field">당첨금 (만원)<input id="amt" type="number" inputmode="numeric" value="200000" /></label></div>
+        <button type="button" class="tl-btn" id="go">실수령액 계산</button>
+      </div>
+      <div class="tl-result" id="res" hidden aria-live="polite"><div class="tl-result__label">실수령액</div><div class="tl-result__big" id="big"></div><div class="tl-result__sub" id="sub"></div></div>
+    </section>
+    <section class="pt-sec">
+      <div class="tl-wrap"><table class="tl-table"><thead><tr><th>당첨금</th><th>세금</th><th>실수령액</th></tr></thead>
+        <tbody>{LOTTO_AMOUNTS.map((w) => { const r = lottoTax(w); return <tr><td><a href={`/lotto-tax/${slugOf(w)}/`}>{wonLabel(w)}</a></td><td>{won(r.tax)}</td><td>{won(r.net)}</td></tr>; })}</tbody>
+      </table></div>
+    </section>
+    <section class="pt-sec pt-prose">
+      <h2>자주 묻는 질문</h2>
+      {faq.map((f) => <><h3>{f.q}</h3><p>{f.a}</p></>)}
+    </section>
+  </div>
+  <script>
+    import { lottoTax } from '../../lib/lotto-tax';
+    const won = (n: number) => `${Math.round(n).toLocaleString('ko-KR')}원`;
+    document.getElementById('go')!.addEventListener('click', () => {
+      const w = (+(document.getElementById('amt') as HTMLInputElement).value || 0) * 10_000; const r = lottoTax(w);
+      (document.getElementById('big') as HTMLElement).textContent = won(r.net);
+      (document.getElementById('sub') as HTMLElement).textContent = `세금 ${won(r.tax)} · 실효세율 ${w ? ((r.tax / w) * 100).toFixed(1) : 0}%`;
+      (document.getElementById('res') as HTMLElement).hidden = false;
+    });
+  </script>
+</BaseLayout>

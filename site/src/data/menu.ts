@@ -77,6 +77,7 @@ export const MENU: MenuTab[] = [
           { name: '주사위·동전 던지기', href: '/pick/dice/', desc: '주사위가 없을 때 바로' },
           { name: '랜덤 숫자 뽑기', href: '/pick/number/', desc: '범위 안에서 무작위 번호' },
           { name: '로또 번호 생성기', href: '/lotto/', desc: '버튼 한 번으로 번호 뽑기' },
+          { name: '로또 당첨금 세금', href: '/lotto-tax/', desc: '1등 실수령액, 22%·33%' },
         ],
       },
     ],

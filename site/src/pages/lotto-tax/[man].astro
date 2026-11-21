@@ -1,0 +1,50 @@
+---
+// 당첨금별 세금·실수령 — "로또 20억 실수령", "로또 1등 세금" 검색어용. 계산은 lib/lotto-tax.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/portal.css';
+import { lottoTax, LOTTO_AMOUNTS, wonLabel, slugOf } from '../../lib/lotto-tax';
+
+export function getStaticPaths() { return LOTTO_AMOUNTS.map((w) => ({ params: { man: slugOf(w) }, props: { w } })); }
+const { w } = Astro.props as { w: number };
+const r = lottoTax(w);
+const won = (n: number) => `${Math.round(n).toLocaleString('ko-KR')}원`;
+const label = wonLabel(w);
+const title = `로또 ${label} 당첨 실수령액 — 세금 ${wonLabel(Math.round(r.tax / 10_000) * 10_000)} 빼고 ${wonLabel(Math.round(r.net / 10_000) * 10_000)}`;
+const desc = `복권 당첨금 ${label}의 세금은 ${won(r.tax)}, 실수령액은 ${won(r.net)}입니다. 200만원 이하 비과세, 3억원까지 22%, 3억원 초과분 33% 기준으로 계산했어요. 수령 장소와 기한까지.`;
+const faq = [
+  { q: `로또 ${label} 당첨되면 세금은 얼마인가요?`, a: r.tax ? `구입비 1,000원을 뺀 금액에 3억원까지 22%${r.high ? ', 3억원을 넘는 부분 33%' : ''}를 매겨 ${won(r.tax)}입니다. 손에 쥐는 돈은 ${won(r.net)}입니다.` : '당첨금 200만원 이하는 세금이 없습니다.' },
+  { q: '당첨금은 어디서 받나요?', a: '로또 4·5등은 판매점이나 농협은행, 2·3등은 농협은행 지점, 1등은 농협은행 본점에서 받습니다. 지급 기한은 지급 개시일부터 1년이니 늦지 않게 받으세요.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title={title} description={desc} jsonLd={jsonLd}>
+  <div class="pt pt-narrow" style="--c:#f59e0b">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/lotto-tax/">복권 당첨금 세금</a> › {label}</nav>
+    <h1 style="font-size:1.7rem;font-weight:800;letter-spacing:-0.02em;margin:0 0 0.9rem">로또 {label} 당첨, 실수령액은</h1>
+    <div class="tl-result">
+      <div class="tl-result__label">세금 빼고 손에 쥐는 돈</div>
+      <div class="tl-result__big">{won(r.net)}</div>
+      <div class="tl-result__sub">세금 {won(r.tax)} · 실효세율 {w ? ((r.tax / w) * 100).toFixed(1) : 0}%</div>
+    </div>
+    <section class="pt-sec">
+      <div class="tl-wrap"><table class="tl-table"><tbody>
+        <tr><td>당첨금</td><td>{won(w)}</td></tr>
+        <tr><td>3억원까지 22%</td><td>-{won(r.low)}</td></tr>
+        {r.high > 0 && <tr><td>3억원 초과분 33%</td><td>-{won(r.high)}</td></tr>}
+        <tr><td class="is-on">실수령액</td><td class="is-on">{won(r.net)}</td></tr>
+      </tbody></table></div>
+      <p class="pp-note">※ 소득세법 기준(200만원 이하 비과세, 구입비 1,000원 공제). 세금은 당첨금을 받을 때 원천징수돼요.</p>
+    </section>
+    <section class="pt-sec">
+      <div class="pt-chips">
+        {LOTTO_AMOUNTS.filter((x) => x !== w).map((x) => <a class="pt-chip" href={`/lotto-tax/${slugOf(x)}/`}>{wonLabel(x)}</a>)}
+        <a class="pt-chip" href="/lotto/">로또 번호 생성기</a>
+        <a class="pt-chip" href="/interest/goal/500/">월 이자 500만원 받으려면</a>
+      </div>
+    </section>
+    <section class="pt-sec pt-prose">
+      <h2>자주 묻는 질문</h2>
+      {faq.map((f) => <><h3>{f.q}</h3><p>{f.a}</p></>)}
+    </section>
+  </div>
+</BaseLayout>

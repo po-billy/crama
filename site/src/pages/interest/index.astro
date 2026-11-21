@@ -43,6 +43,10 @@ const net = (man: number) => man * 10000 * ((best?.rate ?? 3) / 100) * (1 - 0.15
       </tbody>
     </table>
 
+    <h2 style="font-size:1.1rem;margin:2rem 0 .6rem">거꾸로: 매달 이자 얼마 받으려면?</h2>
+    <div class="itx-cross" style="border:0;margin:0;padding:0;justify-content:flex-start">
+      {[30, 50, 100, 200, 300, 500].map((m) => <a href={`/interest/goal/${m}/`}>월 {m}만원 이자 →</a>)}
+    </div>
     <div class="itx-cross">
       <a href="/rates/">오늘 최고금리 상품 →</a>
       <a href="/tools/deposit-interest-calculator/">복리·기간 계산기 →</a>

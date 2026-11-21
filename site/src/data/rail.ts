@@ -55,6 +55,7 @@ export const FUN = [
 
 // 새로 나왔어요 — 새 페이지를 만들면 맨 위에 추가(위에서 6개만 노출)
 export const NEW_ITEMS = [
+  { name: '숨은 돈 찾기', href: '/hidden-money/', desc: '휴면예금·보험금·환급금 체크리스트' },
   { name: '경조사비 계산기', href: '/gift-money/', desc: '축의금·조의금, 관계별 얼마' },
   { name: '실수령으로 연봉 찾기', href: '/salary/net/', desc: '월 300만원 받으려면 연봉 얼마' },
   { name: '2026 소비 영수증', href: '/year-receipt/', desc: '1년 지출을 영수증으로 뽑기' },
@@ -86,7 +87,7 @@ export const NEW_ITEMS = [
 ];
 
 // 이 영역을 붙이는 주소(조회·계산기·게임·운세·테스트). 홈, 글, 회원 화면, 목록이 넓은 복지·청년 화면은 제외.
-export const RAIL_RE = /^\/(party|live|year-receipt|gift-money|hub|born|samjae|school|pension-age|age|dday|lunar|holidays|business-days|fortune|tarot|name-match|zodiac-match|lotto|lunch|games|pick|calc|convert|health|health-check|salary|year-end-tax|wage|severance|insurance|freelance-tax|realty-fee|minimum-wage|unemployment|interest|tools|car-tax|gift-tax|inheritance-tax|property-tax|discharge|reserve|mom|median-income|quiz|tax|rate-calendar)(\/|$)/;
+export const RAIL_RE = /^\/(party|live|year-receipt|gift-money|hidden-money|annual-leave|hub|born|samjae|school|pension-age|age|dday|lunar|holidays|business-days|fortune|tarot|name-match|zodiac-match|lotto|lunch|games|pick|calc|convert|health|health-check|salary|year-end-tax|wage|severance|insurance|freelance-tax|realty-fee|minimum-wage|unemployment|interest|tools|car-tax|gift-tax|inheritance-tax|property-tax|discharge|reserve|mom|median-income|quiz|tax|rate-calendar)(\/|$)/;
 
 const clean = (h: string) => h.split('#')[0];
 /** 지금 주소가 속한 분야와, 그 분야의 다른 페이지들 */

@@ -190,6 +190,7 @@ export const MENU: MenuTab[] = [
         slug: 'bank', name: '예금·대출', icon: 'bank', color: '#0ea5e9',
         desc: '금리 비교와 이자 계산',
         items: [
+          { name: '숨은 돈 찾기', href: '/hidden-money/', desc: '휴면예금·숨은 보험금·환급금 한 번에' },
           { name: '예·적금 금리 비교', href: '/rates/', desc: '오늘의 최고금리 한눈에' },
           { name: '대출 금리 비교', href: '/loans/', desc: '은행별 대출 금리' },
           { name: '예금 이자 계산', href: '/interest/', desc: '금액별 세후 이자' },

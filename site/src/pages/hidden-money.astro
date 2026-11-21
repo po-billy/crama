@@ -1,0 +1,117 @@
+---
+// 숨은 돈 찾기 체크리스트 — 공식 조회 서비스로 바로 보내는 안내. 크라마는 조회를 대신하지 않는다(개인정보를 받지 않음).
+// 체크 표시만 이 기기 localStorage(crama:hidden-money)에 남긴다.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import '../styles/portal.css';
+
+const ITEMS = [
+  { id: 'account', name: '잊고 있던 내 계좌', what: '은행·저축은행·증권사에 내 이름으로 남아 있는 계좌와 잔액, 쓰지 않는 계좌 정리·잔액 이전', where: '어카운트인포(금융결제원)', url: 'https://www.payinfo.or.kr/', need: '휴대폰 본인인증' },
+  { id: 'dormant', name: '휴면예금', what: '오래 거래하지 않아 서민금융진흥원으로 넘어간 예금·보험금', where: '휴면예금 찾아줌(서민금융진흥원)', url: 'https://sleepmoney.kinfa.or.kr/', need: '본인인증' },
+  { id: 'insurance', name: '숨은 보험금', what: '받지 않은 중도·만기·휴면 보험금(병원비 실손 미청구분은 따로 보험사에 청구)', where: '내보험찾아줌(생명·손해보험협회)', url: 'https://cont.insure.or.kr/', need: '본인인증' },
+  { id: 'card', name: '카드 포인트', what: '여러 카드사에 흩어진 포인트를 한 번에 조회하고 계좌로 입금', where: '카드포인트 통합조회(여신금융협회)', url: 'https://www.cardpoint.or.kr/', need: '본인인증' },
+  { id: 'tax', name: '국세 환급금', what: '찾아가지 않은 종합소득세·연말정산 등 국세 환급금', where: '홈택스', url: 'https://www.hometax.go.kr/', need: '간편인증·공동인증서' },
+  { id: 'localtax', name: '지방세 환급금', what: '자동차세 연납, 이중 납부 등으로 생긴 지방세 환급금', where: '위택스', url: 'https://www.wetax.go.kr/', need: '간편인증·공동인증서' },
+  { id: 'gov', name: '각종 미환급금·지원금', what: '통신비·공과금 미환급금, 받을 수 있는 정부 지원금(보조금24)', where: '정부24', url: 'https://www.gov.kr/', need: '간편인증' },
+  { id: 'health', name: '건강보험 환급금', what: '본인부담상한제 초과분, 보험료 과오납 환급금', where: '국민건강보험공단', url: 'https://www.nhis.or.kr/', need: '간편인증' },
+  { id: 'pension', name: '퇴직·개인연금', what: '흩어진 퇴직연금·개인연금 계좌와 예상 수령액', where: '통합연금포털(금융감독원)', url: 'https://100lifeplan.fss.or.kr/', need: '본인인증' },
+  { id: 'stock', name: '잠자는 주식·배당금', what: '찾아가지 않은 주식, 미수령 배당금', where: '주식찾기(한국예탁결제원)', url: 'https://www.ksd.or.kr/', need: '본인인증' },
+];
+const faq = [
+  { q: '숨은 돈 조회에 돈이 드나요?', a: '공공기관과 금융협회가 운영하는 조회 서비스는 모두 무료입니다. 조회나 환급을 대신해 준다며 수수료를 받는 곳은 공식 창구가 아니니 주의하세요.' },
+  { q: '크라마가 대신 조회해 주나요?', a: '아니요. 크라마는 개인정보를 받지 않고, 각 기관의 공식 조회 서비스로 바로 연결만 합니다. 체크 표시는 이 기기에만 남습니다.' },
+  { q: '한꺼번에 볼 수 있는 곳은 없나요?', a: '금융감독원 파인(fine.fss.or.kr)에 여러 조회 서비스가 모여 있습니다. 다만 세금·건강보험 환급금은 각 기관에서 따로 확인해야 합니다.' },
+  { q: '찾을 수 있는 기한이 있나요?', a: '돈의 종류마다 소멸시효가 있습니다. 오래 묵혀 둘수록 찾기 어려워질 수 있으니 생각났을 때 한 번에 확인하세요.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@graph': [
+  { '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+  { '@type': 'HowTo', name: '숨은 돈 찾기', step: ITEMS.map((it, i) => ({ '@type': 'HowToStep', position: i + 1, name: it.name, text: `${it.what} — ${it.where}에서 조회` })) },
+] };
+---
+<BaseLayout title="숨은 돈 찾기 총정리 — 휴면예금·숨은 보험금·카드포인트·미환급금 한 번에 (무료 조회)" description="잊고 있던 계좌, 휴면예금, 숨은 보험금, 카드 포인트, 국세·지방세 환급금, 건강보험 환급금, 퇴직연금, 잠자는 주식까지. 공식 무료 조회 서비스 10곳을 체크리스트로 한 번에 확인하세요." jsonLd={jsonLd}>
+  <div class="pt pt-narrow hm" style="--c:#16a34a">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/bank/">예금·대출</a> › 숨은 돈 찾기</nav>
+    <header class="hm-head">
+      <small>새해 첫 할 일</small>
+      <h1>숨은 돈 찾기 체크리스트</h1>
+      <p>공식 무료 조회 서비스 10곳을 차례로 열어 보세요. 하나에 1~2분이면 충분해요. 확인한 곳은 체크해 두면 이 기기에 남아요.</p>
+      <div class="hm-bar"><i id="bar"></i></div>
+      <b id="prog">10곳 중 0곳 확인</b>
+    </header>
+
+    <ol class="hm-list" id="list">
+      {ITEMS.map((it, i) => (
+        <li data-id={it.id}>
+          <label class="hm-chk"><input type="checkbox" aria-label={`${it.name} 확인함`} /><span>{i + 1}</span></label>
+          <div>
+            <b>{it.name}</b>
+            <p>{it.what}</p>
+            <small>{it.where} · {it.need}</small>
+          </div>
+          <a href={it.url} target="_blank" rel="noopener nofollow" data-go={it.id}>조회하기 ↗</a>
+        </li>
+      ))}
+    </ol>
+
+    <p class="hm-warn">⚠️ 조회·환급을 대신해 준다며 수수료를 받거나 계좌 비밀번호를 묻는 앱·문자는 공식 창구가 아니에요. 위 링크는 모두 공공기관·금융협회 공식 사이트예요.</p>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>찾은 돈, 이렇게 쓰면</h2></div></div>
+      <div class="pt-chips">
+        <a class="pt-chip" href="/interest/">예적금 이자 계산</a>
+        <a class="pt-chip" href="/year-receipt/">2026 소비 영수증</a>
+        <a class="pt-chip" href="/rates/">예금 금리 비교</a>
+        <a class="pt-chip" href="/benefits/">내가 받을 수 있는 혜택</a>
+      </div>
+    </section>
+
+    <section class="pt-sec pt-prose">
+      <h2>자주 묻는 질문</h2>
+      {faq.map((f) => <><h3>{f.q}</h3><p>{f.a}</p></>)}
+    </section>
+  </div>
+
+  <style>
+    .hm-head { padding:20px 22px; border-radius:18px; background:#F0FDF4; border:1px solid #BBF7D0; margin:8px 0 14px; }
+    .hm-head small { font-size:.76rem; font-weight:900; letter-spacing:.06em; color:#16A34A; }
+    .hm-head h1 { margin:4px 0 6px; font-size:clamp(1.5rem, 4.4vw, 2.1rem); font-weight:900; letter-spacing:-.04em; }
+    .hm-head p { margin:0 0 12px; color:#3F6212; line-height:1.65; font-size:.94rem; }
+    .hm-bar { height:10px; border-radius:99px; background:#DCFCE7; overflow:hidden; }
+    .hm-bar i { display:block; height:100%; width:0; background:#16A34A; border-radius:99px; transition:width .3s; }
+    .hm-head > b { display:block; margin-top:6px; font-size:.86rem; color:#166534; }
+    .hm-list { list-style:none; margin:0; padding:0; display:grid; gap:8px; }
+    .hm-list li { display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:center; padding:12px 14px; border:1px solid var(--line, #e5e7eb); border-radius:14px; background:#fff; transition:opacity .2s; }
+    .hm-list li.done { opacity:.55; background:#F8FAFC; }
+    .hm-list li.done b { text-decoration:line-through; }
+    .hm-list b { font-size:1rem; font-weight:900; }
+    .hm-list p { margin:2px 0; font-size:.86rem; color:#475569; line-height:1.5; }
+    .hm-list small { font-size:.76rem; color:#94A3B8; font-weight:700; }
+    .hm-list a { font-size:.84rem; font-weight:800; padding:9px 12px; border-radius:10px; background:#16A34A; color:#fff; text-decoration:none; white-space:nowrap; }
+    .hm-chk { position:relative; width:32px; height:32px; }
+    .hm-chk input { position:absolute; inset:0; opacity:0; cursor:pointer; margin:0; }
+    .hm-chk span { display:flex; width:32px; height:32px; border-radius:50%; align-items:center; justify-content:center; font-weight:900; font-size:.85rem; background:#F1F5F9; color:#475569; pointer-events:none; }
+    .hm-list li.done .hm-chk span { background:#16A34A; color:#fff; font-size:0; }
+    .hm-list li.done .hm-chk span::after { content:'✓'; font-size:1rem; }
+    .hm-warn { margin:14px 0 0; font-size:.84rem; color:#7C2D12; background:#FFF7ED; border-radius:12px; padding:12px 14px; line-height:1.6; }
+    @media (max-width:560px) { .hm-list li { grid-template-columns:auto 1fr; } .hm-list a { grid-column:2; justify-self:start; } }
+  </style>
+
+  <script>
+    const KEY = 'crama:hidden-money';
+    let done: string[] = [];
+    try { done = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch { /* 무시 */ }
+    const items = [...document.querySelectorAll<HTMLLIElement>('#list li')];
+    const paint = () => {
+      items.forEach((li) => { const on = done.includes(li.dataset.id!); li.classList.toggle('done', on); (li.querySelector('input') as HTMLInputElement).checked = on; });
+      const n = done.length;
+      (document.getElementById('bar') as HTMLElement).style.width = `${(n / items.length) * 100}%`;
+      (document.getElementById('prog') as HTMLElement).textContent = n === items.length ? '10곳 모두 확인했어요! 🎉' : `${items.length}곳 중 ${n}곳 확인`;
+    };
+    const save = () => { try { localStorage.setItem(KEY, JSON.stringify(done)); } catch { /* 무시 */ } };
+    items.forEach((li) => {
+      const id = li.dataset.id!;
+      li.querySelector('input')!.addEventListener('change', (e) => { const on = (e.target as HTMLInputElement).checked; done = on ? [...new Set([...done, id])] : done.filter((x) => x !== id); save(); paint(); });
+      li.querySelector('a')!.addEventListener('click', () => { if (!done.includes(id)) { done.push(id); save(); setTimeout(paint, 300); } try { (window as any).gtag?.('event', 'hidden_money_go', { id }); } catch { /* 무시 */ } });
+    });
+    paint();
+  </script>
+</BaseLayout>

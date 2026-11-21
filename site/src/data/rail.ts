@@ -55,6 +55,7 @@ export const FUN = [
 
 // 새로 나왔어요 — 새 페이지를 만들면 맨 위에 추가(위에서 6개만 노출)
 export const NEW_ITEMS = [
+  { name: '연차 계산기', href: '/annual-leave/', desc: '입사일로 내 연차 며칠' },
   { name: '숨은 돈 찾기', href: '/hidden-money/', desc: '휴면예금·보험금·환급금 체크리스트' },
   { name: '경조사비 계산기', href: '/gift-money/', desc: '축의금·조의금, 관계별 얼마' },
   { name: '실수령으로 연봉 찾기', href: '/salary/net/', desc: '월 300만원 받으려면 연봉 얼마' },

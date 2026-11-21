@@ -1,0 +1,64 @@
+---
+// 근속연수별 연차 — "근속 5년 연차 며칠", "10년차 연차" 같은 검색어용. 계산은 lib/leave.ts(근로기준법 제60조).
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/portal.css';
+import { leaveForYears, leavePay, LEAVE_YEARS } from '../../lib/leave';
+
+export function getStaticPaths() { return LEAVE_YEARS.map((n) => ({ params: { n: String(n) }, props: { n } })); }
+const { n } = Astro.props as { n: number };
+const days = leaveForYears(n);
+const nextUp = LEAVE_YEARS.find((y) => y > n && leaveForYears(y) > days);
+const cum = 11 + LEAVE_YEARS.filter((y) => y <= n).reduce((s, y) => s + leaveForYears(y), 0);
+const won = (x: number) => x.toLocaleString('ko-KR');
+const pays = [10_320, 15_000, 20_000, 30_000].map((h) => ({ h, day: leavePay(1, h), all: leavePay(days, h) }));
+const title = `근속 ${n}년 연차 며칠? — ${days}일 (${n + 1}년차 연차, 근로기준법 기준)`;
+const desc = `입사 후 ${n}년을 채우면 연차휴가 ${days}일이 생겨 ${n + 1}년째에 씁니다. ${nextUp ? `${nextUp}년을 채우면 ${leaveForYears(nextUp)}일로 늘어나요.` : '25일이 법정 최대예요.'} 계산 방법, 입사부터 지금까지 생긴 연차 누계, 연차수당 예시까지 정리했어요.`;
+const faq = [
+  { q: `근속 ${n}년이면 연차가 며칠인가요?`, a: `1년간 출근율 80% 이상이면 ${days}일입니다. 15일에 최초 1년을 넘는 근속 2년마다 1일을 더하며(최대 25일), 근속 ${n}년은 15 + ${Math.floor((n - 1) / 2)} = ${days}일입니다.` },
+  { q: `${days}일을 다 못 쓰면 어떻게 되나요?`, a: '연차가 생긴 날부터 1년 안에 쓰지 못하면 사라지는 대신 미사용 연차수당을 받습니다. 다만 회사가 법에 정한 연차 사용 촉진 절차를 거쳤다면 수당을 주지 않을 수 있습니다.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title={title} description={desc} jsonLd={jsonLd}>
+  <div class="pt pt-narrow" style="--c:#0ea5e9">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/annual-leave/">연차 계산기</a> › 근속 {n}년</nav>
+    <h1 style="font-size:1.7rem;font-weight:800;letter-spacing:-0.02em;margin:0 0 0.9rem">근속 {n}년, 연차는 {days}일</h1>
+
+    <div class="tl-result">
+      <div class="tl-result__label">입사 {n}년이 되는 날 생기는 연차</div>
+      <div class="tl-result__big">{days}일</div>
+      <div class="tl-result__sub">{n + 1}년째(입사 {n}주년부터 1년 동안) 쓰는 연차 · {nextUp ? `근속 ${nextUp}년부터 ${leaveForYears(nextUp)}일` : '법정 최대 25일'}</div>
+    </div>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>어떻게 계산하나</h2></div></div>
+      <ul style="line-height:1.8;color:#334155;padding-left:1.1rem;margin:0">
+        <li>1년을 채우면 15일, 그 뒤로 최초 1년을 넘는 근속 2년마다 1일씩 더해요(근로기준법 제60조).</li>
+        <li>근속 {n}년: 15일 + {Math.floor((n - 1) / 2)}일 = <b>{days}일</b>{days === 25 ? ' (최대 25일)' : ''}</li>
+        <li>입사 첫해 월 1일씩 받은 11일까지 합치면, 근속 {n}년까지 생긴 연차는 모두 <b>{cum}일</b>이에요.</li>
+        <li>그해 출근율이 80%에 못 미치면 15일 대신 개근한 달마다 1일만 생겨요.</li>
+      </ul>
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>{days}일을 못 쓰면, 연차수당은</h2></div></div>
+      <div class="tl-wrap"><table class="tl-table">
+        <thead><tr><th>통상 시급</th><th>1일 수당(8시간)</th><th>{days}일 전부</th></tr></thead>
+        <tbody>{pays.map((p) => <tr><td>{won(p.h)}원{p.h === 10_320 ? ' (2026 최저)' : ''}</td><td>{won(p.day)}원</td><td>{won(p.all)}원</td></tr>)}</tbody>
+      </table></div>
+      <p class="pp-note">※ 1일 통상임금 = 통상 시급 × 8시간. 회사가 연차 사용 촉진 절차를 거쳤다면 미사용 수당이 없을 수 있어요. 상시 5명 미만 사업장은 연차 규정이 적용되지 않아요.</p>
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-chips">
+        {LEAVE_YEARS.filter((y) => Math.abs(y - n) <= 3 && y !== n).map((y) => <a class="pt-chip" href={`/annual-leave/${y}/`}>근속 {y}년 {leaveForYears(y)}일</a>)}
+        <a class="pt-chip" href="/annual-leave/">입사일로 계산하기</a>
+      </div>
+    </section>
+
+    <section class="pt-sec pt-prose">
+      <h2>자주 묻는 질문</h2>
+      {faq.map((f) => <><h3>{f.q}</h3><p>{f.a}</p></>)}
+    </section>
+  </div>
+</BaseLayout>

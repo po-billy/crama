@@ -1,0 +1,96 @@
+---
+// 연차 계산기 — 입사일로 지금까지 생긴 연차, 올해 연차, 앞으로 생길 연차와 연차수당을 계산한다(근로기준법 제60조).
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/portal.css';
+import { leaveForYears, LEAVE_YEARS } from '../../lib/leave';
+
+const faq = [
+  { q: '입사 1년 미만이면 연차가 며칠인가요?', a: '1개월 동안 개근할 때마다 1일씩 생겨 1년 동안 최대 11일입니다. 입사 1개월이 되는 날 1일, 2개월이 되는 날 1일 하는 식입니다.' },
+  { q: '1년을 채우면 연차가 며칠 생기나요?', a: '1년간 80% 이상 출근했다면 15일이 생깁니다. 그 뒤로는 3년 차부터 2년마다 1일씩 늘어 최대 25일까지 늘어납니다.' },
+  { q: '딱 1년 일하고 그만두면 15일을 받나요?', a: '대법원 판례(2021년)와 고용노동부 해석에 따르면 15일은 1년을 채운 다음 날에도 근로관계가 이어질 때 생깁니다. 1년 계약직이 계약 기간만 채우고 끝나면 1년 미만분 최대 11일만 생깁니다.' },
+  { q: '연차수당은 어떻게 계산하나요?', a: '쓰지 못한 연차 일수 × 1일 통상임금(통상 시급 × 8시간)입니다. 회사가 법에 정한 연차 사용 촉진 절차를 거쳤다면 미사용 수당을 주지 않을 수 있습니다.' },
+  { q: '5인 미만 회사도 연차가 있나요?', a: '상시 근로자 5명 미만 사업장에는 연차휴가 규정이 적용되지 않습니다. 회사 규정으로 따로 주는 경우는 있습니다.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title="연차 계산기 — 입사일로 내 연차 며칠인지, 연차수당까지 (2026)" description="입사일만 넣으면 지금까지 생긴 연차, 올해 쓸 수 있는 연차, 앞으로 생길 연차 날짜를 계산합니다. 1년 미만 월 1일, 15일, 2년마다 1일 가산(최대 25일), 미사용 연차수당까지. 근로기준법 제60조 기준." jsonLd={jsonLd}>
+  <div class="pt pt-narrow" style="--c:#0ea5e9">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/pay/">월급·세금</a> › 연차 계산기</nav>
+    <header class="pt-hubhero">
+      <img src="/img/portal/g-date.webp" alt="" width="200" height="200" />
+      <div><h1>연차 계산기</h1><p>입사일을 넣으면 지금까지 생긴 연차와 앞으로 생길 연차, 연차수당까지 계산해요.</p></div>
+    </header>
+
+    <section class="pt-sec">
+      <div class="tl-card">
+        <div class="tl-row">
+          <label class="tl-field">입사일<input id="join" type="date" /></label>
+          <label class="tl-field">기준일<input id="until" type="date" /></label>
+        </div>
+        <div class="tl-row">
+          <label class="tl-field">통상 시급 (연차수당 계산용, 선택)<input id="hourly" type="number" inputmode="numeric" placeholder="예: 15000" /></label>
+          <label class="tl-field">남은 연차 (일, 선택)<input id="left" type="number" inputmode="numeric" placeholder="예: 5" /></label>
+        </div>
+        <button type="button" class="tl-btn" id="go">연차 계산하기</button>
+      </div>
+      <div class="tl-result" id="res" hidden aria-live="polite">
+        <div class="tl-result__label" id="r-label"></div>
+        <div class="tl-result__big" id="r-big"></div>
+        <div class="tl-result__sub" id="r-sub"></div>
+      </div>
+      <div class="tl-wrap" id="tl" hidden style="margin-top:.8rem"><table class="tl-table"><thead><tr><th>날짜</th><th>생기는 연차</th><th></th></tr></thead><tbody id="tl-body"></tbody></table></div>
+      <p class="pp-note">※ 근로기준법 제60조, 입사일 기준·매월 개근·출근율 80% 이상 가정. 회사가 회계연도(1월 1일) 기준으로 주는 경우 날짜와 일수가 다를 수 있지만, 퇴사할 때 입사일 기준보다 적으면 그만큼 정산해야 해요. 상시 5명 미만 사업장과 주 15시간 미만 근로자는 연차 규정이 적용되지 않아요.</p>
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>근속연수별 연차 일수</h2></div></div>
+      <div class="tl-wrap"><table class="tl-table">
+        <thead><tr><th>근속</th><th>생기는 연차</th></tr></thead>
+        <tbody>
+          <tr><td>1년 미만</td><td>매월 1일, 최대 11일</td></tr>
+          {LEAVE_YEARS.filter((y) => y === 1 || y % 2 === 1 || y === 2).map((y) => <tr><td><a href={`/annual-leave/${y}/`}>{y}년</a></td><td>{leaveForYears(y)}일</td></tr>)}
+        </tbody>
+      </table></div>
+      <div class="pt-chips" style="margin-top:10px">{LEAVE_YEARS.map((y) => <a class="pt-chip" href={`/annual-leave/${y}/`}>근속 {y}년</a>)}</div>
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-chips">
+        <a class="pt-chip" href="/blog/2027-holidays-long-weekends-annual-leave/">2027 연차 쓰기 좋은 날</a>
+        <a class="pt-chip" href="/severance/">퇴직금 계산</a>
+        <a class="pt-chip" href="/unemployment/">실업급여 계산</a>
+      </div>
+    </section>
+
+    <section class="pt-sec pt-prose">
+      <h2>자주 묻는 질문</h2>
+      {faq.map((f) => <><h3>{f.q}</h3><p>{f.a}</p></>)}
+    </section>
+  </div>
+
+  <style>#tl[hidden] { display:none; }</style>
+  <script>
+    import { leaveTimeline, leavePay } from '../../lib/leave';
+    const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
+    const today = new Date(); const iso = (d: Date) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    $('until').value = iso(today);
+    const j = new Date(today); j.setFullYear(j.getFullYear() - 2); $('join').value = iso(j);
+    const won = (n: number) => n.toLocaleString('ko-KR');
+    $('go').addEventListener('click', () => {
+      if (!$('join').value) return;
+      const join = new Date($('join').value + 'T00:00:00'), until = new Date(($('until').value || iso(today)) + 'T00:00:00');
+      if (until < join) { alert('기준일이 입사일보다 빨라요.'); return; }
+      const t = leaveTimeline(join, until, 5);
+      const yrs = t.years, mon = t.months - yrs * 12;
+      (document.getElementById('r-label') as HTMLElement).textContent = `근속 ${yrs}년 ${mon}개월 · ${yrs >= 1 ? '지금 연도에 생긴 연차' : '지금까지 생긴 연차(1년 미만)'}`;
+      (document.getElementById('r-big') as HTMLElement).textContent = `${t.current}일`;
+      const h = +$('hourly').value || 0, left = +$('left').value || 0;
+      const pay = h && left ? ` · 남은 ${left}일 연차수당 약 ${won(leavePay(left, h))}원` : '';
+      (document.getElementById('r-sub') as HTMLElement).textContent = `입사 후 지금까지 생긴 연차 누계 ${t.total}일${pay}`;
+      const rows = [...t.past.slice(-4).map((e) => ({ ...e, on: false })), ...t.next.slice(0, 6).map((e) => ({ ...e, on: true }))];
+      (document.getElementById('tl-body') as HTMLElement).innerHTML = rows.map((e) => `<tr><td>${e.date}</td><td>${e.days}일</td><td>${e.label}${e.on ? ' · 예정' : ''}</td></tr>`).join('');
+      (document.getElementById('res') as HTMLElement).hidden = false; (document.getElementById('tl') as HTMLElement).hidden = false;
+      try { (window as any).gtag?.('event', 'annual_leave', { years: yrs }); } catch { /* 무시 */ }
+    });
+  </script>
+</BaseLayout>

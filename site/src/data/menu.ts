@@ -142,6 +142,7 @@ export const MENU: MenuTab[] = [
           { name: '실수령으로 연봉 찾기', href: '/salary/net/', desc: '월 300만원 받으려면 연봉 얼마' },
           { name: '시급 → 월급 환산', href: '/wage/', desc: '주휴수당 포함 월급 계산' },
           { name: '4대보험 계산기', href: '/insurance/', desc: '내 부담과 회사 부담 한 번에' },
+          { name: '연차 계산기', href: '/annual-leave/', desc: '입사일로 내 연차 며칠, 연차수당' },
           { name: '퇴직금', href: '/severance/', desc: '월급·근속연수별 퇴직금' },
           { name: '실업급여', href: '/unemployment/', desc: '받을 수 있는 금액과 기간' },
           { name: '연금저축 세액공제', href: '/tools/pension-tax-calculator/', desc: '얼마 넣으면 얼마 돌려받나' },

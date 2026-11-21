@@ -5,36 +5,43 @@ import Matter from 'matter-js';
 const { Engine, Bodies, Body, Composite, Events } = Matter;
 
 export const WORLD_W = 720;
-export const WORLD_H = 5200;
+export const WORLD_H = 5640;
 const R = 11; // 구슬 반지름
 const WALL_L = 24, WALL_R = WORLD_W - 24;
 
 export type Racer = {
   id: number; name: string; color: string; body: Matter.Body;
-  done: boolean; place: number; time: number; still: number; lastY: number; flash: number; col: number; gone: boolean; trail: { x: number; y: number }[];
+  done: boolean; place: number; time: number; still: number; lastY: number; flash: number; col: number; gone: boolean; revs: number; warped: boolean; trail: { x: number; y: number }[];
 };
 export type Section = { y: number; no: string; name: string; color: string };
 export type MarbleEvent =
   | { type: 'leader'; r: Racer } | { type: 'finish'; r: Racer; photo: boolean }
   | { type: 'bumper'; r: Racer } | { type: 'boost'; r: Racer } | { type: 'mud'; r: Racer } | { type: 'section'; s: Section }
-  | { type: 'peg' } | { type: 'spin' };
+  | { type: 'peg' } | { type: 'spin' }
+  | { type: 'flip'; r: Racer } | { type: 'trap' } | { type: 'reverse'; r: Racer } | { type: 'warp'; r: Racer };
 
-type Deco = { kind: 'peg' | 'bumper' | 'seg' | 'spinner' | 'boost' | 'mud' | 'finish'; body?: Matter.Body; x: number; y: number; w?: number; h?: number; r?: number; hit: number; color: string; pivot?: { x: number; y: number }; speed?: number };
+type Deco = {
+  kind: 'peg' | 'bumper' | 'seg' | 'spinner' | 'boost' | 'mud' | 'finish' | 'flipper' | 'trap' | 'reverse' | 'portal';
+  body?: Matter.Body; x: number; y: number; w?: number; h?: number; r?: number; hit: number; color: string;
+  pivot?: { x: number; y: number }; speed?: number;
+  // 움직이는 구조물: 좌우 왕복(amp·freq·phase), 플리퍼(rest·up·period), 함정 문(open)
+  amp?: number; freq?: number; phase?: number; rest?: number; up?: number; period?: number; open?: boolean; ang?: number;
+};
 
 export const SECTIONS: Section[] = [
   { y: 0, no: '01', name: 'START', color: '#B9AFFF' },
   { y: 250, no: '02', name: 'FUNNEL', color: '#7DD3FC' },
   { y: 520, no: '03', name: 'PEG FIELD', color: '#FDE68A' },
-  { y: 1340, no: '04', name: 'ZIGZAG', color: '#86EFAC' },
+  { y: 1340, no: '04', name: 'FLIPPERS', color: '#86EFAC' },
   { y: 2320, no: '05', name: 'BUMPERS', color: '#FDA4AF' },
-  { y: 3040, no: '06', name: 'SPINNERS', color: '#C4B5FD' },
+  { y: 3040, no: '06', name: 'WINDMILLS', color: '#C4B5FD' },
   { y: 3700, no: '07', name: 'RUSH', color: '#FCD34D' },
-  { y: 4360, no: '08', name: 'FINAL', color: '#FFFFFF' },
+  { y: 4420, no: '08', name: 'FINAL', color: '#FFFFFF' },
 ];
-const FINISH_Y = 4960;
+export const FINISH_Y = 5360;
 
 export class MarbleRace {
-  engine = Engine.create({ gravity: { x: 0, y: 1, scale: 0.0009 }, positionIterations: 8, velocityIterations: 6 });
+  engine = Engine.create({ gravity: { x: 0, y: 1, scale: 0.00075 }, positionIterations: 8, velocityIterations: 6 });
   racers: Racer[] = [];
   decos: Deco[] = [];
   finished: Racer[] = [];
@@ -56,6 +63,15 @@ export class MarbleRace {
   onEvent: (e: MarbleEvent) => void = () => {};
   private acc = 0;
   private lastPeg = 0;
+  clock = 0; // 구조물 움직임용 시계(출발 전에도 돈다)
+  // ── 카메라 연출(감독) ──
+  /** 'auto' = 자동 연출, 'leader' = 선두 고정, 'last' = 꼴찌 고정, 'all' = 전체 보기, 숫자 = 그 구슬 고정 */
+  camPref: 'auto' | 'leader' | 'last' | 'all' | number = 'auto';
+  shot: { type: 'leader' | 'pack' | 'last' | 'event' | 'finish' | 'pick' | 'all'; target: Racer | null; until: number; label: string; slow: boolean } = { type: 'leader', target: null, until: 0, label: '선두', slow: false };
+  private focus = { x: WORLD_W / 2, y: 0 };
+  private shotZoom = 1;
+  cutAt = 0;
+  private rankIdx = new Map<Racer, number>();
 
   constructor(names: string[], colors: string[]) {
     this.buildMap(names.length);
@@ -69,7 +85,7 @@ export class MarbleRace {
       const body = Bodies.circle(x, y, R, { restitution: 0.42, friction: 0.002, frictionAir: 0.0025, density: 0.002, label: 'marble' });
       (body as any).racer = i;
       Composite.add(this.engine.world, body);
-      this.racers.push({ id: i, name, color: colors[i % colors.length], body, done: false, place: 0, time: 0, still: 0, lastY: y, flash: 0, col: c + row, gone: false, trail: [] });
+      this.racers.push({ id: i, name, color: colors[i % colors.length], body, done: false, place: 0, time: 0, still: 0, lastY: y, flash: 0, col: c + row, gone: false, revs: 0, warped: false, trail: [] });
     });
     this.follow = this.racers[0];
     this.cam.y = 0;
@@ -104,50 +120,73 @@ export class MarbleRace {
     // 03 못 판
     const c3 = SECTIONS[2].color;
     for (let r = 0; r < 15; r++) for (let x = 60 + (r % 2) * 32; x < WALL_R - 20; x += 64) this.peg(x, 560 + r * 50, c3);
-    // 04 지그재그 경사로(완만해서 천천히 굴러간다)
+    // 04 플리퍼: 경사로 끝의 판이 주기적으로 튀어 올라 구슬을 위로 되돌려 보낸다. 일부 경사로는 바닥이 열리는 지름길.
     const c4 = SECTIONS[3].color;
-    for (let i = 0; i < 5; i++) {
-      const y0 = 1400 + i * 185;
-      if (i % 2 === 0) this.seg(WALL_L, y0, 570, y0 + 140, c4, 14, { friction: 0.02 });
-      else this.seg(WALL_R, y0, 150, y0 + 140, c4, 14, { friction: 0.02 });
+    for (let i = 0; i < 4; i++) {
+      const y0 = 1400 + i * 230, right = i % 2 === 0;
+      const x1 = right ? WALL_L : WALL_R, x2 = right ? 500 : 220, y2 = y0 + 120;
+      if (i === 1 || i === 2) {
+        // 가운데 1/3이 함정 문
+        const p = (t: number) => [x1 + (x2 - x1) * t, y0 + (y2 - y0) * t];
+        const [ax, ay] = p(0.38), [bx, by] = p(0.66);
+        this.seg(x1, y0, ax, ay, c4, 14, { friction: 0.02 });
+        this.seg(bx, by, x2, y2, c4, 14, { friction: 0.02 });
+        const len = Math.hypot(bx - ax, by - ay);
+        const tb = this.stat(Bodies.rectangle((ax + bx) / 2, (ay + by) / 2, len, 14, { isStatic: true, angle: Math.atan2(by - ay, bx - ax), friction: 0.02, label: 'trap' }));
+        this.decos.push({ kind: 'trap', body: tb, x: (ax + bx) / 2, y: (ay + by) / 2, w: len, h: 14, hit: 0, color: '#FF4D6D', period: 2.6 + i * 0.4, phase: i * 0.9, open: false });
+      } else this.seg(x1, y0, x2, y2, c4, 14, { friction: 0.02 });
+      const rest = right ? 0.38 : Math.PI - 0.38, up = right ? -0.62 : Math.PI + 0.62;
+      const fl = this.stat(Bodies.rectangle(x2, y2, 118, 14, { isStatic: true, friction: 0.05, restitution: 0.3, label: 'flipper' }));
+      this.decos.push({ kind: 'flipper', body: fl, x: x2, y: y2, w: 118, h: 14, hit: 0, color: '#4ADE80', pivot: { x: x2, y: y2 }, rest, up, ang: rest, period: 1.5 + i * 0.25, phase: i * 0.55 });
     }
-    // 05 범퍼
+    // 05 범퍼: 좌우로 움직이는 범퍼
     const c5 = SECTIONS[4].color;
-    [[2400, [180, 360, 540]], [2540, [270, 450]], [2680, [150, 360, 570]], [2820, [270, 450]], [2950, [200, 520]]].forEach(([y, xs]) => (xs as number[]).forEach((x) => {
+    [[2400, [180, 360, 540]], [2540, [270, 450]], [2680, [150, 360, 570]], [2820, [270, 450]], [2950, [200, 520]]].forEach(([y, xs], row) => (xs as number[]).forEach((x, k) => {
       const b = this.stat(Bodies.circle(x, y as number, 28, { isStatic: true, restitution: 1.1, label: 'bumper' }));
-      this.decos.push({ kind: 'bumper', body: b, x, y: y as number, r: 28, hit: 0, color: c5 });
+      this.decos.push({ kind: 'bumper', body: b, x, y: y as number, r: 28, hit: 0, color: c5, amp: 46 + (row % 3) * 10, freq: 0.45 + ((row + k) % 3) * 0.18, phase: row * 1.3 + k * 2.1 });
     }));
-    for (let r = 0; r < 5; r++) for (let x = 90 + (r % 2) * 90; x < WALL_R - 40; x += 180) this.peg(x, 2470 + r * 140, c5, 6);
-    // 06 회전 막대(가운데를 축으로 도는 막대)
+    // 06 풍차: 십자 날개와 막대가 돈다
     const c6 = SECTIONS[5].color;
-    [[210, 3140, 2.4], [510, 3290, -2.8], [210, 3440, 3.0], [510, 3590, -2.4]].forEach(([x, y, s]) => {
-      const b = Bodies.rectangle(x, y, 230, 12, { isStatic: true, friction: 0.02, restitution: 0.6, label: 'spinner' });
-      Composite.add(w, b);
-      this.decos.push({ kind: 'spinner', body: b, x, y, w: 230, h: 12, hit: 0, color: c6, pivot: { x, y }, speed: s });
-      this.peg(x, y, c6, 9);
-    });
+    [[210, 3150, 2.2, true], [510, 3300, -2.6, false], [210, 3450, 2.8, false], [510, 3600, -2.0, true]].forEach(([x, y, sp, cross]) => this.windmill(x as number, y as number, sp as number, cross as boolean, 220, c6));
     for (let r = 0; r < 4; r++) {
       const y = 3215 + r * 150;
-      if (r % 2 === 0) this.seg(WALL_R, y - 30, WALL_R - 150, y + 10, c6, 10); else this.seg(WALL_L, y - 30, WALL_L + 150, y + 10, c6, 10);
+      if (r % 2 === 0) this.seg(WALL_R, y - 30, WALL_R - 130, y + 10, c6, 10); else this.seg(WALL_L, y - 30, WALL_L + 130, y + 10, c6, 10);
     }
-    // 07 러시: 가속 패드 → 감속 늪 → 좁은 병목
+    // 07 러시: 가속 패드 → 움직이는 역주행 패드 → 진흙 → 병목
     const c7 = SECTIONS[6].color;
-    [[200, 3760], [520, 3760], [360, 3830]].forEach(([x, y]) => {
+    [[200, 3770], [520, 3770], [360, 3840]].forEach(([x, y]) => {
       const b = this.stat(Bodies.rectangle(x, y, 120, 26, { isStatic: true, isSensor: true, label: 'boost' }));
       this.decos.push({ kind: 'boost', body: b, x, y, w: 120, h: 26, hit: 0, color: c7 });
     });
-    const mud = this.stat(Bodies.rectangle(WORLD_W / 2, 3950, WALL_R - WALL_L, 110, { isStatic: true, isSensor: true, label: 'mud' }));
-    this.decos.push({ kind: 'mud', body: mud, x: WORLD_W / 2, y: 3950, w: WALL_R - WALL_L, h: 110, hit: 0, color: '#A16207' });
+    const rv = this.stat(Bodies.rectangle(WORLD_W / 2, 3960, 110, 24, { isStatic: true, isSensor: true, label: 'reverse' }));
+    this.decos.push({ kind: 'reverse', body: rv, x: WORLD_W / 2, y: 3960, w: 110, h: 24, hit: 0, color: '#FF4D6D', amp: 250, freq: 0.32, phase: 0 });
+    const mud = this.stat(Bodies.rectangle(WORLD_W / 2, 4060, WALL_R - WALL_L, 100, { isStatic: true, isSensor: true, label: 'mud' }));
+    this.decos.push({ kind: 'mud', body: mud, x: WORLD_W / 2, y: 4060, w: WALL_R - WALL_L, h: 100, hit: 0, color: '#A16207' });
     // 병목: 인원이 많으면 입구를 넓혀 막히지 않게
-    const half = n > 120 ? 95 : n > 50 ? 70 : 42, bl = WORLD_W / 2 - half, br = WORLD_W / 2 + half;
-    this.seg(WALL_L, 4060, bl, 4220, c7); this.seg(WALL_R, 4060, br, 4220, c7);
-    this.seg(bl, 4220, bl, 4300, c7, 10); this.seg(br, 4220, br, 4300, c7, 10);
-    // 08 마지막 못 판 + 결승선 + 받침
+    const half = n > 120 ? 95 : n > 50 ? 70 : 46, bl = WORLD_W / 2 - half, br = WORLD_W / 2 + half;
+    this.seg(WALL_L, 4150, bl, 4300, c7); this.seg(WALL_R, 4150, br, 4300, c7);
+    this.seg(bl, 4300, bl, 4370, c7, 10); this.seg(br, 4300, br, 4370, c7, 10);
+    // 08 마지막: 못 판 → 움직이는 워프(러시 구간으로 되돌림) → 결승 앞 풍차 두 개 → 결승선
     const c8 = SECTIONS[7].color;
-    for (let r = 0; r < 9; r++) for (let x = 84 + (r % 2) * 40; x < WALL_R - 30; x += 80) this.peg(x, 4400 + r * 58, c8, 7);
+    for (let r = 0; r < 6; r++) for (let x = 84 + (r % 2) * 40; x < WALL_R - 30; x += 80) this.peg(x, 4470 + r * 58, c8, 7);
+    const pt = this.stat(Bodies.circle(WORLD_W / 2, 4880, 26, { isStatic: true, isSensor: true, label: 'portal' }));
+    this.decos.push({ kind: 'portal', body: pt, x: WORLD_W / 2, y: 4880, r: 26, hit: 0, color: '#A78BFA', amp: 240, freq: 0.27, phase: 1.2 });
+    this.windmill(210, 5130, 1.9, true, 230, '#FFC83D');
+    this.windmill(510, 5130, -1.9, true, 230, '#FFC83D');
+    this.peg(WORLD_W / 2, 5050, c8, 10);
     const fin = this.stat(Bodies.rectangle(WORLD_W / 2, FINISH_Y, WALL_R - WALL_L, 10, { isStatic: true, isSensor: true, label: 'finish' }));
     this.decos.push({ kind: 'finish', body: fin, x: WORLD_W / 2, y: FINISH_Y, w: WALL_R - WALL_L, h: 10, hit: 0, color: '#fff' });
-    this.seg(WALL_L, 5060, WORLD_W / 2 - 4, 5150, '#444', 14); this.seg(WALL_R, 5060, WORLD_W / 2 + 4, 5150, '#444', 14);
+    this.seg(WALL_L, 5470, WORLD_W / 2 - 4, 5580, '#444', 14); this.seg(WALL_R, 5470, WORLD_W / 2 + 4, 5580, '#444', 14);
+  }
+
+  /** 축을 중심으로 도는 막대(cross면 십자 풍차) */
+  private windmill(x: number, y: number, speed: number, cross: boolean, len: number, color: string) {
+    (cross ? [0, Math.PI / 2] : [0]).forEach((a0) => {
+      const b = Bodies.rectangle(x, y, len, 12, { isStatic: true, angle: a0, friction: 0.02, restitution: 0.6, label: 'spinner' });
+      Composite.add(this.engine.world, b);
+      this.decos.push({ kind: 'spinner', body: b, x, y, w: len, h: 12, hit: 0, color, pivot: { x, y }, speed });
+    });
+    this.peg(x, y, color, 9);
   }
 
   private collide(pairs: Matter.Pair[], start: boolean) {
@@ -163,7 +202,7 @@ export class MarbleRace {
         case 'bumper': {
           const dx = m.position.x - o.position.x, dy = m.position.y - o.position.y, len = Math.hypot(dx, dy) || 1;
           Body.setVelocity(m, { x: (dx / len) * 9, y: (dy / len) * 9 });
-          r.flash = 1; this.burst(m.position.x, m.position.y, '#FDA4AF', 14, 4);
+          r.flash = 1; this.burst(m.position.x, m.position.y, '#FDA4AF', 14, 4); this.cue(r, '범퍼', false, 0.35);
           if (r === this.leader) this.onEvent({ type: 'bumper', r });
           break;
         }
@@ -171,6 +210,32 @@ export class MarbleRace {
         case 'boost': Body.setVelocity(m, { x: m.velocity.x * 1.1, y: Math.max(m.velocity.y, 0) + 8 }); r.flash = 1; if (r === this.leader || Math.random() < 0.2) this.onEvent({ type: 'boost', r }); break;
         case 'mud': m.frictionAir = 0.07; if (r === this.leader) this.onEvent({ type: 'mud', r }); break;
         case 'finish': this.finishRacer(r); break;
+        case 'flipper': {
+          // 판이 올라가는 중이면 세게 튕긴다
+          const fd = d!;
+          if (fd.ang !== undefined && Math.abs(fd.ang - fd.rest!) > 0.15 && (fd as any).rising) { r.flash = 1; this.burst(m.position.x, m.position.y, '#4ADE80', 10, 4); this.cue(r, '플리퍼', false); this.onEvent({ type: 'flip', r }); }
+          break;
+        }
+        case 'reverse':
+          if (r.revs < 2 && !r.done) {
+            r.revs++; r.flash = 1;
+            Body.setVelocity(m, { x: m.velocity.x * 0.4, y: -20 });
+            this.burst(m.position.x, m.position.y, '#FF4D6D', 22, 6);
+            this.cue(r, '역주행', true);
+            this.onEvent({ type: 'reverse', r });
+          }
+          break;
+        case 'portal':
+          if (!r.warped && !r.done) {
+            r.warped = true; r.flash = 1;
+            this.burst(m.position.x, m.position.y, '#A78BFA', 26, 6);
+            Body.setPosition(m, { x: 120 + Math.random() * 480, y: 3720 }); Body.setVelocity(m, { x: 0, y: 0 });
+            r.trail = [];
+            this.burst(m.position.x, m.position.y, '#A78BFA', 26, 6);
+            this.cue(r, '워프', true);
+            this.onEvent({ type: 'warp', r });
+          }
+          break;
       }
     }
   }
@@ -200,11 +265,8 @@ export class MarbleRace {
     const h = 1000 / 60;
     while (this.acc >= h) {
       this.acc -= h;
-      // 회전 막대: 축에 고정한 채 일정 속도로 돌린다
-      for (const d of this.decos) if (d.kind === 'spinner' && d.body && d.pivot) {
-        const da = (d.speed! * h) / 1000;
-        Body.setAngle(d.body, d.body.angle + da); Body.setAngularVelocity(d.body, da);
-      }
+      this.clock += h / 1000;
+      this.moveDecos(h);
       Engine.update(this.engine, h);
       if (this.running) this.t += h / 1000;
     }
@@ -232,11 +294,122 @@ export class MarbleRace {
     const aliveLead = rank.find((r) => !r.done) || null;
     const lead = rank[0];
     if (this.running && lead !== this.leader) { if (this.leader && !lead.done) this.onEvent({ type: 'leader', r: lead }); this.leader = lead; }
-    this.follow = aliveLead || rank[rank.length - 1];
-    const fy = this.follow.body.position.y;
+    rank.forEach((r, i) => this.rankIdx.set(r, i));
+    this.direct(rank, aliveLead);
+    const fy = (aliveLead || rank[rank.length - 1]).body.position.y;
     const s = SECTIONS.reduce((k, sec, i) => (fy >= sec.y ? i : k), 0);
     if (s > this.section && this.running) { this.section = s; this.onEvent({ type: 'section', s: SECTIONS[s] }); }
   }
+
+  /** 움직이는 구조물 한 걸음: 회전 막대·왕복(범퍼·역주행 패드·워프)·플리퍼·함정 문 */
+  private moveDecos(h: number) {
+    const T = this.clock;
+    for (const d of this.decos) {
+      const b = d.body; if (!b) continue;
+      if (d.kind === 'spinner') {
+        const da = (d.speed! * h) / 1000;
+        Body.setAngle(b, b.angle + da); Body.setAngularVelocity(b, da);
+      } else if (d.amp && (d.kind === 'bumper' || d.kind === 'reverse' || d.kind === 'portal')) {
+        const nx = d.x + Math.sin(T * d.freq! * 6.283 + d.phase!) * d.amp;
+        const vx = nx - b.position.x;
+        Body.setPosition(b, { x: nx, y: d.y }); Body.setVelocity(b, { x: vx, y: 0 });
+      } else if (d.kind === 'flipper') {
+        const u = (T + d.phase!) % d.period!;
+        const k = u < 0.12 ? u / 0.12 : u < 0.3 ? 1 : u < 0.75 ? 1 - (u - 0.3) / 0.45 : 0;
+        const a = d.rest! + (d.up! - d.rest!) * k;
+        const prev = d.ang!; d.ang = a; (d as any).rising = u < 0.12;
+        const half = d.w! / 2, P = d.pivot!;
+        const c = { x: P.x + Math.cos(a) * half, y: P.y + Math.sin(a) * half };
+        const vx = c.x - b.position.x, vy = c.y - b.position.y;
+        Body.setPosition(b, c); Body.setVelocity(b, { x: vx, y: vy });
+        Body.setAngle(b, a); Body.setAngularVelocity(b, a - prev);
+        if (u < 0.12) d.hit = 1;
+      } else if (d.kind === 'trap') {
+        const u = (T + d.phase!) % d.period!;
+        const open = u < 0.75;
+        if (open !== d.open) {
+          d.open = open; b.isSensor = open;
+          if (open && this.running && this.follow && Math.abs(this.follow.body.position.y - d.y) < 160) this.onEvent({ type: 'trap' });
+        }
+      }
+    }
+  }
+
+  /** 사건이 난 구슬로 화면을 잠깐 돌린다(상위권이거나 꼴찌 모드의 하위권만) */
+  private cue(r: Racer, label: string, slow: boolean, chance = 1) {
+    if (!this.running || this.camPref !== 'auto' || r.done) return;
+    const i = this.rankIdx.get(r) ?? 99, alive = this.racers.length - this.finished.length;
+    const important = i - this.finished.length < 5 || (this.markLast && i >= this.racers.length - 3);
+    if (!important || Math.random() > chance) return;
+    if (this.shot.type === 'finish' || (this.shot.type === 'event' && this.clock < this.shot.until - 0.8)) return;
+    if (alive <= 1) return;
+    this.setShot('event', r, slow ? 2.6 : 1.8, `${label} · ${r.name}`, slow);
+  }
+  private setShot(type: MarbleRace['shot']['type'], target: Racer | null, dur: number, label: string, slow = false) {
+    if (type !== this.shot.type || target !== this.shot.target) this.cutAt = this.clock;
+    this.shot = { type, target, until: this.clock + dur, label, slow };
+  }
+
+  /** 감독: 어떤 장면을 비출지 고른다 */
+  private direct(rank: Racer[], aliveLead: Racer | null) {
+    const alive = rank.filter((r) => !r.done && !r.gone);
+    const lastAlive = alive[alive.length - 1] || rank[rank.length - 1];
+    const pref = this.camPref;
+    const T = this.clock;
+    if (!this.running) { this.follow = aliveLead || rank[0]; this.focus = { ...this.follow.body.position }; this.shotZoom = 1; return; }
+    if (typeof pref === 'number') {
+      const r = this.racers[pref];
+      this.setShotKeep('pick', r, `고정 · ${r.name}`);
+    } else if (pref === 'leader') this.setShotKeep('leader', aliveLead, '선두');
+    else if (pref === 'last') this.setShotKeep('last', lastAlive, '꼴찌');
+    else if (pref === 'all') this.setShotKeep('all', null, '전체');
+    else {
+      // 자동 연출
+      const lead = aliveLead;
+      const nearFin = lead && lead.body.position.y > FINISH_Y - 380;
+      const lastFin = this.markLast && alive.length <= 3 && alive.length > 0 && alive.every((r) => r.body.position.y > FINISH_Y - 500);
+      if (lastFin) this.setShotKeep('finish', lastAlive, '꼴찌 결정전');
+      else if (nearFin && this.finished.length === 0) this.setShotKeep('finish', lead, '결승 직전');
+      else if (this.shot.type === 'event' && T < this.shot.until && this.shot.target && !this.shot.target.done) { /* 사건 장면 유지 */ }
+      else if (T >= this.shot.until || this.shot.type === 'finish' || this.shot.type === 'event' || (this.shot.target && this.shot.target.done)) {
+        const pack = alive.slice(1, 7);
+        const roll = Math.random();
+        const wLast = this.markLast ? 0.35 : 0.18;
+        if (pack.length >= 3 && roll < 0.38) this.setShot('pack', pack[0], 4 + Math.random() * 2, `추격전 · ${this.rankIdx.get(pack[0])! + 1}위 그룹`);
+        else if (alive.length > 3 && roll < 0.38 + wLast) this.setShot('last', lastAlive, 3 + Math.random() * 1.5, '꼴찌는 지금');
+        else this.setShot('leader', lead, 5 + Math.random() * 2.5, '선두');
+      }
+    }
+    // 장면에 맞는 초점·확대
+    const sh = this.shot;
+    if (sh.type === 'pack') {
+      const grp = alive.slice(1, 7);
+      const med = grp[Math.floor(grp.length / 2)]?.body.position.y ?? 0;
+      const near = grp.filter((r) => Math.abs(r.body.position.y - med) < 520);
+      const ys = near.map((r) => r.body.position.y), xs = near.map((r) => r.body.position.x);
+      const y0 = Math.min(...ys), y1 = Math.max(...ys);
+      this.focus = { x: (Math.min(...xs) + Math.max(...xs)) / 2, y: (y0 + y1) / 2 + 60 };
+      this.shotZoom = Math.max(0.7, Math.min(1.15, 520 / (y1 - y0 + 260)));
+      this.follow = near[0] || grp[0];
+    } else if (sh.type === 'all') {
+      const ys = alive.map((r) => r.body.position.y);
+      const y0 = Math.min(...ys), y1 = Math.max(...ys);
+      this.focus = { x: WORLD_W / 2, y: (y0 + y1) / 2 + 80 };
+      this.shotZoom = Math.max(0.35, Math.min(1, 700 / (y1 - y0 + 300)));
+      this.follow = aliveLead || rank[0];
+    } else {
+      const t = (sh.target && !sh.target.gone ? sh.target : null) || aliveLead || lastAlive;
+      this.follow = t;
+      this.focus = { x: t.body.position.x, y: t.body.position.y };
+      this.shotZoom = sh.type === 'event' ? 1.35 : sh.type === 'finish' ? 1.15 : sh.type === 'last' ? 1.1 : 1;
+    }
+  }
+  private setShotKeep(type: MarbleRace['shot']['type'], target: Racer | null, label: string) {
+    if (this.shot.type !== type || this.shot.target !== target) this.setShot(type, target, 999, label);
+    else this.shot.label = label;
+  }
+  /** 컷이 바뀐 직후인가(화면을 빠르게 옮긴다) */
+  get justCut() { return this.clock - this.cutAt < 0.45; }
 
   get allDone() { return this.racers.every((r) => r.done); }
 
@@ -278,14 +451,17 @@ export class MarbleRace {
     const viewW = W - padRight;
     const now = performance.now() / 1000;
     // 출발 전에는 코스 폭 전체를 보여 주고, 출발하면 좁은 화면에서 확대해 선두를 따라간다
-    const target = Math.min(1.2, viewW / (this.running && viewW < 560 ? 470 : WORLD_W));
-    this.zoom = this.zoom ? this.zoom + (target - this.zoom) * 0.05 : target;
+    const base = Math.min(1.2, viewW / (this.running && viewW < 560 ? 470 : WORLD_W));
+    const target = base * (this.running ? this.shotZoom : 1);
+    const fast = this.justCut;
+    this.zoom = this.zoom ? this.zoom + (target - this.zoom) * (fast ? 0.14 : 0.05) : target;
     const scale = this.zoom;
     const vw = viewW / scale, vh = H / scale;
-    const f = this.follow ? this.follow.body.position : { x: WORLD_W / 2, y: 0 };
-    const tx = Math.max(0, Math.min(WORLD_W - vw, f.x - vw / 2));
+    const f = this.running ? this.focus : this.follow ? this.follow.body.position : { x: WORLD_W / 2, y: 0 };
+    const tx = vw >= WORLD_W ? 0 : Math.max(0, Math.min(WORLD_W - vw, f.x - vw / 2));
     const ty = Math.max(-20, Math.min(WORLD_H - vh + 20, f.y - vh * 0.42));
-    this.cam.x += (tx - this.cam.x) * 0.12; this.cam.y += (ty - this.cam.y) * 0.1;
+    const k = fast ? 0.3 : 0.11;
+    this.cam.x += (tx - this.cam.x) * k; this.cam.y += (ty - this.cam.y) * k;
     const offX = vw > WORLD_W ? (viewW - WORLD_W * scale) / 2 : 0;
     const sx = (x: number) => (x - this.cam.x) * scale + offX, sy = (y: number) => (y - this.cam.y) * scale;
     const L = sx(WALL_L), Rr = sx(WALL_R), CW = Rr - L;
@@ -327,7 +503,7 @@ export class MarbleRace {
     // 장식(구조물)
     for (const d of this.decos) {
       const y = sy(d.y); if (y < -220 || y > H + 220) continue;
-      const x = sx(d.x);
+      const x = sx(d.body && d.amp ? d.body.position.x : d.x);
       if (d.kind === 'peg') {
         const r = d.r! * scale;
         if (d.hit > 0) { g.fillStyle = hexA(d.color, d.hit * 0.45); g.beginPath(); g.arc(x, y, r * (1.6 + d.hit), 0, 7); g.fill(); }
@@ -343,7 +519,46 @@ export class MarbleRace {
         g.strokeStyle = 'rgba(255,255,255,.85)'; g.lineWidth = 2.5 * scale; g.beginPath(); g.arc(x, y, r * 0.72, 0, 7); g.stroke();
         g.fillStyle = '#1B1638'; g.beginPath(); g.arc(x, y, r * 0.46, 0, 7); g.fill();
         g.fillStyle = d.hit > 0 ? '#fff' : d.color; g.font = `900 ${Math.round(r * 0.5)}px Pretendard, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('×2', x, y + 1);
-      } else if (d.kind === 'seg' || d.kind === 'spinner') {
+      } else if (d.kind === 'trap') {
+        const b = d.body!, ww = d.w! * scale, hh = Math.max(4, d.h! * scale);
+        g.save(); g.translate(sx(b.position.x), sy(b.position.y)); g.rotate(b.angle);
+        if (d.open) {
+          g.strokeStyle = 'rgba(255,77,109,.8)'; g.setLineDash([5, 4]); g.lineWidth = 1.5; rrect(g, -ww / 2, -hh / 2, ww, hh, 3); g.stroke(); g.setLineDash([]);
+          g.fillStyle = 'rgba(255,77,109,.12)'; g.fillRect(-ww / 2, -hh / 2, ww, hh);
+        } else {
+          // 열리기 직전에는 깜빡인다
+          const u = (this.clock + d.phase!) % d.period!, warn = u > d.period! - 0.6 && Math.floor(this.clock * 10) % 2 === 0;
+          g.fillStyle = 'rgba(0,0,0,.4)'; rrect(g, -ww / 2 + 3, -hh / 2 + 5, ww, hh, 3); g.fill();
+          g.fillStyle = warn ? '#FF4D6D' : '#3A1F33'; rrect(g, -ww / 2, -hh / 2, ww, hh, 3); g.fill();
+          g.save(); rrect(g, -ww / 2, -hh / 2, ww, hh, 3); g.clip(); g.fillStyle = 'rgba(255,200,61,.85)';
+          for (let k = -ww / 2 - hh; k < ww / 2; k += hh * 1.4) { g.beginPath(); g.moveTo(k, hh / 2); g.lineTo(k + hh * 0.7, hh / 2); g.lineTo(k + hh * 1.4, -hh / 2); g.lineTo(k + hh * 0.7, -hh / 2); g.fill(); }
+          g.restore();
+        }
+        g.restore();
+      } else if (d.kind === 'reverse') {
+        const ww = d.w! * scale, hh = d.h! * scale;
+        g.save(); g.shadowColor = '#FF4D6D'; g.shadowBlur = 14 + d.hit * 24;
+        g.fillStyle = '#3B0A16'; rrect(g, x - ww / 2, y - hh / 2, ww, hh, 6); g.fill(); g.restore();
+        g.strokeStyle = '#FF4D6D'; g.lineWidth = 1.5; rrect(g, x - ww / 2, y - hh / 2, ww, hh, 6); g.stroke();
+        g.save(); rrect(g, x - ww / 2, y - hh / 2, ww, hh, 6); g.clip();
+        const cs = hh * 0.9, off = ((now * 2.6) % 1) * cs;
+        g.strokeStyle = '#FF8FA3'; g.lineWidth = 2.5 * scale; g.lineJoin = 'round';
+        for (let cx = x - ww / 2 + cs * 0.6; cx < x + ww / 2; cx += cs * 1.1) for (let k = -1; k < 2; k++) {
+          const cy = y + hh / 2 - k * cs - off;
+          g.beginPath(); g.moveTo(cx - cs * 0.3, cy + cs * 0.15); g.lineTo(cx, cy - cs * 0.15); g.lineTo(cx + cs * 0.3, cy + cs * 0.15); g.stroke();
+        }
+        g.restore();
+        g.fillStyle = '#FF8FA3'; g.font = `900 ${Math.round(11 * scale)}px Pretendard, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'bottom'; g.fillText('역주행', x, y - hh / 2 - 3);
+      } else if (d.kind === 'portal') {
+        const r = d.r! * scale;
+        g.save(); g.shadowColor = '#A78BFA'; g.shadowBlur = 20 + d.hit * 30;
+        const gr = g.createRadialGradient(x, y, 0, x, y, r);
+        gr.addColorStop(0, '#0B0920'); gr.addColorStop(0.6, '#2E1A63'); gr.addColorStop(1, '#A78BFA');
+        g.fillStyle = gr; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); g.restore();
+        g.strokeStyle = '#E9D5FF'; g.lineWidth = 2 * scale;
+        for (let k = 0; k < 3; k++) { const a0 = now * 3 + k * 2.09; g.beginPath(); g.arc(x, y, r * (0.45 + k * 0.18), a0, a0 + 2.2); g.stroke(); }
+        g.fillStyle = '#E9D5FF'; g.font = `900 ${Math.round(11 * scale)}px Pretendard, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'bottom'; g.fillText('WARP', x, y - r - 4);
+      } else if (d.kind === 'seg' || d.kind === 'spinner' || d.kind === 'flipper') {
         const b = d.body!, ww = d.w! * scale, hh = Math.max(4, d.h! * scale);
         g.save(); g.translate(sx(b.position.x), sy(b.position.y)); g.rotate(b.angle);
         // 그림자
@@ -357,6 +572,12 @@ export class MarbleRace {
           g.fillStyle = 'rgba(20,17,43,.35)'; for (let k = -2; k <= 2; k++) g.fillRect(k * ww * 0.18 - 1.5, -hh / 2, 3, hh);
         }
         g.restore();
+        if (d.kind === 'flipper') {
+          const px = sx(d.pivot!.x), py = sy(d.pivot!.y), pr = 9 * scale;
+          if (d.hit > 0) { g.fillStyle = hexA('#4ADE80', d.hit * 0.18); g.beginPath(); g.arc(sx(b.position.x), sy(b.position.y), ww * 0.38, 0, 7); g.fill(); }
+          g.fillStyle = '#1B1638'; g.beginPath(); g.arc(px, py, pr, 0, 7); g.fill();
+          g.strokeStyle = '#4ADE80'; g.lineWidth = 2.5 * scale; g.beginPath(); g.arc(px, py, pr, 0, 7); g.stroke();
+        }
         if (d.kind === 'spinner') {
           const px = sx(d.pivot!.x), py = sy(d.pivot!.y), pr = 11 * scale;
           g.fillStyle = '#1B1638'; g.beginPath(); g.arc(px, py, pr, 0, 7); g.fill();

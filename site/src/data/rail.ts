@@ -55,6 +55,7 @@ export const FUN = [
 
 // 새로 나왔어요 — 새 페이지를 만들면 맨 위에 추가(위에서 6개만 노출)
 export const NEW_ITEMS = [
+  { name: '건강검진 결과 해석', href: '/health-check/result/', desc: '결과지 수치, 정상인지 한 번에' },
   { name: '채팅 참여 추첨', href: '/live/raffle/', desc: '!참여 친 시청자만 골라 추첨' },
   { name: '방송 타이머·목표 게이지', href: '/live/', desc: 'OBS에 넣는 무료 방송 도구' },
   { name: '구슬 레이스 추첨', href: '/party/marble/', desc: '방송·회식용, 300개까지 실시간 순위' },

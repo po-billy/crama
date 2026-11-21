@@ -1,0 +1,86 @@
+---
+// 검사 항목별 안내 — "감마지티피 정상수치"처럼 항목 이름을 묻는 검색을 받는다.
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import AnswerSlot from '../../../../components/AnswerSlot.astro';
+import LabGauge from '../../../../components/LabGauge.astro';
+import '../../../../styles/portal.css';
+import '../../../../styles/lab.css';
+import { LAB, fmt, josa, type Sex } from '../../../../lib/lab';
+
+export function getStaticPaths() { return LAB.map((it) => ({ params: { item: it.slug }, props: { slug: it.slug } })); }
+const { slug } = Astro.props as { slug: string };
+const it = LAB.find((x) => x.slug === slug)!;
+const sexes: Sex[] = it.sexBased ? ['m', 'f'] : ['m'];
+const sexName = (s: Sex) => (s === 'm' ? '남성' : '여성');
+const act = it.higherIsBetter ? '낮으면' : '높으면';
+const title = `${it.short} 정상수치 기준표 — ${act} 원인과 관리법 (건강검진 판정기준)`;
+const normal = sexes.map((s) => `${it.sexBased ? sexName(s) + ' ' : ''}${it.table(s)[0].range}`).join(', ');
+const desc = `${it.name} 정상수치는 ${normal}${it.unit}입니다. 국가건강검진 판정기준(정상A·정상B·질환의심), 무엇을 보는 검사인지, ${act} 흔한 이유와 생활 관리법, 수치별 판정을 정리했어요.`;
+const others = LAB.filter((x) => x.slug !== it.slug);
+const faq = [
+  { q: `${it.short} 정상수치는 얼마인가요?`, a: `국가건강검진 판정기준으로 ${sexes.map((s) => `${it.sexBased ? sexName(s) + ' ' : ''}${it.table(s).map((b) => `${b.label} ${b.range}`).join(', ')}`).join(' / ')}입니다(단위 ${it.unit}).` },
+  { q: `${josa(it.short, '이', '가')} ${it.higherIsBetter ? '낮게' : '높게'} 나오는 이유는?`, a: it.high.join(', ') + ' 등이 흔한 이유입니다.' },
+  { q: '경계(정상B)는 괜찮은 건가요?', a: '정상B는 질환은 아니지만 정상 범위를 벗어나기 시작한 경계 단계라는 뜻입니다. 생활 습관을 점검하고 다음 검진에서 다시 확인하는 것을 권합니다.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title={title} description={desc} jsonLd={jsonLd}>
+<div class="pt pt-narrow lb" style="--c:#DC2626">
+  <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/health-check/">건강검진</a> › <a href="/health-check/result/">결과 수치 해석</a> › {it.short}</nav>
+  <header class="lb-hero">
+    <small>건강검진 결과 · {it.group}</small>
+    <h1>{it.short} 정상수치와 판정기준</h1>
+    <p>{it.what}</p>
+  </header>
+
+  <section class="pt-sec">
+    <h2>판정기준표 ({it.unit})</h2>
+    {sexes.map((s) => (
+      <>
+        {it.sexBased && <h3>{sexName(s)}</h3>}
+        <table class="lb-table">
+          <thead><tr><th>판정</th><th>수치</th></tr></thead>
+          <tbody>{it.table(s).map((b) => <tr><td><span class={`lb-dot ${b.level}`}></span>{b.label}</td><td>{b.range}</td></tr>)}</tbody>
+        </table>
+        <LabGauge item={it} sex={s} />
+      </>
+    ))}
+    <p class="lb-warn">출처: 보건복지부 「건강검진 실시기준」 [별표 4의 별첨] 검사항목별 판정기준. 결과지에는 정상A·정상B(경계)·질환의심으로 표시돼요.</p>
+  </section>
+
+  {it.values.length > 0 && (
+    <section class="pt-sec">
+      <h2>수치별로 보기</h2>
+      <div class="lb-vals">{it.values.map((x) => <a class={it.judge(x, sexes[0])} href={`/health-check/result/${it.slug}/${fmt(it, x)}/`}>{fmt(it, x)}</a>)}</div>
+    </section>
+  )}
+
+  <AnswerSlot zone="health" />
+
+  <section class="pt-sec">
+    <h2>{josa(it.short, '이', '가')} {it.higherIsBetter ? '낮게' : '높게'} 나오는 흔한 이유</h2>
+    <ul class="lb-list">{it.high.map((h) => <li>{h}</li>)}</ul>
+    <h2>생활에서 할 수 있는 것</h2>
+    <ul class="lb-list">{it.tips.map((t) => <li>{t}</li>)}</ul>
+    <h2>판정별로 할 일</h2>
+    <table class="lb-table"><tbody>
+      <tr><td><span class="lb-dot A"></span>정상</td><td>{it.next.A}</td></tr>
+      {it.slug !== 'egfr' && it.slug !== 'creatinine' && <tr><td><span class="lb-dot B"></span>경계</td><td>{it.next.B}</td></tr>}
+      <tr><td><span class="lb-dot D"></span>질환의심</td><td>{it.next.D}</td></tr>
+    </tbody></table>
+  </section>
+
+  <a class="lb-cta" href="/health-check/result/"><span>결과지의 다른 수치도 한 번에 넣어 보기</span><em>결과 수치 해석 →</em></a>
+
+  <section class="pt-sec">
+    <h2>다른 검사 항목</h2>
+    <div class="lb-vals">{others.map((o) => <a href={`/health-check/result/${o.slug}/`}>{o.short}</a>)}</div>
+  </section>
+
+  <section class="pt-sec pt-prose">
+    <h2>자주 묻는 질문</h2>
+    {faq.map((f) => <><h3>{f.q}</h3><p>{f.a}</p></>)}
+  </section>
+  <p class="lb-warn">국가건강검진 판정기준으로 수치를 설명하는 정보이며 의학적 진단이 아닙니다. 결과가 걱정되면 의사와 상담하세요.</p>
+</div>
+</BaseLayout>

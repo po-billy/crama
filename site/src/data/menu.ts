@@ -111,6 +111,7 @@ export const MENU: MenuTab[] = [
           { name: '건강검진 대상 조회', href: '/health-check/', desc: '출생연도로 2026·2027년 대상 확인' },
           { name: '나이별 건강검진 항목', href: '/health-check/age/', desc: '20~80세, 내 나이에 받는 검사' },
           { name: '암검진 대상 조회', href: '/health-check/cancer/', desc: '올해 받을 수 있는 국가 암검진 6종' },
+          { name: '건강검진 결과 해석', href: '/health-check/result/', desc: '혈압·혈당·콜레스테롤·간수치 정상인지' },
           { name: 'BMI 계산기', href: '/health/bmi/', desc: '키·몸무게로 비만도 확인' },
           { name: '기초대사량 계산기', href: '/health/bmr/', desc: '하루 필요 칼로리까지' },
           { name: '체지방률 계산기', href: '/health/body-fat/', desc: '줄자로 재는 체지방률' },

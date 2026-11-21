@@ -1,0 +1,63 @@
+/* 건강검진 결과 수치 해석(/health-check/result/*) — 접두사 lb- */
+.lb { --lb-a:#16A34A; --lb-b:#D97706; --lb-d:#DC2626; --lb-x:#64748B; }
+.lb-hero { border-radius:18px; padding:20px 22px; margin:8px 0 16px; background:#F8FAFC; border:1px solid var(--line, #e5e7eb); }
+.lb-hero small { font-size:.78rem; font-weight:800; letter-spacing:.06em; color:#64748B; }
+.lb-hero h1 { margin:4px 0 6px; font-size:clamp(1.45rem, 4vw, 2rem); font-weight:900; letter-spacing:-.04em; line-height:1.25; }
+.lb-hero p { margin:0; color:#475569; line-height:1.65; font-size:.95rem; }
+.lb-verdict { display:flex; align-items:center; gap:14px; flex-wrap:wrap; padding:18px 20px; border-radius:16px; color:#fff; margin:12px 0; }
+.lb-verdict b { font-size:clamp(1.6rem, 6vw, 2.4rem); font-weight:900; letter-spacing:-.03em; font-variant-numeric:tabular-nums; }
+.lb-verdict span { font-size:1.05rem; font-weight:800; }
+.lb-verdict em { flex-basis:100%; font-style:normal; font-size:.92rem; opacity:.95; line-height:1.55; }
+.lb-verdict.A { background:var(--lb-a); } .lb-verdict.B { background:var(--lb-b); } .lb-verdict.D { background:var(--lb-d); } .lb-verdict.X { background:var(--lb-x); }
+
+/* 게이지 */
+.lb-gauge { position:relative; height:16px; border-radius:99px; overflow:hidden; display:flex; margin:30px 0 26px; }
+.lb-gauge i { display:block; height:100%; }
+.lb-gauge i.A { background:#86EFAC; } .lb-gauge i.B { background:#FCD34D; } .lb-gauge i.D { background:#FCA5A5; }
+.lb-gwrap { position:relative; }
+.lb-mark { position:absolute; top:-26px; transform:translateX(-50%); font-size:.78rem; font-weight:900; white-space:nowrap; color:#0F172A; }
+.lb-mark::after { content:''; position:absolute; left:50%; top:20px; width:3px; height:24px; margin-left:-1.5px; background:#0F172A; border-radius:2px; }
+.lb-cut { position:absolute; bottom:-22px; transform:translateX(-50%); font-size:.72rem; font-weight:700; color:#64748B; }
+
+.lb-table { width:100%; border-collapse:collapse; font-size:.92rem; margin:6px 0; }
+.lb-table th, .lb-table td { padding:10px 12px; border-bottom:1px solid var(--line, #e5e7eb); text-align:left; }
+.lb-table th { background:#F8FAFC; font-weight:800; font-size:.82rem; color:#475569; }
+.lb-dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; vertical-align:middle; }
+.lb-dot.A { background:var(--lb-a); } .lb-dot.B { background:var(--lb-b); } .lb-dot.D { background:var(--lb-d); }
+.lb-table tr.on td { background:#FFFBEB; font-weight:800; }
+
+.lb-list { margin:6px 0 0; padding-left:1.1rem; line-height:1.75; color:#334155; }
+.lb-vals { display:flex; flex-wrap:wrap; gap:6px; }
+.lb-vals a { font-size:.85rem; font-weight:700; padding:6px 10px; border-radius:9px; border:1px solid var(--line, #e5e7eb); text-decoration:none; color:#1E293B; background:#fff; font-variant-numeric:tabular-nums; }
+.lb-vals a.A { border-color:#BBF7D0; } .lb-vals a.B { border-color:#FDE68A; background:#FFFBEB; } .lb-vals a.D { border-color:#FECACA; background:#FEF2F2; }
+.lb-vals a.on { background:#0F172A; color:#fff; border-color:#0F172A; }
+.lb-warn { font-size:.82rem; color:#64748B; line-height:1.6; background:#F8FAFC; border-radius:12px; padding:12px 14px; margin-top:14px; }
+.lb-cta { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 16px; border-radius:14px; background:#FEF2F2; color:#7F1D1D; text-decoration:none; font-weight:800; margin:14px 0; }
+.lb-cta em { font-style:normal; white-space:nowrap; }
+
+/* 계산기 */
+.lb-form fieldset { border:1px solid var(--line, #e5e7eb); border-radius:14px; padding:12px 14px 14px; margin:0 0 12px; }
+.lb-form legend { font-weight:900; font-size:.92rem; padding:0 6px; }
+.lb-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; }
+.lb-grid label { display:flex; flex-direction:column; gap:5px; font-size:.8rem; font-weight:800; color:#475569; }
+.lb-grid input, .lb-grid select { font:inherit; font-size:1rem; padding:10px 11px; border:1.5px solid var(--line, #e5e7eb); border-radius:10px; background:#fff; color:#0F172A; font-variant-numeric:tabular-nums; width:100%; box-sizing:border-box; }
+.lb-sex { display:flex; gap:6px; margin-bottom:12px; }
+.lb-sex button { font:inherit; font-weight:800; padding:9px 16px; border-radius:10px; border:1.5px solid var(--line, #e5e7eb); background:#fff; cursor:pointer; }
+.lb-sex button.on { border-color:#0F172A; background:#0F172A; color:#fff; }
+.lb-go { font:inherit; width:100%; padding:15px; border:0; border-radius:13px; background:#DC2626; color:#fff; font-size:1.05rem; font-weight:900; cursor:pointer; }
+.lb-sum { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin:16px 0 10px; }
+.lb-sum div { border-radius:12px; padding:12px; text-align:center; color:#fff; }
+.lb-sum b { display:block; font-size:1.6rem; font-weight:900; }
+.lb-sum span { font-size:.8rem; font-weight:800; }
+.lb-sum .A { background:var(--lb-a); } .lb-sum .B { background:var(--lb-b); } .lb-sum .D { background:var(--lb-d); }
+.lb-cards { display:grid; gap:8px; }
+.lb-card { display:grid; grid-template-columns:auto 1fr auto; gap:4px 12px; align-items:center; padding:12px 14px; border-radius:12px; border:1px solid var(--line, #e5e7eb); border-left:5px solid var(--lb-x); background:#fff; }
+.lb-card.A { border-left-color:var(--lb-a); } .lb-card.B { border-left-color:var(--lb-b); background:#FFFBEB; } .lb-card.D { border-left-color:var(--lb-d); background:#FEF2F2; }
+.lb-card b { font-weight:900; }
+.lb-card strong { font-size:1.05rem; font-variant-numeric:tabular-nums; }
+.lb-card i { font-style:normal; font-size:.78rem; font-weight:900; padding:3px 8px; border-radius:6px; color:#fff; background:var(--lb-x); }
+.lb-card.A i { background:var(--lb-a); } .lb-card.B i { background:var(--lb-b); } .lb-card.D i { background:var(--lb-d); }
+.lb-card p { grid-column:1 / -1; margin:0; font-size:.86rem; color:#475569; line-height:1.55; }
+.lb-card a { grid-column:1 / -1; font-size:.82rem; font-weight:800; color:#DC2626; text-decoration:none; }
+.lb-out[hidden] { display:none; }
+@media (max-width:640px) { .lb-grid { grid-template-columns:repeat(2, 1fr); } }

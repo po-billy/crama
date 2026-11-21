@@ -1,0 +1,17 @@
+---
+// 판정 구간 막대 + 내 수치 표시(정적). lib/lab.ts의 gauge·judge를 쓴다.
+import { type LabItem, type Sex, fmt } from '../lib/lab';
+interface Props { item: LabItem; sex: Sex; value?: number }
+const { item, sex, value } = Astro.props;
+const g = item.gauge(sex);
+const pct = (v: number) => Math.max(0, Math.min(100, ((v - g.min) / (g.max - g.min)) * 100));
+// 구간: 낮은 값부터 경계값으로 나눈다. reverse면 낮은 쪽이 나쁘다.
+const edges = [g.min, ...g.cuts, g.max];
+const levels = g.cuts.length === 1 ? (g.reverse ? ['D', 'A'] : ['A', 'D']) : (g.reverse ? ['D', 'B', 'A'] : ['A', 'B', 'D']);
+const segs = edges.slice(0, -1).map((e, i) => ({ w: pct(edges[i + 1]) - pct(e), lv: levels[i] }));
+---
+<div class="lb-gwrap">
+  {value !== undefined && <span class="lb-mark" style={`left:${pct(value)}%`}>{fmt(item, value)}</span>}
+  <div class="lb-gauge" aria-hidden="true">{segs.map((s) => <i class={s.lv} style={`width:${s.w}%`}></i>)}</div>
+  {g.cuts.map((c) => <span class="lb-cut" style={`left:${pct(c)}%`}>{item.step < 1 ? (c > 1.5 && c < 1.6 ? '1.5' : c.toFixed(1)) : c}</span>)}
+</div>

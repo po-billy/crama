@@ -74,6 +74,7 @@ const inBorn = year >= BORN_FROM && year <= BORN_TO;
     </div>
 
     <AnswerSlot zone="health" />
+    <a class="hc-result-link" href="/health-check/result/">검진 받고 결과지가 나왔다면? <b>혈압·혈당·콜레스테롤·간수치 해석하기 →</b></a>
 
     <section class="hc-sec">
       <h2>{focusYear}년에 받는 국가암검진 {cancers.length}종</h2>
@@ -167,6 +168,8 @@ const inBorn = year >= BORN_FROM && year <= BORN_TO;
   </div>
 
   <style>
+  .hc-result-link { display:block; margin:12px 0 4px; padding:12px 14px; border-radius:12px; background:#FEF2F2; color:#7F1D1D; text-decoration:none; font-size:.9rem; }
+  .hc-result-link b { color:#DC2626; }
     .hc { max-width: 40rem; }
     .hc-crumb { display: flex; gap: 0.45rem; font-size: 0.8rem; color: var(--muted); margin: 0.4rem 0 1.1rem; }
     .hc-crumb a { color: var(--muted); text-decoration: none; }

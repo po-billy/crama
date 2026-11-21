@@ -1,0 +1,103 @@
+---
+// 수치별 판정 페이지 — "공복혈당 110 정상인가요"처럼 수치 하나를 묻는 검색을 받는다. 판정은 lib/lab.ts(공식 판정기준표).
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import AnswerSlot from '../../../../components/AnswerSlot.astro';
+import LabGauge from '../../../../components/LabGauge.astro';
+import '../../../../styles/portal.css';
+import '../../../../styles/lab.css';
+import { LAB, LEVEL_NAME, LEVEL_SHORT, fmt, distance, josa, type Sex, type Level } from '../../../../lib/lab';
+
+export function getStaticPaths() {
+  return LAB.flatMap((it) => it.values.map((v) => ({ params: { item: it.slug, value: fmt(it, v) }, props: { slug: it.slug, v } })));
+}
+const { slug, v } = Astro.props as { slug: string; v: number };
+const it = LAB.find((x) => x.slug === slug)!;
+const sexes: Sex[] = it.sexBased ? ['m', 'f'] : ['m'];
+const res = sexes.map((s) => ({ s, lv: it.judge(v, s) as Level }));
+const main = res[0].lv;
+const worst = res.some((r) => r.lv === 'D') ? 'D' : res.some((r) => r.lv === 'B') ? 'B' : main;
+const val = fmt(it, v);
+const sexName = (s: Sex) => (s === 'm' ? '남성' : '여성');
+const verdictText = it.sexBased ? (res[0].lv === res[1].lv ? `남녀 모두 ${LEVEL_NAME[main]}` : res.map((r) => `${sexName(r.s)} ${LEVEL_NAME[r.lv]}`).join(', ')) : LEVEL_NAME[main];
+const bandLabel = (s: Sex, lv: Level) => it.table(s).find((b) => b.level === lv)?.label ?? '정상 상한 초과';
+const act = it.higherIsBetter ? '올리는 법' : '낮추는 법';
+const title = `${it.short} ${val} 정상인가요? ${verdictText} — 판정기준과 ${act}`;
+const desc = `${it.name} ${val}${it.unit}${'는'} 국가건강검진 판정기준으로 ${verdictText}입니다. ${distance(it, v, sexes[0])} 기준표, 이 수치가 나오는 흔한 이유와 다음에 할 일을 정리했어요.`;
+const idx = it.values.indexOf(v);
+const near = it.values;
+const nextKey = (worst === 'X' ? 'A' : worst) as 'A' | 'B' | 'D';
+const faq = [
+  { q: `${it.short} ${josa(val, '이면', '면')} 병원에 가야 하나요?`, a: it.next[nextKey] },
+  { q: `${it.short} 정상 수치는 얼마인가요?`, a: `국가건강검진 판정기준으로 ${sexes.map((s) => `${it.sexBased ? sexName(s) + ' ' : ''}${it.table(s).map((b) => `${b.label} ${b.range}`).join(', ')}`).join(' / ')}입니다(단위 ${it.unit}).` },
+  { q: '한 번 높게 나오면 바로 질환인가요?', a: '아닙니다. 검진은 한 번의 측정이라 검사 전 식사·음주·운동·컨디션에 따라 달라질 수 있습니다. 경계나 질환의심이 나오면 생활을 점검하고 다시 재 보거나 진료로 확인하는 것이 순서입니다.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title={title} description={desc} jsonLd={jsonLd}>
+<div class="pt pt-narrow lb" style="--c:#DC2626">
+  <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/health-check/">건강검진</a> › <a href="/health-check/result/">결과 수치 해석</a> › <a href={`/health-check/result/${it.slug}/`}>{it.short}</a> › {val}</nav>
+  <header class="lb-hero">
+    <small>건강검진 결과 · {it.group}</small>
+    <h1>{it.short} {val}, {verdictText}입니다</h1>
+    <p>{it.name} {val}{it.unit} 결과를 국가건강검진 판정기준표로 판정했어요. 결과지의 다른 수치도 함께 보려면 <a href="/health-check/result/">결과 수치 한 번에 해석하기</a>를 쓰세요.</p>
+  </header>
+
+  {res.map((r) => (
+    <div class={`lb-verdict ${r.lv}`}>
+      <b>{val}<small style="font-size:.5em;font-weight:800"> {it.unit}</small></b>
+      <span>{it.sexBased ? `${sexName(r.s)} · ` : ''}{LEVEL_SHORT[r.lv]} · {bandLabel(r.s, r.lv)}</span>
+      <em>{distance(it, v, r.s)}</em>
+    </div>
+  ))}
+
+  <section class="pt-sec">
+    <LabGauge item={it} sex={sexes[0]} value={v} />
+    <p class="lb-warn" style="margin-top:4px">초록은 정상, 노랑은 경계(정상B), 빨강은 질환의심 구간이에요.{it.sexBased ? ' 막대는 남성 기준이에요.' : ''}</p>
+  </section>
+
+  <section class="pt-sec">
+    <h2>다음에 할 일</h2>
+    <p>{it.next[nextKey]}</p>
+    {(it.slug === 'fasting-glucose' || it.slug === 'blood-pressure') && worst === 'D' && (
+      <p class="lb-warn"><b>확진검사는 본인부담 없이:</b> 일반건강검진에서 고혈압·당뇨병 질환의심이 나오면 병·의원에서 확진검사(고혈압은 진찰, 당뇨병은 진찰과 혈당검사)를 본인부담 없이 받을 수 있어요. 기한은 결과통보서에 적힌 날짜를 따르세요.</p>
+    )}
+  </section>
+
+  <AnswerSlot zone="health" />
+
+  <section class="pt-sec">
+    <h2>{it.short} 판정기준표</h2>
+    {sexes.map((s) => (
+      <>
+        {it.sexBased && <h3>{sexName(s)}</h3>}
+        <table class="lb-table">
+          <thead><tr><th>판정</th><th>{it.unit}</th></tr></thead>
+          <tbody>{it.table(s).map((b) => <tr class={b.level === it.judge(v, s) ? 'on' : ''}><td><span class={`lb-dot ${b.level}`}></span>{b.label}</td><td>{b.range}</td></tr>)}</tbody>
+        </table>
+      </>
+    ))}
+    <p class="lb-warn">출처: 보건복지부 「건강검진 실시기준」 [별표 4의 별첨] 검사항목별 판정기준.</p>
+  </section>
+
+  <section class="pt-sec">
+    <h2>{main === 'A' && !it.higherIsBetter ? `${josa(it.short, '을', '를')} 지금처럼 유지하려면` : `${josa(it.short, '이', '가')} ${it.higherIsBetter ? '낮게' : '높게'} 나오는 흔한 이유`}</h2>
+    {!(main === 'A' && !it.higherIsBetter) && <ul class="lb-list">{it.high.map((h) => <li>{h}</li>)}</ul>}
+    <h3>생활에서 할 수 있는 것</h3>
+    <ul class="lb-list">{it.tips.map((t) => <li>{t}</li>)}</ul>
+  </section>
+
+  <section class="pt-sec">
+    <h2>다른 {it.short} 수치</h2>
+    <div class="lb-vals">{near.map((x) => <a class={`${it.judge(x, sexes[0])}${x === v ? ' on' : ''}`} href={`/health-check/result/${it.slug}/${fmt(it, x)}/`}>{fmt(it, x)}</a>)}</div>
+    <p style="margin-top:10px"><a href={`/health-check/result/${it.slug}/`}>{it.short} 정상수치와 검사 설명 전체 보기 →</a></p>
+  </section>
+
+  <a class="lb-cta" href="/health-check/result/"><span>혈압·혈당·콜레스테롤·간수치를 한 번에 넣어 보기</span><em>결과 수치 해석 →</em></a>
+
+  <section class="pt-sec pt-prose">
+    <h2>자주 묻는 질문</h2>
+    {faq.map((f) => <><h3>{f.q}</h3><p>{f.a}</p></>)}
+  </section>
+  <p class="lb-warn">이 페이지는 국가건강검진 판정기준으로 수치를 설명하는 정보이며 의학적 진단이 아닙니다. 몸에 이상이 있거나 결과가 걱정되면 의사와 상담하세요.</p>
+</div>
+</BaseLayout>

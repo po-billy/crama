@@ -1,0 +1,117 @@
+---
+// 신분증 사본 워터마크 — 사진을 기기 안에서만 처리해 "OO 제출용" 문구를 겹치고 주민번호 뒷자리 등을 가린다. 서버로 보내지 않는다.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import '../styles/portal.css';
+
+const faq = [
+  { q: '사진이 서버로 올라가나요?', a: '아니요. 사진은 이 브라우저 안에서만 그려지고 어디에도 전송·저장되지 않습니다. 인터넷을 끊은 상태에서도 작동합니다.' },
+  { q: '신분증 사본에 워터마크를 넣는 이유는?', a: '사본이 다른 곳에 쓰이는 것을 막기 위해서입니다. "제출처·용도·날짜·타용도 사용 금지"를 넣어 두면 유출되더라도 다른 용도로 쓰기 어렵습니다.' },
+  { q: '주민등록번호 뒷자리는 가려도 되나요?', a: '제출처가 뒷자리를 요구하지 않는다면 가리는 것이 안전합니다. 은행·관공서처럼 실명 확인이 필요한 곳은 요구 사항을 먼저 확인하세요.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title="신분증 사본 워터마크 — '제출용' 문구 넣고 주민번호 가리기 (사진 전송 없음)" description="신분증·통장 사본에 '○○ 제출용, 날짜, 타용도 사용 금지' 워터마크를 넣고 주민번호 뒷자리를 가립니다. 사진은 서버로 보내지 않고 휴대폰 안에서만 처리해요." jsonLd={jsonLd}>
+  <div class="pt pt-narrow idw" style="--c:#0f766e">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/convert/">이름·변환</a> › 신분증 사본 워터마크</nav>
+    <header class="pt-hubhero">
+      <img src="/img/portal/g-convert.webp" alt="" width="200" height="200" />
+      <div><h1>신분증 사본 워터마크</h1><p>사진을 고르면 "제출용" 문구를 겹치고, 가릴 곳은 손가락으로 끌어 가려요. 사진은 이 기기 밖으로 나가지 않아요.</p></div>
+    </header>
+
+    <section class="pt-sec">
+      <label class="idw-pick"><input type="file" id="file" accept="image/*" />📷 신분증·통장 사진 고르기</label>
+      <div class="tl-card" style="margin-top:10px">
+        <div class="tl-row">
+          <label class="tl-field">제출처<input id="to" value="" placeholder="예: OO부동산" maxlength="20" /></label>
+          <label class="tl-field">용도<input id="use" value="" placeholder="예: 전세계약" maxlength="20" /></label>
+        </div>
+        <div class="tl-row">
+          <label class="tl-field">글자 진하기<input id="op" type="range" min="15" max="70" value="35" /></label>
+          <label class="tl-field">글자 크기<input id="sz" type="range" min="14" max="60" value="28" /></label>
+        </div>
+      </div>
+    </section>
+
+    <section class="pt-sec idw-stage" id="stage" hidden>
+      <p class="idw-help">✋ 가릴 곳(주민번호 뒷자리, 주소 등)을 손가락이나 마우스로 끌어 상자를 그리세요. 상자를 누르면 지워져요.</p>
+      <canvas id="cv"></canvas>
+      <div class="idw-btns"><button type="button" id="undo">마지막 상자 지우기</button><button type="button" class="p" id="save">이미지 저장</button></div>
+    </section>
+
+    <p class="idw-safe">🔒 사진은 업로드되지 않아요. 이 페이지는 사진을 브라우저 화면에만 그리고, 저장 버튼을 누르면 내 기기에 바로 저장돼요.</p>
+
+    <section class="pt-sec pt-prose">
+      <h2>사본 낼 때 넣으면 좋은 문구</h2>
+      <ul>
+        <li><b>제출처와 용도</b>: "OO은행 계좌개설 제출용"처럼 누구에게 무엇으로 내는지</li>
+        <li><b>날짜</b>: 제출한 날 — 자동으로 오늘 날짜가 들어가요</li>
+        <li><b>타용도 사용 금지</b>: 다른 곳에 쓰면 안 된다는 표시</li>
+      </ul>
+      <h2>자주 묻는 질문</h2>
+      {faq.map((f) => <><h3>{f.q}</h3><p>{f.a}</p></>)}
+    </section>
+  </div>
+
+  <style>
+    .idw-pick { display:flex; align-items:center; justify-content:center; gap:8px; padding:18px; border:2px dashed #99F6E4; border-radius:14px; background:#F0FDFA; color:#0F766E; font-weight:900; cursor:pointer; }
+    .idw-pick input { display:none; }
+    .idw-stage[hidden] { display:none; }
+    .idw-stage canvas { display:block; width:100%; height:auto; border-radius:10px; touch-action:none; background:#eee; }
+    .idw-help { font-size:.86rem; color:#475569; margin:0 0 8px; }
+    .idw-btns { display:flex; gap:8px; justify-content:flex-end; margin-top:10px; }
+    .idw-btns button { font:inherit; font-weight:800; padding:10px 14px; border-radius:10px; border:1px solid var(--line, #e5e7eb); background:#fff; cursor:pointer; }
+    .idw-btns .p { background:#0F766E; color:#fff; border-color:#0F766E; }
+    .idw-safe { font-size:.84rem; color:#115E59; background:#F0FDFA; border-radius:12px; padding:12px 14px; margin:10px 0; }
+  </style>
+
+  <script>
+    const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
+    const cv = document.getElementById('cv') as HTMLCanvasElement, g = cv.getContext('2d')!;
+    let img: HTMLImageElement | null = null;
+    let boxes: { x: number; y: number; w: number; h: number }[] = [];
+    let drag: { x: number; y: number; w: number; h: number } | null = null;
+    const today = (() => { const d = new Date(); return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`; })();
+    function text() {
+      const to = $('to').value.trim(), use = $('use').value.trim();
+      return `${to ? to + ' ' : ''}${use ? use + ' ' : ''}제출용 · ${today} · 타용도 사용 금지`;
+    }
+    function draw() {
+      if (!img) return;
+      g.drawImage(img, 0, 0, cv.width, cv.height);
+      g.fillStyle = '#111';
+      for (const b of [...boxes, ...(drag ? [drag] : [])]) g.fillRect(b.x, b.y, b.w, b.h);
+      // 대각선으로 반복되는 워터마크
+      const base = Math.max(cv.width, cv.height);
+      const fs = Math.round((+$('sz').value / 600) * base);
+      g.save(); g.translate(cv.width / 2, cv.height / 2); g.rotate(-Math.PI / 7);
+      g.font = `900 ${fs}px Pretendard, 'Malgun Gothic', sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillStyle = `rgba(220,38,38,${+$('op').value / 100})`;
+      const t = text(), step = fs * 3.2, wlen = g.measureText(t).width + fs * 2;
+      for (let y = -base; y < base; y += step) for (let x = -base * 1.2 + ((y / step) % 2 ? wlen / 2 : 0); x < base * 1.2; x += wlen) g.fillText(t, x, y);
+      g.restore();
+    }
+    $('file').addEventListener('change', () => {
+      const f = $('file').files?.[0]; if (!f) return;
+      const url = URL.createObjectURL(f); const im = new Image();
+      im.onload = () => { const max = 1800, k = Math.min(1, max / Math.max(im.width, im.height)); cv.width = Math.round(im.width * k); cv.height = Math.round(im.height * k); img = im; boxes = []; (document.getElementById('stage') as HTMLElement).hidden = false; draw(); URL.revokeObjectURL(url); };
+      im.src = url;
+      try { (window as any).gtag?.('event', 'id_watermark_load'); } catch { /* 무시 */ }
+    });
+    ['to', 'use', 'op', 'sz'].forEach((id) => $(id).addEventListener('input', draw));
+    const pos = (e: PointerEvent) => { const r = cv.getBoundingClientRect(); return { x: ((e.clientX - r.left) / r.width) * cv.width, y: ((e.clientY - r.top) / r.height) * cv.height }; };
+    let start: { x: number; y: number } | null = null;
+    cv.addEventListener('pointerdown', (e) => { if (!img) return; cv.setPointerCapture(e.pointerId); start = pos(e); });
+    cv.addEventListener('pointermove', (e) => { if (!start) return; const p = pos(e); drag = { x: Math.min(start.x, p.x), y: Math.min(start.y, p.y), w: Math.abs(p.x - start.x), h: Math.abs(p.y - start.y) }; draw(); });
+    cv.addEventListener('pointerup', (e) => {
+      if (!start) return; const p = pos(e);
+      if (drag && drag.w > 8 && drag.h > 8) boxes.push(drag);
+      else { const i = boxes.findIndex((b) => p.x >= b.x && p.x <= b.x + b.w && p.y >= b.y && p.y <= b.y + b.h); if (i >= 0) boxes.splice(i, 1); }
+      start = null; drag = null; draw();
+    });
+    document.getElementById('undo')!.addEventListener('click', () => { boxes.pop(); draw(); });
+    document.getElementById('save')!.addEventListener('click', () => {
+      cv.toBlob((b) => { if (!b) return; const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `사본_${today}.jpg`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }, 'image/jpeg', 0.92);
+      try { (window as any).gtag?.('event', 'id_watermark_save', { boxes: boxes.length }); } catch { /* 무시 */ }
+    });
+  </script>
+</BaseLayout>

@@ -239,6 +239,7 @@ export const MENU: MenuTab[] = [
         slug: 'convert', name: '이름·변환', icon: 'text', color: '#64748b',
         desc: '영문 이름, 단위, 사이즈 변환',
         items: [
+          { name: '신분증 사본 워터마크', href: '/id-watermark/', desc: '제출용 문구 넣고 주민번호 가리기' },
           { name: '단위 변환', href: '/convert/unit/', desc: '길이·무게·넓이·부피·온도' },
           { name: '글자 수 세기', href: '/convert/text-count/', desc: '공백 포함·제외, 바이트 수' },
           { name: '영문 이름 변환', href: '/convert/romanize/', desc: '한글 이름 로마자 표기' },

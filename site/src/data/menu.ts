@@ -160,6 +160,7 @@ export const MENU: MenuTab[] = [
         slug: 'date', name: '나이·날짜', icon: 'calendar', color: '#3b82f6',
         desc: '만 나이, 띠, D-day, 공휴일',
         items: [
+          { name: '손없는 날 달력', href: '/moving-day/', desc: '이사하기 좋은 날 2026·2027'},
           { name: '만 나이 계산기', href: '/age/', desc: '생년월일로 오늘 기준 나이 계산' },
           { name: '출생연도별 나이표', href: '/born/', desc: '연도별 만 나이·띠·학번 한 표로' },
           { name: '입학·졸업 연도', href: '/school/', desc: '올해 학년, 학번, 수능 연도' },

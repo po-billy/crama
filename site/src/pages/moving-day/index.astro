@@ -1,0 +1,39 @@
+---
+// 손없는 날 모음 — 2026~2027년 달별 손없는 날 요약.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/portal.css';
+import { monthDays, MONTHS, DOW, isOff } from '../../lib/sonless';
+
+const summary = MONTHS.map((x) => { const sl = monthDays(x.y, x.m).filter((d) => d.sonless); return { ...x, sl, off: sl.filter(isOff) }; });
+const now = new Date();
+const curKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+const faq = [
+  { q: '손없는 날이란 무엇인가요?', a: '음력 날짜 끝자리가 9나 0인 날(9·10·19·20·29·30일)입니다. 날마다 방향을 옮겨 다니며 해를 끼친다는 민속의 귀신 "손"이 없는 날이라 하여 이사·개업·결혼 날로 많이 고릅니다.' },
+  { q: '한 달에 손없는 날은 며칠인가요?', a: '음력 한 달에 5~6일입니다. 음력 달이 29일로 끝나면 30일이 없어 5일이 됩니다. 양력 한 달에는 걸치는 음력 달에 따라 5~7일 정도입니다.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title="손없는날 달력 2026·2027 — 이사하기 좋은 날 월별 정리" description="2026년·2027년 손없는 날을 달별로 정리했어요. 음력 9·10·19·20·29·30일, 주말·공휴일과 겹치는 이사하기 좋은 날을 한눈에 보고 이사 날짜를 잡으세요." jsonLd={jsonLd}>
+  <div class="pt pt-narrow" style="--c:#8b5cf6">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/date/">나이·날짜</a> › 손없는 날</nav>
+    <header class="pt-hubhero">
+      <img src="/img/portal/g-date.webp" alt="" width="200" height="200" />
+      <div><h1>손없는 날 달력</h1><p>이사·개업 날을 고를 때 많이 보는 손없는 날(음력 9·0일)을 달별로 정리했어요.</p></div>
+    </header>
+
+    <section class="pt-sec">
+      <div class="tl-wrap"><table class="tl-table">
+        <thead><tr><th>달</th><th>손없는 날</th><th>주말·휴일</th></tr></thead>
+        <tbody>{summary.map((s) => (
+          <tr><td class={s.key === curKey ? 'is-on' : ''}><a href={`/moving-day/${s.key}/`}>{s.y}년 {s.m}월</a></td><td>{s.sl.map((d) => d.d).join('·')}일</td><td>{s.off.length ? s.off.map((d) => `${d.d}(${DOW[d.dow]})`).join(' ') : '-'}</td></tr>
+        ))}</tbody>
+      </table></div>
+    </section>
+
+    <section class="pt-sec pt-prose">
+      <h2>자주 묻는 질문</h2>
+      {faq.map((f) => <><h3>{f.q}</h3><p>{f.a}</p></>)}
+      <p class="pp-note">※ 음력은 한국 음력(단기력) 기준으로 계산했어요. 손없는 날은 민속 풍습이며 과학적 근거는 없어요.</p>
+    </section>
+  </div>
+</BaseLayout>

@@ -1,0 +1,209 @@
+---
+// 밥값·커피값 몰아주기 — 한 명 몰빵 / 랜덤 금액 나누기 / 두 명 반반. 결과 공개 연출 + 송금 문구 복사.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/portal.css';
+import '../../styles/party.css';
+
+const faq = [
+  { q: '랜덤 금액 나누기는 어떻게 계산되나요?', a: '참가자마다 무작위 비율을 정해 총액을 나누고, 정한 단위(100원·1,000원)로 반올림합니다. 반올림으로 생긴 차이는 가장 많이 내는 사람에게 더해 합계가 총액과 정확히 같게 맞춥니다. 비율이 고르지 않게 나오도록 만들어 누군가는 많이, 누군가는 거의 안 내게 됩니다.' },
+  { q: '결과를 단톡방에 보내려면?', a: '결과 아래의 "송금 문구 복사"를 누르면 사람별 금액이 정리된 문장이 복사됩니다. 단톡방에 붙여 넣으면 됩니다.' },
+  { q: '사다리 타기와 무엇이 다른가요?', a: '사다리 타기는 결과 칸을 미리 적어야 하지만, 몰아주기는 총액만 넣으면 사람별 금액까지 바로 계산해 줍니다. 공개 연출이 있어 점심시간에 다 같이 화면을 보며 하기 좋습니다.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title="밥값·커피값 몰아주기 — 점심값 내기 랜덤 계산기" description="총액과 이름만 넣으면 한 명 몰빵, 랜덤 금액 나누기, 두 명 반반으로 밥값·커피값 낼 사람을 정해 줍니다. 결과 공개 연출과 송금 문구 복사까지 무료로." jsonLd={jsonLd}>
+<div class="pt pt-narrow py" style="--c:#20C997">
+  <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/party/">방송·회식 추첨 게임</a> › 밥값 몰아주기</nav>
+  <div class="py-head">
+    <div><h1>밥값·커피값 몰아주기</h1><p>총액만 넣으세요. 누가 얼마를 낼지는 화면이 정합니다.</p></div>
+    <div class="py-tools"><button type="button" class="py-tool" id="mute"></button><button type="button" class="py-tool" id="link">방송용 링크 복사</button><button type="button" class="py-tool hot" id="stream">방송 모드</button></div>
+  </div>
+
+  <div class="py-stage pay-stage" id="stage">
+    <div class="py-hud"><b>CRAMA PAY</b><b id="hud"></b></div>
+    <div class="py-ticker" id="ticker"></div>
+    <div class="pay-total" id="total-view"></div>
+    <div class="pay-grid" id="grid"></div>
+    <div class="py-result" id="res" hidden>
+      <small id="res-k"></small><strong id="res-name"></strong><p id="res-sub"></p>
+      <div class="py-rbtns"><button type="button" class="p" id="again">한 판 더</button><button type="button" id="close">결과 보기</button><button type="button" id="share">송금 문구 복사</button></div>
+    </div>
+    <div class="py-streambar"><button type="button" class="p" id="s-go">시작 (Space)</button><button type="button" id="s-exit">나가기</button></div>
+  </div>
+
+  <form class="py-form" id="f" onsubmit="return false">
+    <label>참가자 (한 줄에 한 명, 2~16명)<textarea id="names" spellcheck="false"></textarea></label>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <label>총액 (원)<input id="amount" inputmode="numeric" value="54000" /></label>
+      <label>방식<span class="py-seg" id="mode"><button type="button" data-v="one" class="on">한 명 몰빵</button><button type="button" data-v="random">랜덤 금액 나누기</button><button type="button" data-v="two">두 명 반반</button></span></label>
+      <label>단위<span class="py-seg" id="unit"><button type="button" data-v="100" class="on">100원</button><button type="button" data-v="1000">1,000원</button></span></label>
+    </div>
+  </form>
+  <button type="button" class="py-go" id="go">누가 낼까?</button>
+  <ol class="py-rank" id="rank"></ol>
+  <button type="button" class="py-tool" id="copy2" style="margin-top:10px" hidden>송금 문구 복사</button>
+
+  <a class="py-answer" href="/answer/#lineup"><span>점심시간마다 보는 화면에 브랜드를? <b>크라마 앤서</b>로 맞춤 광고를 알아보세요.</span><em>알아보기 →</em></a>
+
+  <section class="pt-sec pt-prose">
+    <h2>하는 법</h2>
+    <ul>
+      <li>참가자 이름과 총액을 넣고 방식을 고릅니다.</li>
+      <li><b>한 명 몰빵</b>: 불빛이 이름 위를 돌다가 멈춘 사람이 전부 냅니다.</li>
+      <li><b>랜덤 금액 나누기</b>: 사람마다 금액이 슬롯머신처럼 돌다가, 적게 내는 사람부터 공개됩니다. 가장 많이 내는 사람은 맨 마지막에 나옵니다.</li>
+      <li><b>두 명 반반</b>: 두 사람이 뽑혀 총액을 나눠 냅니다.</li>
+    </ul>
+    <h2>자주 묻는 질문</h2>
+    {faq.map((f) => <><h3>{f.q}</h3><p>{f.a}</p></>)}
+  </section>
+</div>
+
+<style is:global>
+  .pay-stage { padding:60px 16px 20px; min-height:360px; }
+  .pay-stage.is-stream { padding:70px 4vw 30px; }
+  .pay-total { text-align:center; font-weight:900; font-size:clamp(1.4rem, 5vw, 2.4rem); margin-bottom:14px; letter-spacing:-0.03em; }
+  .pay-total small { display:block; font-size:.8rem; font-weight:700; color:#B9AFFF; letter-spacing:.1em; }
+  .pay-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr)); gap:10px; }
+  .pay-stage.is-stream .pay-grid { grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:16px; }
+  .pay-card { border-radius:16px; padding:14px 10px; background:rgba(255,255,255,.08); text-align:center; border:2px solid transparent; transition:background .12s, transform .12s; }
+  .pay-card b { display:block; font-size:clamp(.95rem, 2.6vw, 1.2rem); font-weight:900; }
+  .pay-card span { display:block; margin-top:6px; font-size:clamp(1rem, 3.2vw, 1.45rem); font-weight:900; font-variant-numeric:tabular-nums; color:#D9D4FF; }
+  .pay-stage.is-stream .pay-card b { font-size:1.6rem; } .pay-stage.is-stream .pay-card span { font-size:2rem; }
+  .pay-card.lit { background:#FFC83D; color:#1e1b3a; transform:scale(1.06); }
+  .pay-card.lit span { color:#1e1b3a; }
+  .pay-card.spin span { color:#fff; opacity:.7; }
+  .pay-card.shown { background:rgba(32,201,151,.2); border-color:#20C997; }
+  .pay-card.max { background:#FF4D6D; border-color:#FFC83D; transform:scale(1.08); }
+  .pay-card.max span { color:#fff; }
+  .pay-card.zero { opacity:.55; }
+</style>
+
+<script>
+  import { initNames, parseList, rand, shuffle, sfx, shake, confetti, initStream, streamUrl, initMute, copyText, track } from '../../party/kit';
+
+  const $ = (id: string) => document.getElementById(id) as HTMLElement;
+  const stage = $('stage'), grid = $('grid');
+  const ta = $('names') as HTMLTextAreaElement;
+  const amt = $('amount') as HTMLInputElement;
+  const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+  initNames('pay', ta, '민수\n지영\n현우\n서연\n도윤');
+  const q = new URLSearchParams(location.search);
+  if (q.get('total')) amt.value = q.get('total')!;
+  let mode = ['one', 'random', 'two'].includes(q.get('mode') || '') ? q.get('mode')! : 'one';
+  let unit = 100;
+  const seg = (id: string, cb: (v: string) => void, init?: string) => {
+    const box = $(id);
+    box.querySelectorAll('button').forEach((b) => {
+      if (init && b.dataset.v === init) { box.querySelectorAll('button').forEach((x) => x.classList.remove('on')); b.classList.add('on'); }
+      b.addEventListener('click', () => { box.querySelectorAll('button').forEach((x) => x.classList.remove('on')); b.classList.add('on'); cb(b.dataset.v!); });
+    });
+  };
+  seg('mode', (v) => { mode = v; }, mode);
+  seg('unit', (v) => { unit = Number(v); });
+
+  const won = (n: number) => n.toLocaleString('ko-KR') + '원';
+  const total = () => Math.max(0, Math.round(Number(String(amt.value).replace(/[^\d]/g, '')) || 0));
+  let names: string[] = [], cards: HTMLElement[] = [], running = false, shareText = '';
+  const esc = (s: string) => s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]!));
+
+  const render = () => {
+    names = parseList(ta.value, 16);
+    $('total-view').innerHTML = `<small>TOTAL</small>${won(total())}`;
+    grid.innerHTML = names.map((n) => `<div class="pay-card"><b>${esc(n)}</b><span>?</span></div>`).join('');
+    cards = [...grid.querySelectorAll<HTMLElement>('.pay-card')];
+  };
+  const tick = (t: string) => { const el = $('ticker'); el.textContent = t; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); };
+
+  function split(sum: number, n: number) {
+    const w = Array.from({ length: n }, () => Math.random() ** 2.2 + 0.02);
+    const s = w.reduce((a, b) => a + b, 0);
+    const out = w.map((x) => Math.floor((sum * x) / s / unit) * unit);
+    const diff = sum - out.reduce((a, b) => a + b, 0);
+    out[out.indexOf(Math.max(...out))] += diff;
+    return out;
+  }
+
+  async function roulette(target: number, laps: number) {
+    let i = Math.floor(Math.random() * names.length), delay = 45;
+    const steps = laps * names.length + ((target - i + names.length) % names.length);
+    for (let s = 0; s <= steps; s++) {
+      cards.forEach((c, k) => c.classList.toggle('lit', k === i));
+      sfx.tick(s === steps);
+      if (s < steps) { await wait(delay); i = (i + 1) % names.length; delay = 45 + 330 * (s / steps) ** 3; }
+    }
+  }
+
+  async function start() {
+    if (running) return;
+    render();
+    const sum = total();
+    if (names.length < 2) { alert('참가자를 2명 이상 적어 주세요.'); return; }
+    if (sum < unit * names.length && mode === 'random') { alert('랜덤 나누기는 총액이 인원 × 단위보다 커야 해요.'); return; }
+    running = true; ($('go') as HTMLButtonElement).disabled = true;
+    $('res').hidden = true; $('rank').innerHTML = ''; ($('copy2') as HTMLElement).hidden = true;
+    let pays = names.map(() => 0);
+    track('party_play', { game: 'pay', players: names.length, mode });
+
+    if (mode === 'one') {
+      const who = Math.floor(Math.random() * names.length);
+      tick('누가 낼까…'); await roulette(who, 3);
+      pays[who] = sum;
+      cards[who].classList.add('max'); cards[who].querySelector('span')!.textContent = won(sum);
+    } else if (mode === 'two') {
+      const [a, b] = shuffle(names.map((_, i) => i)).slice(0, 2);
+      const half = Math.floor(sum / 2 / unit) * unit;
+      tick('첫 번째!'); await roulette(a, 2); cards[a].classList.add('shown'); cards[a].querySelector('span')!.textContent = won(half); sfx.coin();
+      await wait(500);
+      tick('두 번째!'); await roulette(b, 2);
+      pays[a] = half; pays[b] = sum - half;
+      cards.forEach((c) => c.classList.remove('lit'));
+      [a, b].forEach((k) => { cards[k].classList.add('max'); cards[k].querySelector('span')!.textContent = won(pays[k]); });
+    } else {
+      pays = split(sum, names.length);
+      cards.forEach((c) => c.classList.add('spin'));
+      const spinTimer = setInterval(() => cards.forEach((c) => { if (c.classList.contains('spin')) c.querySelector('span')!.textContent = won(Math.floor(rand(0, sum) / unit) * unit); }), 60);
+      tick('금액 돌리는 중…'); sfx.drum(6); await wait(1300);
+      const order = pays.map((p, i) => [p, i] as [number, number]).sort((x, y) => x[0] - y[0]);
+      for (let k = 0; k < order.length; k++) {
+        const [p, i] = order[k];
+        const lastOne = k === order.length - 1;
+        if (lastOne) { tick('가장 많이 내는 사람은…'); sfx.drum(8); await wait(1400); }
+        const c = cards[i]; c.classList.remove('spin'); c.classList.add(lastOne ? 'max' : p === 0 ? 'zero' : 'shown');
+        c.querySelector('span')!.textContent = won(p);
+        lastOne ? sfx.boom() : sfx.coin();
+        if (!lastOne) await wait(k < order.length - 3 ? 380 : 650);
+      }
+      clearInterval(spinTimer);
+    }
+
+    const maxV = Math.max(...pays), maxI = pays.indexOf(maxV);
+    const payers = pays.map((p, i) => [p, i] as [number, number]).filter(([p]) => p > 0);
+    $('res-k').textContent = mode === 'one' ? '💸 오늘 쏘는 사람' : mode === 'two' ? '💸 반반 당첨' : '💸 가장 많이 내는 사람';
+    $('res-name').textContent = mode === 'two' ? payers.map(([, i]) => names[i]).join(' · ') : names[maxI];
+    $('res-sub').textContent = mode === 'two' ? `각자 ${won(pays[payers[0][1]])}·${won(pays[payers[1][1]])}` : won(maxV);
+    setTimeout(() => { $('res').hidden = false; }, 450);
+    shake(stage, 14, 500); sfx.sad(); if (mode === 'random') confetti(90);
+    const rows = pays.map((p, i) => [p, i] as [number, number]).sort((x, y) => y[0] - x[0]);
+    $('rank').innerHTML = rows.map(([p, i], k) => `<li class="${k === 0 ? 'lose' : ''}"><i style="background:${k === 0 ? '#FF4D6D' : '#20C997'}">${k + 1}</i><span>${esc(names[i])}</span><em>${won(p)}</em></li>`).join('');
+    shareText = `[크라마 밥값 몰아주기] 총 ${won(sum)}\n${rows.filter(([p]) => p > 0).map(([p, i]) => `${names[i]} ${won(p)}`).join('\n')}\n${location.origin}/party/pay/`;
+    ($('copy2') as HTMLElement).hidden = false;
+    running = false; ($('go') as HTMLButtonElement).disabled = false;
+  }
+
+  $('go').addEventListener('click', start);
+  $('again').addEventListener('click', start);
+  $('s-go').addEventListener('click', start);
+  $('close').addEventListener('click', () => { $('res').hidden = true; });
+  $('share').addEventListener('click', (e) => copyText(shareText, e.currentTarget as HTMLElement));
+  $('copy2').addEventListener('click', (e) => copyText(shareText, e.currentTarget as HTMLElement));
+  addEventListener('keydown', (e) => {
+    if (e.code !== 'Space' || (document.activeElement && ['TEXTAREA', 'INPUT'].includes(document.activeElement.tagName))) return;
+    e.preventDefault(); start();
+  });
+  [ta, amt].forEach((el) => el.addEventListener('input', () => { if (!running) render(); }));
+  initMute($('mute'));
+  initStream(stage, $('stream'), $('link'), () => streamUrl({ names: parseList(ta.value, 16).join(','), total: String(total()), mode }));
+  $('s-exit').addEventListener('click', () => $('stream').click());
+  render();
+</script>
+</BaseLayout>

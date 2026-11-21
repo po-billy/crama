@@ -1,0 +1,184 @@
+---
+// 폭탄 돌리기 — 숨겨진 시간에 터지는 폭탄. 손으로 넘기기(오프라인) / 자동으로 돌기(방송).
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/portal.css';
+import '../../styles/party.css';
+
+const faq = [
+  { q: '폭탄이 언제 터지는지 알 수 있나요?', a: '알 수 없습니다. 시작할 때마다 터지는 시간이 정한 범위 안에서 무작위로 정해지고, 화면 어디에도 표시되지 않습니다. 째깍 소리가 빨라지는 속도도 실제 남은 시간과 정확히 맞지 않게 만들어 눈치로 맞히기 어렵습니다.' },
+  { q: '"손으로 넘기기"와 "자동"은 무엇이 다른가요?', a: '손으로 넘기기는 한자리에 모여 화면(또는 스페이스바)을 눌러 다음 사람에게 폭탄을 넘기는 방식입니다. 자동은 폭탄이 스스로 사람들 사이를 돌다가 터지는 방식이라 방송에서 시청자 추첨용으로 쓰기 좋습니다.' },
+  { q: '회식 벌칙으로 쓰려면?', a: '참가자를 둥글게 앉은 순서대로 적고 손으로 넘기기를 고르세요. 폭탄을 받은 사람이 질문에 답하거나 건배사를 한 뒤 넘기는 식으로 하면 더 재미있습니다.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title="폭탄 돌리기 — 언제 터질지 모르는 벌칙 게임 (회식·방송)" description="숨겨진 시간에 터지는 폭탄을 돌려 벌칙 당첨자를 뽑습니다. 모여서 손으로 넘기거나, 방송에서 자동으로 돌리세요. 째깍 소리와 폭발 연출까지 무료로." jsonLd={jsonLd}>
+<div class="pt pt-narrow py" style="--c:#FF4D6D">
+  <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/party/">방송·회식 추첨 게임</a> › 폭탄 돌리기</nav>
+  <div class="py-head">
+    <div><h1>폭탄 돌리기</h1><p>언제 터질지는 아무도 모릅니다. 째깍 소리가 빨라지면 서두르세요.</p></div>
+    <div class="py-tools"><button type="button" class="py-tool" id="mute"></button><button type="button" class="py-tool" id="link">방송용 링크 복사</button><button type="button" class="py-tool hot" id="stream">방송 모드</button></div>
+  </div>
+
+  <div class="py-stage bm-stage" id="stage">
+    <div class="py-hud"><b>CRAMA BOMB</b><b id="hud"></b></div>
+    <div class="py-ticker" id="ticker"></div>
+    <div class="bm-ring" id="ring"></div>
+    <div class="bm-bomb" id="bomb" aria-hidden="true"><span>💣</span></div>
+    <button type="button" class="bm-pass" id="pass" hidden>넘기기!<small>화면 아무 곳이나 · Space</small></button>
+    <div class="py-result" id="res" hidden>
+      <small id="res-k">💥 펑!</small><strong id="res-name"></strong><p id="res-sub">벌칙 당첨!</p>
+      <div class="py-rbtns"><button type="button" class="p" id="again">한 판 더</button><button type="button" id="share">결과 복사</button></div>
+    </div>
+    <div class="py-streambar"><button type="button" class="p" id="s-go">시작 (Enter)</button><button type="button" id="s-exit">나가기</button></div>
+  </div>
+
+  <form class="py-form" id="f" onsubmit="return false">
+    <label>참가자 (앉은 순서대로, 2~16명)<textarea id="names" spellcheck="false"></textarea></label>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <label>방식<span class="py-seg" id="mode"><button type="button" data-v="hand" class="on">손으로 넘기기</button><button type="button" data-v="auto">자동으로 돌기 (방송)</button></span></label>
+      <label>터지는 시간<span class="py-seg" id="fuse"><button type="button" data-v="6-14">빨리 (6~14초)</button><button type="button" data-v="10-25" class="on">보통 (10~25초)</button><button type="button" data-v="20-45">길게 (20~45초)</button></span></label>
+      <p class="py-hint">손으로 넘기기는 화면을 누르거나 스페이스바로 다음 사람에게 넘깁니다.</p>
+    </div>
+  </form>
+  <button type="button" class="py-go" id="go">폭탄 켜기!</button>
+  <ol class="py-rank" id="rank"></ol>
+
+  <a class="py-answer" href="/answer/#lineup"><span>방송·게임에 브랜드를 넣고 싶다면? <b>크라마 앤서</b>로 웹게임 입점·브랜드 테스트를 제안해 보세요.</span><em>알아보기 →</em></a>
+
+  <section class="pt-sec pt-prose">
+    <h2>하는 법</h2>
+    <ul>
+      <li>참가자를 앉은 순서대로 적고 방식을 고릅니다. 폭탄은 무작위 한 명에게서 시작합니다.</li>
+      <li><b>손으로 넘기기</b>: 폭탄을 받은 사람이 화면을 눌러 옆 사람에게 넘깁니다. 받은 사람에게 질문 하나, 건배사 한마디 같은 규칙을 붙이면 더 재미있어요.</li>
+      <li><b>자동으로 돌기</b>: 폭탄이 스스로 사람들 사이를 오가다 터집니다. 방송 시청자 추첨에 좋습니다.</li>
+      <li>터지는 순간 폭탄을 든 사람이 벌칙 당첨입니다. 터진 기록은 아래에 차례로 남습니다.</li>
+    </ul>
+    <h2>자주 묻는 질문</h2>
+    {faq.map((f) => <><h3>{f.q}</h3><p>{f.a}</p></>)}
+  </section>
+</div>
+
+<style is:global>
+  .bm-stage { height:min(520px, 92vw); }
+  .bm-stage.is-stream { height:auto; }
+  .bm-ring { position:absolute; inset:56px 16px 16px; }
+  .bm-chip { position:absolute; transform:translate(-50%, -50%); padding:8px 12px; border-radius:999px; font-weight:800; font-size:clamp(.8rem, 2.6vw, 1rem); color:#fff; background:rgba(255,255,255,.1); border:2px solid transparent; white-space:nowrap; transition:transform .2s, background .2s; }
+  .bm-chip.on { background:#FF4D6D; border-color:#FFC83D; transform:translate(-50%, -50%) scale(1.18); box-shadow:0 0 24px rgba(255,77,109,.7); }
+  .bm-chip.dead { background:#3a0d16; color:#ff8fa3; text-decoration:line-through; }
+  .bm-bomb { position:absolute; left:50%; top:50%; transform:translate(-50%, -50%); font-size:clamp(3.5rem, 14vw, 6rem); transition:left .28s cubic-bezier(.3,1.4,.5,1), top .28s cubic-bezier(.3,1.4,.5,1); pointer-events:none; filter:drop-shadow(0 6px 14px rgba(0,0,0,.4)); }
+  .bm-bomb span { display:inline-block; }
+  .bm-bomb.pulse span { animation:bm-pulse var(--beat, .6s) ease-in-out infinite; }
+  @keyframes bm-pulse { 0%, 100% { transform:scale(1); } 50% { transform:scale(1.14) rotate(-6deg); } }
+  .bm-pass { position:absolute; left:50%; bottom:22px; transform:translateX(-50%); z-index:4; font:inherit; font-size:1.3rem; font-weight:900; padding:14px 34px; border-radius:999px; border:0; background:#FFC83D; color:#1e1b3a; cursor:pointer; display:flex; flex-direction:column; align-items:center; box-shadow:0 10px 24px -8px rgba(255,200,61,.7); }
+  .bm-pass small { font-size:.72rem; font-weight:700; opacity:.7; }
+  .bm-pass[hidden] { display:none; }
+</style>
+
+<script>
+  import { initNames, parseList, rand, sfx, shake, flash, initStream, streamUrl, initMute, copyText, track } from '../../party/kit';
+
+  const $ = (id: string) => document.getElementById(id) as HTMLElement;
+  const stage = $('stage'), ring = $('ring'), bomb = $('bomb'), pass = $('pass');
+  const ta = $('names') as HTMLTextAreaElement;
+  initNames('bomb', ta, '민수\n지영\n현우\n서연\n도윤\n하은\n준호\n유나');
+  const q = new URLSearchParams(location.search);
+  let mode = q.get('mode') === 'auto' ? 'auto' : 'hand';
+  let fuse: [number, number] = [10, 25];
+  const seg = (id: string, cb: (v: string) => void, init?: string) => {
+    const box = $(id);
+    box.querySelectorAll('button').forEach((b) => {
+      if (init && b.dataset.v === init) { box.querySelectorAll('button').forEach((x) => x.classList.remove('on')); b.classList.add('on'); }
+      b.addEventListener('click', () => { box.querySelectorAll('button').forEach((x) => x.classList.remove('on')); b.classList.add('on'); cb(b.dataset.v!); });
+    });
+  };
+  seg('mode', (v) => { mode = v; }, mode);
+  seg('fuse', (v) => { fuse = v.split('-').map(Number) as [number, number]; });
+
+  let names: string[] = [], chips: HTMLElement[] = [], cur = 0, running = false, t0 = 0, boomAt = 0, nextTick = 0, nextAuto = 0, autoGap = 0.12;
+  const history: string[] = [];
+
+  const place = () => {
+    names = parseList(ta.value, 16);
+    ring.innerHTML = '';
+    chips = names.map((n, i) => {
+      const a = (i / names.length) * Math.PI * 2 - Math.PI / 2;
+      const el = document.createElement('div');
+      el.className = 'bm-chip'; el.textContent = n;
+      el.style.left = `${50 + Math.cos(a) * 42}%`; el.style.top = `${50 + Math.sin(a) * 40}%`;
+      ring.appendChild(el); return el;
+    });
+  };
+  const moveBomb = () => {
+    chips.forEach((c, i) => c.classList.toggle('on', i === cur));
+    const c = chips[cur]; if (!c) return;
+    const rr = ring.getBoundingClientRect(), sr = stage.getBoundingClientRect(), cr = c.getBoundingClientRect();
+    const cx = cr.left + cr.width / 2 - sr.left, cy = cr.top + cr.height / 2 - sr.top;
+    const mx = rr.left - sr.left + rr.width / 2, my = rr.top - sr.top + rr.height / 2;
+    bomb.style.left = `${mx + (cx - mx) * 0.55}px`; bomb.style.top = `${my + (cy - my) * 0.55}px`;
+  };
+  const tick = (t: string) => { const el = $('ticker'); el.textContent = t; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); };
+
+  function loop(t: number) {
+    if (!running) return;
+    const s = (t - t0) / 1000;
+    // 째깍: 가능한 최대 시간 대비 흐른 비율로 빨라짐(실제 남은 시간을 드러내지 않도록)
+    const k = Math.min(1, s / fuse[1]);
+    const gap = 0.75 - 0.62 * k + rand(-0.04, 0.04);
+    bomb.style.setProperty('--beat', `${Math.max(0.12, gap)}s`);
+    if (s >= nextTick) { sfx.tick(k > 0.6); nextTick = s + Math.max(0.1, gap); }
+    if (mode === 'auto' && s >= nextAuto) { cur = (cur + 1) % names.length; moveBomb(); sfx.click(); autoGap = Math.min(0.9, autoGap * rand(1.0, 1.07)); nextAuto = s + autoGap; }
+    if (s >= boomAt) { boom(); return; }
+    requestAnimationFrame(loop);
+  }
+
+  function start() {
+    if (running) return;
+    place();
+    if (names.length < 2) { alert('참가자를 2명 이상 적어 주세요.'); return; }
+    $('res').hidden = true;
+    cur = Math.floor(Math.random() * names.length);
+    running = true; ($('go') as HTMLButtonElement).disabled = true;
+    bomb.classList.add('pulse');
+    requestAnimationFrame(() => moveBomb());
+    boomAt = rand(fuse[0], fuse[1]); nextTick = 0; nextAuto = 0.2; autoGap = 0.11;
+    t0 = performance.now();
+    pass.hidden = mode !== 'hand';
+    tick(mode === 'hand' ? `${names[cur]}부터 시작!` : '폭탄이 돈다!');
+    requestAnimationFrame(loop);
+    track('party_play', { game: 'bomb', players: names.length, mode });
+  }
+  const doPass = () => { if (!running || mode !== 'hand') return; cur = (cur + 1) % names.length; moveBomb(); sfx.click(); };
+
+  let shareText = '';
+  function boom() {
+    running = false; ($('go') as HTMLButtonElement).disabled = false; pass.hidden = true;
+    bomb.classList.remove('pulse');
+    sfx.boom(); flash('#FF4D6D', 450); shake(stage, 26, 800);
+    chips[cur]?.classList.add('dead');
+    const who = names[cur];
+    history.unshift(who);
+    $('res-name').textContent = who;
+    setTimeout(() => { $('res').hidden = false; }, 380);
+    $('rank').innerHTML = history.slice(0, 10).map((n, i) => `<li class="${i === 0 ? 'lose' : ''}"><i style="background:#FF4D6D">💥</i><span>${n.replace(/</g, '&lt;')}</span><em>${i === 0 ? '방금' : `${i}판 전`}</em></li>`).join('');
+    shareText = `[크라마 폭탄 돌리기] 💥 펑! 벌칙 당첨: ${who}\n${location.origin}/party/bomb/`;
+  }
+
+  $('go').addEventListener('click', start);
+  $('again').addEventListener('click', start);
+  $('s-go').addEventListener('click', start);
+  pass.addEventListener('click', (e) => { e.stopPropagation(); doPass(); });
+  stage.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('button')) return; doPass(); });
+  $('share').addEventListener('click', (e) => copyText(shareText, e.currentTarget as HTMLElement));
+  addEventListener('keydown', (e) => {
+    if (document.activeElement && ['TEXTAREA', 'INPUT'].includes(document.activeElement.tagName)) return;
+    if (e.code === 'Space') { e.preventDefault(); if (running) doPass(); else start(); }
+    if (e.code === 'Enter' && !running) start();
+  });
+  ta.addEventListener('input', () => { if (!running) place(); });
+  addEventListener('resize', () => moveBomb());
+  initMute($('mute'));
+  initStream(stage, $('stream'), $('link'), () => streamUrl({ names: parseList(ta.value, 16).join(','), mode: 'auto' }));
+  $('s-exit').addEventListener('click', () => $('stream').click());
+  place();
+</script>
+</BaseLayout>

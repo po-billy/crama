@@ -1,0 +1,79 @@
+---
+// 방송·회식 추첨 게임 허브 — 스트리머 추첨·벌칙, 직장인 점심값 내기, 회식 게임.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/portal.css';
+import '../../styles/party.css';
+
+const GAMES = [
+  { href: '/party/race/', icon: '🏁', name: '이름 레이스', tag: 'RACE', desc: '이름이 달리는 경마 추첨. 부스터·역전·사진 판정까지 마지막까지 모릅니다.', bg: 'linear-gradient(135deg,#6C5CE7,#3B82F6)' },
+  { href: '/party/plinko/', icon: '🟡', name: '플링코 추첨', tag: 'PLINKO', desc: '못 판에 공을 떨어뜨려 들어간 칸이 결과. 당첨·꽝·벌칙을 직접 적어요.', bg: 'linear-gradient(135deg,#F97316,#FF4D6D)' },
+  { href: '/party/bomb/', icon: '💣', name: '폭탄 돌리기', tag: 'BOMB', desc: '언제 터질지 모르는 폭탄. 모여서 손으로 넘기거나, 방송에서 자동으로.', bg: 'linear-gradient(135deg,#1E1B3A,#FF4D6D)' },
+  { href: '/party/pay/', icon: '💸', name: '밥값 몰아주기', tag: 'PAY', desc: '총액만 넣으면 한 명 몰빵, 랜덤 금액, 두 명 반반. 송금 문구까지.', bg: 'linear-gradient(135deg,#20C997,#06B6D4)' },
+];
+const MORE = [
+  { href: '/pick/ladder/', name: '사다리 타기' },
+  { href: '/pick/wheel/', name: '돌림판 돌리기' },
+  { href: '/pick/draw/', name: '제비뽑기·조 나누기' },
+  { href: '/pick/dice/', name: '주사위·동전' },
+  { href: '/pick/number/', name: '랜덤 숫자 뽑기' },
+];
+const faq = [
+  { q: '방송(트위치·치지직·유튜브)에서 어떻게 쓰나요?', a: '각 게임의 "방송용 링크 복사"를 누르면 참가자 이름이 담긴 주소가 복사됩니다. OBS나 프리즘의 브라우저 소스에 그 주소를 넣으면 게임 화면만 전체로 열리고, 스페이스바로 시작할 수 있습니다. 크로마키가 필요하면 주소 끝에 &bg=green을 붙이세요.' },
+  { q: '설치나 회원가입이 필요한가요?', a: '아니요. 브라우저에서 바로 쓰고, 입력한 이름은 서버로 보내지 않고 이 기기에만 저장합니다.' },
+  { q: '결과는 공정한가요?', a: '모든 게임은 시작할 때마다 무작위로 결과가 정해지며, 미리 정해 두거나 조작하는 기능은 없습니다. 이벤트 추첨처럼 증빙이 필요하면 화면을 녹화해 두세요.' },
+  { q: '점심값 내기에 가장 좋은 게임은?', a: '빨리 끝내려면 밥값 몰아주기의 "한 명 몰빵", 다 같이 보며 즐기려면 이름 레이스의 "꼴찌 당첨"을 추천합니다.' },
+];
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    { '@type': 'ItemList', name: '방송·회식 추첨 게임', itemListElement: GAMES.map((g, i) => ({ '@type': 'ListItem', position: i + 1, name: g.name, url: `https://crama.app${g.href}` })) },
+    { '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+  ],
+};
+---
+<BaseLayout title="방송·회식 추첨 게임 — 이름 레이스·플링코·폭탄 돌리기·밥값 내기" description="스트리머 시청자 추첨, 직장인 점심값 내기, 회식 벌칙까지. 이름 레이스, 플링코, 폭탄 돌리기, 밥값 몰아주기를 설치 없이 무료로. 방송(OBS) 화면 지원." jsonLd={jsonLd}>
+<div class="pt pt-narrow py" style="--c:#6C5CE7">
+  <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/games/">게임</a> › 방송·회식 추첨 게임</nav>
+  <header class="pt-hubhero" style="--c:#6C5CE7">
+    <div>
+      <h1>방송·회식 추첨 게임</h1>
+      <p>시청자 추첨, 점심값 내기, 회식 벌칙. 다 같이 화면을 보며 소리 지르게 되는 추첨을 모았습니다.</p>
+    </div>
+  </header>
+
+  <div class="py-hub">
+    {GAMES.map((g) => <a class="py-card" href={g.href} style={`background:${g.bg}`}><small>{g.tag}</small><b>{g.name}</b><span>{g.desc}</span><em>바로 하기 →</em><i aria-hidden="true">{g.icon}</i></a>)}
+  </div>
+
+  <section class="pt-sec">
+    <div class="pt-sec__head"><div><h2>이럴 때 쓰세요</h2></div></div>
+    <div class="py-uses">
+      <div><b>🎥 스트리머</b><span>시청자 이름으로 레이스·플링코 추첨, 벌칙 대상 정하기. 방송용 링크 하나로 OBS에 바로.</span></div>
+      <div><b>🍱 직장인 점심</b><span>밥값·커피값 한 명 몰빵 또는 랜덤 금액. 송금 문구까지 바로 복사.</span></div>
+      <div><b>🍻 회식·모임</b><span>폭탄 돌리기로 건배사·벌칙 당첨자 뽑기. 손으로 넘기며 다 같이.</span></div>
+    </div>
+  </section>
+
+  <section class="pt-sec pt-prose">
+    <h2>방송에서 쓰는 법 (OBS·프리즘)</h2>
+    <ol>
+      <li>게임 화면에서 참가자 이름을 넣고 <b>방송용 링크 복사</b>를 누릅니다.</li>
+      <li>OBS에서 <b>소스 추가 → 브라우저</b>를 고르고 복사한 주소를 붙여 넣습니다. 너비 1920, 높이 1080을 권합니다.</li>
+      <li>배경을 투명하게 하려면 주소 끝에 <code>&amp;bg=transparent</code>, 크로마키는 <code>&amp;bg=green</code>을 붙입니다.</li>
+      <li>방송 중에는 브라우저 소스를 '상호작용'으로 열고 스페이스바를 누르면 시작합니다.</li>
+    </ol>
+  </section>
+
+  <section class="pt-sec">
+    <div class="pt-sec__head"><div><h2>다른 추첨 도구</h2></div></div>
+    <div class="pt-chips">{MORE.map((m) => <a class="pt-chip" href={m.href}>{m.name}</a>)}</div>
+  </section>
+
+  <a class="py-answer" href="/answer/"><span>이 게임들에 브랜드를 넣고 싶다면? <b>크라마 앤서</b> — 웹게임 입점, 브랜드 테스트, 맞춤 기획.</span><em>광고·제휴 →</em></a>
+
+  <section class="pt-sec pt-prose">
+    <h2>자주 묻는 질문</h2>
+    {faq.map((f) => <><h3>{f.q}</h3><p>{f.a}</p></>)}
+  </section>
+</div>
+</BaseLayout>

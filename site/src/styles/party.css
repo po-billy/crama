@@ -1,0 +1,85 @@
+/* 방송·회식 추첨 게임(/party/*) 공용 스타일 — 접두사 py- */
+.py { --py-ink:#1E1B3A; --py-bg:#14112B; --py-acc:#6C5CE7; --py-hot:#FF4D6D; --py-gold:#FFC83D; }
+
+.py-head { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; flex-wrap:wrap; margin:6px 0 14px; }
+.py-head h1 { margin:0; font-size:clamp(1.5rem, 4vw, 2rem); font-weight:900; letter-spacing:-0.04em; }
+.py-head p { margin:4px 0 0; color:var(--muted, #6b6880); font-size:0.95rem; }
+.py-tools { display:flex; gap:6px; flex-wrap:wrap; }
+.py-tool { font:inherit; font-size:0.82rem; font-weight:700; padding:7px 11px; border-radius:10px; border:1px solid var(--line, #e3e0f2); background:#fff; color:#333; cursor:pointer; }
+.py-tool.hot { background:var(--py-ink); color:#fff; border-color:var(--py-ink); }
+
+/* 무대 */
+.py-stage { position:relative; background:var(--py-bg); border-radius:20px; overflow:hidden; color:#fff; box-shadow:0 20px 40px -24px rgba(20,17,43,.6); user-select:none; }
+.py-stage canvas { display:block; width:100%; }
+.py-hud { position:absolute; left:0; right:0; top:0; display:flex; justify-content:space-between; align-items:center; padding:10px 14px; pointer-events:none; z-index:2; }
+.py-hud b { font-size:0.85rem; letter-spacing:0.08em; color:#B9AFFF; }
+.py-ticker { position:absolute; left:50%; top:46px; transform:translateX(-50%); z-index:3; pointer-events:none; font-weight:900; font-size:clamp(1rem, 3.2vw, 1.5rem); color:#fff; text-shadow:0 2px 0 rgba(0,0,0,.35); white-space:nowrap; opacity:0; }
+.py-ticker.show { animation:py-tick 1.3s ease both; }
+@keyframes py-tick { 0% { opacity:0; transform:translate(-50%, 10px) scale(.8); } 15% { opacity:1; transform:translate(-50%, 0) scale(1.08); } 25% { transform:translate(-50%,0) scale(1); } 80% { opacity:1; } 100% { opacity:0; transform:translate(-50%, -8px); } }
+
+/* 결과 공개 */
+.py-result { position:absolute; inset:0; z-index:5; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; background:rgba(14,11,34,.78); backdrop-filter:blur(3px); text-align:center; padding:20px; }
+.py-result[hidden] { display:none; }
+.py-result small { font-size:0.95rem; font-weight:800; letter-spacing:0.12em; color:var(--py-gold); }
+.py-result strong { font-size:clamp(2.4rem, 9vw, 4.6rem); font-weight:900; letter-spacing:-0.04em; line-height:1.05; animation:py-pop .6s cubic-bezier(.2,1.6,.4,1) both; }
+.py-result p { margin:0; font-size:1rem; color:#D9D4FF; }
+.py-result .py-rbtns { display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; justify-content:center; }
+.py-result .py-rbtns button { font:inherit; font-weight:800; font-size:0.92rem; padding:10px 16px; border-radius:12px; border:0; cursor:pointer; background:#fff; color:var(--py-ink); }
+.py-result .py-rbtns button.p { background:var(--py-acc); color:#fff; }
+@keyframes py-pop { 0% { transform:scale(.3); opacity:0; } 100% { transform:scale(1); opacity:1; } }
+
+/* 입력 */
+.py-form { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:14px; }
+.py-form label { display:flex; flex-direction:column; gap:6px; font-size:0.85rem; font-weight:800; color:#4a4763; }
+.py-form textarea, .py-form input, .py-form select { font:inherit; font-size:0.95rem; border:1.5px solid var(--line, #e3e0f2); border-radius:12px; padding:10px 12px; background:#fff; color:#1e1b3a; }
+.py-form textarea { min-height:132px; resize:vertical; line-height:1.55; }
+.py-full { grid-column:1 / -1; }
+.py-seg { display:flex; gap:6px; flex-wrap:wrap; }
+.py-seg button { font:inherit; font-size:0.88rem; font-weight:700; padding:9px 12px; border-radius:10px; border:1.5px solid var(--line, #e3e0f2); background:#fff; cursor:pointer; color:#4a4763; }
+.py-seg button.on { border-color:var(--py-acc); background:#ECE9FD; color:#4b3fd0; }
+.py-go { font:inherit; width:100%; margin-top:12px; padding:16px; border:0; border-radius:14px; background:linear-gradient(90deg, #6C5CE7, #FF4D6D); color:#fff; font-size:1.1rem; font-weight:900; letter-spacing:-0.02em; cursor:pointer; box-shadow:0 10px 22px -12px rgba(108,92,231,.8); }
+.py-go:disabled { opacity:.55; cursor:default; }
+.py-hint { margin:8px 0 0; font-size:0.82rem; color:#8a879c; }
+
+/* 순위·결과 표 */
+.py-rank { list-style:none; margin:14px 0 0; padding:0; display:grid; gap:6px; }
+.py-rank li { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:12px; background:#fff; border:1px solid var(--line, #e3e0f2); font-weight:700; }
+.py-rank li i { font-style:normal; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:0.82rem; flex-shrink:0; }
+.py-rank li span { flex:1; }
+.py-rank li em { font-style:normal; font-weight:900; color:#4b3fd0; }
+.py-rank li.lose { border-color:#FF4D6D; background:#FFF0F3; }
+.py-rank li.win { border-color:#FFC83D; background:#FFF9E6; }
+
+/* 크라마 앤서 연결(작게) */
+.py-answer { display:flex; align-items:center; gap:12px; margin-top:18px; padding:14px 16px; border-radius:14px; background:#F2F0FC; color:#1e1b3a; text-decoration:none; font-size:0.88rem; line-height:1.5; }
+.py-answer b { color:#4b3fd0; }
+.py-answer em { font-style:normal; margin-left:auto; font-weight:800; color:#4b3fd0; white-space:nowrap; }
+
+/* 방송 모드: 무대를 화면 전체로 */
+.py-stage.is-stream { position:fixed; inset:0; z-index:9000; border-radius:0; display:flex; flex-direction:column; justify-content:center; }
+.py-stage.is-stream canvas { max-height:100vh; object-fit:contain; }
+.py-stage.is-stream[data-bg="green"] { background:#00B140; }
+.py-stage.is-stream[data-bg="transparent"] { background:transparent; }
+.py-stage .py-streambar { display:none; }
+.py-stage.is-stream .py-streambar { display:flex; position:absolute; right:12px; bottom:12px; gap:8px; z-index:6; }
+.py-streambar button { font:inherit; font-size:0.9rem; font-weight:800; padding:10px 14px; border-radius:12px; border:0; cursor:pointer; background:rgba(255,255,255,.92); color:#1e1b3a; }
+.py-streambar button.p { background:var(--py-acc); color:#fff; }
+body.py-streaming { overflow:hidden; }
+
+/* 허브 */
+.py-hub { display:grid; grid-template-columns:repeat(2, 1fr); gap:14px; }
+.py-card { position:relative; display:flex; flex-direction:column; gap:6px; padding:20px; border-radius:18px; color:#fff; text-decoration:none; min-height:168px; overflow:hidden; }
+.py-card small { font-size:0.78rem; font-weight:800; letter-spacing:0.1em; opacity:.85; }
+.py-card b { font-size:1.35rem; font-weight:900; letter-spacing:-0.03em; }
+.py-card span { font-size:0.9rem; line-height:1.55; opacity:.92; max-width:85%; }
+.py-card em { font-style:normal; margin-top:auto; font-weight:800; font-size:0.88rem; }
+.py-card i { position:absolute; right:-6px; bottom:-14px; font-style:normal; font-size:5rem; opacity:.25; }
+.py-uses { display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; }
+.py-uses div { background:#fff; border:1px solid var(--line, #e3e0f2); border-radius:14px; padding:14px; }
+.py-uses b { display:block; font-size:0.98rem; margin-bottom:4px; }
+.py-uses span { font-size:0.86rem; color:#6b6880; line-height:1.55; }
+
+@media (max-width:720px) {
+  .py-form { grid-template-columns:1fr; }
+  .py-hub, .py-uses { grid-template-columns:1fr; }
+}

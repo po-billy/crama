@@ -1,0 +1,233 @@
+---
+// 이름 레이스 — 이름을 넣으면 레인 위를 달린다. 부스터·미끄러짐·역전·사진 판정 연출. 꼴찌 당첨/1등 당첨.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/portal.css';
+import '../../styles/party.css';
+
+const faq = [
+  { q: '결과는 정말 무작위인가요?', a: '네. 출발할 때마다 참가자별 속도와 부스터·미끄러짐이 무작위로 정해집니다. 뒤처진 참가자가 조금 더 빨라지는 보정이 있어 끝까지 접전이 되지만, 누가 이길지는 미리 정해지지 않습니다.' },
+  { q: '방송(OBS)에서 쓰려면 어떻게 하나요?', a: '"방송용 링크 복사"를 누르면 참가자 이름이 담긴 주소가 복사됩니다. OBS의 브라우저 소스에 이 주소를 넣으면 화면 전체가 레이스 화면으로 열리고, 스페이스바나 "출발" 버튼으로 시작할 수 있습니다. 초록 배경이 필요하면 주소 끝에 &bg=green을 붙이세요.' },
+  { q: '몇 명까지 참가할 수 있나요?', a: '2명부터 12명까지입니다. 더 많은 인원은 플링코나 폭탄 돌리기를 써 보세요.' },
+  { q: '입력한 이름은 어디에 저장되나요?', a: '서버로 보내지 않고 이 기기의 브라우저에만 저장됩니다. 다음에 열면 마지막에 쓴 이름이 그대로 들어가 있습니다.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title="이름 레이스 — 경마 추첨 게임 (방송·점심값 내기·벌칙)" description="이름을 넣으면 달리기 경주로 당첨자를 뽑습니다. 부스터·역전·사진 판정까지 마지막까지 모르는 추첨. 꼴찌 벌칙, 1등 상품, 방송용 화면(OBS)까지 무료로." jsonLd={jsonLd}>
+<div class="pt pt-narrow py" style="--c:#6C5CE7">
+  <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/party/">방송·회식 추첨 게임</a> › 이름 레이스</nav>
+  <div class="py-head">
+    <div><h1>이름 레이스</h1><p>이름을 넣고 달리게 하세요. 역전과 사진 판정까지, 마지막까지 모릅니다.</p></div>
+    <div class="py-tools"><button type="button" class="py-tool" id="mute"></button><button type="button" class="py-tool" id="link">방송용 링크 복사</button><button type="button" class="py-tool hot" id="stream">방송 모드</button></div>
+  </div>
+
+  <div class="py-stage" id="stage">
+    <div class="py-hud"><b>CRAMA RACE</b><b id="hud"></b></div>
+    <div class="py-ticker" id="ticker"></div>
+    <canvas id="cv" aria-label="이름 레이스 경기 화면"></canvas>
+    <div class="py-result" id="res" hidden>
+      <small id="res-k"></small><strong id="res-name"></strong><p id="res-sub"></p>
+      <div class="py-rbtns"><button type="button" class="p" id="again">한 판 더</button><button type="button" id="share">결과 복사</button></div>
+    </div>
+    <div class="py-streambar"><button type="button" class="p" id="s-go">출발 (Space)</button><button type="button" id="s-exit">나가기</button></div>
+  </div>
+
+  <form class="py-form" id="f" onsubmit="return false">
+    <label>참가자 (한 줄에 한 명, 2~12명)<textarea id="names" spellcheck="false"></textarea></label>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <label>누가 당첨될까요<span class="py-seg" id="mode"><button type="button" data-v="last" class="on">꼴찌가 당첨 (벌칙·밥값)</button><button type="button" data-v="first">1등이 당첨 (상품)</button></span></label>
+      <label>경기 시간<span class="py-seg" id="speed"><button type="button" data-v="1.35">짧게</button><button type="button" data-v="1" class="on">보통</button><button type="button" data-v="0.75">길게</button></span></label>
+      <p class="py-hint">스페이스바로도 출발할 수 있어요. 이름은 이 기기에만 저장됩니다.</p>
+    </div>
+  </form>
+  <button type="button" class="py-go" id="go">출발!</button>
+  <ol class="py-rank" id="rank"></ol>
+
+  <a class="py-answer" href="/answer/#lineup"><span>방송·게임에 브랜드를 넣고 싶다면? <b>크라마 앤서</b>로 웹게임 입점·브랜드 테스트를 제안해 보세요.</span><em>알아보기 →</em></a>
+
+  <section class="pt-sec pt-prose">
+    <h2>하는 법</h2>
+    <ul>
+      <li>참가자 이름을 한 줄에 하나씩 적고, <b>꼴찌 당첨</b>(벌칙·점심값)인지 <b>1등 당첨</b>(상품)인지 고릅니다.</li>
+      <li>"출발!"을 누르면 3·2·1 카운트다운 뒤 경주가 시작됩니다. 부스터와 미끄러짐이 무작위로 터지고, 선두가 바뀌면 중계가 나옵니다.</li>
+      <li>결승선 앞에서 접전이면 슬로모션으로 바뀌어 사진 판정처럼 보여 줍니다. 끝나면 전체 순위가 아래에 남습니다.</li>
+    </ul>
+    <h2>방송에서 쓰는 법</h2>
+    <ul>
+      <li><b>방송 모드</b>를 누르면 경주 화면만 화면 전체로 커집니다. Esc로 나옵니다.</li>
+      <li><b>방송용 링크 복사</b>로 받은 주소를 OBS 브라우저 소스에 넣으면 시청자 이름이 담긴 경주 화면이 바로 열립니다. 크로마키가 필요하면 주소 끝에 <code>&amp;bg=green</code>을 붙이세요.</li>
+      <li>시청자 참여 추첨, 벌칙 대상 정하기, 내기 결과 발표에 쓰기 좋습니다.</li>
+    </ul>
+    <h2>자주 묻는 질문</h2>
+    {faq.map((f) => <><h3>{f.q}</h3><p>{f.a}</p></>)}
+  </section>
+</div>
+
+<script>
+  import { initNames, parseList, PALETTE, rand, sfx, shake, confetti, initStream, streamUrl, initMute, copyText, track } from '../../party/kit';
+
+  const $ = (id: string) => document.getElementById(id) as HTMLElement;
+  const cv = $('cv') as HTMLCanvasElement;
+  const g = cv.getContext('2d')!;
+  const stage = $('stage');
+  const ta = $('names') as HTMLTextAreaElement;
+  const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+  initNames('race', ta, '민수\n지영\n현우\n서연\n도윤\n하은');
+
+  const q = new URLSearchParams(location.search);
+  let mode = q.get('mode') === 'first' ? 'first' : 'last';
+  let pace = 1;
+  const seg = (id: string, cb: (v: string) => void, init?: string) => {
+    const box = $(id);
+    box.querySelectorAll('button').forEach((b) => {
+      if (init && b.dataset.v === init) { box.querySelectorAll('button').forEach((x) => x.classList.remove('on')); b.classList.add('on'); }
+      b.addEventListener('click', () => { box.querySelectorAll('button').forEach((x) => x.classList.remove('on')); b.classList.add('on'); cb(b.dataset.v!); });
+    });
+  };
+  seg('mode', (v) => { mode = v; }, mode);
+  seg('speed', (v) => { pace = Number(v); });
+
+  type R = { name: string; color: string; p: number; base: number; boost: number; slip: number; done: boolean; place: number; bob: number };
+  let racers: R[] = [];
+  let running = false;
+  let finished: R[] = [];
+  let W = 0, H = 0, laneH = 40, last = 0, nextEvt = 0, leader: R | null = null, slow = false, endAt = 0;
+  const X0 = () => (W < 520 ? 70 : 96);
+  const X1 = () => W - 34;
+
+  const build = () => {
+    const names = parseList(ta.value, 12);
+    racers = names.map((name, i) => ({ name, color: PALETTE[i % PALETTE.length], p: 0, base: rand(0.092, 0.104), boost: 0, slip: 0, done: false, place: 0, bob: rand(0, 6) }));
+  };
+  const size = () => {
+    const n = Math.max(2, racers.length);
+    const stream = stage.classList.contains('is-stream');
+    W = stage.clientWidth;
+    laneH = stream ? Math.min(96, (innerHeight - 140) / n) : Math.max(34, Math.min(52, 380 / n));
+    H = Math.round(62 + laneH * n + 26);
+    cv.style.height = H + 'px';
+    const dpr = Math.min(2, devicePixelRatio || 1);
+    cv.width = W * dpr; cv.height = H * dpr; g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    draw();
+  };
+
+  const short = (s: string, n: number) => (s.length > n ? s.slice(0, n) + '…' : s);
+  function draw() {
+    g.clearRect(0, 0, W, H);
+    const x0 = X0(), x1 = X1();
+    racers.forEach((r, i) => {
+      const y = 62 + i * laneH;
+      g.fillStyle = i % 2 ? 'rgba(255,255,255,.035)' : 'rgba(255,255,255,.07)';
+      g.fillRect(0, y, W, laneH);
+      g.fillStyle = r.color; g.fillRect(0, y, 4, laneH);
+      g.fillStyle = '#fff'; g.font = `800 ${Math.min(15, laneH * 0.36)}px Pretendard, sans-serif`; g.textAlign = 'left'; g.textBaseline = 'middle';
+      g.fillText(short(r.name, W < 520 ? 4 : 6), 10, y + laneH / 2);
+    });
+    // 출발선·결승선
+    g.strokeStyle = 'rgba(255,255,255,.35)'; g.setLineDash([4, 5]); g.beginPath(); g.moveTo(x0, 58); g.lineTo(x0, H - 22); g.stroke(); g.setLineDash([]);
+    const sq = 7;
+    for (let yy = 58; yy < H - 22; yy += sq) for (let k = 0; k < 2; k++) { g.fillStyle = ((yy / sq + k) | 0) % 2 ? '#fff' : '#111'; g.fillRect(x1 + k * sq, yy, sq, sq); }
+    // 주자
+    const rad = Math.min(17, laneH * 0.36);
+    const lead = running || finished.length ? [...racers].sort((a, b) => b.p - a.p)[0] : null;
+    racers.forEach((r, i) => {
+      const y = 62 + i * laneH + laneH / 2 + (running && !r.done ? Math.sin(performance.now() / 90 + r.bob) * 2 : 0);
+      const x = x0 + r.p * (x1 - x0 - rad);
+      if (r.boost > 0) for (let k = 1; k <= 5; k++) { g.globalAlpha = 0.35 / k; g.fillStyle = '#FFC83D'; g.beginPath(); g.arc(x - k * rad * 0.9, y, rad * (1 - k * 0.1), 0, 7); g.fill(); }
+      g.globalAlpha = 1;
+      if (r.slip > 0) { g.fillStyle = 'rgba(120,180,255,.5)'; g.beginPath(); g.arc(x, y + rad * 0.9, rad * 1.1, 0, 7); g.fill(); }
+      g.fillStyle = r.color; g.beginPath(); g.arc(x, y, rad, 0, 7); g.fill();
+      if (r === lead) { g.strokeStyle = '#FFC83D'; g.lineWidth = 3; g.stroke(); }
+      g.fillStyle = '#fff'; g.font = `900 ${rad}px Pretendard, sans-serif`; g.textAlign = 'center'; g.fillText(r.name.slice(0, 1), x, y + 1);
+      if (r.place) { g.fillStyle = r.place === 1 ? '#FFC83D' : 'rgba(255,255,255,.85)'; g.font = `900 ${Math.min(14, laneH * 0.32)}px Pretendard, sans-serif`; g.textAlign = 'right'; g.fillText(r.place + '위', x - rad - 6, y); }
+    });
+  }
+
+  const tick = (t: string) => { const el = $('ticker'); el.textContent = t; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); };
+
+  function loop(t: number) {
+    if (!running) return;
+    let dt = Math.min(0.05, (t - last) / 1000); last = t;
+    const alive = racers.filter((r) => !r.done);
+    const sorted = [...racers].sort((a, b) => b.p - a.p);
+    // 접전 슬로모션
+    const aliveSorted = sorted.filter((r) => !r.done);
+    const wasSlow = slow;
+    slow = mode === 'first'
+      ? !finished.length && aliveSorted.length > 1 && aliveSorted[0].p > 0.9 && aliveSorted[0].p - aliveSorted[1].p < 0.035
+      : alive.length === 2 && alive.every((r) => r.p > 0.86) && Math.abs(alive[0].p - alive[1].p) < 0.04;
+    if (slow && !wasSlow) { tick('사진 판정 각!'); sfx.drum(4); }
+    if (slow) dt *= 0.38;
+    // 이벤트
+    nextEvt -= dt;
+    if (nextEvt <= 0 && alive.length) {
+      nextEvt = rand(0.5, 0.95) / pace;
+      const r = alive[Math.floor(Math.random() * alive.length)];
+      if (Math.random() < 0.58) { r.boost = 0.7; sfx.boost(); if (Math.random() < 0.6) tick(`${r.name} 부스터!`); }
+      else { r.slip = 0.55; sfx.slip(); if (Math.random() < 0.6) tick(`${r.name} 미끄러짐!`); }
+    }
+    alive.forEach((r) => {
+      const rank = sorted.indexOf(r);
+      const catchUp = (rank / Math.max(1, racers.length - 1)) * 0.02;
+      let v = (r.base + catchUp + rand(-0.03, 0.03)) * pace;
+      if (r.boost > 0) { v *= 1.9; r.boost -= dt; }
+      if (r.slip > 0) { v *= 0.22; r.slip -= dt; }
+      r.p = Math.min(1, r.p + Math.max(0, v) * dt);
+      if (r.p >= 1) { r.done = true; r.place = finished.length + 1; finished.push(r); sfx.land(); if (r.place === 1) tick(`${r.name} 1등 골인!`); }
+    });
+    // 선두 교체 중계
+    const lead = [...racers].sort((a, b) => b.p - a.p)[0];
+    if (leader && lead !== leader && lead.p > 0.15 && lead.p < 0.97 && Math.random() < 0.7) tick(`${lead.name} 역전!`);
+    leader = lead;
+    $('hud').textContent = finished.length ? `${finished.length}/${racers.length} 골인` : '';
+    draw();
+    if (!endAt && (alive.length === 0 || (mode === 'first' && finished.length >= 1))) endAt = t + 1100;
+    if (endAt && t >= endAt) { end(); return; }
+    requestAnimationFrame(loop);
+  }
+
+  async function start() {
+    if (running) return;
+    build();
+    if (racers.length < 2) { alert('참가자를 2명 이상 적어 주세요.'); return; }
+    $('res').hidden = true; $('rank').innerHTML = '';
+    finished = []; leader = null; slow = false; endAt = 0; nextEvt = 1;
+    size();
+    running = true; ($('go') as HTMLButtonElement).disabled = true;
+    for (const n of ['3', '2', '1']) { tick(n); sfx.tick(); await wait(620); }
+    tick('출발!'); sfx.tick(true);
+    last = performance.now();
+    requestAnimationFrame(loop);
+    track('party_play', { game: 'race', players: racers.length, mode });
+  }
+
+  function end() {
+    running = false; ($('go') as HTMLButtonElement).disabled = false;
+    const rest = racers.filter((r) => !r.done).sort((a, b) => b.p - a.p);
+    const ranking = [...finished, ...rest];
+    const pick = mode === 'first' ? ranking[0] : ranking[ranking.length - 1];
+    $('res-k').textContent = mode === 'first' ? '🏆 1등 당첨' : '💸 꼴찌 당첨';
+    $('res-name').textContent = pick.name;
+    $('res-sub').textContent = mode === 'first' ? '축하합니다!' : '오늘의 벌칙(밥값)은 이분에게!';
+    $('res').hidden = false;
+    if (mode === 'first') { sfx.fanfare(); confetti(); } else { sfx.sad(); shake(stage, 16, 600); }
+    $('rank').innerHTML = ranking.map((r, i) => `<li class="${r === pick ? (mode === 'first' ? 'win' : 'lose') : ''}"><i style="background:${r.color}">${i + 1}</i><span>${r.name.replace(/</g, '&lt;')}</span><em>${i < finished.length ? '골인' : '미완주'}</em></li>`).join('');
+    shareText = `[크라마 이름 레이스] ${mode === 'first' ? '1등 당첨' : '꼴찌 당첨'}: ${pick.name}\n순위: ${ranking.map((r, i) => `${i + 1}.${r.name}`).join(' ')}\n${location.origin}/party/race/`;
+  }
+  let shareText = '';
+
+  $('go').addEventListener('click', start);
+  $('again').addEventListener('click', start);
+  $('s-go').addEventListener('click', start);
+  $('share').addEventListener('click', (e) => copyText(shareText, e.currentTarget as HTMLElement));
+  addEventListener('keydown', (e) => {
+    if (e.code !== 'Space' || (document.activeElement && ['TEXTAREA', 'INPUT'].includes(document.activeElement.tagName))) return;
+    e.preventDefault(); start();
+  });
+  ta.addEventListener('input', () => { if (!running) { build(); size(); } });
+  addEventListener('resize', () => size());
+  initMute($('mute'));
+  initStream(stage, $('stream'), $('link'), () => streamUrl({ names: parseList(ta.value, 12).join(','), mode }));
+  $('s-exit').addEventListener('click', () => $('stream').click());
+  build(); size();
+</script>
+</BaseLayout>

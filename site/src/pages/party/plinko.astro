@@ -1,0 +1,218 @@
+---
+// 플링코 추첨 — 못 판에 공을 떨어뜨려 들어간 칸이 결과. 참가자마다 공 하나(이름이 없으면 공 하나로 결과 하나).
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/portal.css';
+import '../../styles/party.css';
+
+const faq = [
+  { q: '공이 어느 칸에 들어갈지 조작할 수 있나요?', a: '아니요. 공을 떨어뜨리는 위치와 못에 부딪힐 때 튕기는 방향이 매번 무작위로 정해집니다. 가운데 칸으로 갈 확률이 조금 더 높은 것은 실제 플링코와 같은 원리입니다.' },
+  { q: '당첨 확률을 바꾸고 싶어요.', a: '결과 칸에 같은 결과를 여러 번 적으면 그 결과가 나올 확률이 커집니다. 예를 들어 꽝을 4칸, 당첨을 1칸 적으면 당첨이 드물게 나옵니다. 가운데 칸이 가장 잘 나오니, 귀한 결과는 바깥쪽 칸에 두세요.' },
+  { q: '방송에서 시청자 이름으로 할 수 있나요?', a: '네. 참가자 칸에 시청자 이름을 넣고 "방송용 링크 복사"를 누르면 그 이름이 담긴 주소가 복사됩니다. OBS 브라우저 소스에 넣으면 플링코 화면이 바로 열립니다.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title="플링코 추첨 — 공 떨어뜨리기로 당첨·벌칙 뽑기 (방송용)" description="못 판에 공을 떨어뜨려 들어간 칸으로 당첨·꽝·벌칙을 정하는 플링코 추첨. 참가자마다 공 하나, 결과 칸은 직접 입력. 방송(OBS) 화면과 효과음까지 무료로." jsonLd={jsonLd}>
+<div class="pt pt-narrow py" style="--c:#6C5CE7">
+  <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/party/">방송·회식 추첨 게임</a> › 플링코 추첨</nav>
+  <div class="py-head">
+    <div><h1>플링코 추첨</h1><p>공이 못에 부딪히며 떨어집니다. 들어간 칸이 그 사람의 운명.</p></div>
+    <div class="py-tools"><button type="button" class="py-tool" id="mute"></button><button type="button" class="py-tool" id="link">방송용 링크 복사</button><button type="button" class="py-tool hot" id="stream">방송 모드</button></div>
+  </div>
+
+  <div class="py-stage" id="stage">
+    <div class="py-hud"><b>CRAMA PLINKO</b><b id="hud"></b></div>
+    <div class="py-ticker" id="ticker"></div>
+    <canvas id="cv" aria-label="플링코 판"></canvas>
+    <div class="py-result" id="res" hidden>
+      <small id="res-k">결과</small><strong id="res-name"></strong><p id="res-sub"></p>
+      <div class="py-rbtns"><button type="button" class="p" id="again">다시 떨어뜨리기</button><button type="button" id="close">판 보기</button><button type="button" id="share">결과 복사</button></div>
+    </div>
+    <div class="py-streambar"><button type="button" class="p" id="s-go">떨어뜨리기 (Space)</button><button type="button" id="s-exit">나가기</button></div>
+  </div>
+
+  <form class="py-form" id="f" onsubmit="return false">
+    <label>참가자 (한 줄에 한 명, 비우면 공 1개)<textarea id="names" spellcheck="false"></textarea></label>
+    <label>결과 칸 (왼쪽부터, 3~9칸)<textarea id="slots" spellcheck="false"></textarea></label>
+    <div class="py-full"><label>떨어뜨리는 방법<span class="py-seg" id="mode"><button type="button" data-v="seq" class="on">한 명씩 차례로</button><button type="button" data-v="all">한꺼번에</button></span></label></div>
+  </form>
+  <button type="button" class="py-go" id="go">공 떨어뜨리기!</button>
+  <ol class="py-rank" id="rank"></ol>
+
+  <a class="py-answer" href="/answer/#lineup"><span>방송·게임에 브랜드를 넣고 싶다면? <b>크라마 앤서</b>로 웹게임 입점·브랜드 테스트를 제안해 보세요.</span><em>알아보기 →</em></a>
+
+  <section class="pt-sec pt-prose">
+    <h2>하는 법</h2>
+    <ul>
+      <li>참가자 이름과 결과 칸(당첨·꽝·커피·벌칙 등)을 적습니다. 결과 칸은 왼쪽 칸부터 한 줄씩 들어갑니다.</li>
+      <li>"공 떨어뜨리기!"를 누르면 참가자마다 공이 하나씩 떨어지고, 들어간 칸이 그 사람의 결과가 됩니다.</li>
+      <li>참가자를 비우면 공 하나로 결과 하나만 뽑습니다. 오늘 메뉴, 벌칙 종류 정하기에 좋아요.</li>
+    </ul>
+    <h2>칸 배치 요령</h2>
+    <p>플링코는 공이 못에 부딪히며 좌우로 고르게 흩어지기 때문에 가운데 칸으로 갈 확률이 가장 높고, 양 끝 칸은 드뭅니다. 당첨을 귀하게 만들고 싶다면 양 끝에, 자주 나오게 하고 싶다면 가운데에 두세요.</p>
+    <h2>자주 묻는 질문</h2>
+    {faq.map((f) => <><h3>{f.q}</h3><p>{f.a}</p></>)}
+  </section>
+</div>
+
+<script>
+  import { initNames, parseList, PALETTE, rand, sfx, shake, confetti, initStream, streamUrl, initMute, copyText, track } from '../../party/kit';
+
+  const $ = (id: string) => document.getElementById(id) as HTMLElement;
+  const cv = $('cv') as HTMLCanvasElement;
+  const g = cv.getContext('2d')!;
+  const stage = $('stage');
+  const taN = $('names') as HTMLTextAreaElement;
+  const taS = $('slots') as HTMLTextAreaElement;
+  initNames('plinko', taN, '민수\n지영\n현우\n서연');
+  initNames('plinko', taS, '꽝\n커피 쏘기\n꽝\n당첨\n꽝\n벌칙\n꽝', 'slots');
+
+  let mode = 'seq';
+  $('mode').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { $('mode').querySelectorAll('button').forEach((x) => x.classList.remove('on')); b.classList.add('on'); mode = b.dataset.v!; }));
+
+  type Ball = { name: string; color: string; x: number; y: number; vx: number; vy: number; done: boolean; slot: number; live: boolean };
+  type Peg = { x: number; y: number; hit: number };
+  let W = 0, H = 0, slots: string[] = [], pegs: Peg[] = [], balls: Ball[] = [], running = false, last = 0, pegR = 4, ballR = 9, slotTop = 0, lastPegSfx = 0;
+  const glow: number[] = [];
+
+  const layout = () => {
+    slots = parseList(taS.value, 9);
+    if (slots.length < 3) slots = [...slots, ...Array(3 - slots.length).fill('꽝')];
+    const stream = stage.classList.contains('is-stream');
+    W = stage.clientWidth;
+    H = stream ? innerHeight : Math.min(620, Math.max(420, W * 1.05));
+    cv.style.height = H + 'px';
+    const dpr = Math.min(2, devicePixelRatio || 1);
+    cv.width = W * dpr; cv.height = H * dpr; g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const n = slots.length, sw = W / n;
+    ballR = Math.max(6, Math.min(11, sw * 0.17)); pegR = Math.max(3, Math.min(5, sw * 0.06));
+    slotTop = H - Math.max(70, H * 0.14);
+    const top = 70, rows = 9, rowH = (slotTop - top - 20) / rows;
+    pegs = [];
+    for (let r = 0; r < rows; r++) {
+      const off = r % 2 ? sw / 2 : 0;
+      for (let c = 0; c <= n; c++) { const x = c * sw + off; if (x > pegR * 2 && x < W - pegR * 2) pegs.push({ x, y: top + r * rowH, hit: 0 }); }
+    }
+    slots.forEach((_, i) => { glow[i] = glow[i] || 0; });
+    draw();
+  };
+
+  function draw() {
+    g.clearRect(0, 0, W, H);
+    const n = slots.length, sw = W / n;
+    // 칸
+    slots.forEach((s, i) => {
+      const hot = /당첨|축하|상품|1등|win/i.test(s), bad = /벌칙|쏘기|내기|꼴찌|밥값/.test(s);
+      g.fillStyle = hot ? 'rgba(255,200,61,.22)' : bad ? 'rgba(255,77,109,.2)' : 'rgba(255,255,255,.06)';
+      if (glow[i] > 0) g.fillStyle = `rgba(255,255,255,${0.15 + glow[i] * 0.5})`;
+      g.fillRect(i * sw + 2, slotTop, sw - 4, H - slotTop - 2);
+      g.fillStyle = hot ? '#FFC83D' : bad ? '#FF8FA3' : '#fff';
+      g.font = `800 ${Math.min(15, sw * 0.17)}px Pretendard, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+      const words = s.length > 5 ? [s.slice(0, Math.ceil(s.length / 2)), s.slice(Math.ceil(s.length / 2))] : [s];
+      words.forEach((w, k) => g.fillText(w, i * sw + sw / 2, H - (H - slotTop) / 2 + (k - (words.length - 1) / 2) * 16));
+      if (i) { g.fillStyle = 'rgba(255,255,255,.3)'; g.fillRect(i * sw - 1, slotTop - 18, 2, H - slotTop + 18); }
+    });
+    // 못
+    pegs.forEach((p) => { g.fillStyle = p.hit > 0 ? `rgba(255,200,61,${0.5 + p.hit})` : 'rgba(255,255,255,.75)'; g.beginPath(); g.arc(p.x, p.y, pegR + p.hit * 3, 0, 7); g.fill(); });
+    // 공
+    balls.forEach((b) => {
+      if (!b.live) return;
+      g.fillStyle = b.color; g.beginPath(); g.arc(b.x, b.y, ballR, 0, 7); g.fill();
+      g.strokeStyle = '#fff'; g.lineWidth = 2; g.stroke();
+      g.fillStyle = '#fff'; g.font = `900 ${ballR * 1.05}px Pretendard, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(b.name.slice(0, 1), b.x, b.y + 1);
+    });
+  }
+
+  const tick = (t: string) => { const el = $('ticker'); el.textContent = t; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); };
+
+  function stepBall(b: Ball, dt: number) {
+    const sw = W / slots.length;
+    b.vy += 1500 * dt; b.vx *= 0.995;
+    b.x += b.vx * dt; b.y += b.vy * dt;
+    if (b.x < ballR) { b.x = ballR; b.vx = Math.abs(b.vx) * 0.6; }
+    if (b.x > W - ballR) { b.x = W - ballR; b.vx = -Math.abs(b.vx) * 0.6; }
+    for (const p of pegs) {
+      const dx = b.x - p.x, dy = b.y - p.y, d = Math.hypot(dx, dy), m = ballR + pegR;
+      if (d < m && d > 0) {
+        const nx = dx / d, ny = dy / d;
+        b.x = p.x + nx * m; b.y = p.y + ny * m;
+        const vn = b.vx * nx + b.vy * ny;
+        if (vn < 0) { b.vx -= 1.55 * vn * nx; b.vy -= 1.55 * vn * ny; b.vx += rand(-60, 60); }
+        p.hit = 0.6;
+        const now = performance.now(); if (now - lastPegSfx > 45) { sfx.peg(); lastPegSfx = now; }
+      }
+    }
+    // 칸막이
+    if (b.y > slotTop - 18) {
+      const i = Math.floor(b.x / sw), left = i * sw, right = left + sw;
+      if (b.x - ballR < left && i > 0) { b.x = left + ballR; b.vx = Math.abs(b.vx) * 0.4; }
+      if (b.x + ballR > right && i < slots.length - 1) { b.x = right - ballR; b.vx = -Math.abs(b.vx) * 0.4; }
+    }
+    if (b.y > H - ballR - 4) {
+      b.y = H - ballR - 4; b.done = true; b.slot = Math.min(slots.length - 1, Math.max(0, Math.floor(b.x / sw)));
+      glow[b.slot] = 1; sfx.land();
+      tick(`${b.name ? b.name + ' → ' : ''}${slots[b.slot]}`);
+    }
+  }
+
+  function loop(t: number) {
+    if (!running) return;
+    const dt = Math.min(0.033, (t - last) / 1000); last = t;
+    const sub = 4;
+    for (let k = 0; k < sub; k++) balls.forEach((b) => { if (b.live && !b.done) stepBall(b, dt / sub); });
+    pegs.forEach((p) => { p.hit = Math.max(0, p.hit - dt * 2.5); });
+    glow.forEach((v, i) => { glow[i] = Math.max(0, v - dt * 0.9); });
+    draw();
+    $('hud').textContent = `${balls.filter((b) => b.done).length}/${balls.length}`;
+    if (balls.every((b) => b.done)) { setTimeout(end, 650); running = false; draw(); return; }
+    requestAnimationFrame(loop);
+  }
+
+  const drop = (b: Ball) => { b.live = true; b.x = W / 2 + rand(-W * 0.18, W * 0.18); b.y = 30; b.vx = rand(-40, 40); b.vy = 0; sfx.pop(); };
+
+  function start() {
+    if (running) return;
+    layout();
+    const names = parseList(taN.value, 30);
+    balls = (names.length ? names : ['']).map((name, i) => ({ name, color: PALETTE[i % PALETTE.length], x: 0, y: 0, vx: 0, vy: 0, done: false, slot: -1, live: false }));
+    $('res').hidden = true; $('rank').innerHTML = '';
+    running = true; ($('go') as HTMLButtonElement).disabled = true;
+    last = performance.now();
+    if (mode === 'all') balls.forEach((b, i) => setTimeout(() => drop(b), i * 90));
+    else balls.forEach((b, i) => setTimeout(() => drop(b), i * 950));
+    requestAnimationFrame(loop);
+    track('party_play', { game: 'plinko', players: balls.length, mode });
+  }
+
+  let shareText = '';
+  function end() {
+    ($('go') as HTMLButtonElement).disabled = false;
+    const res = balls.map((b) => ({ name: b.name, color: b.color, r: slots[b.slot] }));
+    const special = res.filter((x) => /당첨|상품|1등/.test(x.r));
+    const bad = res.filter((x) => /벌칙|쏘기|내기|밥값|꼴찌/.test(x.r));
+    if (res.length === 1) { $('res-k').textContent = '오늘의 결과'; $('res-name').textContent = res[0].r; $('res-sub').textContent = res[0].name ? `${res[0].name}님` : ''; }
+    else if (special.length) { $('res-k').textContent = '🏆 당첨'; $('res-name').textContent = special.map((x) => x.name).join(', '); $('res-sub').textContent = bad.length ? `벌칙: ${bad.map((x) => `${x.name}(${x.r})`).join(', ')}` : '축하합니다!'; }
+    else if (bad.length) { $('res-k').textContent = '💸 걸렸다'; $('res-name').textContent = bad.map((x) => x.name).join(', '); $('res-sub').textContent = bad.map((x) => x.r).join(', '); }
+    else { $('res-k').textContent = '결과'; $('res-name').textContent = '모두 무사!'; $('res-sub').textContent = '이번 판은 아무도 안 걸렸어요'; }
+    $('res').hidden = false;
+    if (special.length || res.length === 1) { sfx.fanfare(); confetti(); } else if (bad.length) { sfx.sad(); shake(stage, 14, 500); } else sfx.coin();
+    $('rank').innerHTML = res.filter((x) => x.name).map((x) => `<li class="${/당첨|상품|1등/.test(x.r) ? 'win' : /벌칙|쏘기|내기|밥값|꼴찌/.test(x.r) ? 'lose' : ''}"><i style="background:${x.color}">${x.name.slice(0, 1).replace(/</g, '')}</i><span>${x.name.replace(/</g, '&lt;')}</span><em>${x.r.replace(/</g, '&lt;')}</em></li>`).join('');
+    shareText = `[크라마 플링코] ${res.map((x) => (x.name ? `${x.name}: ` : '') + x.r).join(' / ')}\n${location.origin}/party/plinko/`;
+  }
+
+  $('go').addEventListener('click', start);
+  $('again').addEventListener('click', start);
+  $('s-go').addEventListener('click', start);
+  $('close').addEventListener('click', () => { $('res').hidden = true; });
+  $('share').addEventListener('click', (e) => copyText(shareText, e.currentTarget as HTMLElement));
+  addEventListener('keydown', (e) => {
+    if (e.code !== 'Space' || (document.activeElement && ['TEXTAREA', 'INPUT'].includes(document.activeElement.tagName))) return;
+    e.preventDefault(); start();
+  });
+  [taN, taS].forEach((t) => t.addEventListener('input', () => { if (!running) layout(); }));
+  addEventListener('resize', () => { if (!running) layout(); });
+  initMute($('mute'));
+  initStream(stage, $('stream'), $('link'), () => streamUrl({ names: parseList(taN.value, 30).join(','), slots: parseList(taS.value, 9).join(',') }));
+  $('s-exit').addEventListener('click', () => $('stream').click());
+  layout();
+</script>
+</BaseLayout>

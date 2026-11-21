@@ -57,6 +57,17 @@ export const MENU: MenuTab[] = [
         ],
       },
       {
+        slug: 'live', name: '방송 도구', icon: 'live', color: '#FF4D6D',
+        desc: '스트리머용 추첨·타이머·목표 게이지·크레딧',
+        items: [
+          { name: '방송 도구 모음', href: '/live/', desc: 'OBS에 바로 넣는 무료 방송 도구' },
+          { name: '채팅 참여 추첨', href: '/live/raffle/', desc: '채팅 붙여넣기로 !참여 추첨' },
+          { name: '방송 타이머', href: '/live/timer/', desc: '시작 대기·휴식 카운트다운' },
+          { name: '목표 게이지', href: '/live/goal/', desc: '후원·구독 목표 막대' },
+          { name: '엔딩 크레딧', href: '/live/credits/', desc: '시청자 이름이 올라가는 마무리' },
+        ],
+      },
+      {
         slug: 'pick', name: '뽑기·랜덤', icon: 'dice', color: '#f97316',
         desc: '사다리 타기, 돌림판, 제비뽑기',
         items: [
@@ -298,6 +309,7 @@ export const ICONS: Record<string, string> = {
   text: '<path d="M4 18l4.5-12h1L14 18M5.6 14h6.8M16 9.5h5M18.5 9.5v8.5"/>',
   grid: '<rect x="4" y="4" width="6.8" height="6.8" rx="1.4"/><rect x="13.2" y="4" width="6.8" height="6.8" rx="1.4"/><rect x="4" y="13.2" width="6.8" height="6.8" rx="1.4"/><rect x="13.2" y="13.2" width="6.8" height="6.8" rx="1.4"/>',
   book: '<path d="M12 6.5c-2-1.6-5-1.9-8-1.2v13c3-.7 6-.4 8 1.2 2-1.6 5-1.9 8-1.2v-13c-3-.7-6-.4-8 1.2zM12 6.5v13"/>',
+  live: '<rect x="3" y="6" width="18" height="12.5" rx="2.5"/><path d="M10.2 9.6v5.3l4.4-2.65z"/><path d="M8 3.5l4 2.5 4-2.5"/>',
   dice: '<rect x="4" y="4" width="16" height="16" rx="3.5"/><circle cx="8.6" cy="8.6" r=".9"/><circle cx="15.4" cy="8.6" r=".9"/><circle cx="12" cy="12" r=".9"/><circle cx="8.6" cy="15.4" r=".9"/><circle cx="15.4" cy="15.4" r=".9"/>',
   calc: '<rect x="5" y="3.5" width="14" height="17" rx="2.5"/><path d="M8 7.5h8M8.3 12h.01M12 12h.01M15.7 12h.01M8.3 16h.01M12 16h.01M15.7 16h.01"/>',
   fire: '<path d="M12 21c-3.9 0-6.5-2.6-6.5-6.2 0-2.6 1.6-4.4 3-6 .4 1.5 1.2 2.3 2 2.7C10 8 11 5 13.5 3c.2 3 4.9 5.4 4.9 11.3 0 4-2.5 6.700-6.4 6.700z"/>',

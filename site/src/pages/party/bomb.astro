@@ -60,7 +60,7 @@ const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntit
 
 <style is:global>
   .bm-stage { height:min(560px, 92vw); background:radial-gradient(ellipse at 50% 55%, #2A2358 0%, #17133A 45%, #0D0A22 100%); }
-  .bm-stage.is-stream[data-bg] { background:none; }
+  .bm-stage.is-stream[data-bg="transparent"] { background:none; }
   .bm-ring::before { content:''; position:absolute; left:8%; right:8%; top:12%; bottom:12%; border-radius:50%; background:radial-gradient(ellipse at 50% 40%, rgba(108,92,231,.22), rgba(108,92,231,.05) 70%); border:2px solid rgba(185,175,255,.18); box-shadow:inset 0 0 60px rgba(0,0,0,.45), 0 0 0 10px rgba(185,175,255,.04); }
   .bm-ring::after { content:''; position:absolute; left:22%; right:22%; top:28%; bottom:28%; border-radius:50%; border:1px dashed rgba(185,175,255,.16); }
   .bm-stage.is-stream { height:auto; }

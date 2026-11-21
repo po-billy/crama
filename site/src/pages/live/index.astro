@@ -1,0 +1,107 @@
+---
+// 방송 도구 허브 — 스트리머가 방송 시작 전·중·마무리에 쓰는 무료 도구(OBS 브라우저 소스).
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/portal.css';
+import '../../styles/party.css';
+
+const FLOW = [
+  { step: '방송 전', tools: [
+    { href: '/live/timer/', name: '방송 타이머', img: '/img/live/timer.webp', desc: '시작 대기·휴식·이벤트 마감 카운트다운. 디자인 4종, 방송 중 시간 조절.', meta: ['투명 배경', '키보드 조절'] },
+  ] },
+  { step: '방송 중', tools: [
+    { href: '/live/raffle/', name: '채팅 참여 추첨', img: '/img/live/raffle.webp', desc: '채팅을 붙여 넣으면 !참여를 친 시청자만 골라 추첨. 후원 추가 추첨권, 봇 제외.', meta: ['치지직·SOOP·유튜브', '구슬 레이스 연결'] },
+    { href: '/party/marble/', name: '구슬 레이스', img: '/img/party/marble.webp', desc: '시청자 이름 구슬 최대 300개가 물리 코스를 굴러 내려가는 추첨. 자동 카메라 중계.', meta: ['최대 300개', '자동 카메라'] },
+    { href: '/live/goal/', name: '목표 게이지', img: '/img/live/goal.webp', desc: '후원·구독·좋아요 목표 막대. 키보드로 올리고, 달성하면 축하 연출.', meta: ['색 4종', '달성 연출'] },
+  ] },
+  { step: '마무리', tools: [
+    { href: '/live/credits/', name: '엔딩 크레딧', img: '/img/live/credits.webp', desc: '오늘 함께한 후원자·시청자 이름이 영화 엔딩처럼 올라갑니다.', meta: ['묶음 제목', '반복 재생'] },
+  ] },
+];
+const MORE = [
+  { href: '/party/race/', name: '이름 레이스' },
+  { href: '/party/plinko/', name: '플링코 추첨' },
+  { href: '/party/bomb/', name: '폭탄 돌리기' },
+  { href: '/pick/wheel/', name: '돌림판' },
+  { href: '/pick/ladder/', name: '사다리 타기' },
+];
+const faq = [
+  { q: '정말 무료인가요? 가입이 필요한가요?', a: '모두 무료이고 가입도 필요 없습니다. 설정은 주소(URL)에 담기고, 입력한 이름이나 채팅은 서버로 보내지 않고 브라우저 안에서만 처리합니다.' },
+  { q: 'OBS 말고 프리즘·XSplit에서도 되나요?', a: '브라우저(웹) 소스를 지원하는 방송 프로그램이면 모두 됩니다. 각 도구의 "OBS 주소 복사"로 받은 주소를 웹 소스에 넣으세요.' },
+  { q: '방송 화면에 크라마 광고가 나오나요?', a: '아니요. 방송 모드와 OBS 주소로 연 화면에는 사이트 메뉴나 광고가 나오지 않습니다.' },
+  { q: '후원·채팅과 자동으로 연동되나요?', a: '지금은 플랫폼 계정 연결 없이 쓰는 방식이라 숫자나 채팅은 직접 넣습니다. 대신 치지직·SOOP·유튜브·트위치 어디서나 같은 방법으로 바로 쓸 수 있습니다.' },
+];
+const all = FLOW.flatMap((f) => f.tools);
+const jsonLd = { '@context': 'https://schema.org', '@graph': [
+  { '@type': 'ItemList', name: '크라마 방송 도구', itemListElement: all.map((t, i) => ({ '@type': 'ListItem', position: i + 1, name: t.name, url: `https://crama.app${t.href}` })) },
+  { '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+] };
+---
+<BaseLayout title="방송 도구 — 스트리머용 무료 OBS 오버레이·시청자 추첨" description="치지직·SOOP·유튜브 스트리머를 위한 무료 방송 도구. 채팅 참여 추첨, 구슬 레이스, 방송 타이머, 목표 게이지, 엔딩 크레딧을 OBS 브라우저 소스로 바로." image="/img/live/raffle.webp" jsonLd={jsonLd}>
+<div class="pt py lvh" style="--c:#FF4D6D">
+  <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/games/">게임</a> › 방송 도구</nav>
+  <header class="lvh-hero">
+    <small>CRAMA LIVE</small>
+    <h1>스트리머를 위한 방송 도구</h1>
+    <p>방송 시작 전 대기 화면부터 시청자 추첨, 목표 게이지, 마무리 크레딧까지. 설치·가입 없이 주소 하나로 OBS에 넣습니다.</p>
+    <ul><li>무료</li><li>가입 없음</li><li>방송 화면에 광고 없음</li><li>투명 배경·크로마키</li></ul>
+  </header>
+
+  {FLOW.map((f, i) => (
+    <section class="lvh-step">
+      <h2><i>{String(i + 1).padStart(2, '0')}</i>{f.step}</h2>
+      <div class="lvh-grid">
+        {f.tools.map((t) => (
+          <a class="lvh-card" href={t.href}>
+            <figure><img src={t.img} alt={`${t.name} 화면`} loading="lazy" width="1200" height="675" /></figure>
+            <div><b>{t.name}</b><p>{t.desc}</p><ul>{t.meta.map((m) => <li>{m}</li>)}</ul></div>
+          </a>
+        ))}
+      </div>
+    </section>
+  ))}
+
+  <section class="pt-sec">
+    <div class="pt-sec__head"><div><h2>방송용 추첨 게임 더 보기</h2></div></div>
+    <div class="pt-chips">{MORE.map((m) => <a class="pt-chip" href={m.href}>{m.name}</a>)}</div>
+  </section>
+
+  <section class="pt-sec pt-prose">
+    <h2>OBS에 넣는 법</h2>
+    <ol>
+      <li>도구 화면에서 문구·숫자를 정하고 <b>OBS 주소 복사</b>를 누릅니다.</li>
+      <li>OBS에서 <b>소스 추가 → 브라우저</b>를 고르고 주소를 붙여 넣습니다. 전체 화면용은 1920×1080, 목표 게이지는 1200×200을 권합니다.</li>
+      <li>배경은 투명이 기본입니다. 크로마키가 필요하면 주소의 <code>bg=transparent</code>를 <code>bg=green</code>으로 바꾸세요.</li>
+      <li>방송 중 조작(멈춤·숫자 올리기·추첨)은 브라우저 소스를 고르고 <b>상호작용</b> 창에서 키보드로 합니다.</li>
+    </ol>
+  </section>
+
+  <a class="py-answer" href="/answer/"><span>방송 도구에 브랜드를 붙이고 싶다면? <b>크라마 앤서</b> — 방송 도구 스폰서, 웹게임 입점, 맞춤 기획.</span><em>광고·제휴 →</em></a>
+
+  <section class="pt-sec pt-prose">
+    <h2>자주 묻는 질문</h2>
+    {faq.map((f) => <><h3>{f.q}</h3><p>{f.a}</p></>)}
+  </section>
+</div>
+
+<style>
+  .lvh-hero { padding:22px 24px; border-radius:20px; background:#14112B; color:#fff; margin:10px 0 18px; }
+  .lvh-hero small { font-size:.75rem; font-weight:900; letter-spacing:.16em; color:#FF4D6D; }
+  .lvh-hero h1 { color:#fff; margin:6px 0 8px; font-size:clamp(1.7rem, 4.2vw, 2.5rem); font-weight:900; letter-spacing:-.045em; }
+  .lvh-hero p { margin:0; color:#CFC9F5; line-height:1.7; max-width:640px; }
+  .lvh-hero ul { list-style:none; margin:14px 0 0; padding:0; display:flex; gap:6px; flex-wrap:wrap; }
+  .lvh-hero li { font-size:.76rem; font-weight:800; padding:5px 9px; border-radius:7px; background:rgba(255,255,255,.08); color:#E9E6FF; }
+  .lvh-step { margin-top:22px; }
+  .lvh-step h2 { display:flex; align-items:center; gap:10px; margin:0 0 10px; font-size:1.2rem; font-weight:900; letter-spacing:-.03em; }
+  .lvh-step h2 i { font-style:normal; font-size:.75rem; font-weight:900; padding:4px 7px; border-radius:6px; background:#FF4D6D; color:#fff; letter-spacing:.04em; }
+  .lvh-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:14px; }
+  .lvh-card { display:flex; flex-direction:column; border:1px solid var(--line, #e3e0f2); border-radius:16px; overflow:hidden; text-decoration:none; color:#1E1B3A; background:#fff; transition:transform .15s, box-shadow .15s; }
+  .lvh-card:hover { transform:translateY(-2px); box-shadow:0 16px 30px -20px rgba(20,17,43,.5); }
+  .lvh-card figure { margin:0; aspect-ratio:16/9; overflow:hidden; background:#14112B; }
+  .lvh-card img { width:100%; height:100%; object-fit:cover; object-position:center top; display:block; }
+  .lvh-card > div { padding:14px 16px 16px; }
+  .lvh-card b { font-size:1.08rem; font-weight:900; letter-spacing:-.02em; }
+  .lvh-card p { margin:4px 0 0; font-size:.88rem; color:#5d5a73; line-height:1.55; }
+  .lvh-card ul { list-style:none; margin:10px 0 0; padding:0; display:flex; gap:6px; flex-wrap:wrap; }
+  .lvh-card li { font-size:.72rem; font-weight:800; padding:3px 7px; border-radius:6px; background:#FFF0F3; color:#D6284B; }
+</style>
+</BaseLayout>

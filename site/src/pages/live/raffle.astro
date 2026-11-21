@@ -1,0 +1,241 @@
+---
+// 채팅 참여 추첨 — 채팅을 붙여 넣으면 키워드(!참여)를 친 시청자만 골라 추첨하거나 구슬 레이스로 넘긴다.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/portal.css';
+import '../../styles/party.css';
+import '../../styles/live.css';
+
+const faq = [
+  { q: '어떤 채팅을 붙여 넣으면 되나요?', a: '치지직·SOOP(아프리카TV)·유튜브·트위치 채팅창이나 채팅 기록에서 복사한 텍스트를 그대로 붙여 넣으면 됩니다. "닉네임 : 메시지"처럼 한 줄에 닉네임과 메시지가 함께 있는 형식을 읽고, 앞에 붙은 시간(12:30, 오후 3:12)이나 [매니저] 같은 머리표는 자동으로 뺍니다.' },
+  { q: '같은 사람이 여러 번 쳐도 되나요?', a: '"1인 1장"을 고르면 몇 번을 쳐도 추첨권은 1장입니다. "채팅 횟수만큼"을 고르면 키워드를 친 횟수만큼 추첨권이 생기고, 최대 장수를 정해 도배를 막을 수 있습니다.' },
+  { q: '후원한 시청자에게 추첨권을 더 줄 수 있나요?', a: '"추가 추첨권" 칸에 "닉네임 x5"처럼 적으면 그 시청자에게 추첨권 5장이 더해집니다. 채팅에 없던 시청자를 직접 넣을 때도 이 칸을 쓰세요.' },
+  { q: '채팅 내용이 서버로 전송되나요?', a: '아니요. 붙여 넣은 채팅은 이 브라우저 안에서만 읽고 어디에도 보내지 않습니다.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@graph': [
+  { '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+  { '@type': 'WebApplication', name: '크라마 채팅 참여 추첨', applicationCategory: 'UtilitiesApplication', operatingSystem: 'Web', offers: { '@type': 'Offer', price: '0', priceCurrency: 'KRW' }, url: 'https://crama.app/live/raffle/' },
+] };
+const SAMPLE = `[20:01] 별빛고양이 : !참여
+[20:01] 치즈냥이 : 오늘 방송 재밌다 ㅋㅋ
+[20:02] 치즈냥이 : !참여
+[20:02] [매니저] 도토리 : 추첨 시작합니다 !참여 쳐주세요
+[20:02] 밤하늘 : !참여
+[20:03] 라면왕 : !참여 !참여
+[20:03] 별빛고양이 : !참여
+[20:04] 새벽감성 : 나도 !참여
+[20:04] Nightbot : 추첨 참여는 !참여`;
+---
+<BaseLayout title="채팅 참여 추첨 — !참여 친 시청자만 뽑기 (치지직·SOOP·유튜브)" description="방송 채팅을 붙여 넣으면 !참여를 친 시청자만 골라 추첨합니다. 1인 1장·채팅 횟수만큼, 후원 추가 추첨권, 봇 제외, 구슬 레이스로 바로 보내기까지. 설치 없이 무료." jsonLd={jsonLd}>
+<div class="pt pt-narrow py lv" style="--c:#FF4D6D">
+  <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/live/">방송 도구</a> › 채팅 참여 추첨</nav>
+  <div class="py-head">
+    <div><h1>채팅 참여 추첨</h1><p>채팅을 붙여 넣으면 키워드를 친 시청자만 골라 추첨권을 만듭니다.</p></div>
+    <div class="py-tools"><button type="button" class="py-tool" id="mute"></button><button type="button" class="py-tool hot" id="stream">방송 모드</button></div>
+  </div>
+
+  <section class="lv-card">
+    <h2><i>1</i>채팅 붙여넣기</h2>
+    <p>채팅창이나 채팅 기록을 복사해 그대로 붙여 넣으세요. 시간·머리표는 알아서 뺍니다.</p>
+    <textarea id="chat" spellcheck="false" style="min-height:170px">{SAMPLE}</textarea>
+    <div class="lv-grid" style="margin-top:12px">
+      <label>참여 키워드 (쉼표로 여러 개, 비우면 채팅한 사람 모두)<input id="kw" value="!참여" /></label>
+      <label>추첨권<span class="py-seg" id="wmode"><button type="button" data-v="once" class="on">1인 1장</button><button type="button" data-v="count">채팅 횟수만큼</button></span></label>
+      <label>추가 추첨권 (후원 등, '닉네임 x5')<textarea id="extra" spellcheck="false" style="min-height:70px" placeholder="별빛고양이 x5"></textarea></label>
+      <label>제외할 닉네임 (방장·봇)<textarea id="ex" spellcheck="false" style="min-height:70px">Nightbot
+도토리</textarea></label>
+    </div>
+  </section>
+
+  <section class="lv-card">
+    <h2><i>2</i>참여자 확인</h2>
+    <div class="lv-sum" id="sum"></div>
+    <div class="lv-chips" id="chips"></div>
+  </section>
+
+  <div class="py-stage lv-raffle" id="stage">
+    <div class="lvr-top"><span class="lvr-logo"><i></i>CRAMA <b>LIVE RAFFLE</b></span><span class="lvr-meta" id="meta"></span></div>
+    <div class="lvr-reel" id="reel"><div class="lvr-strip" id="strip"></div><div class="lvr-win"></div></div>
+    <div class="lvr-result" id="result" hidden><small id="res-k">당첨</small><strong id="res-name"></strong><span id="res-sub"></span></div>
+    <ol class="lvr-list" id="wins"></ol>
+    <div class="lvr-ctrl">
+      <label>뽑을 인원 <input type="number" id="n" min="1" max="20" value="1" /></label>
+      <button type="button" class="lvr-go" id="go">추첨하기</button>
+      <button type="button" class="lvr-sub" id="reset">당첨 기록 지우기</button>
+    </div>
+    <div class="py-streambar"><button type="button" class="p" id="s-go">추첨 (Space)</button><button type="button" id="s-exit">나가기</button></div>
+  </div>
+
+  <section class="lv-card">
+    <h2><i>3</i>게임으로 정하기</h2>
+    <p>추첨권 그대로(추첨권 수만큼 구슬·말) 게임으로 넘깁니다. 화면으로 보여 주며 정하고 싶을 때 쓰세요.</p>
+    <div class="lv-send">
+      <button type="button" class="p" data-go="/party/marble/" data-key="marble">구슬 레이스로 (최대 300개)</button>
+      <button type="button" data-go="/party/race/" data-key="race">이름 레이스로 (최대 100명)</button>
+      <button type="button" data-go="/party/plinko/" data-key="plinko">플링코로</button>
+      <button type="button" id="copy">참여자 목록 복사</button>
+    </div>
+  </section>
+
+  <section class="pt-sec pt-prose">
+    <h2>쓰는 법</h2>
+    <ol>
+      <li>방송에서 "추첨 참여는 !참여"라고 공지하고 잠시 기다립니다.</li>
+      <li>채팅창을 전부 선택해 복사(Ctrl+A, Ctrl+C)한 뒤 위 칸에 붙여 넣습니다.</li>
+      <li>참여자와 추첨권 수를 확인하고 "추첨하기"를 누릅니다. 방송 모드에서는 스페이스바로 뽑을 수 있어요.</li>
+      <li>당첨자는 다음 추첨에서 자동으로 빠집니다. 여러 명을 뽑으려면 뽑을 인원을 늘리세요.</li>
+    </ol>
+    <h2>방송 화면에 띄우기</h2>
+    <p>채팅을 붙여 넣는 작업은 평소 쓰는 브라우저에서 하고, "방송 모드"를 켠 그 창을 OBS의 <b>윈도우 캡처</b>로 잡으면 추첨 화면만 방송에 나갑니다. 크로마키가 필요하면 주소 끝에 <code>?bg=green</code>을 붙여 연 뒤 방송 모드를 켜세요.</p>
+    <h2>자주 묻는 질문</h2>
+    {faq.map((f) => <><h3>{f.q}</h3><p>{f.a}</p></>)}
+  </section>
+</div>
+
+<style is:global>
+  .lv-raffle { margin-top:14px; min-height:430px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:56px 16px 22px; background:radial-gradient(ellipse at 50% 30%, #2A2358 0%, #14112B 65%); }
+  .lv-raffle.is-stream { padding:80px 4vw 40px; margin:0; }
+  .lv-raffle.is-stream[data-bg="transparent"] { background:none; }
+  .lvr-top { position:absolute; left:12px; right:12px; top:12px; display:flex; justify-content:space-between; align-items:center; }
+  .lvr-logo { display:inline-flex; align-items:center; gap:7px; font-size:.78rem; font-weight:800; letter-spacing:.1em; background:rgba(16,13,36,.82); border:1px solid rgba(255,255,255,.12); padding:6px 10px; border-radius:8px; }
+  .lvr-logo b { color:#FF4D6D; }
+  .lvr-logo i { width:8px; height:8px; border-radius:50%; background:#FF4D6D; animation:mb-blink 1.2s infinite; }
+  @keyframes mb-blink { 50% { opacity:.3; } }
+  .lvr-meta { font-size:.8rem; font-weight:800; color:#B9AFFF; }
+  .lvr-reel { position:relative; width:min(520px, 100%); height:210px; overflow:hidden; border-radius:16px; background:linear-gradient(180deg, #0D0A22, #1B1640 50%, #0D0A22); border:2px solid rgba(185,175,255,.2); box-shadow:inset 0 0 40px rgba(0,0,0,.6); }
+  .lvr-strip { position:absolute; left:0; right:0; top:0; will-change:transform; }
+  .lvr-strip div { height:70px; display:flex; align-items:center; justify-content:center; font-size:1.6rem; font-weight:900; letter-spacing:-.02em; color:#E9E6FF; opacity:.55; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 14px; }
+  .lvr-strip div.hit { opacity:1; color:#FFC83D; animation:py-pop .5s cubic-bezier(.2,1.6,.4,1); }
+  .lvr-win { position:absolute; left:0; right:0; top:70px; height:70px; border-top:2px solid #FFC83D; border-bottom:2px solid #FFC83D; background:rgba(255,200,61,.08); pointer-events:none; box-shadow:0 0 30px rgba(255,200,61,.2); }
+  .lvr-reel::before, .lvr-reel::after { content:''; position:absolute; left:0; right:0; height:60px; z-index:1; pointer-events:none; }
+  .lvr-reel::before { top:0; background:linear-gradient(#0D0A22, transparent); }
+  .lvr-reel::after { bottom:0; background:linear-gradient(transparent, #0D0A22); }
+  .lv-raffle.is-stream .lvr-reel { width:min(900px, 90vw); height:330px; }
+  .lv-raffle.is-stream .lvr-strip div { height:110px; font-size:3rem; }
+  .lv-raffle.is-stream .lvr-win { top:110px; height:110px; }
+  .lvr-result { margin-top:16px; text-align:center; animation:py-pop .55s cubic-bezier(.2,1.6,.4,1) both; }
+  .lvr-result[hidden] { display:none; }
+  .lvr-result small { display:block; font-size:.85rem; font-weight:900; letter-spacing:.14em; color:#FFC83D; }
+  .lvr-result strong { display:block; font-size:clamp(2rem, 7vw, 3.4rem); font-weight:900; letter-spacing:-.04em; }
+  .lvr-result span { font-size:.9rem; color:#CFC9F5; }
+  .lv-raffle.is-stream .lvr-result strong { font-size:5rem; }
+  .lvr-list { list-style:none; margin:12px 0 0; padding:0; display:flex; gap:6px; flex-wrap:wrap; justify-content:center; max-width:620px; }
+  .lvr-list li { font-size:.82rem; font-weight:800; padding:5px 10px; border-radius:999px; background:rgba(255,200,61,.14); border:1px solid rgba(255,200,61,.4); color:#FFE7A3; }
+  .lvr-ctrl { display:flex; gap:8px; align-items:center; margin-top:16px; flex-wrap:wrap; justify-content:center; }
+  .lvr-ctrl label { font-size:.82rem; font-weight:800; color:#CFC9F5; display:flex; align-items:center; gap:6px; }
+  .lvr-ctrl input { width:64px; font:inherit; font-weight:800; padding:8px; border-radius:9px; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.08); color:#fff; text-align:center; }
+  .lvr-go { font:inherit; font-size:1.05rem; font-weight:900; padding:12px 26px; border-radius:12px; border:0; background:#FF4D6D; color:#fff; cursor:pointer; box-shadow:0 10px 24px -10px rgba(255,77,109,.9); }
+  .lvr-go:disabled { opacity:.5; cursor:default; }
+  .lvr-sub { font:inherit; font-size:.8rem; font-weight:800; padding:9px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.18); background:transparent; color:#CFC9F5; cursor:pointer; }
+  .lv-raffle.is-stream .lvr-ctrl { display:none; }
+</style>
+
+<script>
+  import { initMute, initStream, sfx, confetti, copyText, track, flash } from '../../party/kit';
+  import { parseChat, parseWeights, mergeEntries, weightedPick, toGameLines, type Entry } from '../../live/chat';
+
+  const $ = (id: string) => document.getElementById(id) as HTMLElement;
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
+  const chat = $('chat') as HTMLTextAreaElement, kw = $('kw') as HTMLInputElement, extra = $('extra') as HTMLTextAreaElement, ex = $('ex') as HTMLTextAreaElement;
+  const stage = $('stage');
+  // 저장(이 기기)
+  const KEY = 'crama:live:raffle';
+  try { const v = JSON.parse(localStorage.getItem(KEY) || 'null'); if (v) { kw.value = v.kw ?? kw.value; ex.value = v.ex ?? ex.value; extra.value = v.extra ?? ''; } } catch { /* 무시 */ }
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify({ kw: kw.value, ex: ex.value, extra: extra.value })); } catch { /* 무시 */ } };
+
+  let weighted = false;
+  $('wmode').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { $('wmode').querySelectorAll('button').forEach((x) => x.classList.remove('on')); b.classList.add('on'); weighted = (b as HTMLElement).dataset.v === 'count'; update(); }));
+
+  let pool: Entry[] = [];
+  const won = new Set<string>();
+  function update() {
+    const r = parseChat(chat.value, { keyword: kw.value, weighted, maxPer: 10, exclude: ex.value.split(/[\n,]/) });
+    pool = mergeEntries(r.entries, parseWeights(extra.value));
+    const tickets = pool.reduce((s, e) => s + e.count, 0);
+    const left = pool.filter((e) => !won.has(e.name));
+    $('sum').innerHTML = `<span>채팅 <b>${r.lines}</b>줄</span><span>키워드 <b>${r.matched}</b>건</span><span>참여자 <b>${pool.length}</b>명</span><span>추첨권 <b>${tickets}</b>장</span>${won.size ? `<span>남은 후보 <b>${left.length}</b>명</span>` : ''}`;
+    $('chips').innerHTML = pool.length ? pool.map((e) => `<span class="${won.has(e.name) ? 'won' : ''}">${esc(e.name)}${e.count > 1 ? `<em>×${e.count}</em>` : ''}</span>`).join('') : '<p class="lv-empty">아직 참여자가 없어요. 키워드나 붙여 넣은 채팅을 확인하세요.</p>';
+    $('meta').textContent = `참여 ${left.length}명 · 추첨권 ${left.reduce((s, e) => s + e.count, 0)}장`;
+    if (!spinning) fillIdle(left);
+    save();
+  }
+  [chat, kw, extra, ex].forEach((el) => el.addEventListener('input', update));
+
+  // ── 릴(이름이 굴러가다 멈춤) ──
+  const strip = $('strip');
+  let spinning = false;
+  const rowH = () => (stage.classList.contains('is-stream') ? 110 : 70);
+  function fillIdle(list: Entry[]) {
+    const names = list.length ? list.map((e) => e.name) : ['참여자를 기다리는 중'];
+    strip.style.transform = 'translateY(0)';
+    strip.innerHTML = ['', names[0], names[1] ?? ''].map((n) => `<div>${esc(n)}</div>`).join('');
+  }
+  function spin(winner: Entry, list: Entry[]): Promise<void> {
+    return new Promise((done) => {
+      const names = list.map((e) => e.name);
+      const N = 46;
+      const seq = Array.from({ length: N }, () => names[Math.floor(Math.random() * names.length)]);
+      seq.push(winner.name, names[Math.floor(Math.random() * names.length)]);
+      strip.innerHTML = ['', ...seq].map((n) => `<div>${esc(n)}</div>`).join('');
+      const h = rowH(), target = N * h; // 당첨자가 가운데 칸(두 번째 줄)에 오도록
+      const dur = 4200 + Math.random() * 800, t0 = performance.now();
+      let lastRow = -1;
+      const ease = (x: number) => 1 - Math.pow(1 - x, 4);
+      const step = (t: number) => {
+        const k = Math.min(1, (t - t0) / dur), y = ease(k) * target;
+        strip.style.transform = `translateY(${-y}px)`;
+        const row = Math.floor(y / h + 0.5);
+        if (row !== lastRow) { lastRow = row; sfx.tick(k > 0.85); }
+        if (k < 1) requestAnimationFrame(step); else { strip.children[N + 1]?.classList.add('hit'); done(); }
+      };
+      requestAnimationFrame(step);
+    });
+  }
+
+  async function draw() {
+    if (spinning) return;
+    const n = Math.max(1, Math.min(20, +($('n') as HTMLInputElement).value || 1));
+    spinning = true; ($('go') as HTMLButtonElement).disabled = true; $('result').hidden = true;
+    for (let i = 0; i < n; i++) {
+      const left = pool.filter((e) => !won.has(e.name));
+      const w = weightedPick(left);
+      if (!w) { $('res-k').textContent = '알림'; $('res-name').textContent = '남은 후보가 없어요'; $('res-sub').textContent = ''; $('result').hidden = false; break; }
+      await spin(w, left);
+      won.add(w.name);
+      sfx.fanfare(); flash('#FFC83D', 260); confetti(110);
+      const tickets = left.reduce((s, e) => s + e.count, 0);
+      $('res-k').textContent = n > 1 ? `당첨 ${i + 1} / ${n}` : '당첨';
+      $('res-name').textContent = w.name;
+      $('res-sub').textContent = `추첨권 ${w.count}장 / ${tickets}장 · 확률 ${((w.count / tickets) * 100).toFixed(1)}%`;
+      $('result').hidden = false;
+      $('wins').insertAdjacentHTML('beforeend', `<li>${esc(w.name)}</li>`);
+      update();
+      if (i < n - 1) await new Promise((r) => setTimeout(r, 1800));
+    }
+    spinning = false; ($('go') as HTMLButtonElement).disabled = false;
+    track('live_raffle', { pool: pool.length, n });
+  }
+  $('go').addEventListener('click', draw);
+  $('s-go').addEventListener('click', draw);
+  $('reset').addEventListener('click', () => { won.clear(); $('wins').innerHTML = ''; $('result').hidden = true; update(); });
+  addEventListener('keydown', (e) => {
+    if (e.code !== 'Space' || (document.activeElement && ['TEXTAREA', 'INPUT'].includes(document.activeElement.tagName))) return;
+    e.preventDefault(); draw();
+  });
+
+  // ── 게임으로 넘기기: 게임 입력칸 저장값에 넣고 이동 ──
+  document.querySelectorAll<HTMLElement>('[data-go]').forEach((b) => b.addEventListener('click', () => {
+    const list = pool.filter((e) => !won.has(e.name));
+    if (!list.length) { alert('참여자가 없어요.'); return; }
+    try { localStorage.setItem(`crama:party:${b.dataset.key}:names`, toGameLines(list)); } catch { /* 무시 */ }
+    track('live_raffle_send', { game: b.dataset.key, pool: list.length });
+    location.href = b.dataset.go!;
+  }));
+  $('copy').addEventListener('click', (e) => copyText(toGameLines(pool), e.currentTarget as HTMLElement));
+
+  initMute($('mute'));
+  initStream(stage, $('stream'), null, () => location.href);
+  $('s-exit').addEventListener('click', () => $('stream').click());
+  addEventListener('resize', () => { if (!spinning && $('result').hidden) fillIdle(pool.filter((e) => !won.has(e.name))); });
+  update();
+</script>
+</BaseLayout>

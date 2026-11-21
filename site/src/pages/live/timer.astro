@@ -1,0 +1,141 @@
+---
+// 방송 타이머 오버레이 — 시작 대기·휴식·이벤트 카운트다운. 주소 하나로 OBS 브라우저 소스에 넣는다.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/portal.css';
+import '../../styles/party.css';
+import '../../styles/live.css';
+
+const faq = [
+  { q: 'OBS에 어떻게 넣나요?', a: '문구와 시간을 정한 뒤 "OBS 주소 복사"를 누르세요. OBS에서 소스 추가 → 브라우저를 고르고 주소를 붙여 넣은 뒤 너비 1920, 높이 1080으로 맞추면 됩니다. 배경은 투명이 기본이라 방송 화면 위에 바로 겹칠 수 있습니다.' },
+  { q: '방송 중에 시간을 늘리거나 멈출 수 있나요?', a: 'OBS에서 브라우저 소스를 선택하고 "상호작용"을 연 뒤, 스페이스바로 멈춤·다시 시작, 위·아래 화살표로 1분씩 늘리거나 줄이고, R로 처음부터 다시 셀 수 있습니다.' },
+  { q: '특정 시각까지 세고 싶어요.', a: '"끝나는 시각"에 21:00처럼 시각을 적으면 그 시각까지 남은 시간을 셉니다. 이미 지난 시각이면 다음 날 그 시각까지 셉니다.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title="방송 타이머 오버레이 — OBS 시작 대기·휴식 카운트다운 (무료)" description="방송 시작 대기 화면, 휴식 시간, 이벤트 마감 카운트다운을 OBS 브라우저 소스로. 문구·시간·디자인을 고르고 주소만 복사하면 끝. 투명 배경, 방송 중 시간 조절 지원." jsonLd={jsonLd}>
+<div class="pt pt-narrow py lv" style="--c:#FF4D6D">
+  <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/live/">방송 도구</a> › 방송 타이머</nav>
+  <div class="py-head">
+    <div><h1>방송 타이머</h1><p>시작 대기·휴식·이벤트 마감 카운트다운을 방송 화면에 띄웁니다.</p></div>
+    <div class="py-tools"><button type="button" class="py-tool hot" id="stream">방송 모드</button></div>
+  </div>
+
+  <div class="py-stage lv-stage checker lvt" id="stage" data-th="card">
+    <div class="lvt-box">
+      <small id="v-title">곧 방송을 시작합니다</small>
+      <strong id="v-time">05:00</strong>
+      <div class="lvt-bar"><i id="v-bar"></i></div>
+      <span id="v-sub"></span>
+    </div>
+    <div class="py-streambar"><button type="button" class="p" id="s-pause">멈춤 (Space)</button><button type="button" id="s-exit">나가기</button></div>
+  </div>
+
+  <section class="lv-card">
+    <h2>설정</h2>
+    <div class="lv-grid">
+      <label>위 문구<input id="t" value="곧 방송을 시작합니다" maxlength="40" /></label>
+      <label>끝났을 때 문구<input id="end" value="지금 시작합니다!" maxlength="40" /></label>
+      <label>몇 분 동안 (분)<input id="m" type="number" min="1" max="600" value="5" /></label>
+      <label>또는 끝나는 시각 (비우면 위 시간 사용)<input id="at" type="time" /></label>
+      <label class="lv-full">아래 작은 문구 (선택)<input id="sub" maxlength="60" placeholder="예: 오늘은 구슬 레이스 시청자 추첨!" /></label>
+      <label class="lv-full">디자인<span class="py-seg" id="th"><button type="button" data-v="card" class="on">카드</button><button type="button" data-v="neon">네온</button><button type="button" data-v="clean">글자만</button><button type="button" data-v="bar">아래 띠</button></span></label>
+    </div>
+    <div class="lv-url"><input id="url" readonly /><button type="button" class="lv-btn p" id="copy">OBS 주소 복사</button></div>
+    <p class="lv-hint">배경은 투명입니다(미리보기의 체크무늬가 투명한 부분). 크로마키가 필요하면 주소 끝의 bg=transparent를 bg=green으로 바꾸세요.</p>
+  </section>
+
+  <section class="pt-sec pt-prose">
+    <h2>방송 중 조작</h2>
+    <ul>
+      <li>OBS에서 브라우저 소스를 고르고 <b>상호작용</b>을 열면 키보드로 조작할 수 있습니다.</li>
+      <li><b>스페이스바</b> 멈춤·다시 시작, <b>↑ ↓</b> 1분 늘리기·줄이기, <b>R</b> 처음부터.</li>
+    </ul>
+    <h2>자주 묻는 질문</h2>
+    {faq.map((f) => <><h3>{f.q}</h3><p>{f.a}</p></>)}
+  </section>
+</div>
+
+<style is:global>
+  .lvt { color:#fff; }
+  .lvt-box { text-align:center; padding:26px 40px; min-width:min(420px, 80%); }
+  .lvt-box small { display:block; font-size:clamp(.9rem, 2.4vw, 1.25rem); font-weight:800; letter-spacing:.02em; color:#E9E6FF; }
+  .lvt-box strong { display:block; font-size:clamp(3.2rem, 12vw, 6.5rem); font-weight:900; letter-spacing:-.02em; font-variant-numeric:tabular-nums; line-height:1.05; margin:6px 0 12px; }
+  .lvt-box span { display:block; margin-top:10px; font-size:clamp(.8rem, 2vw, 1rem); font-weight:700; color:#CFC9F5; }
+  .lvt-box span:empty { display:none; }
+  .lvt-bar { height:8px; border-radius:99px; background:rgba(255,255,255,.15); overflow:hidden; }
+  .lvt-bar i { display:block; height:100%; width:100%; border-radius:99px; background:linear-gradient(90deg, #FF4D6D, #FFC83D); transition:width .5s linear; }
+  .lvt[data-th="card"] .lvt-box { background:rgba(16,13,36,.9); border:1px solid rgba(255,255,255,.14); border-radius:24px; box-shadow:0 30px 60px -20px rgba(0,0,0,.6); }
+  .lvt[data-th="neon"] .lvt-box strong { color:#fff; text-shadow:0 0 12px #FF4D6D, 0 0 32px #FF4D6D, 0 0 60px rgba(255,77,109,.6); }
+  .lvt[data-th="neon"] .lvt-box small { color:#FFC83D; text-shadow:0 0 12px rgba(255,200,61,.7); }
+  .lvt[data-th="neon"] .lvt-bar i { box-shadow:0 0 14px #FF4D6D; }
+  .lvt[data-th="clean"] .lvt-box { text-shadow:0 3px 12px rgba(0,0,0,.7); }
+  .lvt[data-th="clean"] .lvt-bar { display:none; }
+  .lvt[data-th="bar"] { align-items:flex-end; }
+  .lvt[data-th="bar"] .lvt-box { width:100%; box-sizing:border-box; display:grid; grid-template-columns:1fr auto; grid-template-rows:auto auto; align-items:center; text-align:left; gap:2px 20px; background:rgba(16,13,36,.92); border-top:3px solid #FF4D6D; padding:14px 26px; }
+  .lvt[data-th="bar"] .lvt-box strong { grid-row:1 / 3; grid-column:2; font-size:clamp(2rem, 6vw, 3.4rem); margin:0; }
+  .lvt[data-th="bar"] .lvt-bar { grid-column:1; }
+  .lvt.done .lvt-box strong { animation:lvt-blink 1s ease-in-out infinite; color:#FFC83D; }
+  @keyframes lvt-blink { 50% { opacity:.55; transform:scale(1.03); } }
+  .lvt.paused .lvt-box strong { opacity:.5; }
+  .lvt.is-stream .lvt-box { transform:scale(1.6); }
+  .lvt.is-stream[data-th="bar"] .lvt-box { transform:none; font-size:1.5rem; }
+  .lvt.is-stream:not([data-bg]) { background:#14112B; }
+</style>
+
+<script>
+  import { initStream, track } from '../../party/kit';
+  const $ = (id: string) => document.getElementById(id) as HTMLElement;
+  const stage = $('stage');
+  const q = new URLSearchParams(location.search);
+  const ids = ['t', 'end', 'm', 'at', 'sub'] as const;
+  const inp = Object.fromEntries(ids.map((k) => [k, $(k) as HTMLInputElement])) as Record<(typeof ids)[number], HTMLInputElement>;
+  ids.forEach((k) => { const v = q.get(k); if (v !== null) inp[k].value = v; });
+  let th = q.get('th') || 'card';
+  const paintTh = () => { stage.dataset.th = th; $('th').querySelectorAll('button').forEach((b) => b.classList.toggle('on', (b as HTMLElement).dataset.v === th)); };
+  $('th').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { th = (b as HTMLElement).dataset.v!; paintTh(); reset(); }));
+  paintTh();
+
+  let endAt = 0, total = 1, paused = false, pausedLeft = 0;
+  function reset() {
+    const now = Date.now();
+    if (inp.at.value) {
+      const [h, mi] = inp.at.value.split(':').map(Number);
+      const d = new Date(); d.setHours(h, mi, 0, 0);
+      if (d.getTime() <= now) d.setDate(d.getDate() + 1);
+      endAt = d.getTime();
+    } else endAt = now + Math.max(1, +inp.m.value || 5) * 60000;
+    total = endAt - now; paused = false;
+    $('v-title').textContent = inp.t.value; $('v-sub').textContent = inp.sub.value;
+    buildUrl();
+  }
+  function buildUrl() {
+    const u = new URL(location.origin + location.pathname);
+    ids.forEach((k) => { if (inp[k].value) u.searchParams.set(k, inp[k].value); });
+    u.searchParams.set('th', th); u.searchParams.set('stream', '1'); u.searchParams.set('bg', 'transparent');
+    (($('url') as HTMLInputElement).value = u.toString());
+  }
+  const fmt = (ms: number) => { const s = Math.max(0, Math.ceil(ms / 1000)), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60; return (h ? `${h}:${String(m).padStart(2, '0')}` : String(m).padStart(2, '0')) + ':' + String(x).padStart(2, '0'); };
+  function tick() {
+    const left = paused ? pausedLeft : endAt - Date.now();
+    const done = left <= 0;
+    $('v-time').textContent = done ? (inp.end.value || '00:00') : fmt(left);
+    if (done && inp.end.value) $('v-title').textContent = inp.t.value;
+    ($('v-bar') as HTMLElement).style.width = `${Math.max(0, Math.min(100, (left / total) * 100))}%`;
+    stage.classList.toggle('done', done); stage.classList.toggle('paused', paused);
+  }
+  ids.forEach((k) => inp[k].addEventListener('input', reset));
+  $('copy').addEventListener('click', async (e) => { const b = e.currentTarget as HTMLElement; try { await navigator.clipboard.writeText(($('url') as HTMLInputElement).value); b.textContent = '복사했어요!'; } catch { prompt('이 주소를 복사하세요', ($('url') as HTMLInputElement).value); } setTimeout(() => { b.textContent = 'OBS 주소 복사'; }, 1600); track('live_tool_url', { tool: 'timer' }); });
+  const togglePause = () => { if (paused) { endAt = Date.now() + pausedLeft; paused = false; } else { pausedLeft = endAt - Date.now(); paused = true; } $('s-pause').textContent = paused ? '다시 시작 (Space)' : '멈춤 (Space)'; };
+  addEventListener('keydown', (e) => {
+    if (document.activeElement && ['TEXTAREA', 'INPUT'].includes(document.activeElement.tagName)) return;
+    if (e.code === 'Space') { e.preventDefault(); togglePause(); }
+    else if (e.key === 'ArrowUp') { if (paused) pausedLeft += 60000; else endAt += 60000; total += 60000; }
+    else if (e.key === 'ArrowDown') { if (paused) pausedLeft -= 60000; else endAt -= 60000; }
+    else if (e.key === 'r' || e.key === 'R') reset();
+  });
+  $('s-pause').addEventListener('click', togglePause);
+  initStream(stage, $('stream'), null, () => location.href);
+  $('s-exit').addEventListener('click', () => $('stream').click());
+  reset(); tick(); setInterval(tick, 250);
+</script>
+</BaseLayout>

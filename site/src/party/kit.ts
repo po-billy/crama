@@ -121,6 +121,8 @@ export function initStream(stage: HTMLElement, btn: HTMLElement | null, linkBtn:
   const bg = q.get('bg');
   const on = (v: boolean) => {
     document.body.classList.toggle('py-streaming', v);
+    // 투명 배경(OBS 크로마키 없이 겹치기): 무대 밖 사이트 화면을 모두 숨긴다
+    document.body.classList.toggle('py-transparent', v && bg === 'transparent');
     stage.classList.toggle('is-stream', v);
     if (bg) stage.dataset.bg = bg;
     if (btn) btn.textContent = v ? '방송 모드 끄기 (Esc)' : '방송 모드';

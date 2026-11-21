@@ -65,6 +65,10 @@
 .py-streambar button { font:inherit; font-size:0.9rem; font-weight:800; padding:10px 14px; border-radius:12px; border:0; cursor:pointer; background:rgba(255,255,255,.92); color:#1e1b3a; }
 .py-streambar button.p { background:var(--py-acc); color:#fff; }
 body.py-streaming { overflow:hidden; }
+html:has(body.py-transparent), body.py-transparent { background:transparent !important; }
+body.py-transparent * { visibility:hidden; }
+body.py-transparent .py-stage.is-stream, body.py-transparent .py-stage.is-stream * { visibility:visible; }
+body.py-transparent .py-stage.is-stream .py-streambar, body.py-transparent .py-stage.is-stream .py-streambar * { visibility:hidden; }
 
 /* 허브 */
 .py-hub { display:grid; grid-template-columns:repeat(2, 1fr); gap:14px; }

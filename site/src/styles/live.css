@@ -1,0 +1,30 @@
+/* 방송 도구(/live/*) 공용 — 접두사 lv- (party.css의 py- 무대·방송 모드를 함께 쓴다) */
+.lv-card { background:#fff; border:1px solid var(--line, #e3e0f2); border-radius:16px; padding:16px; margin-top:14px; }
+.lv-card h2 { margin:0 0 4px; font-size:1.05rem; font-weight:900; letter-spacing:-.02em; display:flex; align-items:center; gap:8px; }
+.lv-card h2 i { font-style:normal; width:22px; height:22px; border-radius:6px; background:#1E1B3A; color:#fff; font-size:.75rem; display:inline-flex; align-items:center; justify-content:center; }
+.lv-card > p { margin:0 0 10px; color:#6b6880; font-size:.86rem; line-height:1.6; }
+.lv-card textarea, .lv-card input, .lv-card select { font:inherit; font-size:.92rem; width:100%; border:1.5px solid var(--line, #e3e0f2); border-radius:12px; padding:10px 12px; background:#fff; color:#1e1b3a; box-sizing:border-box; }
+.lv-card textarea { min-height:120px; resize:vertical; line-height:1.55; }
+.lv-grid { display:grid; grid-template-columns:repeat(2, 1fr); gap:12px; }
+.lv-grid label, .lv-card label { display:flex; flex-direction:column; gap:6px; font-size:.82rem; font-weight:800; color:#4a4763; }
+.lv-full { grid-column:1 / -1; }
+.lv-sum { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 8px; }
+.lv-sum span { font-size:.8rem; font-weight:800; padding:5px 9px; border-radius:8px; background:#F2F0FC; color:#4b3fd0; }
+.lv-sum span b { color:#1E1B3A; }
+.lv-chips { display:flex; flex-wrap:wrap; gap:5px; max-height:180px; overflow:auto; padding:2px; }
+.lv-chips span { font-size:.82rem; font-weight:700; padding:5px 9px; border-radius:999px; background:#fff; border:1px solid var(--line, #e3e0f2); color:#1E1B3A; }
+.lv-chips span em { font-style:normal; color:#FF4D6D; font-weight:900; margin-left:3px; }
+.lv-chips span.won { background:#FFF9E6; border-color:#FFC83D; text-decoration:line-through; opacity:.6; }
+.lv-empty { color:#8a879c; font-size:.86rem; }
+.lv-send { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+.lv-send a, .lv-send button, .lv-btn { font:inherit; font-size:.88rem; font-weight:800; padding:10px 14px; border-radius:11px; border:1px solid var(--line, #e3e0f2); background:#fff; color:#1E1B3A; cursor:pointer; text-decoration:none; }
+.lv-send .p, .lv-btn.p { background:#1E1B3A; color:#fff; border-color:#1E1B3A; }
+.lv-url { display:flex; gap:6px; margin-top:10px; }
+.lv-url input { flex:1; font-family:ui-monospace, Consolas, monospace; font-size:.78rem; color:#4a4763; background:#FAFAFE; }
+.lv-hint { margin:8px 0 0; font-size:.8rem; color:#8a879c; line-height:1.6; }
+@media (max-width:720px) { .lv-grid { grid-template-columns:1fr; } }
+
+/* 미리보기 무대(16:9) */
+.lv-stage { aspect-ratio:16/9; display:flex; align-items:center; justify-content:center; background:#14112B; }
+.lv-stage.checker { background-color:#2a2740; background-image:linear-gradient(45deg, #34314d 25%, transparent 25%), linear-gradient(-45deg, #34314d 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #34314d 75%), linear-gradient(-45deg, transparent 75%, #34314d 75%); background-size:24px 24px; background-position:0 0, 0 12px, 12px -12px, -12px 0; }
+.lv-stage.is-stream { aspect-ratio:auto; }

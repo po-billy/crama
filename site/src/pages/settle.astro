@@ -1,0 +1,137 @@
+---
+// 모임 정산 — 여러 사람이 나눠 낸 돈을 누가 누구에게 얼마 보내면 끝나는지(최소 송금) 계산하고, 주소 하나로 단톡방에 공유한다. 서버 없음.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import '../styles/portal.css';
+
+const faq = [
+  { q: '어떻게 송금 횟수를 줄이나요?', a: '사람마다 "낸 돈 − 자기 몫"을 계산해 받을 사람과 보낼 사람으로 나눈 뒤, 가장 많이 보낼 사람이 가장 많이 받을 사람에게 먼저 보내는 방식으로 짝을 지어요. 대부분 "사람 수 − 1"번 이하로 끝나요.' },
+  { q: '술 안 마신 사람은 빼고 나눌 수 있나요?', a: '네. 항목마다 함께 나눌 사람을 고를 수 있어요. 2차에 안 간 사람, 술값에서 빠질 사람을 체크 해제하면 돼요.' },
+  { q: '공유 링크에 개인정보가 들어가나요?', a: '입력한 이름과 금액만 주소에 담겨요. 서버에 저장하지 않아서, 링크를 가진 사람만 볼 수 있어요.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title="모임 정산 계산기 — 여러 명이 나눠 낸 돈, 누가 누구에게 얼마 보낼지 (링크 공유)" description="여행·회식·MT처럼 여러 사람이 번갈아 낸 돈을 항목별로 넣으면, 누가 누구에게 얼마를 보내면 끝나는지 최소 송금으로 계산해요. 술 안 마신 사람 빼기, 단톡방 공유 링크까지." jsonLd={jsonLd}>
+  <div class="pt pt-narrow st" style="--c:#7c3aed">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/daily/">일상 계산</a> › 모임 정산</nav>
+    <header class="pt-hubhero">
+      <img src="/img/portal/g-daily.webp" alt="" width="200" height="200" />
+      <div><h1>모임 정산</h1><p>번갈아 낸 돈을 항목별로 넣으면 "누가 누구에게 얼마"만 남겨 드려요. 링크로 단톡방에 바로 공유하세요.</p></div>
+    </header>
+
+    <section class="pt-sec">
+      <h2 class="st-h">1. 함께한 사람</h2>
+      <div class="st-people" id="people"></div>
+      <div class="st-add"><input id="pname" placeholder="이름 추가" maxlength="10" /><button type="button" id="padd">추가</button></div>
+    </section>
+
+    <section class="pt-sec">
+      <h2 class="st-h">2. 쓴 돈</h2>
+      <div id="items"></div>
+      <button type="button" class="st-more" id="iadd">+ 항목 추가</button>
+    </section>
+
+    <section class="pt-sec st-out" id="out">
+      <h2 class="st-h">3. 이렇게 보내면 끝</h2>
+      <ol class="st-tx" id="tx"></ol>
+      <div class="st-sum" id="sum"></div>
+      <div class="st-btns"><button type="button" class="p" id="share">링크로 공유</button><button type="button" id="copy">송금 목록 복사</button></div>
+    </section>
+
+    <section class="pt-sec pt-prose">
+      <h2>자주 묻는 질문</h2>
+      {faq.map((f) => <><h3>{f.q}</h3><p>{f.a}</p></>)}
+      <p><a href="/calc/dutch-pay/">한 번에 낸 돈을 똑같이 나누기만 하면 → 더치페이 계산기</a> · <a href="/party/pay/">한 명 몰아주기 게임</a></p>
+    </section>
+  </div>
+
+  <style>
+    .st-h { font-size:1.05rem; font-weight:900; margin:0 0 10px; }
+    .st-people { display:flex; flex-wrap:wrap; gap:6px; }
+    .st-people span { display:inline-flex; align-items:center; gap:6px; padding:7px 10px; border-radius:999px; background:#F5F3FF; color:#5B21B6; font-weight:800; font-size:.9rem; }
+    .st-people button { border:0; background:none; color:#A78BFA; cursor:pointer; font-size:1rem; padding:0; }
+    .st-add { display:flex; gap:6px; margin-top:8px; }
+    .st-add input, .st-item input, .st-item select { font:inherit; font-size:.95rem; padding:10px; border:1.5px solid var(--line, #e5e7eb); border-radius:10px; background:#fff; color:#0F172A; min-width:0; }
+    .st-add input { flex:1; }
+    .st-add button, .st-more, .st-btns button { font:inherit; font-weight:800; padding:10px 14px; border-radius:10px; border:1px solid var(--line, #e5e7eb); background:#fff; cursor:pointer; }
+    .st-item { border:1px solid var(--line, #e5e7eb); border-radius:12px; padding:10px; margin-bottom:8px; background:#fff; display:grid; grid-template-columns:1.2fr 1fr 1fr auto; gap:6px; align-items:center; }
+    .st-item .who { grid-column:1 / -1; display:flex; flex-wrap:wrap; gap:4px; font-size:.82rem; }
+    .st-item .who label { display:inline-flex; align-items:center; gap:3px; padding:4px 8px; border-radius:8px; background:#F8FAFC; cursor:pointer; }
+    .st-item .del { border:0; background:none; color:#94A3B8; font-size:1.1rem; cursor:pointer; }
+    .st-more { width:100%; border-style:dashed; color:#6D28D9; }
+    .st-tx { list-style:none; margin:0; padding:0; display:grid; gap:6px; }
+    .st-tx li { display:flex; align-items:center; gap:8px; padding:12px 14px; border-radius:12px; background:#F5F3FF; font-weight:800; }
+    .st-tx li b { color:#6D28D9; margin-left:auto; font-variant-numeric:tabular-nums; }
+    .st-sum { font-size:.86rem; color:#475569; margin:10px 0; line-height:1.6; }
+    .st-btns { display:flex; gap:8px; }
+    .st-btns .p { background:#7C3AED; color:#fff; border-color:#7C3AED; }
+    @media (max-width:560px) { .st-item { grid-template-columns:1fr 1fr; } .st-item .del { justify-self:end; } }
+  </style>
+
+  <script>
+    type Item = { n: string; a: number; p: number; w: number[] }; // 이름, 금액, 낸 사람 index, 나눌 사람 index 목록
+    let people: string[] = ['나', '민수', '지영'];
+    let items: Item[] = [{ n: '숙소', a: 240000, p: 0, w: [0, 1, 2] }, { n: '저녁·술', a: 96000, p: 1, w: [0, 1, 2] }, { n: '택시', a: 18000, p: 2, w: [0, 2] }];
+    // 공유 링크: ?s=이름1,이름2|항목~금액~낸사람~나눌사람(.구분)|...
+    const s = new URLSearchParams(location.search).get('s');
+    if (s) { try { const [ps, ...its] = s.split('|'); const pp = ps.split(',').map((x) => decodeURIComponent(x).slice(0, 10)).filter(Boolean); if (pp.length >= 2) { people = pp.slice(0, 20); items = its.map((x) => { const [n, a, p, w] = x.split('~'); return { n: decodeURIComponent(n).slice(0, 20), a: Math.max(0, +a || 0), p: Math.min(people.length - 1, +p || 0), w: (w || '').split('.').map(Number).filter((i) => i >= 0 && i < people.length) }; }).slice(0, 30); } } catch { /* 무시 */ } }
+    const $ = (id: string) => document.getElementById(id) as HTMLElement;
+    const esc = (t: string) => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
+    const won = (n: number) => Math.round(n).toLocaleString('ko-KR');
+
+    function settle() {
+      const bal = people.map(() => 0);
+      for (const it of items) { if (!it.w.length || !it.a) continue; bal[it.p] += it.a; const share = it.a / it.w.length; it.w.forEach((i) => { bal[i] -= share; }); }
+      const cred = bal.map((v, i) => ({ i, v })).filter((x) => x.v > 0.5).sort((a, b) => b.v - a.v);
+      const debt = bal.map((v, i) => ({ i, v: -v })).filter((x) => x.v > 0.5).sort((a, b) => b.v - a.v);
+      const tx: { f: number; t: number; a: number }[] = [];
+      let ci = 0, di = 0;
+      while (ci < cred.length && di < debt.length) {
+        const a = Math.min(cred[ci].v, debt[di].v);
+        tx.push({ f: debt[di].i, t: cred[ci].i, a: Math.round(a / 10) * 10 });
+        cred[ci].v -= a; debt[di].v -= a;
+        if (cred[ci].v < 0.5) ci++; if (debt[di].v < 0.5) di++;
+      }
+      return { tx, total: items.reduce((x, it) => x + it.a, 0), bal };
+    }
+    function paint() {
+      $('people').innerHTML = people.map((p, i) => `<span>${esc(p)}${people.length > 2 ? `<button type="button" data-pdel="${i}" aria-label="빼기">×</button>` : ''}</span>`).join('');
+      $('items').innerHTML = items.map((it, k) => `<div class="st-item" data-k="${k}">
+        <input data-f="n" value="${esc(it.n)}" maxlength="20" aria-label="항목" />
+        <input data-f="a" inputmode="numeric" value="${it.a}" aria-label="금액(원)" />
+        <select data-f="p" aria-label="낸 사람">${people.map((p, i) => `<option value="${i}"${i === it.p ? ' selected' : ''}>${esc(p)} 냄</option>`).join('')}</select>
+        <button type="button" class="del" data-del aria-label="삭제">×</button>
+        <div class="who">나눌 사람: ${people.map((p, i) => `<label><input type="checkbox" data-w="${i}"${it.w.includes(i) ? ' checked' : ''} />${esc(p)}</label>`).join('')}</div></div>`).join('');
+      result();
+    }
+    let last = '';
+    function result() {
+      const r = settle();
+      $('tx').innerHTML = r.tx.length ? r.tx.map((t) => `<li>${esc(people[t.f])} → ${esc(people[t.t])}<b>${won(t.a)}원</b></li>`).join('') : '<li>보낼 돈이 없어요 👍</li>';
+      $('sum').textContent = `총 ${won(r.total)}원 · 1인 평균 ${won(r.total / people.length)}원 · 송금 ${r.tx.length}번이면 끝`;
+      last = `[모임 정산] 총 ${won(r.total)}원\n` + r.tx.map((t) => `${people[t.f]} → ${people[t.t]} ${won(t.a)}원`).join('\n');
+    }
+    $('items').addEventListener('input', (e) => {
+      const el = e.target as HTMLInputElement; const k = +(el.closest('.st-item') as HTMLElement).dataset.k!; const it = items[k];
+      if (el.dataset.f === 'n') it.n = el.value; else if (el.dataset.f === 'a') it.a = +el.value.replace(/[^0-9]/g, '') || 0; else if (el.dataset.f === 'p') it.p = +el.value;
+      else if (el.dataset.w !== undefined) { const i = +el.dataset.w; it.w = el.checked ? [...new Set([...it.w, i])] : it.w.filter((x) => x !== i); }
+      result();
+    });
+    $('items').addEventListener('click', (e) => { const b = (e.target as HTMLElement).closest('[data-del]'); if (!b) return; items.splice(+(b.closest('.st-item') as HTMLElement).dataset.k!, 1); paint(); });
+    $('people').addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest('[data-pdel]') as HTMLElement; if (!b) return; const i = +b.dataset.pdel!;
+      people.splice(i, 1); items = items.map((it) => ({ ...it, p: it.p === i ? 0 : it.p > i ? it.p - 1 : it.p, w: it.w.filter((x) => x !== i).map((x) => (x > i ? x - 1 : x)) })); paint();
+    });
+    const addP = () => { const v = ($('pname') as HTMLInputElement).value.trim(); if (!v || people.length >= 20) return; people.push(v.slice(0, 10)); items.forEach((it) => it.w.push(people.length - 1)); ($('pname') as HTMLInputElement).value = ''; paint(); };
+    $('padd').addEventListener('click', addP); $('pname').addEventListener('keydown', (e) => { if ((e as KeyboardEvent).key === 'Enter') addP(); });
+    $('iadd').addEventListener('click', () => { if (items.length >= 30) return; items.push({ n: '항목', a: 0, p: 0, w: people.map((_, i) => i) }); paint(); });
+    $('share').addEventListener('click', async (e) => {
+      const q = people.map(encodeURIComponent).join(',') + '|' + items.map((it) => `${encodeURIComponent(it.n)}~${it.a}~${it.p}~${it.w.join('.')}`).join('|');
+      const url = `${location.origin}/settle/?s=${q}`; const b = e.currentTarget as HTMLElement;
+      try { if ((navigator as any).share) { await navigator.share({ title: '모임 정산', text: last, url }); return; } await navigator.clipboard.writeText(`${last}\n${url}`); b.textContent = '복사했어요!'; } catch { prompt('이 주소를 복사하세요', url); }
+      setTimeout(() => { b.textContent = '링크로 공유'; }, 1600);
+      try { (window as any).gtag?.('event', 'settle_share', { people: people.length, items: items.length }); } catch { /* 무시 */ }
+    });
+    $('copy').addEventListener('click', async (e) => { const b = e.currentTarget as HTMLElement; try { await navigator.clipboard.writeText(last); b.textContent = '복사했어요!'; } catch { prompt('복사하세요', last); } setTimeout(() => { b.textContent = '송금 목록 복사'; }, 1600); });
+    paint();
+  </script>
+</BaseLayout>

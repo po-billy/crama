@@ -258,6 +258,7 @@ export const MENU: MenuTab[] = [
           { name: '할인 계산기', href: '/calc/discount/', desc: '할인가와 실제 할인율' },
           { name: '2026 소비 영수증', href: '/year-receipt/', desc: '커피·배달·택시, 1년에 얼마 썼을까' },
           { name: '경조사비 계산기', href: '/gift-money/', desc: '축의금·조의금, 관계별 얼마' },
+          { name: '모임 정산', href: '/settle/', desc: '여럿이 나눠 낸 돈, 누가 누구에게 얼마' },
           { name: '더치페이 계산기', href: '/calc/dutch-pay/', desc: '1인당 얼마씩, 깔끔하게 정산' },
           { name: '학점 계산기', href: '/calc/gpa/', desc: '4.5·4.3 만점 평점 평균' },
           { name: '날짜 계산기', href: '/calc/date-add/', desc: '며칠 후·몇 개월 후 날짜와 요일' },

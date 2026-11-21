@@ -11,6 +11,8 @@ const STYLE =
   'no text, no words, no letters, no numbers, no people faces';
 
 const COVERS = {
+  party: { subject: 'three shiny colorful glass marbles rolling down a small curved track, a tiny checkered finish flag, and a little round bomb toy with a short fuse', bg: 'soft pastel lavender background' },
+  live: { subject: 'a small retro streaming camera with a red recording light, a round microphone on a short stand, and a small round countdown stopwatch, no logos', bg: 'soft pastel coral pink background' },
   mom: { subject: 'a cute pastel pink baby bottle, a small folded baby onesie, and a calendar card with a heart mark', bg: 'soft pastel pink background' },
 };
 

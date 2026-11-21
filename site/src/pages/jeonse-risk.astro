@@ -1,0 +1,115 @@
+---
+// 전세 위험도 자가진단 — 집값·보증금·선순위 채권으로 전세가율과 '깡통전세' 위험, HUG 반환보증 기본 요건(담보인정 90%·보증금 한도)을 점검한다.
+// 등기부를 읽지 않고 사용자가 넣은 숫자로만 계산(서버 전송 없음). 최종 판단은 등기부·HUG 심사로.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import '../styles/portal.css';
+
+const faq = [
+  { q: '깡통전세는 무엇인가요?', a: '집값에 비해 전세보증금과 집에 걸린 빚(근저당 등)이 너무 많아, 집을 팔아도 보증금을 다 돌려받기 어려운 전세를 말합니다. 보통 보증금과 선순위 채권을 합한 금액이 집값의 70~80%를 넘으면 위험하다고 봅니다.' },
+  { q: '전세보증보험(HUG) 가입 기준은?', a: '기본적으로 전세보증금과 선순위 채권을 합한 금액이 주택가격의 90% 이내여야 하고, 보증금이 수도권 7억원·그 밖의 지역 5억원 이하여야 합니다. 빌라·다세대 등은 공시가격의 126%를 주택가격으로 보는 경우가 많습니다. 세부 요건과 예외는 HUG에서 확인하세요.' },
+  { q: '선순위 채권은 어디서 보나요?', a: '등기부등본 을구에 적힌 근저당권의 "채권최고액"을 모두 더하면 됩니다. 다가구주택이라면 나보다 먼저 들어온 세입자들의 보증금도 선순위로 넣어야 합니다.' },
+  { q: '입력한 숫자는 저장되나요?', a: '아니요. 이 화면에서만 계산하고 어디에도 보내거나 저장하지 않습니다.' },
+];
+const jsonLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+---
+<BaseLayout title="전세 위험도 계산기 — 깡통전세·전세가율·전세보증보험 가입 가능 자가진단" description="집값, 전세보증금, 근저당(채권최고액)만 넣으면 전세가율과 깡통전세 위험 구간, HUG 전세보증금 반환보증의 기본 요건(담보인정 90%·보증금 한도)을 바로 점검합니다. 계약 전 체크리스트까지." jsonLd={jsonLd}>
+  <div class="pt pt-narrow" style="--c:#b45309">
+    <nav class="pt-crumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/hub/home-car/">집·자동차</a> › 전세 위험도 자가진단</nav>
+    <header class="pt-hubhero">
+      <img src="/img/portal/g-home-car.webp" alt="" width="200" height="200" />
+      <div><h1>전세 위험도 자가진단</h1><p>계약 전에 집값·보증금·근저당을 넣어 보세요. 깡통전세 위험과 전세보증보험 기본 요건을 점검해요.</p></div>
+    </header>
+
+    <section class="pt-sec">
+      <div class="tl-card">
+        <div class="tl-quick" id="type"><button type="button" data-v="apt" class="is-on">아파트·오피스텔(시세)</button><button type="button" data-v="villa">빌라·다세대·단독(공시가격)</button></div>
+        <div class="tl-row">
+          <label class="tl-field"><span id="price-l">집 시세 (만원)</span><input id="price" type="number" inputmode="numeric" placeholder="예: 30000" /></label>
+          <label class="tl-field">내 전세보증금 (만원)<input id="dep" type="number" inputmode="numeric" placeholder="예: 22000" /></label>
+        </div>
+        <div class="tl-row">
+          <label class="tl-field">근저당 채권최고액 합계 (만원, 없으면 0)<input id="loan" type="number" inputmode="numeric" placeholder="등기부 을구" value="0" /></label>
+          <label class="tl-field">먼저 들어온 세입자 보증금 (다가구, 만원)<input id="prior" type="number" inputmode="numeric" value="0" /></label>
+        </div>
+        <div class="tl-row">
+          <label class="tl-field">지역<select id="area"><option value="cap">수도권(서울·경기·인천)</option><option value="etc">그 밖의 지역</option></select></label>
+        </div>
+        <button type="button" class="tl-btn" id="go">위험도 점검하기</button>
+      </div>
+
+      <div class="tl-result" id="res" hidden aria-live="polite">
+        <div class="tl-result__label" id="r-l"></div>
+        <div class="tl-result__big" id="r-b"></div>
+        <div class="tl-result__sub" id="r-s"></div>
+      </div>
+      <div class="jr-gauge" id="gauge" hidden><i id="gfill"></i><span style="left:60%">60</span><span style="left:70%">70</span><span style="left:80%">80</span><span style="left:90%">90%</span></div>
+      <ul class="jr-checks" id="checks" hidden></ul>
+      <p class="pp-note">※ 입력한 숫자로만 계산한 참고용 점검이에요. 실제 위험과 보증 가입 여부는 등기부등본, 건축물대장, 임대인 세금 체납 여부, HUG·HF·SGI 심사에 따라 달라져요.</p>
+    </section>
+
+    <section class="pt-sec">
+      <div class="pt-sec__head"><div><h2>계약 전에 꼭 확인할 것</h2></div></div>
+      <ol style="line-height:1.85;color:#334155;padding-left:1.2rem;margin:0">
+        <li><b>등기부등본</b>: 갑구에 압류·가압류·경매 기록이 없는지, 을구 근저당 채권최고액이 얼마인지. 잔금 날 다시 한 번 떼어 보세요.</li>
+        <li><b>집주인 세금 체납</b>: 미납 국세·지방세는 보증금보다 먼저 빠져나갈 수 있어요. 계약 전 열람을 요청하세요.</li>
+        <li><b>시세 확인</b>: 아파트는 실거래가, 빌라는 공시가격과 주변 매매가를 함께 보세요.</li>
+        <li><b>전입신고와 확정일자</b>: 이사 당일 함께 해 두면 다음 날부터 대항력이 생겨요.</li>
+        <li><b>전세보증보험</b>: 계약기간의 절반이 지나기 전에 가입해야 해요.</li>
+      </ol>
+      <div class="pt-chips" style="margin-top:12px">
+        <a class="pt-chip" href="/realty-fee/">중개보수 계산</a>
+        <a class="pt-chip" href="/moving-day/">손없는 날 달력</a>
+        <a class="pt-chip" href="/tools/jeonse-wolse-calculator/">전월세 전환 계산</a>
+      </div>
+    </section>
+
+    <section class="pt-sec pt-prose">
+      <h2>자주 묻는 질문</h2>
+      {faq.map((f) => <><h3>{f.q}</h3><p>{f.a}</p></>)}
+    </section>
+  </div>
+
+  <style>
+    .jr-gauge { position:relative; height:16px; margin:22px 0 28px; border-radius:99px; background:linear-gradient(90deg, #86EFAC 0 60%, #FDE68A 60% 70%, #FDBA74 70% 80%, #FCA5A5 80% 90%, #F87171 90% 100%); }
+    .jr-gauge[hidden], .jr-checks[hidden] { display:none; }
+    .jr-gauge i { position:absolute; top:-6px; width:4px; height:28px; background:#0F172A; border-radius:2px; transform:translateX(-50%); }
+    .jr-gauge span { position:absolute; top:20px; transform:translateX(-50%); font-size:.72rem; color:#64748B; font-weight:700; }
+    .jr-checks { list-style:none; padding:0; margin:0; display:grid; gap:6px; }
+    .jr-checks li { padding:10px 12px; border-radius:10px; font-size:.9rem; line-height:1.5; }
+    .jr-checks li.ok { background:#F0FDF4; color:#166534; } .jr-checks li.no { background:#FEF2F2; color:#991B1B; } .jr-checks li.mid { background:#FFFBEB; color:#92400E; }
+  </style>
+
+  <script>
+    const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
+    let type: 'apt' | 'villa' = 'apt';
+    document.querySelectorAll<HTMLElement>('#type button').forEach((b) => b.addEventListener('click', () => {
+      document.querySelectorAll('#type button').forEach((x) => x.classList.remove('is-on')); b.classList.add('is-on');
+      type = b.dataset.v as 'apt' | 'villa';
+      (document.getElementById('price-l') as HTMLElement).textContent = type === 'apt' ? '집 시세 (만원)' : '공시가격 (만원)';
+    }));
+    const man = (n: number) => (n >= 10000 ? `${Math.floor(n / 10000)}억${n % 10000 ? ' ' + Math.round(n % 10000).toLocaleString('ko-KR') + '만' : ''}원` : `${Math.round(n).toLocaleString('ko-KR')}만원`);
+    $('go').addEventListener('click', () => {
+      const raw = +$('price').value || 0, dep = +$('dep').value || 0, loan = +$('loan').value || 0, prior = +$('prior').value || 0;
+      if (!raw || !dep) { alert('집값과 보증금을 넣어 주세요.'); return; }
+      const price = type === 'apt' ? raw : raw * 1.26;
+      const jr = (dep / price) * 100;
+      const debt = ((dep + loan + prior) / price) * 100;
+      const band = debt <= 60 ? ['비교적 안전', '#16A34A'] : debt <= 70 ? ['보통', '#65A30D'] : debt <= 80 ? ['주의', '#D97706'] : debt <= 90 ? ['위험', '#EA580C'] : ['깡통전세 위험 높음', '#DC2626'];
+      (document.getElementById('r-l') as HTMLElement).textContent = `보증금+선순위 채권 ÷ 주택가격${type === 'villa' ? ' (공시가격×126%)' : ''}`;
+      const big = document.getElementById('r-b') as HTMLElement; big.textContent = `${debt.toFixed(1)}% · ${band[0]}`; big.style.color = band[1];
+      (document.getElementById('r-s') as HTMLElement).textContent = `주택가격 ${man(price)} · 전세가율(보증금만) ${jr.toFixed(1)}% · 집을 팔았을 때 남는 여유 ${man(Math.max(0, price - dep - loan - prior))}`;
+      (document.getElementById('gfill') as HTMLElement).style.left = `${Math.min(100, debt)}%`;
+      const cap = $('area').value === 'cap' ? 70000 : 50000;
+      const room = price * 0.9 - loan - prior;
+      const items = [
+        { c: debt <= 90 ? 'ok' : 'no', t: debt <= 90 ? `보증금과 선순위 채권 합계가 주택가격의 90% 이내예요(${debt.toFixed(1)}%). 전세보증보험 기본 요건을 충족할 가능성이 있어요.` : `보증금과 선순위 채권 합계가 주택가격의 90%를 넘어요(${debt.toFixed(1)}%). 전세보증보험 가입이 어려울 수 있어요.` },
+        { c: dep <= cap ? 'ok' : 'no', t: dep <= cap ? `보증금이 ${$('area').value === 'cap' ? '수도권 7억' : '지방 5억'}원 한도 안이에요.` : `보증금이 ${$('area').value === 'cap' ? '수도권 7억' : '지방 5억'}원 한도를 넘어요.` },
+        { c: room >= dep ? 'ok' : 'mid', t: room > 0 ? `90% 기준으로 계산하면 보증받을 수 있는 보증금은 최대 약 ${man(room)}이에요.` : '선순위 채권이 이미 주택가격의 90%를 넘어 보증받을 여유가 없어요.' },
+        { c: loan === 0 ? 'ok' : loan / price <= 0.3 ? 'mid' : 'no', t: loan === 0 ? '입력한 근저당이 없어요. 잔금 날 등기부를 다시 확인하세요.' : `근저당이 주택가격의 ${((loan / price) * 100).toFixed(0)}%예요. 잔금 때 일부를 갚고 말소하는 특약을 고려해 보세요.` },
+      ];
+      (document.getElementById('checks') as HTMLElement).innerHTML = items.map((i) => `<li class="${i.c}">${i.c === 'ok' ? '✅' : i.c === 'no' ? '⛔' : '⚠️'} ${i.t}</li>`).join('');
+      ['res', 'gauge', 'checks'].forEach((id) => { (document.getElementById(id) as HTMLElement).hidden = false; });
+      try { (window as any).gtag?.('event', 'jeonse_risk', { band: band[0], type }); } catch { /* 무시 */ }
+    });
+  </script>
+</BaseLayout>

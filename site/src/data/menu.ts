@@ -227,6 +227,7 @@ export const MENU: MenuTab[] = [
         slug: 'home-car', name: '집·자동차', icon: 'home', color: '#a855f7',
         desc: '전월세, 취득세, 자동차세',
         items: [
+          { name: '전세 위험도 자가진단', href: '/jeonse-risk/', desc: '깡통전세·전세보증보험 가입 점검' },
           { name: '전월세 전환', href: '/tools/jeonse-wolse-calculator/' },
           { name: '평수 변환', href: '/tools/pyeong-converter/' },
           { name: 'LTV 계산기', href: '/tools/ltv-calculator/' },

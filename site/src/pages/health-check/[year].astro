@@ -2,6 +2,7 @@
 // 출생연도별 건강검진 — 올해 대상이면 올해 기준, 아니면 다음 대상 연도(홀수년생은 2027년) 기준으로 보여 준다.
 // 계산은 lib/checkup.ts. 11월부터 홀수년생이 내년 검진을 미리 찾는 검색이 많아 '다음 대상 연도'를 앞에 둔다.
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import AnswerSlot from '../../components/AnswerSlot.astro';
 import { CHECK_YEAR, YEAR_FROM, YEAR_TO, checkAge, isTargetYear, nextTargetYear, extrasFor, cancersFor, ageHeadline, short, parity, BASIC_ITEMS, AGE_FROM, AGE_TO } from '../../lib/checkup';
 import { BORN_FROM, BORN_TO } from '../../lib/people';
 
@@ -71,6 +72,8 @@ const inBorn = year >= BORN_FROM && year <= BORN_TO;
         ? <em>12월 31일까지 받으면 됩니다 — 연말엔 예약이 몰려요</em>
         : <em>{focusYear}년 초 검진 대상이 확정되면 바로 받을 수 있어요{tooYoung ? ' — 첫 국가건강검진이에요' : ''}</em>}
     </div>
+
+    <AnswerSlot zone="health" />
 
     <section class="hc-sec">
       <h2>{focusYear}년에 받는 국가암검진 {cancers.length}종</h2>

@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import AnswerSlot from '../../components/AnswerSlot.astro';
 import { computeSalary, salaryAmounts, RATE_BASIS, fmt, fmtMan } from '../../lib/salary';
 import { salaryTopPct } from '../../lib/salary-rank';
 
@@ -77,6 +78,7 @@ const jsonLd = {
           <div><dt>연 실수령액</dt><dd>{fmt(s.annualNet)}원</dd></div>
         </dl>
       </div>
+      <div style="margin-top:14px"><AnswerSlot zone="salary" /></div>
       <button type="button" class="sal-reg" id="sal-reg" data-man={man} hidden>연봉 {manLabel}원을 내 정보로 저장 → 실업급여·혜택 매칭에 자동 사용</button>
 
       <div class="sal-rank">

@@ -2,6 +2,7 @@
 // 나이별 건강검진 — "42세 건강검진", "50세 무료 암검진"처럼 나이로 찾는 검색을 받는다.
 // 2년 주기 검진은 출생연도와 검진 연도의 짝·홀이 같을 때라 검진 나이는 항상 짝수가 된다. 홀수 나이는 매년 받는 검진(대장암·비사무직)만 해당.
 import BaseLayout from '../../../layouts/BaseLayout.astro';
+import AnswerSlot from '../../../components/AnswerSlot.astro';
 import { CHECK_YEAR, NEXT_YEAR, AGE_FROM, AGE_TO, YEAR_FROM, YEAR_TO, extrasFor, cancersFor, ageHeadline, short, BASIC_ITEMS } from '../../../lib/checkup';
 
 export function getStaticPaths() {
@@ -45,6 +46,8 @@ const yLink = (y: number) => (y >= YEAR_FROM && y <= YEAR_TO ? `/health-check/${
       <b>{even ? `✅ ${age}세는 검진 받는 나이예요` : `⏸ ${age}세는 2년 주기 검진이 쉬는 나이예요`}</b>
       <span>{even ? head : `직전 ${age - 1}세, 다음 ${age + 1}세에 받아요 · 비사무직 직장가입자는 매년`}</span>
     </div>
+
+    <AnswerSlot zone="health" />
 
     <section class="hc-sec">
       <h2>{age}세는 몇 년생?</h2>

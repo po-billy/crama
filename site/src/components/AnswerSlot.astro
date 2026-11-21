@@ -1,0 +1,74 @@
+---
+// 크라마 앤서 광고 자리 — 결과 바로 아래에 둔다. 광고는 src/data/answer-ads.ts.
+// 지역은 방문자가 고른 시·도(localStorage crama:region)만 쓰고, 서버로 보내지 않는다.
+import { ANSWER_ADS, HOUSE, SIDO, type AnswerAd } from '../data/answer-ads';
+
+interface Props { zone: AnswerAd['zone']; region?: boolean }
+const { zone, region = zone === 'health' } = Astro.props;
+const ads = ANSWER_ADS.filter((a) => a.zone === zone);
+const house = HOUSE[zone];
+---
+<div class="as-slot" data-zone={zone} data-region={region ? '1' : ''}>
+  {region && (
+    <label class="as-region">
+      <span>📍 우리 지역</span>
+      <select aria-label="우리 지역(시·도) 고르기">
+        <option value="">고르기</option>
+        {SIDO.map((s) => <option value={s}>{s}</option>)}
+      </select>
+    </label>
+  )}
+  <div class="as-box"></div>
+</div>
+<script is:inline define:vars={{ ads, house, zone }}>
+  (() => {
+    const slots = document.querySelectorAll(`.as-slot[data-zone="${zone}"]`);
+    const today = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
+    const live = ads.filter((a) => a.start <= today && today <= a.end);
+    const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const getRegion = () => { try { return localStorage.getItem('crama:region') || ''; } catch { return ''; } };
+    const ga = (n, p) => { try { window.gtag && gtag('event', n, p); } catch {} };
+    const utm = (href, id) => { try { const u = new URL(href, location.origin); u.searchParams.set('utm_source', 'crama'); u.searchParams.set('utm_medium', 'answer'); u.searchParams.set('utm_campaign', id); return u.toString(); } catch { return href; } };
+    const render = (slot) => {
+      const region = getRegion();
+      const box = slot.querySelector('.as-box');
+      const sel = slot.querySelector('select'); if (sel) sel.value = region;
+      const ad = live.find((a) => a.regions !== '*' && region && a.regions.includes(region)) || live.find((a) => a.regions === '*');
+      if (ad) {
+        const lines = esc(ad.title).split('\n').join('<br>');
+        box.innerHTML = `<a class="as-ad" href="${esc(utm(ad.href, ad.id))}" target="_blank" rel="sponsored noopener" style="--as-bg:${esc(ad.bg || '#EEF0FF')};--as-ac:${esc(ad.accent || '#6C5CE7')}">${ad.img ? `<img src="${esc(ad.img)}" alt="" loading="lazy">` : ''}<span class="as-tag">광고</span><span class="as-txt"><small>${esc(ad.brand)}</small><b>${lines}</b><em>${esc(ad.cta)} ›</em></span></a>`;
+        box.querySelector('a').addEventListener('click', () => ga('answer_ad_click', { zone, ad: ad.id, region }));
+        ga('answer_ad_view', { zone, ad: ad.id, region });
+      } else {
+        const href = `${house.href}${house.href.includes('?') ? '&' : '?'}utm_source=crama&utm_medium=house&utm_campaign=${zone}-slot`;
+        box.innerHTML = `<a class="as-house" href="${esc(href)}"><small>${esc(house.label)}</small><b>${esc(house.title.replace('{region}', region || '우리 지역'))}</b><span>${esc(house.sub)}</span><em>크라마 앤서 알아보기 →</em></a>`;
+        box.querySelector('a').addEventListener('click', () => ga('answer_house_click', { zone, region }));
+      }
+    };
+    slots.forEach((slot) => {
+      render(slot);
+      slot.querySelector('select')?.addEventListener('change', (e) => {
+        try { localStorage.setItem('crama:region', e.target.value); } catch {}
+        ga('answer_region', { region: e.target.value });
+        document.querySelectorAll('.as-slot').forEach(render);
+      });
+    });
+  })();
+</script>
+<style is:global>
+  .as-slot { margin: 0 0 1.4rem; }
+  .as-region { display: flex; align-items: center; gap: 8px; justify-content: flex-end; margin: 0 0 8px; font-size: 0.82rem; font-weight: 700; color: var(--muted, #6b6880); }
+  .as-region select { font: inherit; font-size: 0.82rem; padding: 4px 8px; border-radius: 8px; border: 1px solid var(--line, #e3e0f2); background: var(--paper, #fff); color: inherit; }
+  .as-ad { position: relative; display: block; min-height: 118px; border-radius: 14px; overflow: hidden; background: var(--as-bg); text-decoration: none; }
+  .as-ad img { position: absolute; right: 0; top: 0; width: 50%; height: 100%; object-fit: cover; -webkit-mask-image: linear-gradient(90deg, transparent, #000 45%); mask-image: linear-gradient(90deg, transparent, #000 45%); }
+  .as-tag { position: absolute; right: 8px; top: 8px; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: rgba(0, 0, 0, .45); color: #fff; }
+  .as-txt { position: relative; display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; max-width: 64%; }
+  .as-txt small { font-size: 0.75rem; font-weight: 700; color: #33414f; }
+  .as-txt b { font-size: 1.08rem; line-height: 1.3; font-weight: 800; color: #14212b; letter-spacing: -0.03em; }
+  .as-txt em { align-self: flex-start; font-style: normal; font-size: 0.78rem; font-weight: 800; color: #fff; background: var(--as-ac); border-radius: 20px; padding: 5px 11px; }
+  .as-house { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border-radius: 14px; border: 1.5px dashed color-mix(in srgb, #6C5CE7 45%, transparent); background: color-mix(in srgb, #6C5CE7 5%, var(--paper, #fff)); text-decoration: none; }
+  .as-house small { font-size: 0.7rem; font-weight: 800; letter-spacing: 0.06em; color: #6C5CE7; }
+  .as-house b { font-size: 0.95rem; font-weight: 800; color: var(--ink, #1e1b3a); }
+  .as-house span { font-size: 0.82rem; line-height: 1.55; color: var(--muted, #6b6880); }
+  .as-house em { font-style: normal; font-size: 0.8rem; font-weight: 800; color: #6C5CE7; margin-top: 2px; }
+</style>

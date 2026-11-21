@@ -304,3 +304,12 @@
   .an-band-btns .an-btn { flex:1; }
   .an-pd-btns .an-btn { flex:1; }
 }
+
+/* 지역별 파트너 현황 */
+.an-sido { display:grid; grid-template-columns:repeat(6, 1fr); gap:8px; }
+.an-sido a { display:flex; flex-direction:column; gap:2px; padding:12px; border-radius:12px; border:1.5px solid var(--accent); background:#fff; color:var(--ink); }
+.an-sido b { font-size:15px; font-weight:800; }
+.an-sido span { font-size:12px; font-weight:800; color:var(--accent); }
+.an-sido a.taken { border-color:var(--line); background:var(--paper2); }
+.an-sido a.taken span { color:var(--muted); }
+@media (max-width:860px) { .an-sido { grid-template-columns:repeat(3, 1fr); } }
